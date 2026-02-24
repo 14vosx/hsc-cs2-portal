@@ -1,0 +1,143 @@
+/* Layout do match, sem brigar com base.css */
+.match-page .page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.match-page .hero {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.match-page .hero h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: 0.02em;
+}
+
+.match-page .hero-subline {
+  margin-top: 6px;
+}
+
+.match-page .kpis {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.match-page .kpi {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.match-page .kpi .label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
+.match-page .kpi .value {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.match-page .card {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.match-page .row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.match-page .error {
+  padding: 14px;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 12px;
+  background: rgba(255, 0, 0, 0.06);
+}
+
+/* Pills do subheader */
+.match-page .pill-soft {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.match-page .pill-score {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--tactical-green);
+  background: rgba(75, 83, 50, 0.15);
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+
+/* Map header (nome + score + map #) */
+.match-page .map-name {
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
+.match-page .map-score {
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--tactical-green);
+  background: rgba(75, 83, 50, 0.18);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  display: inline-block;
+  transform: translateY(1px);
+}
+
+.match-page .map-index {
+  font-size: 12px;
+  opacity: 0.6;
+  display: inline-block;
+  transform: translateY(1px);
+}
+
+/* Winner pill */
+.match-page .map-winner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+  transform: translateY(1px);
+}
+
+.match-page .map-winner strong {
+  color: var(--tactical-green);
+  font-weight: 900;
+}

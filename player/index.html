@@ -1,0 +1,79 @@
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HSC — Dossier do Operador</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/tables.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/pages/player.css" />
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <a href="../" class="back-link">← Retornar ao QG</a>
+
+      <div id="status">Sincronizando...</div>
+
+      <div id="header" class="player-header" style="display: none">
+        <div>
+          <h1 id="pname"></h1>
+          <span class="mono" id="psid"></span>
+        </div>
+        <div style="text-align: right">
+          <div class="muted">
+            Status: <span style="color: var(--win)">OPERACIONAL</span>
+          </div>
+          <div class="muted">Último Relatório: <span id="pgen"></span></div>
+        </div>
+      </div>
+
+      <h2>Performance Vitalícia (Lifetime)</h2>
+      <div id="lifetime" class="row"></div>
+
+      <h2>Domínio de Terreno (Maps)</h2>
+      <div class="table-card">
+        <table id="byMapTable">
+          <thead>
+            <tr>
+              <th>Mapa</th>
+              <th>Rounds</th>
+              <th>V-D</th>
+              <th>KD</th>
+              <th>ADR</th>
+              <th>HS%</th>
+              <th>Entry%</th>
+              <th>Acurácia</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h2>Operações Recentes</h2>
+      <div class="table-card">
+        <table id="recentTable">
+          <thead>
+            <tr>
+              <th>Data do Log</th>
+              <th>Mapa</th>
+              <th>Placar</th>
+              <th>Resultado</th>
+              <th>K/D/A</th>
+              <th>ADR</th>
+              <th>Impacto</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/player.js"></script>
+  </body>
+</html>

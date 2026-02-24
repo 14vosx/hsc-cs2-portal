@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HSC - Histórico de Partidas</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/tables.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/pages/matches.css" />
+
+    <!-- Se você tiver um CSS extra da lista, pode colocar aqui depois -->
+    <!-- <link rel="stylesheet" href="/portal/cs2/assets/css/pages/matches.css" /> -->
+  </head>
+
+  <body class="dashboard-theme matches-page">
+    <div class="app-shell">
+      <div id="site-header"></div>
+
+      <main class="content-area">
+        <section class="page-intro" style="margin-bottom: 24px">
+          <nav class="breadcrumb">
+            <span class="pill active">Histórico de Operações</span>
+            <code id="meta">Sincronizando...</code>
+          </nav>
+        </section>
+
+        <div
+          class="toolbar"
+          style="
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+          "
+        >
+          <input
+            id="q"
+            placeholder="Filtrar por time, mapa, winner, matchid…"
+            style="min-width: 280px; flex: 1"
+          />
+          <div>
+            <span class="pill" id="count">0</span>
+            <span class="muted" style="font-size: 0.8rem; margin-left: 5px"
+              >MISSÕES LOCALIZADAS</span
+            >
+          </div>
+        </div>
+
+        <div id="status" class="muted"></div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data / Tipo</th>
+                <th>Confronto / Placar</th>
+                <th>Mapas</th>
+                <th>Vencedor</th>
+              </tr>
+            </thead>
+            <tbody id="rows">
+              <tr>
+                <td
+                  colspan="5"
+                  class="muted"
+                  style="text-align: center; padding: 40px"
+                >
+                  Carregando...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          id="matchStatus"
+          class="muted"
+          style="margin-top: 15px; text-align: center"
+        ></div>
+      </main>
+    </div>
+
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/matches.js"></script>
+  </body>
+</html>

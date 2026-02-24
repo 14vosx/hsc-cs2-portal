@@ -1,0 +1,19 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.log
+
+# Env / secrets (não deveria ter, mas garantimos)
+.env
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Node tooling (se existir)
+node_modules/
+dist/

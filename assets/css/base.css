@@ -1,0 +1,61 @@
+:root {
+  --deep-charcoal: #121412;
+  --tactical-green: #4B5332;
+  --butterfly-red: #BC1E22;
+
+  --text-main: #E0E0E0;
+  --text-muted: #888;
+
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  --win: #4caf50;
+  --loss: #f44336;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--deep-charcoal);
+  color: var(--text-main);
+  font-family: "Rajdhani", sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* CONTAINER CENTRALIZADO: Mantém o foco no meio da tela */
+.app-shell {
+  max-width: 1100px;
+  /* Largura ideal para não espalhar os dados */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* GRID TÁTICO: Respeita a hierarquia visual */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+@media (min-width: 992px) {
+  .dashboard-grid {
+    grid-template-columns: 1.6fr 1fr;
+    /* Ranking ganha destaque */
+  }
+}
+
+/* PAINÉIS COM CARA DE "DOSSIER" */
+.data-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-left: 4px solid var(--butterfly-red);
+  /* O detalhe da faca no card */
+  border-radius: 4px;
+  /* Mais "quadrado" = mais militar */
+  padding: 24px;
+  backdrop-filter: blur(10px);
+}

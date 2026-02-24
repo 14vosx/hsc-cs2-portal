@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HSC - Portal CS2</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/tables.css" />
+    <style>
+      /* Ajuste específico para a Home não estourar */
+      .table-container table {
+        min-width: 100%;
+      }
+    </style>
+  </head>
+
+  <body class="dashboard-theme">
+    <div class="app-shell">
+      <div id="site-header"></div>
+      <main class="content-area">
+        <section class="page-intro">
+          <nav class="breadcrumb">
+            <span class="pill active">Connect / Servidor</span>
+            <code id="server-ip">haxixesmokeclub.com:27015</code>
+            <code id="IP HOST">srv1353392.hstgr.cloud</code>
+          </nav>
+          <p class="status-text">Monitoramento em tempo real via MatchZy.</p>
+        </section>
+
+        <div class="dashboard-grid">
+          <article class="data-panel ranking-panel">
+            <div class="panel-header">
+              <h2>Top 10 Jogadores</h2>
+              <div id="rankMeta" class="meta-tags" style="padding: 5px 0"></div>
+            </div>
+            <div class="table-container">
+              <table id="rankTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Operador</th>
+                    <th class="right">M</th>
+                    <th class="right">K/D</th>
+                    <th class="right">HS%</th>
+                    <th class="right">ADR</th>
+                    <th class="right">Score</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div id="rankStatus" class="muted">Carregando dados táticos...</div>
+            <a href="/portal/cs2/ranking/" class="btn-link"
+              >Ver Ranking Completo →</a
+            >
+          </article>
+
+          <article class="data-panel matches-panel">
+            <div class="panel-header">
+              <h2>Últimas Operações</h2>
+            </div>
+            <div class="table-container">
+              <table id="matchTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Mapa</th>
+                    <th class="center">Placar</th>
+                    <th>Vencedor</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div id="matchStatus" class="muted">Sincronizando...</div>
+            <a href="/portal/cs2/matches/" class="btn-link"
+              >Relatório de Missões →</a
+            >
+          </article>
+        </div>
+      </main>
+    </div>
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/home.js"></script>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HSC - Ranking Principal</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/tables.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/pages/ranking.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div id="site-header"></div>
+      <div id="status" class="muted" style="margin: 12px 0"></div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th style="text-align: left">Operador</th>
+              <th class="right">Partidas</th>
+              <th class="right">W</th>
+              <th class="right">L</th>
+              <th class="right">K</th>
+              <th class="right">D</th>
+              <th class="right">K/D</th>
+              <th class="right">HS%</th>
+              <th class="right">ADR</th>
+              <th class="right">Impact</th>
+              <th class="right">Score</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr>
+              <td
+                colspan="12"
+                class="muted"
+                style="text-align: center; padding: 40px"
+              >
+                Carregando arsenal de dados...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script src="/portal/cs2/assets/js/config.js"></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/ranking.js"></script>
+  </body>
+</html>

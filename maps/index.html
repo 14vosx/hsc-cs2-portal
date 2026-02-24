@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/tables.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/maps.css" />
+
+    <title>HSC - Map Stats</title>
+  </head>
+
+  <body>
+    <div class="app-shell map-page">
+      <div id="site-header"></div>
+
+      <p class="muted status-text" id="meta">Carregando...</p>
+      <section id="hero" class="hero-card" style="display: none">
+        <div class="hero-left">
+          <img id="heroImg" class="hero-img" alt="Mapa" />
+        </div>
+
+        <div class="hero-mid">
+          <div class="hero-kicker">🏆 Mapa mais jogado</div>
+          <div class="hero-title" id="heroTitle">-</div>
+          <div class="hero-sub" id="heroSub">-</div>
+
+          <div class="hero-actions">
+            <a class="hero-link" id="heroLink" href="#">ver detalhes →</a>
+          </div>
+        </div>
+
+        <div class="hero-right">
+          <div class="hero-metric hero-metric-primary">
+            <div class="hero-metric-value" id="heroRounds">-</div>
+            <div class="hero-metric-label">TOTAL ROUNDS</div>
+          </div>
+
+          <div class="hero-metric">
+            <div class="hero-metric-value" id="heroMatches">-</div>
+            <div class="hero-metric-label">TOTAL MATCHES</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="card">
+        <div class="muted">
+          <small>Fonte: API v2</small> —
+          <span class="pill">/api/cs2/v2/maps.json</span>
+        </div>
+
+        <div
+          class="maps-controls"
+          style="
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 12px;
+          "
+        >
+          <input
+            id="q"
+            type="search"
+            placeholder="Filtrar mapa (ex: mirage, inferno)"
+            style="min-width: 260px; flex: 1"
+          />
+
+          <select id="sort" title="Ordenar por">
+            <option value="matches">Matches</option>
+            <option value="rounds">Rounds</option>
+            <option value="lastPlayed">Last played</option>
+            <option value="avgRoundsPerMatch">Avg rounds</option>
+            <option value="map">Nome</option>
+          </select>
+
+          <button id="dir" type="button" title="Alternar ordem">↓</button>
+
+          <span id="badges" class="muted" style="margin-left: auto"></span>
+        </div>
+
+        <table id="tbl" class="loading" style="margin-top: 12px">
+          <thead>
+            <tr>
+              <th data-key="map">Mapa</th>
+              <th class="right" data-key="matches">Matches</th>
+              <th class="right" data-key="rounds">Rounds</th>
+              <th class="right" data-key="avgRoundsPerMatch">Avg Rounds</th>
+              <th data-key="lastPlayed">Último jogo</th>
+              <th class="right">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr>
+              <td colspan="6" class="muted">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div
+          id="error"
+          class="err"
+          style="display: none; margin-top: 10px"
+        ></div>
+      </div>
+    </div>
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/maps.js"></script>
+  </body>
+</html>

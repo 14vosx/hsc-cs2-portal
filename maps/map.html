@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/portal/cs2/assets/css/base.css">
+  <link rel="stylesheet" href="/portal/cs2/assets/css/header.css">
+  <link rel="stylesheet" href="/portal/cs2/assets/css/tables.css">
+  <link rel="stylesheet" href="/portal/cs2/assets/css/maps.css">
+  <link rel="stylesheet" href="/portal/cs2/assets/css/pages/map-detail.css">
+
+  <title>HSC - Map Detail</title>
+  <style>
+    a.badge { text-decoration:none; cursor:pointer; }
+    a.badge:hover { text-decoration:underline; }
+    .rowname, .rowname * { pointer-events:auto; }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell map-page map-detail">
+    <div id="site-header"></div>
+
+    <!-- Status -->
+    <p class="muted status-text" id="meta">Carregando...</p>
+
+    <!-- HERO (mesma estrutura do index) -->
+    <section id="hero" class="hero-card" style="display:none">
+      <div class="hero-left">
+        <img id="heroImg" class="hero-img" alt="Mapa">
+      </div>
+
+      <div class="hero-mid">
+        <div class="hero-kicker">🗺️ Detalhes do mapa</div>
+        <div class="hero-title" id="title">-</div>
+        <div class="hero-sub" id="sub">-</div>
+
+        <div class="hero-actions">
+          <a class="hero-link" href="/portal/cs2/maps/">← voltar</a>
+          <span class="pill" id="src">/api/cs2/v2/map/...</span>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="kpi-row" id="kpis">
+          <div class="kpi">
+            <div class="kpi-value" id="kpiMatches">-</div>
+            <div class="kpi-label">TOTAL MATCHES</div>
+          </div>
+
+          <div class="kpi kpi-primary">
+            <div class="kpi-value" id="kpiRounds">-</div>
+            <div class="kpi-label">TOTAL ROUNDS</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-value" id="kpiAvgRounds">-</div>
+            <div class="kpi-label">AVG ROUNDS</div>
+          </div>
+
+          <div class="kpi">
+            <div class="kpi-value" id="kpiLastPlayed" style="font-size:12px;font-weight:800">-</div>
+            <div class="kpi-label">LAST PLAYED</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Matches -->
+    <div class="card">
+      <div class="muted">
+        <small>Recent Matches (por mapa) — até 15</small>
+      </div>
+
+      <table id="tbl" style="margin-top:12px">
+        <thead>
+          <tr>
+            <th>Encerrado em</th>
+            <th>Match</th>
+            <th class="right">Série</th>
+            <th class="right">Mapa</th>
+            <th>Vencedor</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr>
+            <td colspan="5" class="muted">Carregando...</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="error" class="err" style="display:none;margin-top:10px"></div>
+    </div>
+  </div>
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/map-detail.js"></script>
+</body>
+</html>

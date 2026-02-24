@@ -1,0 +1,247 @@
+/* Match module (scoped via .match-page) */
+.match-page .card h2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.match-page .table-wrap {
+  margin-top: 10px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Table baseline */
+.match-page table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* alinha colunas de verdade */
+}
+
+.match-page thead th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .85;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+}
+
+.match-page tbody td {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  vertical-align: middle;
+}
+
+/* Zebra leve + hover */
+.match-page tbody tr:nth-child(odd) td {
+  background: rgba(255,255,255,.015);
+}
+.match-page tbody tr:hover td {
+  background: rgba(255,255,255,.035);
+}
+
+/* Alinhamento numérico e “monospace numérico” */
+.match-page .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Colunas: prioridades visuais */
+.match-page .col-player { width: 34%; }
+.match-page .col-k,
+.match-page .col-d,
+.match-page .col-a,
+.match-page .col-dmg { width: 10%; }
+.match-page .col-steam { width: 26%; }
+
+.match-page .steam {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  opacity: .75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-page .player {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Team header dentro do card */
+.match-page .team-title {
+  margin: 14px 0 8px;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+
+.match-page .map-name {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: .02em;
+}
+
+.match-page .map-score {
+  margin-left: 10px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--tactical-green);
+  background: rgba(75,83,50,.18);
+  font-weight: 900;
+  font-size: 13px;
+}
+
+.match-page .map-index {
+  margin-left: 8px;
+  font-size: 12px;
+  opacity: .6;
+}
+
+.match-page .map-winner strong {
+  color: var(--tactical-green);
+  margin-left: 4px;
+}
+
+.match-page .team-title {
+  margin: 18px 0 6px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  opacity: .85;
+}
+
+/* Map header (match detail) */
+.match-page .map-name {
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: .02em;
+}
+
+.match-page .map-score {
+  margin-left: 10px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--tactical-green);
+  background: rgba(75,83,50,.18);
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: .08em;
+}
+
+.match-page .map-index {
+  margin-left: 8px;
+  font-size: 12px;
+  opacity: .6;
+}
+
+/* Winner highlight */
+.match-page .map-winner strong {
+  color: var(--tactical-green);
+  margin-left: 6px;
+}
+
+/* Map card header polish */
+.match-page .card .row {
+  align-items: center; /* baseline às vezes desalinha */
+  margin-bottom: 8px;  /* mais respiro antes da tabela */
+}
+
+.match-page .card h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* antes era 10 */
+  flex-wrap: wrap;
+  line-height: 1.3;
+}
+
+/* Winner em formato "pill" discreto */
+.match-page .map-winner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+  font-size: 12px;
+}
+
+.match-page .map-winner strong {
+  color: var(--tactical-green);
+  font-weight: 900;
+}
+
+/* Um pouco mais de respiro entre nome/score/map# */
+.match-page .map-score {
+  padding: 4px 14px;   /* ligeiramente maior */
+  font-size: 12px;
+  transform: translateY(1px); /* alinha visualmente com texto */
+}
+
+.match-page .map-winner {
+  transform: translateY(1px); /* alinha com h2 */
+}
+
+.match-page .map-index { margin-left: 0; } /* controlado pelo gap do h2 */
+
+/* Highlight winner team block */
+.match-page .team-block.is-winner .team-title {
+  color: var(--tactical-green);
+}
+
+.match-page .team-block.is-winner .table-wrap {
+  border-color: rgba(75, 83, 50, .55);
+  box-shadow: 0 0 0 1px rgba(75, 83, 50, .25), 0 8px 28px rgba(0,0,0,.25);
+  background: rgba(75, 83, 50, .06);
+}
+
+/* opcional: leve tint nas rows do time vencedor */
+.match-page .team-block.is-winner tbody tr:nth-child(odd) td {
+  background: rgba(75, 83, 50, .035);
+}
+.match-page .team-block.is-winner tbody tr:hover td {
+  background: rgba(75, 83, 50, .06);
+}
+
+/* Map tabs */
+.match-page .map-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  margin-bottom: 8px;
+}
+
+.match-page .map-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+  font-weight: 800;
+  letter-spacing: .02em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.match-page .map-tab .mini {
+  font-size: 11px;
+  opacity: .75;
+  font-weight: 700;
+}
+
+.match-page .map-tab.is-active {
+  border-color: rgba(75,83,50,.85);
+  background: rgba(75,83,50,.16);
+  box-shadow: 0 0 0 1px rgba(75,83,50,.20);
+}
+
+.match-page .map-panel { display: none; }
+.match-page .map-panel.is-active { display: block; }

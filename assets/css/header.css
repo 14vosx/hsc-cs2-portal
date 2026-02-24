@@ -1,0 +1,96 @@
+/* 1. HEADER ESTRUTURAL */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0; /* Padding reduzido para manter o "Slim Header" */
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 24px;
+    flex-wrap: nowrap;
+}
+
+/* 2. BRANDING (LOGO + TEXTO) */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-img {
+    width: 170px; /* Mantendo sua preferência de tamanho */
+    height: 60px;  /* Ajustado para não empurrar muito a altura do header */
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.6));
+}
+
+.brand-info h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    line-height: 1.1;
+}
+
+.brand-info h1 span {
+    color: var(--butterfly-red);
+}
+
+.srv-tag {
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    background: rgba(0, 0, 0, 0.4);
+    color: var(--tactical-green);
+    padding: 2px 6px;
+    font-size: 10px;
+    border-radius: 4px;
+    border: 1px solid var(--glass-border);
+    display: inline-block; /* Alinha melhor com o texto acima */
+    margin-top: 4px;
+}
+
+/* 3. NAVEGAÇÃO */
+nav {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+nav a {
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* HOVER E ESTADO ATIVO */
+nav a:hover {
+    background: var(--glass-bg);
+    color: var(--butterfly-red);
+    border-color: var(--glass-border);
+}
+
+/* Ajustando o Active para combinar com o Branding */
+nav a.active {
+    color: #fff;
+    background: var(--tactical-green);
+    border: 1px solid var(--tactical-green);
+    box-shadow: 0 0 10px rgba(75, 83, 50, 0.3);
+}
+
+/* Responsividade rápida para o Header */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    .header-brand {
+        flex-direction: column;
+        gap: 5px;
+    }
+}

@@ -1,0 +1,103 @@
+/* Matches list — scoreboard look */
+.matches-page .toolbar input#q {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 12px 16px;
+  color: var(--text-main);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1rem;
+  border-radius: 10px;
+  outline: none;
+}
+.matches-page .toolbar input#q:focus {
+  border-color: var(--tactical-green);
+}
+
+/* Scoreboard layout */
+.matches-page .scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.matches-page .score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.1;
+}
+
+.matches-page .team {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.matches-page .team.winner {
+  color: var(--win);
+}
+
+.matches-page .score-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.35);
+  font-weight: 900;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+}
+
+.matches-page .vs {
+  opacity: 0.6;
+  font-weight: 800;
+  margin: 0 2px;
+}
+
+/* Match link highlight */
+.matches-page .match-link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+}
+
+.matches-page .match-link:hover {
+  background: rgba(91, 83, 44, 0.12);
+  border-color: var(--tactical-green);
+  transform: translateY(-1px);
+}
+
+.matches-page .match-id {
+  font-weight: 900;
+  font-size: 15px;
+  color: var(--butterfly-red);
+  font-family: ui-monospace, monospace;
+}
+
+.matches-page .match-cta {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+  color: var(--text-main)
+}
+
+/* Responsive: allow wrap on small screens */
+@media (max-width: 560px) {
+  .matches-page .team {
+    max-width: 160px;
+  }
+}

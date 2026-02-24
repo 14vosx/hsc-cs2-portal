@@ -1,0 +1,108 @@
+/* ------------------------------------------------------- */
+/* MAP DETAIL — ajustes específicos (reuso + pequenos overrides) */
+
+.map-detail .hero-kicker {
+  opacity: 0.9;
+}
+
+.map-detail .hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* respiro entre thumb e texto (fix do “colado”) */
+.map-detail .hero-card {
+  gap: 20px;
+}
+.map-detail .hero-mid {
+  padding-left: 6px;
+}
+
+.map-detail .hero-link {
+  cursor: pointer;
+}
+
+/* KPIs do detalhe (pílulas no hero-right) */
+.map-detail .kpi-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.map-detail .kpi {
+  width: 124px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 12px 10px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.map-detail .kpi-value {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.map-detail .kpi-label {
+  font-size: 11px;
+  opacity: 0.85;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.map-detail .kpi-primary {
+  border: 1px solid rgba(159, 220, 111, 0.35);
+  background: linear-gradient(
+    180deg,
+    rgba(159, 220, 111, 0.08),
+    rgba(0, 0, 0, 0.15)
+  );
+  box-shadow:
+    0 0 0 1px rgba(159, 220, 111, 0.08) inset,
+    0 0 12px rgba(159, 220, 111, 0.12);
+}
+
+.map-detail .kpi-primary .kpi-value {
+  color: #9fdc6f;
+}
+
+/* utilitários do detalhe */
+.map-detail .right {
+  text-align: right;
+}
+
+.map-detail .rowname {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.map-detail .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+}
+
+.badge {
+  text-decoration: none;
+}
+.badge:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .map-detail .kpi-row {
+    justify-content: flex-start;
+  }
+  .map-detail .kpi {
+    width: 140px;
+  }
+}
