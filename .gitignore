@@ -17,3 +17,6 @@ Thumbs.db
 # Node tooling (se existir)
 node_modules/
 dist/
+
+# Legado / backups de migração
+assets/_releases_backup_*/
