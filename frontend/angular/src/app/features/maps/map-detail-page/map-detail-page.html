@@ -1,0 +1,129 @@
+<section class="map-detail-page">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <app-section-header
+          eyebrow="Mapas"
+          title="Detalhe do mapa"
+          description="Carregando estatísticas do mapa."
+        />
+
+        <p class="map-detail-page__loading">Carregando mapa...</p>
+      }
+
+      @case ('error') {
+        <app-section-header
+          eyebrow="Mapas"
+          title="Mapa indisponível"
+          description="Não foi possível carregar o detalhe deste mapa."
+        />
+
+        <app-empty-state
+          title="Mapa não encontrado"
+          description="Volte para a lista de mapas e tente abrir outro registro."
+        />
+
+        <a class="map-detail-page__back" routerLink="/maps">← voltar para mapas</a>
+      }
+
+      @case ('ready') {
+        <nav class="map-detail-page__breadcrumbs" aria-label="Breadcrumb">
+          <a routerLink="/">Portal CS2</a>
+          <span>/</span>
+          <a routerLink="/maps">Mapas</a>
+          <span>/</span>
+          <strong>{{ vm.detail.map }}</strong>
+        </nav>
+
+        <section class="map-detail-page__hero">
+          <app-section-header
+            eyebrow="Detalhes do mapa"
+            [title]="vm.detail.map"
+            [description]="'Último jogo: ' + formatDate(vm.detail.lifetime.lastPlayed)"
+          />
+
+          <div class="map-detail-page__actions">
+            <a class="map-detail-page__back" routerLink="/maps">← voltar</a>
+            <a
+              class="map-detail-page__api"
+              [href]="'/api/cs2/v2/map/' + vm.detail.map + '.json'"
+              target="_blank"
+            >
+              /api/cs2/v2/map/{{ vm.detail.map }}.json
+            </a>
+          </div>
+        </section>
+
+        <section class="map-detail-page__metrics" aria-label="Resumo do mapa">
+          <app-metric-card label="Partidas" [value]="vm.detail.lifetime.matches" tone="ranking" />
+          <app-metric-card label="Rounds" [value]="vm.detail.lifetime.rounds" tone="success" />
+          <app-metric-card
+            label="Média de rounds"
+            [value]="formatNumber(vm.detail.lifetime.avgRoundsPerMatch, 1)"
+          />
+          <app-metric-card
+            label="Último jogo"
+            [value]="formatDate(vm.detail.lifetime.lastPlayed)"
+          />
+        </section>
+
+        <app-data-card
+          eyebrow="Recentes"
+          title="Partidas neste mapa"
+          meta="linkadas ao detalhe da partida"
+        >
+          @if (vm.detail.recentMatches.length > 0) {
+            <div class="map-detail-page__table-wrap">
+              <table class="map-detail-page__table">
+                <thead>
+                  <tr>
+                    <th>Encerrado em</th>
+                    <th>Match</th>
+                    <th>Série</th>
+                    <th>Mapa</th>
+                    <th>Vencedor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (match of vm.detail.recentMatches; track match.matchid) {
+                    <tr>
+                      <td>{{ formatDate(match.endedAt) }}</td>
+                      <td>
+                        <a
+                          [routerLink]="['/matches', match.matchid]"
+                          class="map-detail-page__match-link"
+                        >
+                          #{{ match.matchid }}
+                        </a>
+                        <span
+                          class="map-detail-page__scoreline"
+                          [class.map-detail-page__scoreline--winner-left]="
+                            isWinner(match, match.team1.name)
+                          "
+                          [class.map-detail-page__scoreline--winner-right]="
+                            isWinner(match, match.team2.name)
+                          "
+                        >
+                          {{ match.team1.name }} {{ formatSeriesScore(match) }}
+                          {{ match.team2.name }}
+                        </span>
+                      </td>
+                      <td>{{ match.seriesType }}</td>
+                      <td>{{ formatMapScore(match) }}</td>
+                      <td>{{ winnerLabel(match) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <app-empty-state
+              title="Nenhuma partida recente"
+              description="Este mapa ainda não possui partidas recentes no cache."
+            />
+          }
+        </app-data-card>
+      }
+    }
+  }
+</section>

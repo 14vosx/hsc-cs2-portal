@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith } from 'rxjs';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
@@ -23,7 +24,7 @@ type MatchesVm = MatchesReadyVm | { state: 'loading' } | { state: 'error' };
 
 @Component({
   selector: 'app-matches-page',
-  imports: [AsyncPipe, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
+  imports: [AsyncPipe, RouterLink, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
   templateUrl: './matches-page.html',
   styleUrl: './matches-page.css',
 })

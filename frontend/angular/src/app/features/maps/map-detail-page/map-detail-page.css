@@ -1,0 +1,124 @@
+.map-detail-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.map-detail-page__loading {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.map-detail-page__breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.85rem;
+}
+
+.map-detail-page__breadcrumbs a,
+.map-detail-page__back,
+.map-detail-page__match-link {
+  color: #9f63ff;
+  text-decoration: none;
+}
+
+.map-detail-page__breadcrumbs a:hover,
+.map-detail-page__back:hover,
+.map-detail-page__match-link:hover {
+  text-decoration: underline;
+}
+
+.map-detail-page__hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.map-detail-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.map-detail-page__api {
+  border: 1px solid rgba(178, 209, 95, 0.45);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(178, 209, 95, 0.12);
+  color: #d8f89a;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.map-detail-page__api:hover {
+  border-color: rgba(178, 209, 95, 0.8);
+}
+
+.map-detail-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.map-detail-page__table-wrap {
+  overflow-x: auto;
+}
+
+.map-detail-page__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.map-detail-page__table th,
+.map-detail-page__table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.9rem 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.map-detail-page__table th {
+  color: rgba(178, 209, 95, 0.72);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+}
+
+.map-detail-page__table td {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.map-detail-page__scoreline {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.map-detail-page__scoreline--winner-left,
+.map-detail-page__scoreline--winner-right {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+@media (max-width: 840px) {
+  .map-detail-page__hero {
+    display: grid;
+  }
+
+  .map-detail-page__actions {
+    justify-content: flex-start;
+  }
+
+  .map-detail-page__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .map-detail-page__metrics {
+    grid-template-columns: 1fr;
+  }
+}

@@ -213,6 +213,32 @@
   background: var(--color-surface);
 }
 
+.matches-page__details-link,
+.match-card__details-link,
+.match-card__map-link {
+  color: #c9adff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.match-card__map-link {
+  color: #d8f89a;
+  font-weight: 600;
+}
+
+.matches-page__details-link:hover,
+.match-card__details-link:hover,
+.match-card__map-link:hover {
+  text-decoration: underline;
+}
+
+.matches-page__details-link:focus-visible,
+.match-card__details-link:focus-visible,
+.match-card__map-link:focus-visible {
+  outline: 2px solid rgba(178, 209, 95, 0.9);
+  outline-offset: 3px;
+}
+
 @media (max-width: 900px) {
   .matches-page__hero,
   .matches-page__controls {
