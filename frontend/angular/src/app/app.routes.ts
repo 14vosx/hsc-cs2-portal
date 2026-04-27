@@ -7,6 +7,11 @@ export const routes: Routes = [
       import('./features/overview/overview-page').then((component) => component.OverviewPage),
   },
   {
+    path: 'ranking',
+    loadComponent: () =>
+      import('./features/ranking/ranking-page').then((component) => component.RankingPage),
+  },
+  {
     path: 'api-smoke',
     loadComponent: () =>
       import('./features/api-smoke/api-smoke').then((component) => component.ApiSmoke),
