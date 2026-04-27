@@ -1,0 +1,11 @@
+<section class="empty-state">
+  <h2>{{ title }}</h2>
+
+  @if (description) {
+    <p>{{ description }}</p>
+  }
+
+  @if (actionLabel) {
+    <button type="button">{{ actionLabel }}</button>
+  }
+</section>

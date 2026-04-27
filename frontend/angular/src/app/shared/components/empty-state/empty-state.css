@@ -1,0 +1,33 @@
+.empty-state {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background: rgba(18, 24, 33, 0.48);
+}
+
+h2,
+p {
+  margin: 0;
+}
+
+h2 {
+  color: var(--color-text);
+  font-size: 1.1rem;
+}
+
+p {
+  max-width: 56ch;
+  color: var(--color-text-muted);
+}
+
+button {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+  color: var(--color-text);
+  background: rgba(229, 57, 70, 0.14);
+  cursor: default;
+}
