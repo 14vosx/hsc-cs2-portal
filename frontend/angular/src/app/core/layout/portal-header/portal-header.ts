@@ -17,7 +17,7 @@ export class PortalHeader {
     { label: 'Visão Geral', path: '/' },
     { label: 'Ranking', path: '/ranking' },
     { label: 'Partidas', path: '/matches' },
-    { label: 'Mapas' },
+    { label: 'Mapas', path: '/maps' },
     { label: 'News' },
   ];
 }
