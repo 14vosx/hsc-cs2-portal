@@ -1,6 +1,8 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith } from 'rxjs';
+
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import { MapSummaryDto } from '../../core/api/dto/maps.dto';
@@ -25,7 +27,7 @@ type MapsVm = MapsReadyVm | { state: 'loading' } | { state: 'error' };
 
 @Component({
   selector: 'app-maps-page',
-  imports: [AsyncPipe, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
+  imports: [AsyncPipe, RouterLink, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
   templateUrl: './maps-page.html',
   styleUrl: './maps-page.css',
 })

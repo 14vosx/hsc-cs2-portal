@@ -49,17 +49,25 @@
         </section>
 
         @if (vm.latestMatch) {
-          <app-data-card eyebrow="Última partida" title="Confronto mais recente" meta="recorte atual">
+          <app-data-card
+            eyebrow="Última partida"
+            title="Confronto mais recente"
+            meta="recorte atual"
+          >
             <div class="matches-page__latest">
               <div>
                 <strong>{{ vm.latestMatch.team1_name }}</strong>
-                <span [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team1_name)">
+                <span
+                  [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team1_name)"
+                >
                   {{ vm.latestMatch.team1_score }}
                 </span>
               </div>
               <span class="matches-page__versus">x</span>
               <div>
-                <span [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team2_name)">
+                <span
+                  [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team2_name)"
+                >
                   {{ vm.latestMatch.team2_score }}
                 </span>
                 <strong>{{ vm.latestMatch.team2_name }}</strong>
@@ -70,6 +78,12 @@
               {{ formatDate(vm.latestMatch.end_time || vm.latestMatch.start_time) }}
             </p>
             <app-status-badge [label]="'Vencedor: ' + winnerLabel(vm.latestMatch)" tone="warning" />
+            <a
+              class="matches-page__details-link"
+              [routerLink]="['/matches', vm.latestMatch.matchid]"
+            >
+              Abrir detalhe da partida →
+            </a>
           </app-data-card>
         }
 
@@ -124,15 +138,23 @@
                     </div>
 
                     <div class="match-card__meta">
-                      <app-status-badge [label]="'Vencedor: ' + winnerLabel(match)" tone="warning" />
-                      <span>Relatório em breve</span>
+                      <app-status-badge
+                        [label]="'Vencedor: ' + winnerLabel(match)"
+                        tone="warning"
+                      />
+                      <a
+                        class="match-card__details-link"
+                        [routerLink]="['/matches', match.matchid]"
+                      >
+                        Ver relatório →
+                      </a>
                     </div>
 
                     <div class="match-card__maps" aria-label="Mapas jogados">
                       @for (map of match.maps; track map.mapnumber) {
-                        <span>
+                        <a class="match-card__map-link" [routerLink]="['/maps', map.mapname]">
                           {{ map.mapname }} · {{ map.team1_score }} x {{ map.team2_score }}
-                        </span>
+                        </a>
                       }
                     </div>
                   </article>

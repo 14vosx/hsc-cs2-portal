@@ -1,0 +1,228 @@
+.match-detail-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.match-detail-page__loading {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.match-detail-page__breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.85rem;
+}
+
+.match-detail-page__breadcrumbs a,
+.match-detail-page__back,
+.match-detail-page__map-header a {
+  color: #9f63ff;
+  text-decoration: none;
+}
+
+.match-detail-page__breadcrumbs a:hover,
+.match-detail-page__back:hover,
+.match-detail-page__map-header a:hover {
+  text-decoration: underline;
+}
+
+.match-detail-page__hero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.match-detail-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.match-detail-page__api {
+  border: 1px solid rgba(178, 209, 95, 0.45);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  background: rgba(178, 209, 95, 0.12);
+  color: #d8f89a;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.match-detail-page__scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.match-detail-page__team {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.match-detail-page__team span {
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.match-detail-page__team--winner {
+  border-color: rgba(178, 209, 95, 0.58);
+  background: rgba(178, 209, 95, 0.11);
+  color: #ffffff;
+}
+
+.match-detail-page__versus {
+  color: rgba(255, 255, 255, 0.56);
+  font-weight: 900;
+}
+
+.match-detail-page__winner {
+  margin-top: 1rem;
+}
+
+.match-detail-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.match-detail-page__maps {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.match-detail-page__map-link {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid rgba(159, 99, 255, 0.35);
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(159, 99, 255, 0.08);
+  color: rgba(255, 255, 255, 0.86);
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.match-detail-page__map-link:hover {
+  border-color: rgba(159, 99, 255, 0.72);
+  background: rgba(159, 99, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.match-detail-page__map-link strong {
+  color: #ffffff;
+  font-size: 1.25rem;
+}
+
+.match-detail-page__map-link small {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.match-detail-page__map-header,
+.match-detail-page__team-section header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.match-detail-page__team-section {
+  margin-top: 1.5rem;
+}
+
+.match-detail-page__team-section h3 {
+  margin: 0;
+}
+
+.match-detail-page__team-section header span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.85rem;
+}
+
+.match-detail-page__table-wrap {
+  overflow-x: auto;
+}
+
+.match-detail-page__table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.match-detail-page__table th,
+.match-detail-page__table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.75rem 0.65rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.match-detail-page__table th {
+  color: rgba(178, 209, 95, 0.72);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.match-detail-page__table td {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.match-detail-page__steamid {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.78rem;
+}
+
+.match-detail-page__notes {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.match-detail-page__notes li + li {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 840px) {
+  .match-detail-page__hero,
+  .match-detail-page__map-header,
+  .match-detail-page__team-section header {
+    display: grid;
+  }
+
+  .match-detail-page__actions {
+    justify-content: flex-start;
+  }
+
+  .match-detail-page__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .match-detail-page__scoreboard {
+    grid-template-columns: 1fr;
+  }
+
+  .match-detail-page__versus {
+    text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .match-detail-page__metrics {
+    grid-template-columns: 1fr;
+  }
+}

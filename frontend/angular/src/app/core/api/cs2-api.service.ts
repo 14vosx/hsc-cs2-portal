@@ -7,6 +7,8 @@ import { HealthDto } from './dto/health.dto';
 import { MapsDto } from './dto/maps.dto';
 import { MatchesDto } from './dto/matches.dto';
 import { RankingDto } from './dto/ranking.dto';
+import { MapDetailDto } from './dto/map-detail.dto';
+import { MatchDetailDto } from './dto/match-detail.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -28,5 +30,13 @@ export class Cs2ApiService {
 
   getMaps(): Observable<MapsDto> {
     return this.http.get<MapsDto>(cs2ApiPaths.maps);
+  }
+
+  getMap(map: string): Observable<MapDetailDto> {
+    return this.http.get<MapDetailDto>(cs2ApiPaths.map(map));
+  }
+
+  getMatch(id: number | string): Observable<MatchDetailDto> {
+    return this.http.get<MatchDetailDto>(cs2ApiPaths.match(id));
   }
 }

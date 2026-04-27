@@ -108,7 +108,9 @@
                       </div>
                     </dl>
 
-                    <span class="map-card__soon">Detalhe em breve</span>
+                    <a class="map-card__details-link" [routerLink]="['/maps', mapSummary.map]">
+                      Ver detalhe →
+                    </a>
                   </article>
                 }
               </div>
