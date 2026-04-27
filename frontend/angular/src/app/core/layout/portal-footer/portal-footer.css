@@ -18,3 +18,12 @@
 .portal-footer strong {
   color: var(--color-text);
 }
+
+.portal-footer a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.portal-footer a:hover {
+  color: var(--color-text);
+}
