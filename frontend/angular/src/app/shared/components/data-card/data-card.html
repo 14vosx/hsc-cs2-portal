@@ -1,0 +1,19 @@
+<article class="data-card">
+  <header class="data-card__header">
+    <div>
+      @if (eyebrow) {
+        <p class="data-card__eyebrow">{{ eyebrow }}</p>
+      }
+
+      <h2>{{ title }}</h2>
+    </div>
+
+    @if (meta) {
+      <span class="data-card__meta">{{ meta }}</span>
+    }
+  </header>
+
+  <div class="data-card__body">
+    <ng-content />
+  </div>
+</article>

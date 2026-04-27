@@ -1,34 +1,47 @@
 <section class="smoke-page">
-  <div class="smoke-page__intro">
-    <p class="smoke-page__eyebrow">Angular shell inicial</p>
-    <h1>API Smoke Test</h1>
-    <p>Validacao temporaria da Static API v2 via Angular HttpClient.</p>
-  </div>
+  <app-section-header
+    eyebrow="Angular shell inicial"
+    title="API Smoke Test"
+    description="Validação temporária da Static API v2 via Angular HttpClient."
+  />
 
   @if (vm$ | async; as vm) {
-    <section class="grid">
-      <article>
-        <strong>Health</strong>
-        <span>{{ vm.health.ok ? 'OK' : 'Falha' }}</span>
-      </article>
+    <div class="smoke-page__status-row">
+      <app-status-badge
+        [label]="vm.health.ok ? 'Health OK' : 'Health Falha'"
+        [tone]="vm.health.ok ? 'success' : 'danger'"
+      />
+      <app-status-badge label="Static API v2" tone="neutral" />
+    </div>
 
-      <article>
-        <strong>Ranking</strong>
-        <span>{{ vm.ranking.players.length }} jogadores</span>
-      </article>
+    <section class="smoke-page__grid" aria-label="Resumo da API">
+      <app-metric-card
+        label="Health"
+        [value]="vm.health.ok ? 'OK' : 'Falha'"
+        [tone]="vm.health.ok ? 'success' : 'danger'"
+        hint="Status do contrato base"
+      />
 
-      <article>
-        <strong>Matches</strong>
-        <span>{{ vm.matches.matches.length }} partidas</span>
-      </article>
+      <app-metric-card
+        label="Ranking"
+        [value]="vm.ranking.players.length + ' jogadores'"
+        tone="ranking"
+      />
 
-      <article>
-        <strong>Maps</strong>
-        <span>{{ vm.maps.maps.length }} mapas</span>
-      </article>
+      <app-metric-card
+        label="Matches"
+        [value]="vm.matches.matches.length + ' partidas'"
+      />
+
+      <app-metric-card
+        label="Maps"
+        [value]="vm.maps.maps.length + ' mapas'"
+      />
     </section>
 
-    <pre>{{ vm | json }}</pre>
+    <app-data-card eyebrow="Debug" title="JSON tecnico" meta="forkJoin snapshot">
+      <pre>{{ vm | json }}</pre>
+    </app-data-card>
   } @else {
     <p class="smoke-page__loading">Carregando contratos...</p>
   }
