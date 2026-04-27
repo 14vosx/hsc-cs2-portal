@@ -1,0 +1,157 @@
+<section class="matches-page">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <app-section-header
+          eyebrow="Partidas"
+          title="Histórico competitivo"
+          description="Carregando partidas sincronizadas."
+        />
+
+        <p class="matches-page__loading">Carregando partidas...</p>
+      }
+
+      @case ('error') {
+        <app-section-header
+          eyebrow="Partidas"
+          title="Histórico competitivo"
+          description="Não foi possível carregar as partidas agora."
+        />
+
+        <app-empty-state
+          title="Partidas indisponíveis"
+          description="Confira o servidor local com proxy ativo e tente novamente."
+        />
+      }
+
+      @case ('ready') {
+        <section class="matches-page__hero">
+          <app-section-header
+            eyebrow="Partidas"
+            title="Histórico competitivo"
+            description="Confrontos recentes do HSC CS2, com vencedores, placares e mapas jogados."
+          />
+
+          <div class="matches-page__status">
+            <app-status-badge label="Sincronização ativa" tone="success" />
+            <span>Atualizado em {{ formatDate(vm.generatedAt) }}</span>
+          </div>
+        </section>
+
+        <section class="matches-page__metrics" aria-label="Resumo das partidas">
+          <app-metric-card label="Partidas" [value]="vm.matches.length" tone="ranking" />
+          <app-metric-card label="Mapas jogados" [value]="vm.totalMapsPlayed" />
+          <app-metric-card
+            label="Última partida"
+            [value]="vm.latestMatch ? '#' + vm.latestMatch.matchid : 'Sem partida'"
+            [tone]="vm.latestMatch ? 'success' : 'default'"
+          />
+        </section>
+
+        @if (vm.latestMatch) {
+          <app-data-card eyebrow="Última partida" title="Confronto mais recente" meta="recorte atual">
+            <div class="matches-page__latest">
+              <div>
+                <strong>{{ vm.latestMatch.team1_name }}</strong>
+                <span [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team1_name)">
+                  {{ vm.latestMatch.team1_score }}
+                </span>
+              </div>
+              <span class="matches-page__versus">x</span>
+              <div>
+                <span [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team2_name)">
+                  {{ vm.latestMatch.team2_score }}
+                </span>
+                <strong>{{ vm.latestMatch.team2_name }}</strong>
+              </div>
+            </div>
+            <p class="matches-page__latest-meta">
+              #{{ vm.latestMatch.matchid }} · {{ vm.latestMatch.series_type }} ·
+              {{ formatDate(vm.latestMatch.end_time || vm.latestMatch.start_time) }}
+            </p>
+            <app-status-badge [label]="'Vencedor: ' + winnerLabel(vm.latestMatch)" tone="warning" />
+          </app-data-card>
+        }
+
+        @if (vm.matches.length > 0) {
+          <app-data-card eyebrow="Lista" title="Histórico de partidas" meta="busca local">
+            <div class="matches-page__controls">
+              <label class="matches-page__field">
+                <span>Buscar partida</span>
+                <input
+                  type="search"
+                  placeholder="MatchID, time, vencedor ou mapa"
+                  [value]="searchTerm()"
+                  (input)="updateSearch($event)"
+                />
+              </label>
+
+              <label class="matches-page__field">
+                <span>Filtrar por mapa</span>
+                <select [value]="selectedMap()" (change)="updateMapFilter($event)">
+                  <option value="">Todos os mapas</option>
+                  @for (map of vm.mapOptions; track map) {
+                    <option [value]="map">{{ map }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+
+            @let visibleMatches = filteredMatches(vm.matches);
+
+            @if (visibleMatches.length > 0) {
+              <div class="matches-page__list">
+                @for (match of visibleMatches; track match.matchid) {
+                  <article class="match-card">
+                    <header class="match-card__header">
+                      <div>
+                        <span class="match-card__id">#{{ match.matchid }}</span>
+                        <strong>{{ match.series_type }}</strong>
+                      </div>
+                      <span>{{ formatDate(match.end_time || match.start_time) }}</span>
+                    </header>
+
+                    <div class="match-card__scoreline">
+                      <div [class.match-card__team--winner]="isWinner(match, match.team1_name)">
+                        <strong>{{ match.team1_name }}</strong>
+                        <span>{{ match.team1_score }}</span>
+                      </div>
+                      <span class="match-card__versus">x</span>
+                      <div [class.match-card__team--winner]="isWinner(match, match.team2_name)">
+                        <span>{{ match.team2_score }}</span>
+                        <strong>{{ match.team2_name }}</strong>
+                      </div>
+                    </div>
+
+                    <div class="match-card__meta">
+                      <app-status-badge [label]="'Vencedor: ' + winnerLabel(match)" tone="warning" />
+                      <span>Relatório em breve</span>
+                    </div>
+
+                    <div class="match-card__maps" aria-label="Mapas jogados">
+                      @for (map of match.maps; track map.mapnumber) {
+                        <span>
+                          {{ map.mapname }} · {{ map.team1_score }} x {{ map.team2_score }}
+                        </span>
+                      }
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <app-empty-state
+                title="Nenhuma partida encontrada"
+                description="A busca ou o filtro por mapa não retornou confrontos."
+              />
+            }
+          </app-data-card>
+        } @else {
+          <app-empty-state
+            title="Nenhuma partida encontrada"
+            description="A sincronização atual não retornou partidas para o histórico."
+          />
+        }
+      }
+    }
+  }
+</section>
