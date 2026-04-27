@@ -1,0 +1,21 @@
+.portal-shell {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(229, 57, 70, 0.08), transparent 280px);
+  background-size: 72px 72px, auto;
+}
+
+.portal-shell__main {
+  width: min(100%, var(--page-max));
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+}
+
+@media (max-width: 760px) {
+  .portal-shell__main {
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+}

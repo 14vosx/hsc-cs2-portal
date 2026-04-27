@@ -1,1 +1,76 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  color-scheme: dark;
+  --hsc-red-500: #e53946;
+  --hsc-red-600: #bf1d2c;
+  --hsc-green-500: #2ddc7f;
+  --hsc-amber-400: #f6c85f;
+  --hsc-amber-500: #d99a21;
+  --hsc-gray-950: #07090d;
+  --hsc-gray-900: #0d1117;
+  --hsc-gray-850: #121821;
+  --hsc-gray-800: #18202b;
+  --hsc-gray-700: #263241;
+  --hsc-gray-600: #3a4657;
+  --hsc-gray-300: #c8d0dc;
+  --hsc-gray-100: #f3f6fa;
+  --color-bg: var(--hsc-gray-950);
+  --color-bg-elevated: var(--hsc-gray-900);
+  --color-surface: var(--hsc-gray-850);
+  --color-surface-strong: var(--hsc-gray-800);
+  --color-border: rgba(200, 208, 220, 0.14);
+  --color-border-strong: rgba(229, 57, 70, 0.32);
+  --color-text: var(--hsc-gray-100);
+  --color-text-muted: #8f9aac;
+  --color-primary: var(--hsc-red-500);
+  --color-primary-strong: var(--hsc-red-600);
+  --color-status: var(--hsc-green-500);
+  --color-ranking: var(--hsc-amber-400);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow-soft: 0 18px 60px rgba(0, 0, 0, 0.32);
+  --shadow-panel: 0 14px 36px rgba(0, 0, 0, 0.24);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --page-max: 1180px;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--color-bg);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(229, 57, 70, 0.16), transparent 34rem),
+    linear-gradient(180deg, #0b0f15 0%, var(--color-bg) 46%);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}

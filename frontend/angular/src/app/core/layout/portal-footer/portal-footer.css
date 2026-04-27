@@ -1,0 +1,20 @@
+.portal-footer {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.portal-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  width: min(100%, var(--page-max));
+  margin: 0 auto;
+  padding: var(--space-5);
+  gap: var(--space-3);
+  font-size: 0.86rem;
+}
+
+.portal-footer strong {
+  color: var(--color-text);
+}

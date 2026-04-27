@@ -1,6 +1,9 @@
-﻿<main class="smoke-page">
-  <h1>HSC CS2 Portal — API Smoke Test</h1>
-  <p>Validação temporária da Static API v2 via Angular HttpClient.</p>
+<section class="smoke-page">
+  <div class="smoke-page__intro">
+    <p class="smoke-page__eyebrow">Angular shell inicial</p>
+    <h1>API Smoke Test</h1>
+    <p>Validacao temporaria da Static API v2 via Angular HttpClient.</p>
+  </div>
 
   @if (vm$ | async; as vm) {
     <section class="grid">
@@ -27,6 +30,6 @@
 
     <pre>{{ vm | json }}</pre>
   } @else {
-    <p>Carregando contratos...</p>
+    <p class="smoke-page__loading">Carregando contratos...</p>
   }
-</main>
+</section>
