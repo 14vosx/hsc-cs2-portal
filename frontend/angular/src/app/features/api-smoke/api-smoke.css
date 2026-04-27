@@ -1,0 +1,32 @@
+﻿.smoke-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px;
+  font-family: Arial, sans-serif;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+
+article {
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+strong,
+span {
+  display: block;
+}
+
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: #111;
+  color: #eee;
+}

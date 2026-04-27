@@ -1,0 +1,14 @@
+{
+  "/api": {
+    "target": "https://haxixesmokeclub.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/content": {
+    "target": "https://haxixesmokeclub.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
