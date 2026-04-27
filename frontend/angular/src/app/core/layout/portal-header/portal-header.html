@@ -1,0 +1,17 @@
+<header class="portal-header">
+  <div class="portal-header__inner">
+    <div class="portal-header__brand" aria-label="HSC CS2">
+      <span class="portal-header__mark">HSC</span>
+      <div>
+        <strong>HSC CS2</strong>
+        <span>Competitivo regional em dados</span>
+      </div>
+    </div>
+
+    <nav class="portal-header__nav" aria-label="Navegação principal visual">
+      @for (item of navItems; track item) {
+        <span class="portal-header__nav-item">{{ item }}</span>
+      }
+    </nav>
+  </div>
+</header>

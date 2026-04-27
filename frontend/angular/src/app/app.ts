@@ -1,9 +1,10 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+
+import { PortalShell } from './core/layout/portal-shell/portal-shell';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [PortalShell],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
