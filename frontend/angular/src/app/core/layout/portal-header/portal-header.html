@@ -8,9 +8,22 @@
       </div>
     </div>
 
-    <nav class="portal-header__nav" aria-label="Navegação principal visual">
-      @for (item of navItems; track item) {
-        <span class="portal-header__nav-item">{{ item }}</span>
+    <nav class="portal-header__nav" aria-label="Navegação principal">
+      @for (item of navItems; track item.label) {
+        @if (item.path) {
+          <a
+            class="portal-header__nav-item"
+            [routerLink]="item.path"
+            routerLinkActive="portal-header__nav-item--active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+          >
+            {{ item.label }}
+          </a>
+        } @else {
+          <span class="portal-header__nav-item portal-header__nav-item--disabled">
+            {{ item.label }}
+          </span>
+        }
       }
     </nav>
   </div>

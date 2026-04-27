@@ -61,19 +61,27 @@
 }
 
 .portal-header__nav-item {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 7px 10px;
   color: var(--color-text-muted);
   font-size: 0.86rem;
   font-weight: 650;
+  text-decoration: none;
   background: rgba(18, 24, 33, 0.66);
 }
 
-.portal-header__nav-item:first-child {
+.portal-header__nav-item--active {
   border-color: var(--color-border-strong);
   color: var(--color-text);
   background: rgba(229, 57, 70, 0.12);
+}
+
+.portal-header__nav-item--disabled {
+  cursor: default;
+  opacity: 0.68;
 }
 
 @media (max-width: 760px) {
