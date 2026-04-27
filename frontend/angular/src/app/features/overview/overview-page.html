@@ -1,0 +1,140 @@
+<section class="overview-page">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <app-section-header
+          eyebrow="Visão Geral"
+          title="Portal CS2"
+          description="Carregando os dados mais recentes do competitivo HSC."
+        />
+
+        <p class="overview-page__loading">Carregando painel...</p>
+      }
+
+      @case ('error') {
+        <app-section-header
+          eyebrow="Visão Geral"
+          title="Portal CS2"
+          description="Não foi possível carregar os dados agora."
+        />
+
+        <app-empty-state
+          title="Dados indisponíveis"
+          description="Confira o servidor local com proxy ativo e tente novamente."
+        />
+      }
+
+      @case ('ready') {
+        <section class="overview-page__hero">
+          <div>
+            <app-section-header
+              eyebrow="Visão Geral"
+              title="Portal CS2"
+              description="Panorama operacional do competitivo HSC com ranking, partidas e mapas sincronizados pela Static API v2."
+            />
+          </div>
+
+          <div class="overview-page__hero-status">
+            <app-status-badge
+              [label]="vm.apiOk ? 'API online' : 'API instável'"
+              [tone]="vm.apiOk ? 'success' : 'danger'"
+            />
+            <span>Atualizado em {{ formatDate(vm.generatedAt) }}</span>
+          </div>
+        </section>
+
+        <section class="overview-page__metrics" aria-label="Resumo do portal">
+          <app-metric-card
+            label="Status"
+            [value]="vm.apiOk ? 'OK' : 'Atenção'"
+            [tone]="vm.apiOk ? 'success' : 'danger'"
+            hint="Saúde da API"
+          />
+          <app-metric-card label="Jogadores" [value]="vm.playersCount" tone="ranking" />
+          <app-metric-card label="Partidas" [value]="vm.matchesCount" />
+          <app-metric-card label="Mapas" [value]="vm.mapsCount" />
+        </section>
+
+        <section class="overview-page__spotlight">
+          <app-data-card eyebrow="Ranking" title="Líder atual" meta="score geral">
+            @if (vm.leader) {
+              <div class="overview-page__leader">
+                <strong>{{ vm.leader.name }}</strong>
+                <span>{{ vm.leader.score.toFixed(1) }} pts</span>
+                <p>{{ playerMeta(vm.leader) }}</p>
+              </div>
+            } @else {
+              <app-empty-state
+                title="Ranking vazio"
+                description="Nenhum jogador foi encontrado na sincronização atual."
+              />
+            }
+          </app-data-card>
+
+          <app-data-card eyebrow="Partidas" title="Última partida" meta="mais recente">
+            @if (vm.latestMatch) {
+              <div class="overview-page__match">
+                <strong>#{{ vm.latestMatch.matchid }}</strong>
+                <span>{{ formatScore(vm.latestMatch) }}</span>
+                <p>{{ formatDate(vm.latestMatch.end_time || vm.latestMatch.start_time) }}</p>
+              </div>
+            } @else {
+              <app-empty-state
+                title="Sem partidas"
+                description="Nenhuma partida foi encontrada na sincronização atual."
+              />
+            }
+          </app-data-card>
+
+          <app-data-card eyebrow="Mapas" title="Mapa mais jogado" meta="por volume">
+            @if (vm.mostPlayedMap) {
+              <div class="overview-page__map">
+                <strong>{{ vm.mostPlayedMap.map }}</strong>
+                <span>{{ vm.mostPlayedMap.matches }} partidas</span>
+                <p>{{ vm.mostPlayedMap.rounds }} rounds registrados</p>
+              </div>
+            } @else {
+              <app-empty-state
+                title="Sem mapas"
+                description="Nenhum mapa foi encontrado na sincronização atual."
+              />
+            }
+          </app-data-card>
+        </section>
+
+        <section class="overview-page__columns">
+          <app-data-card eyebrow="Top 3" title="Ranking em destaque">
+            @if (vm.hasRanking) {
+              <ol class="overview-page__ranking-list">
+                @for (player of vm.topPlayers; track player.steamid64; let position = $index) {
+                  <li>
+                    <span class="overview-page__rank">#{{ position + 1 }}</span>
+                    <div>
+                      <strong>{{ player.name }}</strong>
+                      <p>{{ playerMeta(player) }}</p>
+                    </div>
+                    <span>{{ player.score.toFixed(1) }}</span>
+                  </li>
+                }
+              </ol>
+            } @else {
+              <app-empty-state
+                title="Top ranking indisponível"
+                description="A lista de jogadores chegou vazia nesta carga."
+              />
+            }
+          </app-data-card>
+
+          <app-data-card eyebrow="Roadmap" title="Próximas áreas">
+            <div class="overview-page__next-areas">
+              <span>Ranking</span>
+              <span>Partidas</span>
+              <span>Mapas</span>
+              <span>News</span>
+            </div>
+          </app-data-card>
+        </section>
+      }
+    }
+  }
+</section>
