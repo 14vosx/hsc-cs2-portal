@@ -1,0 +1,32 @@
+﻿<main class="smoke-page">
+  <h1>HSC CS2 Portal — API Smoke Test</h1>
+  <p>Validação temporária da Static API v2 via Angular HttpClient.</p>
+
+  @if (vm$ | async; as vm) {
+    <section class="grid">
+      <article>
+        <strong>Health</strong>
+        <span>{{ vm.health.ok ? 'OK' : 'Falha' }}</span>
+      </article>
+
+      <article>
+        <strong>Ranking</strong>
+        <span>{{ vm.ranking.players.length }} jogadores</span>
+      </article>
+
+      <article>
+        <strong>Matches</strong>
+        <span>{{ vm.matches.matches.length }} partidas</span>
+      </article>
+
+      <article>
+        <strong>Maps</strong>
+        <span>{{ vm.maps.maps.length }} mapas</span>
+      </article>
+    </section>
+
+    <pre>{{ vm | json }}</pre>
+  } @else {
+    <p>Carregando contratos...</p>
+  }
+</main>
