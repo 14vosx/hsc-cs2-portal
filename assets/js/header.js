@@ -26,6 +26,7 @@
         <a href="${BASE}/ranking/" data-path="/ranking/">Ranking</a>
         <a href="${BASE}/matches/" data-path="/matches/">Matches</a>
         <a href="${BASE}/maps/" data-path="/maps/">Maps</a>
+        <a href="${BASE}/news/" data-path="/news/">News</a>
       </nav>
     </header>
   `;
