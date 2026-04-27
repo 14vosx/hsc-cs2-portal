@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HSC — News</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/pages/news.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/pages/news-item.css" />
+  </head>
+
+  <body class="dashboard-theme news-page news-item-page">
+    <div class="app-shell">
+      <div id="site-header"></div>
+
+      <main class="content-area">
+        <section class="page-intro">
+          <nav class="breadcrumb">
+            <a class="pill" href="/portal/cs2/news/">News</a>
+            <span class="pill active">Detalhe</span>
+          </nav>
+          <p id="news-meta" class="status-text"></p>
+        </section>
+
+        <section class="card">
+          <a class="back" href="/portal/cs2/news/">← Voltar</a>
+          <h1 id="news-title" style="margin: 10px 0 12px;">Carregando…</h1>
+
+          <div id="news-state" class="state">Carregando…</div>
+          <article id="news-content" class="news-content" hidden></article>
+        </section>
+      </main>
+    </div>
+
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/news-item.js"></script>
+  </body>
+</html>

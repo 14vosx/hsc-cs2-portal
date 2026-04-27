@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>HSC — News</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/portal/cs2/assets/css/base.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/header.css" />
+    <link rel="stylesheet" href="/portal/cs2/assets/css/pages/news.css" />
+  </head>
+
+  <body class="dashboard-theme news-page">
+    <div class="app-shell">
+      <div id="site-header"></div>
+
+      <main class="content-area">
+        <section class="page-intro">
+          <nav class="breadcrumb">
+            <span class="pill active">News</span>
+            <span class="pill">Comunicados</span>
+          </nav>
+          <p class="status-text">Atualizações e comunicados do HSC.</p>
+        </section>
+
+        <section class="card">
+          <div id="news-state" class="state">Carregando…</div>
+          <div id="news-list" class="news-list" hidden></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/portal/cs2/assets/js/config.js" defer></script>
+    <script src="/portal/cs2/assets/js/header.js" defer></script>
+    <script type="module" src="/portal/cs2/assets/js/pages/news.js"></script>
+  </body>
+</html>

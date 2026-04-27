@@ -1,0 +1,27 @@
+/* /portal/cs2/news/item/item.css */
+
+.news-item-page .back{
+  display: inline-block;
+  margin: 0 0 10px;
+  text-decoration: none;
+  opacity: .85;
+}
+
+.news-item-page .back:hover{
+  opacity: 1;
+}
+
+.news-item-page .news-content{
+  padding: 6px 4px;
+  line-height: 1.65;
+}
+
+.news-item-page .news-content p{
+  margin: 10px 0;
+}
+
+.news-item-page .news-content a{
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
