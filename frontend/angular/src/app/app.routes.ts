@@ -17,6 +17,11 @@ export const routes: Routes = [
       import('./features/matches/matches-page').then((component) => component.MatchesPage),
   },
   {
+    path: 'maps',
+    loadComponent: () =>
+      import('./features/maps/maps-page').then((component) => component.MapsPage),
+  },
+  {
     path: 'api-smoke',
     loadComponent: () =>
       import('./features/api-smoke/api-smoke').then((component) => component.ApiSmoke),

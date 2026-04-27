@@ -1,0 +1,131 @@
+<section class="maps-page">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <app-section-header
+          eyebrow="Mapas"
+          title="Rotação de mapas"
+          description="Carregando estatísticas da rotação competitiva."
+        />
+
+        <p class="maps-page__loading">Carregando mapas...</p>
+      }
+
+      @case ('error') {
+        <app-section-header
+          eyebrow="Mapas"
+          title="Rotação de mapas"
+          description="Não foi possível carregar os mapas agora."
+        />
+
+        <app-empty-state
+          title="Mapas indisponíveis"
+          description="Confira o servidor local com proxy ativo e tente novamente."
+        />
+      }
+
+      @case ('ready') {
+        <section class="maps-page__hero">
+          <app-section-header
+            eyebrow="Mapas"
+            title="Rotação de mapas"
+            description="Leitura geral dos mapas jogados no HSC CS2, com volume de partidas, rounds e recência."
+          />
+
+          <div class="maps-page__status">
+            <app-status-badge label="Sincronização ativa" tone="success" />
+            <span>Atualizado em {{ formatDate(vm.generatedAt) }}</span>
+          </div>
+        </section>
+
+        <section class="maps-page__metrics" aria-label="Resumo dos mapas">
+          <app-metric-card label="Mapas" [value]="vm.maps.length" tone="ranking" />
+          <app-metric-card
+            label="Mapa mais jogado"
+            [value]="vm.mostPlayedMap?.map || 'Sem mapa'"
+            [tone]="vm.mostPlayedMap ? 'success' : 'default'"
+          />
+          <app-metric-card label="Partidas" [value]="vm.totalMatches" />
+          <app-metric-card label="Rounds" [value]="vm.totalRounds" />
+        </section>
+
+        @if (vm.maps.length > 0) {
+          <app-data-card eyebrow="Lista" title="Mapas jogados" meta="busca e ordenação local">
+            <div class="maps-page__controls">
+              <label class="maps-page__field">
+                <span>Buscar mapa</span>
+                <input
+                  type="search"
+                  placeholder="Nome do mapa"
+                  [value]="searchTerm()"
+                  (input)="updateSearch($event)"
+                />
+              </label>
+
+              <label class="maps-page__field">
+                <span>Ordenar por</span>
+                <select [value]="sortBy()" (change)="updateSort($event)">
+                  <option value="matches">Partidas desc</option>
+                  <option value="rounds">Rounds desc</option>
+                  <option value="lastPlayed">Último jogo desc</option>
+                </select>
+              </label>
+            </div>
+
+            @let maps = visibleMaps(vm.maps);
+
+            @if (maps.length > 0) {
+              <div class="maps-page__grid">
+                @for (mapSummary of maps; track mapSummary.map) {
+                  <article class="map-card">
+                    <header class="map-card__header">
+                      <div>
+                        <span>Mapa</span>
+                        <strong>{{ mapSummary.map }}</strong>
+                      </div>
+
+                      @if (vm.mostPlayedMap?.map === mapSummary.map) {
+                        <app-status-badge label="Mais jogado" tone="warning" />
+                      }
+                    </header>
+
+                    <dl class="map-card__stats">
+                      <div>
+                        <dt>Partidas</dt>
+                        <dd>{{ mapSummary.matches }}</dd>
+                      </div>
+                      <div>
+                        <dt>Rounds</dt>
+                        <dd>{{ mapSummary.rounds }}</dd>
+                      </div>
+                      <div>
+                        <dt>Média de rounds</dt>
+                        <dd>{{ formatNumber(mapSummary.avgRoundsPerMatch, 1) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Último jogo</dt>
+                        <dd>{{ formatDate(mapSummary.lastPlayed) }}</dd>
+                      </div>
+                    </dl>
+
+                    <span class="map-card__soon">Detalhe em breve</span>
+                  </article>
+                }
+              </div>
+            } @else {
+              <app-empty-state
+                title="Nenhum mapa encontrado"
+                description="A busca atual não encontrou mapas na rotação."
+              />
+            }
+          </app-data-card>
+        } @else {
+          <app-empty-state
+            title="Nenhum mapa encontrado"
+            description="A sincronização atual não retornou mapas para a rotação."
+          />
+        }
+      }
+    }
+  }
+</section>
