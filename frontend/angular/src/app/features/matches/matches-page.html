@@ -29,7 +29,7 @@
           <app-section-header
             eyebrow="Partidas"
             title="Histórico competitivo"
-            description="Confrontos recentes do HSC CS2, com vencedores, placares e mapas jogados."
+            description="Resultados recentes do HSC CS2 com placar do mapa, vencedor e contexto da série."
           />
 
           <div class="matches-page__status">
@@ -49,41 +49,41 @@
         </section>
 
         @if (vm.latestMatch) {
-          <app-data-card
-            eyebrow="Última partida"
-            title="Confronto mais recente"
-            meta="recorte atual"
-          >
-            <div class="matches-page__latest">
-              <div>
-                <strong>{{ vm.latestMatch.team1_name }}</strong>
-                <span
-                  [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team1_name)"
-                >
-                  {{ vm.latestMatch.team1_score }}
-                </span>
-              </div>
-              <span class="matches-page__versus">x</span>
-              <div>
-                <span
-                  [class.matches-page__winner]="isWinner(vm.latestMatch, vm.latestMatch.team2_name)"
-                >
-                  {{ vm.latestMatch.team2_score }}
-                </span>
-                <strong>{{ vm.latestMatch.team2_name }}</strong>
-              </div>
-            </div>
-            <p class="matches-page__latest-meta">
-              #{{ vm.latestMatch.matchid }} · {{ vm.latestMatch.series_type }} ·
-              {{ formatDate(vm.latestMatch.end_time || vm.latestMatch.start_time) }}
-            </p>
-            <app-status-badge [label]="'Vencedor: ' + winnerLabel(vm.latestMatch)" tone="warning" />
-            <a
-              class="matches-page__details-link"
-              [routerLink]="['/matches', vm.latestMatch.matchid]"
+          <app-data-card eyebrow="Última partida" title="Confronto mais recente" meta="resultado final">
+            <article
+              class="match-card match-card--latest"
+              [style.--match-map-bg]="mapBackgroundImage(vm.latestMatch)"
             >
-              Abrir detalhe da partida →
-            </a>
+              <header class="match-card__meta">
+                <span>#{{ vm.latestMatch.matchid }}</span>
+                <span>{{ vm.latestMatch.series_type }}</span>
+                <span>{{ formatDate(matchEndedAt(vm.latestMatch)) }}</span>
+                <span>{{ primaryMapName(vm.latestMatch) }}</span>
+              </header>
+
+              <div class="match-card__main">
+                <div class="match-card__team" [class.match-card__team--winner]="winnerSide(vm.latestMatch) === 'team1'">
+                  <strong>{{ vm.latestMatch.team1_name }}</strong>
+                </div>
+
+                <div class="match-card__score">
+                  <strong>{{ formatPrimaryScore(vm.latestMatch) }}</strong>
+                  <span>{{ primaryMapName(vm.latestMatch) }}</span>
+                </div>
+
+                <div class="match-card__team" [class.match-card__team--winner]="winnerSide(vm.latestMatch) === 'team2'">
+                  <strong>{{ vm.latestMatch.team2_name }}</strong>
+                </div>
+              </div>
+
+              <footer class="match-card__footer">
+                <p>Vencedor: <strong>{{ winnerLabel(vm.latestMatch) }}</strong></p>
+                <p>Série {{ formatSeriesScore(vm.latestMatch) }}</p>
+                <a class="match-card__cta" [routerLink]="['/matches', vm.latestMatch.matchid]">
+                  Abrir relatório e destaques →
+                </a>
+              </footer>
+            </article>
           </app-data-card>
         }
 
@@ -116,47 +116,46 @@
             @if (visibleMatches.length > 0) {
               <div class="matches-page__list">
                 @for (match of visibleMatches; track match.matchid) {
-                  <article class="match-card">
-                    <header class="match-card__header">
-                      <div>
-                        <span class="match-card__id">#{{ match.matchid }}</span>
-                        <strong>{{ match.series_type }}</strong>
-                      </div>
-                      <span>{{ formatDate(match.end_time || match.start_time) }}</span>
+                  <article class="match-card" [style.--match-map-bg]="mapBackgroundImage(match)">
+                    <header class="match-card__meta">
+                      <span>#{{ match.matchid }}</span>
+                      <span>{{ match.series_type }}</span>
+                      <span>{{ formatDate(matchEndedAt(match)) }}</span>
+                      <span>{{ primaryMapName(match) }}</span>
                     </header>
 
-                    <div class="match-card__scoreline">
-                      <div [class.match-card__team--winner]="isWinner(match, match.team1_name)">
+                    <div class="match-card__main">
+                      <div class="match-card__team" [class.match-card__team--winner]="winnerSide(match) === 'team1'">
                         <strong>{{ match.team1_name }}</strong>
-                        <span>{{ match.team1_score }}</span>
                       </div>
-                      <span class="match-card__versus">x</span>
-                      <div [class.match-card__team--winner]="isWinner(match, match.team2_name)">
-                        <span>{{ match.team2_score }}</span>
+
+                      <div class="match-card__score">
+                        <strong>{{ formatPrimaryScore(match) }}</strong>
+                        <span>{{ primaryMapName(match) }}</span>
+                      </div>
+
+                      <div class="match-card__team" [class.match-card__team--winner]="winnerSide(match) === 'team2'">
                         <strong>{{ match.team2_name }}</strong>
                       </div>
                     </div>
 
-                    <div class="match-card__meta">
-                      <app-status-badge
-                        [label]="'Vencedor: ' + winnerLabel(match)"
-                        tone="warning"
-                      />
-                      <a
-                        class="match-card__details-link"
-                        [routerLink]="['/matches', match.matchid]"
-                      >
-                        Ver relatório →
+                    <footer class="match-card__footer">
+                      <p>Vencedor: <strong>{{ winnerLabel(match) }}</strong></p>
+                      <p>Série {{ formatSeriesScore(match) }}</p>
+                      <a class="match-card__cta" [routerLink]="['/matches', match.matchid]">
+                        Ver relatório e destaques →
                       </a>
-                    </div>
+                    </footer>
 
-                    <div class="match-card__maps" aria-label="Mapas jogados">
-                      @for (map of match.maps; track map.mapnumber) {
-                        <a class="match-card__map-link" [routerLink]="['/maps', map.mapname]">
-                          {{ map.mapname }} · {{ map.team1_score }} x {{ map.team2_score }}
-                        </a>
-                      }
-                    </div>
+                    @if (isSeriesMatch(match)) {
+                      <div class="match-card__maps" aria-label="Mapas jogados">
+                        @for (map of match.maps; track map.mapnumber) {
+                          <a [routerLink]="['/maps', map.mapname]">
+                            {{ map.mapname }} · {{ map.team1_score }} x {{ map.team2_score }}
+                          </a>
+                        }
+                      </div>
+                    }
                   </article>
                 }
               </div>
