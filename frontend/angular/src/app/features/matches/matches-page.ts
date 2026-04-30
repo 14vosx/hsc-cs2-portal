@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith } from 'rxjs';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
-import { MatchSummaryDto } from '../../core/api/dto/matches.dto';
+import { MatchMapDto, MatchSummaryDto } from '../../core/api/dto/matches.dto';
 import { DataCard } from '../../shared/components/data-card/data-card';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { MetricCard } from '../../shared/components/metric-card/metric-card';
@@ -33,6 +33,17 @@ export class MatchesPage {
 
   protected readonly searchTerm = signal('');
   protected readonly selectedMap = signal('');
+
+  private readonly knownMapImages = new Set([
+    'de_ancient',
+    'de_anubis',
+    'de_dust2',
+    'de_inferno',
+    'de_mirage',
+    'de_nuke',
+    'de_overpass',
+    'de_train',
+  ]);
 
   protected readonly vm$: Observable<MatchesVm> = this.cs2Api.getMatches().pipe(
     map((payload): MatchesVm => {
@@ -129,12 +140,60 @@ export class MatchesPage {
     return `${match.team1_score} x ${match.team2_score}`;
   }
 
+  protected primaryMap(match: MatchSummaryDto): MatchMapDto | undefined {
+    return match.maps[0];
+  }
+
+  protected formatPrimaryScore(match: MatchSummaryDto): string {
+    const map = this.primaryMap(match);
+
+    if (map) {
+      return `${map.team1_score} x ${map.team2_score}`;
+    }
+
+    return this.formatScore(match);
+  }
+
+  protected primaryMapName(match: MatchSummaryDto): string {
+    return this.primaryMap(match)?.mapname || 'Mapa não informado';
+  }
+
+  protected mapBackgroundImage(match: MatchSummaryDto): string {
+    const mapName = this.primaryMap(match)?.mapname;
+
+    if (!mapName || !this.knownMapImages.has(mapName)) {
+      return 'none';
+    }
+
+    return `url("maps/${mapName}.png")`;
+  }
+
+  protected formatSeriesScore(match: MatchSummaryDto): string {
+    return `${match.team1_score} x ${match.team2_score}`;
+  }
+
+  protected matchEndedAt(match: MatchSummaryDto): string {
+    return match.end_time || match.start_time;
+  }
+
   protected winnerLabel(match: MatchSummaryDto): string {
     return match.winner || 'Sem vencedor';
   }
 
-  protected isWinner(match: MatchSummaryDto, teamName: string): boolean {
-    return match.winner === teamName;
+  protected winnerSide(match: MatchSummaryDto): 'team1' | 'team2' | 'unknown' {
+    if (match.winner === match.team1_name) {
+      return 'team1';
+    }
+
+    if (match.winner === match.team2_name) {
+      return 'team2';
+    }
+
+    return 'unknown';
+  }
+
+  protected isSeriesMatch(match: MatchSummaryDto): boolean {
+    return match.maps.length > 1 || match.series_type !== 'BO1';
   }
 
   private matchTimestamp(match: MatchSummaryDto): number {
