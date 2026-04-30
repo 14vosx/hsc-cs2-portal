@@ -538,3 +538,52 @@ endpoints /api/cs2 e /content
 ```
 
 Somente depois dessa validação deve ser planejada qualquer alteração real.
+
+---
+
+## Nota operacional — assets estáticos do Angular
+
+A partir do PR #15, a aplicação Angular passou a incluir imagens estáticas de mapas em:
+
+```text
+frontend/angular/public/maps
+```
+
+Esses arquivos são copiados pelo build Angular para:
+
+```text
+dist/hsc-cs2-portal-angular/browser/maps
+```
+
+Portanto, continuam dentro da regra de publicação segura:
+
+```text
+publicar somente dist/hsc-cs2-portal-angular/browser/*
+```
+
+Exemplos de assets permitidos no artefato publicável:
+
+```text
+maps/de_ancient.png
+maps/de_anubis.png
+maps/de_dust2.png
+maps/de_inferno.png
+maps/de_mirage.png
+maps/de_nuke.png
+maps/de_overpass.png
+maps/de_train.png
+```
+
+Esses arquivos são artefatos estáticos públicos da aplicação, não código-fonte Angular.
+
+A regra continua inalterada:
+
+```text
+não publicar frontend/angular
+não publicar src
+não publicar node_modules
+não publicar package.json
+não publicar angular.json
+não publicar tsconfig*.json
+não publicar .git
+```
