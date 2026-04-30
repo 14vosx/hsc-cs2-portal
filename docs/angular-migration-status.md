@@ -245,3 +245,94 @@ A migração Angular está funcional localmente, mas ainda não deve ser publica
 O portal legado permanece como produção atual.
 
 O Angular permanece como nova aplicação em desenvolvimento local até existir um plano de deploy seguro.
+
+---
+
+## Atualização — PR #15 — UX de partidas e staging
+
+Data: 2026-04-30
+
+Commit em `main`:
+
+```text
+acf0f3d feat(cs2-next): polish matches page UX (#15)
+```
+
+### Escopo funcional atualizado
+
+A rota `/matches` foi refinada visualmente e passou a funcionar como uma listagem competitiva de confrontos.
+
+Mudanças relevantes:
+
+- correção do warning de CSS budget em `matches-page.css`;
+- reorganização visual da lista de partidas;
+- placar principal usando o placar do mapa jogado, quando disponível;
+- vencedor exibido de forma mais clara;
+- CTA para detalhe da partida restaurado com navegação Angular;
+- links de mapas preservados;
+- background contextual por mapa em cada item da lista;
+- imagens dos mapas adicionadas em `frontend/angular/public/maps`.
+
+### Assets adicionados
+
+```text
+frontend/angular/public/maps/de_ancient.png
+frontend/angular/public/maps/de_anubis.png
+frontend/angular/public/maps/de_dust2.png
+frontend/angular/public/maps/de_inferno.png
+frontend/angular/public/maps/de_mirage.png
+frontend/angular/public/maps/de_nuke.png
+frontend/angular/public/maps/de_overpass.png
+frontend/angular/public/maps/de_train.png
+```
+
+### Rotas impactadas
+
+```text
+/matches
+/matches/:matchId
+/maps/:map
+```
+
+### Validação
+
+Validado localmente:
+
+```bash
+cd frontend/angular
+npm run build
+```
+
+Resultado:
+
+```text
+build aprovado
+sem warning de CSS budget
+```
+
+Validado em staging:
+
+```text
+https://haxixesmokeclub.com/portal/cs2-next/matches
+```
+
+Resultado:
+
+```text
+Visual staging aprovado
+Console sem erro crítico
+API OK
+```
+
+### Fora de escopo
+
+Esta atualização não alterou:
+
+```text
+API
+ETL
+Nginx
+portal legado
+contratos da Static API v2
+cutover para /portal/cs2
+```
