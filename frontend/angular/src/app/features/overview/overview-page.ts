@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, Observable, of, startWith } from 'rxjs';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
@@ -10,11 +11,9 @@ import { DataCard } from '../../shared/components/data-card/data-card';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { MetricCard } from '../../shared/components/metric-card/metric-card';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
-import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 
 interface OverviewReadyVm {
   state: 'ready';
-  apiOk: boolean;
   generatedAt: string;
   playersCount: number;
   matchesCount: number;
@@ -32,7 +31,7 @@ type OverviewVm = OverviewReadyVm | { state: 'loading' } | { state: 'error' };
 
 @Component({
   selector: 'app-overview-page',
-  imports: [AsyncPipe, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
+  imports: [AsyncPipe, DataCard, EmptyState, MetricCard, RouterLink, SectionHeader],
   templateUrl: './overview-page.html',
   styleUrl: './overview-page.css',
 })
@@ -59,7 +58,6 @@ export class OverviewPage {
 
       return {
         state: 'ready',
-        apiOk: health.ok,
         generatedAt: health.generatedAt || ranking.generatedAt,
         playersCount: ranking.players.length,
         matchesCount: matches.matches.length,
@@ -99,6 +97,10 @@ export class OverviewPage {
 
   protected formatScore(match: MatchSummaryDto): string {
     return `${match.team1_name} ${match.team1_score} x ${match.team2_score} ${match.team2_name}`;
+  }
+
+  protected matchWinner(match: MatchSummaryDto): string {
+    return match.winner ? `Vencedor: ${match.winner}` : 'Resultado registrado';
   }
 
   protected playerMeta(player: RankingPlayerDto): string {
