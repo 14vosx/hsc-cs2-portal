@@ -1,6 +1,7 @@
 .portal-footer {
   border-top: 1px solid var(--color-border);
   color: var(--color-text-muted);
+  background: rgba(5, 8, 11, 0.52);
 }
 
 .portal-footer__inner {
@@ -25,5 +26,5 @@
 }
 
 .portal-footer a:hover {
-  color: var(--color-text);
+  color: var(--color-primary-strong);
 }

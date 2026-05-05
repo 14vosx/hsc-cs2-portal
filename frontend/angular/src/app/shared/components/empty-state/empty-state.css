@@ -5,7 +5,7 @@
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-5);
-  background: rgba(18, 24, 33, 0.48);
+  background: rgba(11, 16, 21, 0.58);
 }
 
 h2,
@@ -28,6 +28,6 @@ button {
   border-radius: var(--radius-sm);
   padding: 8px 11px;
   color: var(--color-text);
-  background: rgba(229, 57, 70, 0.14);
+  background: rgba(29, 167, 242, 0.14);
   cursor: default;
 }

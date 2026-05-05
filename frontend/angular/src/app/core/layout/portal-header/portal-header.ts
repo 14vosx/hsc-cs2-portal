@@ -14,7 +14,7 @@ interface PortalNavItem {
 })
 export class PortalHeader {
   protected readonly navItems: PortalNavItem[] = [
-    { label: 'Visão Geral', path: '/' },
+    { label: 'Portal CS2', path: '/' },
     { label: 'Ranking', path: '/ranking' },
     { label: 'Partidas', path: '/matches' },
     { label: 'Mapas', path: '/maps' },
