@@ -1,33 +1,89 @@
 .overview-page {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
 .overview-page__hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  align-items: stretch;
+  gap: var(--space-6);
+  padding: var(--space-5) 0 var(--space-2);
 }
 
-.overview-page__hero-status {
+.overview-page__hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.overview-page__hero-actions a,
+.overview-page__leader a,
+.overview-page__match a,
+.overview-page__map a {
+  width: fit-content;
+  color: var(--color-primary-strong);
+  font-size: 0.9rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.overview-page__hero-actions a:first-child {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  color: var(--color-text);
+  background: rgba(29, 167, 242, 0.16);
+}
+
+.overview-page__hero-actions a:not(:first-child) {
+  padding: 10px 0;
+}
+
+.overview-page__hero-card {
   display: grid;
-  justify-items: end;
+  align-content: end;
   gap: var(--space-2);
-  min-width: 230px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  background:
+    linear-gradient(180deg, rgba(26, 35, 45, 0.72), rgba(8, 12, 16, 0.92)),
+    var(--color-bg-elevated);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.overview-page__hero-kicker {
+  color: var(--color-primary-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.overview-page__hero-card strong {
+  color: var(--color-text);
+  font-size: 1.75rem;
+  line-height: 1.05;
+}
+
+.overview-page__hero-card p,
+.overview-page__hero-card small {
+  margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.86rem;
+}
+
+.overview-page__hero-card small {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
 }
 
 .overview-page__metrics,
 .overview-page__spotlight {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-
-.overview-page__spotlight {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
 .overview-page__columns {
@@ -40,6 +96,8 @@
 .overview-page__match,
 .overview-page__map {
   display: grid;
+  align-content: start;
+  min-height: 148px;
   gap: var(--space-2);
 }
 
@@ -61,9 +119,15 @@
 
 .overview-page__leader p,
 .overview-page__match p,
-.overview-page__map p {
+.overview-page__map p,
+.overview-page__match small {
   margin: 0;
   color: var(--color-text-muted);
+}
+
+.overview-page__match small {
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
 }
 
 .overview-page__ranking-list {
@@ -79,10 +143,9 @@
   grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--color-border);
   padding: var(--space-3);
-  background: rgba(18, 24, 33, 0.58);
+  background: rgba(11, 16, 21, 0.42);
 }
 
 .overview-page__ranking-list strong,
@@ -111,17 +174,27 @@
 
 .overview-page__next-areas {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
 }
 
-.overview-page__next-areas span {
+.overview-page__next-areas a {
+  display: grid;
+  gap: var(--space-1);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
+  color: var(--color-text);
+  background: rgba(11, 16, 21, 0.5);
+  text-decoration: none;
+}
+
+.overview-page__next-areas span {
   color: var(--color-text-muted);
-  background: rgba(18, 24, 33, 0.58);
-  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+.overview-page__next-areas strong {
+  font-size: 0.98rem;
 }
 
 .overview-page__loading {
@@ -138,10 +211,6 @@
     grid-template-columns: 1fr;
   }
 
-  .overview-page__hero-status {
-    justify-items: start;
-  }
-
   .overview-page__metrics,
   .overview-page__spotlight {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -150,8 +219,7 @@
 
 @media (max-width: 560px) {
   .overview-page__metrics,
-  .overview-page__spotlight,
-  .overview-page__next-areas {
+  .overview-page__spotlight {
     grid-template-columns: 1fr;
   }
 }
