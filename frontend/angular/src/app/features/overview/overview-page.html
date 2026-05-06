@@ -29,10 +29,6 @@
                 <a class="overview-page__primary-action" [routerLink]="vm.hero.routerLink">
                   {{ vm.hero.ctaLabel }}
                 </a>
-              } @else if (vm.hero.href) {
-                <a class="overview-page__primary-action" [href]="vm.hero.href">
-                  {{ vm.hero.ctaLabel }}
-                </a>
               }
               <a routerLink="/matches">Últimas partidas</a>
               <a routerLink="/maps">Mapas mais jogados</a>
@@ -157,13 +153,13 @@
               <span class="overview-page__eyebrow">Comunidade</span>
               <h2>Últimas notícias</h2>
             </div>
-            <a href="/portal/cs2/news/">Ver News</a>
+            <a routerLink="/news">Ver News</a>
           </header>
 
           @if (vm.newsItems.length) {
             <div class="overview-page__news-grid">
               @for (item of vm.newsItems; track item.slug || item.title) {
-                <a class="overview-page__news-card" [href]="newsHref(item)">
+                <a class="overview-page__news-card" [routerLink]="newsHref(item)">
                   <div class="overview-page__news-media">
                     @if (item.image_url) {
                       <img [src]="item.image_url" alt="" />

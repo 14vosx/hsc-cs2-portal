@@ -19,6 +19,6 @@ export class PortalHeader {
     { label: 'Ranking', path: '/ranking' },
     { label: 'Partidas', path: '/matches' },
     { label: 'Mapas', path: '/maps' },
-    { label: 'News', href: '/portal/cs2/news/' },
+    { label: 'News', path: '/news' },
   ];
 }

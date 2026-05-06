@@ -1,0 +1,61 @@
+<section class="news-detail">
+  <a class="news-detail__back" routerLink="/news">Voltar para News</a>
+
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <section class="news-detail__loading">
+          <span>Carregando notícia...</span>
+        </section>
+      }
+
+      @case ('error') {
+        <section class="news-detail__empty">
+          <app-empty-state
+            title="Notícia indisponível"
+            description="Esta publicação não pôde ser carregada neste momento."
+          />
+          <a routerLink="/news">Ver todas as notícias</a>
+        </section>
+      }
+
+      @case ('ready') {
+        @if (vm.item) {
+          <article>
+            <header class="news-detail__hero">
+              <small>{{ formatDate(vm.item.published_at) }}</small>
+              <h1>{{ vm.item.title }}</h1>
+              @if (vm.item.excerpt) {
+                <p>{{ vm.item.excerpt }}</p>
+              }
+            </header>
+
+            <div class="news-detail__media">
+              @if (vm.item.image_url) {
+                <img [src]="vm.item.image_url" alt="" />
+              } @else {
+                <span>HSC</span>
+              }
+            </div>
+
+            <div class="news-detail__content">
+              @for (paragraph of paragraphs(vm.item.content); track paragraph) {
+                <p>{{ paragraph }}</p>
+              } @empty {
+                <p>Conteúdo da notícia em preparação.</p>
+              }
+            </div>
+          </article>
+        } @else {
+          <section class="news-detail__empty">
+            <app-empty-state
+              title="Notícia não encontrada"
+              description="A publicação solicitada não está disponível."
+            />
+            <a routerLink="/news">Ver todas as notícias</a>
+          </section>
+        }
+      }
+    }
+  }
+</section>
