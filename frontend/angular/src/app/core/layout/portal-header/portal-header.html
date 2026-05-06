@@ -1,11 +1,9 @@
 <header class="portal-header">
   <div class="portal-header__inner">
-    <div class="portal-header__brand" aria-label="HSC CS2">
-      <span class="portal-header__mark">HSC</span>
-      <div>
-        <strong>HSC CS2</strong>
-        <span>Temporada competitiva do clube</span>
-      </div>
+    <div class="portal-header__brand" aria-label="HSC CS2 Portal">
+      <span class="portal-header__mark" aria-hidden="true">
+        <img src="brand/hsc-shield-primary-accent.webp" alt="" />
+      </span>
     </div>
 
     <nav class="portal-header__nav" aria-label="Navegação principal">
@@ -19,6 +17,10 @@
           >
             {{ item.label }}
           </a>
+        } @else if (item.href) {
+          <a class="portal-header__nav-item" [href]="item.href">
+            {{ item.label }}
+          </a>
         } @else {
           <span class="portal-header__nav-item portal-header__nav-item--disabled">
             {{ item.label }}
@@ -26,5 +28,17 @@
         }
       }
     </nav>
+
+    <div class="portal-header__secondary" aria-label="Informações do portal">
+      <div>
+        <span>Temporada ativa</span>
+        <strong>CS2 HSC</strong>
+      </div>
+      <div>
+        <span>Conta</span>
+        <strong>em breve</strong>
+      </div>
+      <a routerLink="/api-smoke">Diagnóstico</a>
+    </div>
   </div>
 </header>

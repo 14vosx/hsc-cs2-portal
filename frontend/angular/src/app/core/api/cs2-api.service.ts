@@ -6,6 +6,7 @@ import { cs2ApiPaths } from '../config/api-paths';
 import { HealthDto } from './dto/health.dto';
 import { MapsDto } from './dto/maps.dto';
 import { MatchesDto } from './dto/matches.dto';
+import { NewsIndexDto } from './dto/news.dto';
 import { RankingDto } from './dto/ranking.dto';
 import { MapDetailDto } from './dto/map-detail.dto';
 import { MatchDetailDto } from './dto/match-detail.dto';
@@ -38,5 +39,9 @@ export class Cs2ApiService {
 
   getMatch(id: number | string): Observable<MatchDetailDto> {
     return this.http.get<MatchDetailDto>(cs2ApiPaths.match(id));
+  }
+
+  getNewsIndex(): Observable<NewsIndexDto> {
+    return this.http.get<NewsIndexDto>(cs2ApiPaths.newsIndex);
   }
 }

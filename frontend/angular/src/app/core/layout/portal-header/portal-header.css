@@ -1,81 +1,62 @@
 .portal-header {
-  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  border-right: 1px solid var(--color-border);
   background: rgba(5, 8, 11, 0.84);
   backdrop-filter: blur(20px);
 }
 
 .portal-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(100%, var(--page-max));
-  margin: 0 auto;
-  padding: var(--space-4) var(--space-5);
-  gap: var(--space-5);
+  display: grid;
+  align-content: start;
+  width: 100%;
+  min-height: 100vh;
+  padding: var(--space-5);
+  gap: var(--space-7);
 }
 
 .portal-header__brand {
   display: flex;
   align-items: center;
-  min-width: 220px;
   gap: var(--space-3);
 }
 
 .portal-header__mark {
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
-  border: 1px solid rgba(127, 226, 255, 0.32);
-  border-radius: var(--radius-sm);
-  background:
-    linear-gradient(135deg, rgba(50, 209, 255, 0.18), rgba(14, 127, 209, 0.1)),
-    var(--hsc-dark-10);
-  color: var(--hsc-white);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 0 24px rgba(29, 167, 242, 0.18);
+  width: 42px;
+  height: 42px;
 }
 
-.portal-header__brand strong,
-.portal-header__brand span {
-  display: block;
-}
-
-.portal-header__brand strong {
-  font-size: 1.05rem;
-  line-height: 1.1;
-}
-
-.portal-header__brand span {
-  margin-top: 2px;
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
+.portal-header__mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .portal-header__nav {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
 }
 
 .portal-header__nav-item {
   display: inline-flex;
   align-items: center;
-  border-bottom: 2px solid transparent;
-  padding: 7px 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
   color: var(--color-text-muted);
   font-size: 0.86rem;
   font-weight: 650;
   text-decoration: none;
+  background: transparent;
 }
 
 .portal-header__nav-item--active {
-  border-color: var(--color-primary-strong);
+  border-color: rgba(50, 209, 255, 0.24);
   color: var(--color-text);
+  background: rgba(29, 167, 242, 0.1);
 }
 
 .portal-header__nav-item--disabled {
@@ -83,16 +64,85 @@
   opacity: 0.68;
 }
 
-@media (max-width: 760px) {
+.portal-header__secondary {
+  display: grid;
+  gap: var(--space-3);
+  align-self: end;
+  margin-top: auto;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.portal-header__secondary div,
+.portal-header__secondary a {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
+}
+
+.portal-header__secondary span,
+.portal-header__secondary strong {
+  display: block;
+}
+
+.portal-header__secondary strong {
+  margin-top: 2px;
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+.portal-header__secondary a {
+  color: var(--color-text-subtle);
+  text-decoration: none;
+}
+
+@media (max-width: 980px) {
+  .portal-header {
+    position: static;
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
   .portal-header__inner {
+    display: flex;
     align-items: flex-start;
-    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
     padding: var(--space-4);
+    gap: var(--space-4);
   }
 
   .portal-header__nav {
+    display: flex;
+    flex-wrap: wrap;
     justify-content: flex-start;
-    width: 100%;
     gap: var(--space-3);
+  }
+
+  .portal-header__nav-item {
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 7px 0 8px;
+    background: transparent;
+  }
+
+  .portal-header__nav-item--active {
+    border-color: var(--color-primary-strong);
+    background: transparent;
+  }
+
+  .portal-header__secondary {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .portal-header__inner {
+    flex-direction: column;
+  }
+
+  .portal-header__nav {
+    width: 100%;
   }
 }
