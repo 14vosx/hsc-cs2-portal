@@ -165,7 +165,7 @@ export class MatchesPage {
       return 'none';
     }
 
-    return `url("maps/${mapName}.png")`;
+    return `url("map-images/${mapName}.png")`;
   }
 
   protected formatSeriesScore(match: MatchSummaryDto): string {

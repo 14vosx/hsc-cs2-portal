@@ -150,7 +150,7 @@ export class OverviewPage {
       return 'none';
     }
 
-    return `url("maps/${mapName}.png")`;
+    return `url("map-images/${mapName}.png")`;
   }
 
   protected mapSummaryBackgroundImage(map: MapSummaryDto): string {
@@ -158,7 +158,7 @@ export class OverviewPage {
       return 'none';
     }
 
-    return `url("maps/${map.map}.png")`;
+    return `url("map-images/${map.map}.png")`;
   }
 
   protected formatPrimaryScore(match: MatchSummaryDto): string {
