@@ -6,7 +6,7 @@
 }
 
 .season-podium-card {
-  --podium-accent: #f6c85f;
+  --podium-accent: var(--color-accent-warm);
   --podium-deep: rgba(246, 200, 95, 0.2);
   min-height: 380px;
   border: 1px solid color-mix(in srgb, var(--podium-accent), transparent 48%);
@@ -20,7 +20,7 @@
 }
 
 .season-podium-card--rank-1 {
-  --podium-accent: #f6c85f;
+  --podium-accent: var(--color-accent-warm);
   --podium-deep: rgba(246, 200, 95, 0.28);
   min-height: 420px;
   transform: translateY(-12px);
@@ -28,7 +28,7 @@
 
 .season-podium-card--rank-2 {
   --podium-accent: #b8d7f0;
-  --podium-deep: rgba(29, 167, 242, 0.22);
+  --podium-deep: var(--color-accent-cyan-soft);
 }
 
 .season-podium-card--rank-3 {
@@ -126,13 +126,13 @@
 }
 
 .season-podium-card__badge--eligible {
-  border-color: rgba(246, 200, 95, 0.44);
-  color: #f6c85f;
+  border-color: var(--color-accent-warm-border);
+  color: var(--color-accent-warm);
 }
 
 .season-podium-card__badge--progress {
-  border-color: rgba(29, 167, 242, 0.42);
-  color: var(--color-primary-strong);
+  border-color: var(--color-accent-cyan-border);
+  color: var(--color-accent-cyan);
 }
 
 .season-podium-card__stats {

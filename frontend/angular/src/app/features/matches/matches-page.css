@@ -38,7 +38,7 @@
 }
 
 .matches-page__field span {
-  color: var(--color-text-muted);
+  color: var(--color-status);
   font-size: 0.8rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -144,8 +144,8 @@
 }
 
 .match-card__team--winner {
-  border-color: rgba(45, 220, 127, 0.46);
-  background: rgba(45, 220, 127, 0.05);
+  border-color: var(--color-status);
+  background: var(--color-accent-lime-soft);
 }
 
 .match-card__score {
@@ -196,21 +196,17 @@
 }
 
 .match-card__maps {
-  margin-top: calc(var(--space-1) * -1);
+  margin-top: -4px;
 }
 
 .match-card__maps a {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: 999px;
   padding: 5px 8px;
-  color: var(--color-text-muted);
-  background: rgba(7, 9, 13, 0.28);
+  color: var(--color-accent-purple);
+  background: var(--color-accent-purple-soft);
   font-size: 0.8rem;
   text-decoration: none;
-}
-
-.match-card__maps a:hover {
-  color: var(--color-text);
 }
 
 .matches-page__loading {
@@ -250,7 +246,7 @@
   }
 
   .match-card__team--winner {
-    border-color: rgba(45, 220, 127, 0.46);
+    border-color: var(--color-status);
   }
 
   .match-card__footer {

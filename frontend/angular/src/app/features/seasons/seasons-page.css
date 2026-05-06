@@ -59,7 +59,7 @@
 }
 
 .seasons-page__active strong {
-  color: #f6c85f;
+  color: var(--color-accent-lime-strong);
 }
 
 .seasons-page__active a,
@@ -86,7 +86,7 @@
 }
 
 .season-card--active {
-  border-color: rgba(246, 200, 95, 0.38);
+  border-color: var(--color-accent-lime-border);
 }
 
 .season-card dl {

@@ -22,9 +22,9 @@
 }
 
 :host(.status-badge--success) {
-  border-color: rgba(127, 226, 255, 0.28);
+  border-color: var(--color-accent-lime-border);
   color: var(--color-status);
-  background: rgba(29, 167, 242, 0.1);
+  background: var(--color-accent-lime-soft);
 }
 
 :host(.status-badge--danger) {
@@ -34,7 +34,7 @@
 }
 
 :host(.status-badge--warning) {
-  border-color: rgba(50, 209, 255, 0.3);
-  color: var(--color-ranking);
-  background: rgba(50, 209, 255, 0.09);
+  border-color: var(--color-accent-purple-border);
+  color: var(--color-accent-purple-strong);
+  background: var(--color-accent-purple-soft);
 }

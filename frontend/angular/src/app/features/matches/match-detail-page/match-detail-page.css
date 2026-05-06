@@ -19,7 +19,7 @@
 .match-detail-page__breadcrumbs a,
 .match-detail-page__back,
 .match-detail-page__map-header a {
-  color: #9f63ff;
+  color: var(--color-accent-purple);
   text-decoration: none;
 }
 
@@ -44,11 +44,11 @@
 }
 
 .match-detail-page__api {
-  border: 1px solid rgba(178, 209, 95, 0.45);
+  border: 1px solid var(--color-accent-lime-border);
   border-radius: 999px;
   padding: 0.5rem 0.75rem;
-  background: rgba(178, 209, 95, 0.12);
-  color: #d8f89a;
+  background: var(--color-accent-lime-soft);
+  color: var(--color-accent-lime-strong);
   font-size: 0.8rem;
   text-decoration: none;
 }
@@ -77,8 +77,8 @@
 }
 
 .match-detail-page__team--winner {
-  border-color: rgba(178, 209, 95, 0.58);
-  background: rgba(178, 209, 95, 0.11);
+  border-color: var(--color-accent-lime-border);
+  background: var(--color-accent-lime-soft);
   color: #ffffff;
 }
 
@@ -105,10 +105,10 @@
 .match-detail-page__map-link {
   display: grid;
   gap: 0.25rem;
-  border: 1px solid rgba(159, 99, 255, 0.35);
+  border: 1px solid var(--color-accent-purple-border);
   border-radius: 1rem;
   padding: 0.9rem 1rem;
-  background: rgba(159, 99, 255, 0.08);
+  background: var(--color-accent-purple-soft);
   color: rgba(255, 255, 255, 0.86);
   text-decoration: none;
   transition:
@@ -118,7 +118,7 @@
 }
 
 .match-detail-page__map-link:hover {
-  border-color: rgba(159, 99, 255, 0.72);
+  border-color: var(--color-accent-purple);
   background: rgba(159, 99, 255, 0.14);
   transform: translateY(-1px);
 }
@@ -173,7 +173,7 @@
 }
 
 .match-detail-page__table th {
-  color: rgba(178, 209, 95, 0.72);
+  color: var(--color-accent-lime);
   font-size: 0.72rem;
   text-transform: uppercase;
 }

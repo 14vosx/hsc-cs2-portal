@@ -15,7 +15,7 @@
 }
 
 .metric-card__label {
-  color: var(--color-text-subtle);
+  color: var(--color-accent-lime);
   font-size: 0.8rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -45,5 +45,5 @@
 }
 
 :host(.metric-card--ranking) .metric-card__value {
-  color: var(--color-ranking);
+  color: var(--color-accent-cyan);
 }

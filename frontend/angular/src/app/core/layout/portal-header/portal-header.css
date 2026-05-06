@@ -54,9 +54,9 @@
 }
 
 .portal-header__nav-item--active {
-  border-color: rgba(50, 209, 255, 0.24);
+  border-color: var(--color-accent-purple-border);
   color: var(--color-text);
-  background: rgba(29, 167, 242, 0.1);
+  background: var(--color-accent-purple-soft);
 }
 
 .portal-header__nav-item--disabled {
@@ -128,7 +128,7 @@
   }
 
   .portal-header__nav-item--active {
-    border-color: var(--color-primary-strong);
+    border-color: var(--color-accent-purple);
     background: transparent;
   }
 

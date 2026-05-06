@@ -24,10 +24,10 @@ p {
 }
 
 button {
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-accent-purple-border);
   border-radius: var(--radius-sm);
   padding: 8px 11px;
   color: var(--color-text);
-  background: rgba(29, 167, 242, 0.14);
+  background: var(--color-accent-purple-soft);
   cursor: default;
 }

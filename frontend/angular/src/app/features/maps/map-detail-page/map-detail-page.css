@@ -19,7 +19,7 @@
 .map-detail-page__breadcrumbs a,
 .map-detail-page__back,
 .map-detail-page__match-link {
-  color: #9f63ff;
+  color: var(--color-accent-purple);
   text-decoration: none;
 }
 
@@ -44,17 +44,17 @@
 }
 
 .map-detail-page__api {
-  border: 1px solid rgba(178, 209, 95, 0.45);
+  border: 1px solid var(--color-accent-lime-border);
   border-radius: 999px;
   padding: 0.5rem 0.75rem;
-  background: rgba(178, 209, 95, 0.12);
-  color: #d8f89a;
+  background: var(--color-accent-lime-soft);
+  color: var(--color-accent-lime-strong);
   font-size: 0.8rem;
   text-decoration: none;
 }
 
 .map-detail-page__api:hover {
-  border-color: rgba(178, 209, 95, 0.8);
+  border-color: var(--color-accent-lime);
 }
 
 .map-detail-page__metrics {
@@ -82,7 +82,7 @@
 }
 
 .map-detail-page__table th {
-  color: rgba(178, 209, 95, 0.72);
+  color: var(--color-accent-lime);
   font-size: 0.76rem;
   text-transform: uppercase;
 }
