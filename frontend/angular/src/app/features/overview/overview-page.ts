@@ -233,7 +233,7 @@ export class OverviewPage {
         'Ranking, partidas e mapas do Counter-Strike HSC em uma entrada única para a comunidade.',
       meta: `Atualizado em ${this.formatDate(generatedAt)}`,
       ctaLabel: 'Ver ranking',
-      routerLink: '/ranking',
+      routerLink: '/seasons/current/ranking',
     };
   }
 

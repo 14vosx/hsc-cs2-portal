@@ -1,0 +1,170 @@
+.season-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.season-podium-card {
+  --podium-accent: #f6c85f;
+  --podium-deep: rgba(246, 200, 95, 0.2);
+  min-height: 380px;
+  border: 1px solid color-mix(in srgb, var(--podium-accent), transparent 48%);
+  border-radius: 18px;
+  padding: 8px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--podium-accent), transparent 24%), transparent 28%),
+    radial-gradient(circle at 50% 0, var(--podium-deep), rgba(5, 8, 11, 0.94) 58%);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
+  text-align: center;
+}
+
+.season-podium-card--rank-1 {
+  --podium-accent: #f6c85f;
+  --podium-deep: rgba(246, 200, 95, 0.28);
+  min-height: 420px;
+  transform: translateY(-12px);
+}
+
+.season-podium-card--rank-2 {
+  --podium-accent: #b8d7f0;
+  --podium-deep: rgba(29, 167, 242, 0.22);
+}
+
+.season-podium-card--rank-3 {
+  --podium-accent: #d08a55;
+  --podium-deep: rgba(208, 138, 85, 0.22);
+}
+
+.season-podium-card__frame {
+  display: grid;
+  height: 100%;
+  grid-template-rows: auto 1fr auto auto auto;
+  gap: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--podium-accent), transparent 28%);
+  border-radius: 13px;
+  padding: var(--space-3);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--podium-accent), transparent 88%), rgba(8, 12, 16, 0.78)),
+    rgba(8, 12, 16, 0.76);
+}
+
+.season-podium-card__topline,
+.season-podium-card__stats {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.season-podium-card__topline {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.season-podium-card__rank {
+  color: var(--podium-accent);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.season-podium-card__place {
+  color: var(--podium-accent);
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.season-podium-card__portrait {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-height: 128px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--podium-accent), transparent 42%);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--podium-accent), transparent 38%), transparent 28%),
+    linear-gradient(160deg, rgba(29, 167, 242, 0.12), rgba(5, 8, 11, 0.88));
+  color: color-mix(in srgb, var(--podium-accent), white 24%);
+  font-size: 2.8rem;
+  font-weight: 900;
+}
+
+.season-podium-card__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.season-podium-card__nameplate {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--podium-accent), transparent 42%);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(5, 8, 11, 0.72);
+}
+
+.season-podium-card__nameplate strong {
+  display: block;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 1.06rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-podium-card__badge {
+  justify-self: center;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: var(--color-text-muted);
+  background: rgba(5, 8, 11, 0.48);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.season-podium-card__badge--eligible {
+  border-color: rgba(246, 200, 95, 0.44);
+  color: #f6c85f;
+}
+
+.season-podium-card__badge--progress {
+  border-color: rgba(29, 167, 242, 0.42);
+  color: var(--color-primary-strong);
+}
+
+.season-podium-card__stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+}
+
+.season-podium-card__stats div {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 8px 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.season-podium-card__stats dt {
+  color: var(--color-text-muted);
+  font-size: 0.66rem;
+}
+
+.season-podium-card__stats dd {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: 900;
+}
+
+@media (max-width: 900px) {
+  .season-podium {
+    grid-template-columns: 1fr;
+  }
+
+  .season-podium-card--rank-1 {
+    order: -1;
+    transform: none;
+  }
+}

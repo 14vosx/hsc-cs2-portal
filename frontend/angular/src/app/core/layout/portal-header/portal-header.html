@@ -12,8 +12,7 @@
           <a
             class="portal-header__nav-item"
             [routerLink]="item.path"
-            routerLinkActive="portal-header__nav-item--active"
-            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+            [class.portal-header__nav-item--active]="isActive(item)"
           >
             {{ item.label }}
           </a>

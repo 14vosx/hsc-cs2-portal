@@ -7,6 +7,10 @@ export const cs2ApiPaths = {
   match: (id: number | string) => `${CS2_API_BASE_PATH}/match/${encodeURIComponent(String(id))}.json`,
   maps: `${CS2_API_BASE_PATH}/maps.json`,
   map: (map: string) => `${CS2_API_BASE_PATH}/map/${encodeURIComponent(map)}.json`,
+  seasons: `${CS2_API_BASE_PATH}/seasons.json`,
+  season: (slug: string) => `${CS2_API_BASE_PATH}/season/${encodeURIComponent(slug)}.json`,
+  seasonRanking: (slug: string) =>
+    `${CS2_API_BASE_PATH}/season/${encodeURIComponent(slug)}/ranking.json`,
   player: (steamId64: string) => `${CS2_API_BASE_PATH}/player/${encodeURIComponent(steamId64)}.json`,
   steamCache: (steamId64: string) =>
     `${CS2_API_BASE_PATH}/steam-cache/${encodeURIComponent(steamId64)}.json`,

@@ -8,8 +8,41 @@ export const routes: Routes = [
   },
   {
     path: 'ranking',
+    redirectTo: 'seasons/current/ranking',
+    pathMatch: 'full',
+  },
+  {
+    path: 'seasons',
     loadComponent: () =>
-      import('./features/ranking/ranking-page').then((component) => component.RankingPage),
+      import('./features/seasons/seasons-page').then((component) => component.SeasonsPage),
+  },
+  {
+    path: 'seasons/current',
+    loadComponent: () =>
+      import('./features/seasons/season-detail-page/season-detail-page').then(
+        (component) => component.SeasonDetailPage,
+      ),
+  },
+  {
+    path: 'seasons/current/ranking',
+    loadComponent: () =>
+      import('./features/seasons/season-ranking-page/season-ranking-page').then(
+        (component) => component.SeasonRankingPage,
+      ),
+  },
+  {
+    path: 'seasons/:slug/ranking',
+    loadComponent: () =>
+      import('./features/seasons/season-ranking-page/season-ranking-page').then(
+        (component) => component.SeasonRankingPage,
+      ),
+  },
+  {
+    path: 'seasons/:slug',
+    loadComponent: () =>
+      import('./features/seasons/season-detail-page/season-detail-page').then(
+        (component) => component.SeasonDetailPage,
+      ),
   },
   {
     path: 'matches',

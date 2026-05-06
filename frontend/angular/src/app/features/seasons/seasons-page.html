@@ -1,0 +1,84 @@
+<section class="seasons-page">
+  <header class="seasons-page__hero">
+    <span>Temporadas HSC</span>
+    <h1>Competitivo oficial do clube</h1>
+    <p>Season atual, histórico competitivo e ranking premiável em um só lugar.</p>
+  </header>
+
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <p class="seasons-page__loading">Carregando temporadas...</p>
+      }
+
+      @case ('error') {
+        <app-empty-state
+          title="Temporadas indisponíveis"
+          description="Não foi possível carregar as temporadas neste momento."
+        />
+      }
+
+      @case ('ready') {
+        @if (vm.seasons.length) {
+          @if (vm.activeSeasonSlug) {
+            <section class="seasons-page__active">
+              <span>Season ativa</span>
+              <strong>{{ vm.activeSeasonSlug }}</strong>
+              <a routerLink="/seasons/current">Entrar na temporada</a>
+            </section>
+          }
+
+          <div class="seasons-page__grid">
+            @for (season of vm.seasons; track season.slug || season.name) {
+              <article
+                class="season-card"
+                [class.season-card--active]="season.slug === vm.activeSeasonSlug"
+                [style.--season-cover]="seasonCoverImage(season)"
+              >
+                <header>
+                  <span>{{ season.status || 'season' }}</span>
+                  <h2>{{ season.name || season.slug || 'Temporada HSC' }}</h2>
+                </header>
+
+                <p>{{ season.description || 'Temporada competitiva HSC.' }}</p>
+
+                <dl>
+                  <div>
+                    <dt>Período</dt>
+                    <dd>{{ formatDate(season.start_at) }} - {{ formatDate(season.end_at) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Partidas</dt>
+                    <dd>{{ season.summary?.matches ?? 0 }}</dd>
+                  </div>
+                  <div>
+                    <dt>Mapas</dt>
+                    <dd>{{ season.summary?.maps ?? 0 }}</dd>
+                  </div>
+                  <div>
+                    <dt>Rounds</dt>
+                    <dd>{{ season.summary?.rounds ?? 0 }}</dd>
+                  </div>
+                  <div>
+                    <dt>Jogadores</dt>
+                    <dd>{{ season.summary?.players ?? 0 }}</dd>
+                  </div>
+                </dl>
+
+                <footer>
+                  <a [routerLink]="seasonLink(season, vm.activeSeasonSlug)">Ver temporada</a>
+                  <a [routerLink]="rankingLink(season, vm.activeSeasonSlug)">Ver ranking</a>
+                </footer>
+              </article>
+            }
+          </div>
+        } @else {
+          <app-empty-state
+            title="Nenhuma temporada disponível"
+            description="As temporadas oficiais do clube aparecerão por aqui."
+          />
+        }
+      }
+    }
+  }
+</section>

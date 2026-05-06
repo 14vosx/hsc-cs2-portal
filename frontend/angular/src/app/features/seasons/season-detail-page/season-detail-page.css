@@ -1,0 +1,226 @@
+.season-hub,
+.season-hub__hero,
+.season-hub__preview {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.season-hub__hero,
+.season-hub__prize,
+.season-hub__preview,
+.season-hub__soon,
+.season-hub__rules,
+.season-hub__loading,
+.ranking-preview article {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+.season-hub__hero {
+  --season-cover: none;
+  min-height: 420px;
+  align-content: end;
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  background:
+    linear-gradient(90deg, rgba(5, 8, 11, 0.96), rgba(5, 8, 11, 0.66) 55%, rgba(5, 8, 11, 0.3)),
+    var(--season-cover) center / cover,
+    linear-gradient(135deg, rgba(29, 167, 242, 0.2), rgba(5, 8, 11, 0.92));
+}
+
+.season-hub h1,
+.season-hub h2,
+.season-hub strong {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.season-hub h1 {
+  max-width: 12ch;
+  font-size: clamp(3rem, 7vw, 6.4rem);
+  line-height: 0.92;
+}
+
+.season-hub p,
+.season-hub small,
+.season-hub dd,
+.season-hub__loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.season-hub__hero p {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.season-hub__hero > span,
+.season-hub__prize span,
+.season-hub__preview header span,
+.season-hub__soon span,
+.season-hub dt,
+.season-hub__metrics span {
+  color: var(--color-primary-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.season-hub__hero div,
+.season-tabs,
+.season-hub__prize,
+.season-hub__soon,
+.season-hub__preview header,
+.ranking-preview__player {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.season-hub__hero small,
+.season-badge,
+.season-tabs__item {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(5, 8, 11, 0.48);
+}
+
+.season-hub a,
+.season-tabs__item {
+  color: var(--color-primary-strong);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.season-tabs__item--active,
+.season-badge--eligible {
+  border-color: rgba(246, 200, 95, 0.44);
+  color: #f6c85f;
+}
+
+.season-badge--progress {
+  border-color: rgba(29, 167, 242, 0.42);
+  color: var(--color-primary-strong);
+}
+
+.season-badge--neutral {
+  color: var(--color-text-muted);
+}
+
+.season-tabs__item--disabled {
+  color: var(--color-text-muted);
+}
+
+.season-hub__prize,
+.season-hub__soon,
+.season-hub__rules,
+.season-hub__preview,
+.season-hub__loading {
+  padding: var(--space-4);
+}
+
+.season-hub__prize {
+  justify-content: space-between;
+  border-color: rgba(246, 200, 95, 0.32);
+}
+
+.season-hub__prize strong,
+.season-hub__metrics strong,
+.ranking-preview__rank {
+  color: #f6c85f;
+}
+
+.season-hub dl,
+.season-hub__metrics,
+.ranking-preview {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.season-hub dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.season-hub__metrics {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.season-hub__metrics strong {
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.ranking-preview__avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: rgba(29, 167, 242, 0.18);
+  color: var(--color-text);
+  font-weight: 900;
+}
+
+.ranking-preview__avatar {
+  width: 38px;
+  height: 38px;
+  font-size: 0.78rem;
+}
+
+.ranking-preview__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.season-hub__metrics div {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+}
+
+.season-hub__preview header,
+.season-hub__soon {
+  justify-content: space-between;
+}
+
+.ranking-preview article {
+  display: grid;
+  grid-template-columns: 54px minmax(180px, 1fr) repeat(6, minmax(82px, auto));
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.ranking-preview__player {
+  align-items: center;
+}
+
+.season-badge {
+  width: fit-content;
+  color: var(--color-primary-strong);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.season-hub__soon button {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: var(--color-text-muted);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+@media (max-width: 980px) {
+  .season-hub__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .ranking-preview article {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .ranking-preview article > span:not(.ranking-preview__rank):not(.season-badge) {
+    display: none;
+  }
+}

@@ -1,0 +1,46 @@
+<section class="season-podium" aria-label="Top 3 premiável">
+  @for (player of podiumPlayers(); track player.steamid64 || player.name) {
+    <article
+      class="season-podium-card"
+      [class.season-podium-card--rank-1]="player.prizeRank === 1"
+      [class.season-podium-card--rank-2]="player.prizeRank === 2"
+      [class.season-podium-card--rank-3]="player.prizeRank === 3"
+    >
+      <div class="season-podium-card__frame">
+        <div class="season-podium-card__topline">
+          <span class="season-podium-card__rank">#{{ player.prizeRank ?? player.rank }}</span>
+          <span class="season-podium-card__place">{{ podiumPlacementLabel(player) }}</span>
+        </div>
+
+        <div class="season-podium-card__portrait">
+          @if (playerAvatar(player)) {
+            <img [src]="playerAvatar(player)" alt="" />
+          } @else {
+            <span>{{ playerInitials(player) }}</span>
+          }
+        </div>
+
+        <div class="season-podium-card__nameplate" [title]="player.name || 'Jogador HSC'">
+          <strong>{{ player.name || 'Jogador HSC' }}</strong>
+        </div>
+
+        <span
+          class="season-podium-card__badge"
+          [class.season-podium-card__badge--eligible]="player.prizeEligible === true"
+          [class.season-podium-card__badge--progress]="player.prizeEligible === false"
+        >
+          {{ eligibilityLabel(player) }}
+        </span>
+
+        <dl class="season-podium-card__stats">
+          <div><dt>Score</dt><dd>{{ formatNumber(player.score) }}</dd></div>
+          <div><dt>K/D</dt><dd>{{ formatNumber(player.kdRatio) }}</dd></div>
+          <div><dt>ADR</dt><dd>{{ formatNumber(player.adr, 1) }}</dd></div>
+          <div><dt>Mapas</dt><dd>{{ player.mapsPlayed ?? 0 }}</dd></div>
+          <div><dt>Rounds</dt><dd>{{ player.roundsPlayed ?? 0 }}</dd></div>
+          <div><dt>V/D</dt><dd>{{ player.wins ?? 0 }}/{{ player.losses ?? 0 }}</dd></div>
+        </dl>
+      </div>
+    </article>
+  }
+</section>

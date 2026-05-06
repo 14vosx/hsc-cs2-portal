@@ -1,0 +1,230 @@
+.season-ranking {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.season-ranking__hero,
+.season-ranking__prize,
+.season-ranking__table-section,
+.season-ranking__rules,
+.season-ranking__loading {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+.season-ranking__hero {
+  --season-cover: none;
+  display: grid;
+  gap: var(--space-3);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  background:
+    linear-gradient(90deg, rgba(5, 8, 11, 0.94), rgba(5, 8, 11, 0.62)),
+    var(--season-cover) center / cover,
+    linear-gradient(180deg, rgba(20, 27, 34, 0.82), rgba(5, 8, 11, 0.94));
+}
+
+.season-ranking__hero span,
+.season-ranking__metrics span {
+  color: var(--color-primary-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.season-ranking h1,
+.season-ranking h2,
+.season-ranking strong,
+.season-ranking td {
+  color: var(--color-text);
+}
+
+.season-ranking h1,
+.season-ranking h2,
+.season-ranking p,
+.season-ranking dl {
+  margin: 0;
+}
+
+.season-ranking h1 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.96;
+}
+
+.season-ranking p,
+.season-ranking small,
+.season-ranking dd,
+.season-ranking__loading {
+  color: var(--color-text-muted);
+}
+
+.season-ranking a {
+  width: fit-content;
+  color: var(--color-primary-strong);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.season-ranking__loading,
+.season-ranking__table-section,
+.season-ranking__rules {
+  padding: var(--space-4);
+}
+
+.season-tabs,
+.season-ranking__prize {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.season-tabs__item,
+.season-ranking__badge {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(5, 8, 11, 0.48);
+}
+
+.season-tabs__item--active {
+  border-color: rgba(246, 200, 95, 0.44);
+  color: #f6c85f;
+}
+
+.season-tabs__item--disabled {
+  color: var(--color-text-muted);
+}
+
+.season-ranking__prize {
+  align-items: center;
+  border: 1px solid rgba(246, 200, 95, 0.38);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+.season-ranking__prize strong {
+  color: #f6c85f;
+}
+
+.season-ranking__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.season-ranking__metrics div {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+}
+
+.season-ranking__metrics strong {
+  display: block;
+  font-size: 1.8rem;
+}
+
+.season-ranking__avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  color: var(--color-text);
+  font-weight: 900;
+}
+
+.season-ranking__avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 0.76rem;
+}
+
+.season-ranking__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.season-ranking__table-section {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.season-ranking__table-section header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.season-ranking input {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--color-text);
+  background: rgba(18, 24, 33, 0.72);
+}
+
+.season-ranking__table-wrap {
+  overflow-x: auto;
+}
+
+.season-ranking table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 860px;
+}
+
+.season-ranking th,
+.season-ranking td {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3);
+  text-align: left;
+}
+
+.season-ranking th {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+}
+
+.season-ranking__badge {
+  display: inline-flex;
+  color: var(--color-text-muted);
+  font-weight: 800;
+}
+
+.season-ranking__badge--eligible {
+  border-color: rgba(246, 200, 95, 0.42);
+  color: #f6c85f;
+}
+
+.season-ranking__badge--progress {
+  border-color: rgba(29, 167, 242, 0.42);
+  color: var(--color-primary-strong);
+}
+
+.season-ranking__badge--neutral {
+  color: var(--color-text-muted);
+}
+
+.season-ranking__player {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.season-ranking td small {
+  display: block;
+  margin-top: var(--space-1);
+}
+
+.season-ranking__rules {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .season-ranking__metrics {
+    grid-template-columns: 1fr;
+  }
+}
