@@ -6,7 +6,7 @@
 .news-page__hero {
   display: grid;
   gap: var(--space-3);
-  border: 1px solid rgba(127, 226, 255, 0.14);
+  border: 1px solid var(--color-accent-cyan-border);
   border-radius: var(--radius-md);
   padding: clamp(var(--space-5), 4vw, var(--space-8));
   background:
@@ -16,7 +16,7 @@
 
 .news-page__hero span,
 .news-card small {
-  color: var(--color-primary-strong);
+  color: var(--color-accent-lime);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -60,10 +60,10 @@
   aspect-ratio: 16 / 9;
   place-items: center;
   background:
-    linear-gradient(135deg, rgba(246, 200, 95, 0.12), transparent 42%),
+    linear-gradient(135deg, var(--color-accent-purple-soft), transparent 42%),
     radial-gradient(circle at 80% 20%, rgba(127, 226, 255, 0.16), transparent 34%),
-    rgba(29, 167, 242, 0.12);
-  color: #f6c85f;
+    var(--color-accent-cyan-soft);
+  color: var(--color-accent-purple-strong);
   font-size: 1.5rem;
   font-weight: 900;
   text-decoration: none;
@@ -88,7 +88,7 @@
 
 .news-card__cta {
   width: fit-content;
-  color: var(--color-primary-strong);
+  color: var(--color-accent-purple-strong);
   font-weight: 800;
 }
 

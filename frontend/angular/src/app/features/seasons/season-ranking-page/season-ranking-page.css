@@ -87,8 +87,8 @@
 }
 
 .season-tabs__item--active {
-  border-color: rgba(246, 200, 95, 0.44);
-  color: #f6c85f;
+  border-color: var(--color-accent-purple-border);
+  color: var(--color-accent-purple-strong);
 }
 
 .season-tabs__item--disabled {
@@ -97,14 +97,14 @@
 
 .season-ranking__prize {
   align-items: center;
-  border: 1px solid rgba(246, 200, 95, 0.38);
+  border: 1px solid var(--color-accent-warm-border);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   background: rgba(8, 12, 16, 0.72);
 }
 
 .season-ranking__prize strong {
-  color: #f6c85f;
+  color: var(--color-accent-warm);
 }
 
 .season-ranking__metrics {
@@ -120,6 +120,7 @@
 
 .season-ranking__metrics strong {
   display: block;
+  color: var(--color-accent-cyan);
   font-size: 1.8rem;
 }
 
@@ -194,13 +195,13 @@
 }
 
 .season-ranking__badge--eligible {
-  border-color: rgba(246, 200, 95, 0.42);
-  color: #f6c85f;
+  border-color: var(--color-accent-lime-border);
+  color: var(--color-accent-lime-strong);
 }
 
 .season-ranking__badge--progress {
-  border-color: rgba(29, 167, 242, 0.42);
-  color: var(--color-primary-strong);
+  border-color: var(--color-accent-cyan-border);
+  color: var(--color-accent-cyan);
 }
 
 .season-ranking__badge--neutral {

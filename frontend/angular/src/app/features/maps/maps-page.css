@@ -38,7 +38,7 @@
 }
 
 .maps-page__field span {
-  color: var(--color-text-muted);
+  color: var(--color-accent-lime);
   font-size: 0.8rem;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -117,7 +117,7 @@
 }
 
 .map-card__stats dt {
-  color: var(--color-text-muted);
+  color: var(--color-accent-lime);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -152,11 +152,11 @@
   width: fit-content;
   align-items: center;
   gap: 0.35rem;
-  border: 1px solid rgba(159, 99, 255, 0.42);
+  border: 1px solid var(--color-accent-purple-border);
   border-radius: 999px;
   padding: 0.5rem 0.75rem;
-  background: rgba(159, 99, 255, 0.12);
-  color: #c9adff;
+  background: var(--color-accent-purple-soft);
+  color: var(--color-accent-purple-strong);
   font-size: 0.82rem;
   font-weight: 700;
   text-decoration: none;
@@ -167,13 +167,13 @@
 }
 
 .map-card__details-link:hover {
-  border-color: rgba(159, 99, 255, 0.78);
+  border-color: var(--color-accent-purple);
   background: rgba(159, 99, 255, 0.18);
   transform: translateY(-1px);
 }
 
 .map-card__details-link:focus-visible {
-  outline: 2px solid rgba(178, 209, 95, 0.9);
+  outline: 2px solid var(--color-accent-lime);
   outline-offset: 3px;
 }
 

@@ -95,13 +95,13 @@
 
 .season-tabs__item--active,
 .season-badge--eligible {
-  border-color: rgba(246, 200, 95, 0.44);
-  color: #f6c85f;
+  border-color: var(--color-accent-purple-border);
+  color: var(--color-accent-purple-strong);
 }
 
 .season-badge--progress {
-  border-color: rgba(29, 167, 242, 0.42);
-  color: var(--color-primary-strong);
+  border-color: var(--color-accent-cyan-border);
+  color: var(--color-accent-cyan);
 }
 
 .season-badge--neutral {
@@ -122,13 +122,16 @@
 
 .season-hub__prize {
   justify-content: space-between;
-  border-color: rgba(246, 200, 95, 0.32);
+  border-color: var(--color-accent-warm-border);
 }
 
-.season-hub__prize strong,
+.season-hub__prize strong {
+  color: var(--color-accent-warm);
+}
+
 .season-hub__metrics strong,
 .ranking-preview__rank {
-  color: #f6c85f;
+  color: var(--color-accent-cyan);
 }
 
 .season-hub dl,
@@ -157,7 +160,7 @@
   place-items: center;
   overflow: hidden;
   border-radius: 50%;
-  background: rgba(29, 167, 242, 0.18);
+  background: var(--color-accent-cyan-soft);
   color: var(--color-text);
   font-weight: 900;
 }
