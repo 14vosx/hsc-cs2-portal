@@ -2,22 +2,14 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-section-header
-          eyebrow="Portal CS2"
-          title="Portal CS2"
-          description="Carregando temporada, partidas e rankings do clube."
-        />
-
-        <p class="overview-page__loading">Preparando a entrada do competitivo HSC...</p>
+        <section class="overview-page__state">
+          <span>Portal CS2</span>
+          <h1>Preparando o competitivo HSC...</h1>
+          <p>Carregando temporada, partidas e rankings do clube.</p>
+        </section>
       }
 
       @case ('error') {
-        <app-section-header
-          eyebrow="Portal CS2"
-          title="Portal CS2"
-          description="Não foi possível carregar os dados agora."
-        />
-
         <app-empty-state
           title="Dados indisponíveis"
           description="A temporada não pôde ser exibida neste momento. Tente novamente em instantes."
@@ -25,131 +17,208 @@
       }
 
       @case ('ready') {
-        <section class="overview-page__hero">
-          <div>
-            <app-section-header
-              eyebrow="Competitivo HSC"
-              title="Temporada CS2 do clube"
-              description="Acompanhe o ranking, as partidas recentes e os mapas que estão marcando o ritmo do HSC."
-            />
+        <section class="overview-page__hero" [class.overview-page__hero--news]="vm.hero.kind === 'news'">
+          <div class="overview-page__hero-copy">
+            <span class="overview-page__eyebrow">{{ vm.hero.eyebrow }}</span>
+            <h1>{{ vm.hero.title }}</h1>
+            <p>{{ vm.hero.description }}</p>
+            <small class="overview-page__hero-meta">{{ vm.hero.meta }}</small>
 
-            <nav class="overview-page__hero-actions" aria-label="Explorar Portal CS2">
-              <a routerLink="/ranking">Ver ranking</a>
-              <a routerLink="/matches">Partidas</a>
-              <a routerLink="/maps">Mapas</a>
-            </nav>
-          </div>
-
-          <div class="overview-page__hero-card" aria-label="Resumo da temporada">
-            @if (vm.leader) {
-              <span class="overview-page__hero-kicker">Líder atual</span>
-              <strong>{{ vm.leader.name }}</strong>
-              <p>{{ vm.leader.score.toFixed(1) }} pts na classificação</p>
-            } @else {
-              <span class="overview-page__hero-kicker">Ranking</span>
-              <strong>Temporada em aberto</strong>
-              <p>Os primeiros resultados ainda não entraram na classificação.</p>
-            }
-            <small>Atualizado em {{ formatDate(vm.generatedAt) }}</small>
-          </div>
-        </section>
-
-        <section class="overview-page__metrics" aria-label="Resumo do clube">
-          <app-metric-card label="Jogadores" [value]="vm.playersCount" tone="ranking" />
-          <app-metric-card label="Partidas" [value]="vm.matchesCount" hint="histórico competitivo" />
-          <app-metric-card label="Mapas" [value]="vm.mapsCount" hint="em rotação" />
-        </section>
-
-        <section class="overview-page__spotlight">
-          <app-data-card eyebrow="Ranking" title="Líder atual" meta="classificação">
-            @if (vm.leader) {
-              <div class="overview-page__leader">
-                <strong>{{ vm.leader.name }}</strong>
-                <span>{{ vm.leader.score.toFixed(1) }} pts</span>
-                <p>{{ playerMeta(vm.leader) }}</p>
-                <a routerLink="/ranking">Explorar ranking</a>
-              </div>
-            } @else {
-              <app-empty-state
-                title="Ranking vazio"
-                description="Nenhum jogador foi encontrado para a classificação atual."
-              />
-            }
-          </app-data-card>
-
-          <app-data-card eyebrow="Partidas" title="Última partida" meta="resultado recente">
-            @if (vm.latestMatch) {
-              <div class="overview-page__match">
-                <strong>#{{ vm.latestMatch.matchid }}</strong>
-                <span>{{ formatScore(vm.latestMatch) }}</span>
-                <p>{{ matchWinner(vm.latestMatch) }}</p>
-                <small>{{ formatDate(vm.latestMatch.end_time || vm.latestMatch.start_time) }}</small>
-                <a routerLink="/matches">Ver partidas</a>
-              </div>
-            } @else {
-              <app-empty-state
-                title="Sem partidas"
-                description="Nenhuma partida foi encontrada para a temporada atual."
-              />
-            }
-          </app-data-card>
-
-          <app-data-card eyebrow="Mapas" title="Mapa mais jogado" meta="rotação">
-            @if (vm.mostPlayedMap) {
-              <div class="overview-page__map">
-                <strong>{{ vm.mostPlayedMap.map }}</strong>
-                <span>{{ vm.mostPlayedMap.matches }} partidas</span>
-                <p>{{ vm.mostPlayedMap.rounds }} rounds registrados</p>
-                <a routerLink="/maps">Explorar mapas</a>
-              </div>
-            } @else {
-              <app-empty-state
-                title="Sem mapas"
-                description="Nenhum mapa foi encontrado para a temporada atual."
-              />
-            }
-          </app-data-card>
-        </section>
-
-        <section class="overview-page__columns">
-          <app-data-card eyebrow="Top 3" title="Corrida pelo topo" meta="jogadores em destaque">
-            @if (vm.hasRanking) {
-              <ol class="overview-page__ranking-list">
-                @for (player of vm.topPlayers; track player.steamid64; let position = $index) {
-                  <li>
-                    <span class="overview-page__rank">#{{ position + 1 }}</span>
-                    <div>
-                      <strong>{{ player.name }}</strong>
-                      <p>{{ playerMeta(player) }}</p>
-                    </div>
-                    <span>{{ player.score.toFixed(1) }}</span>
-                  </li>
-                }
-              </ol>
-            } @else {
-              <app-empty-state
-                title="Top ranking indisponível"
-                description="A lista de jogadores está vazia neste momento."
-              />
-            }
-          </app-data-card>
-
-          <app-data-card eyebrow="Explorar" title="Acompanhe o clube">
-            <div class="overview-page__next-areas">
-              <a routerLink="/ranking">
-                <strong>Ranking</strong>
-                <span>posição, score e impacto</span>
-              </a>
-              <a routerLink="/matches">
-                <strong>Partidas</strong>
-                <span>placares e confrontos recentes</span>
-              </a>
-              <a routerLink="/maps">
-                <strong>Mapas</strong>
-                <span>rotação e volume de rounds</span>
-              </a>
+            <div class="overview-page__hero-actions">
+              @if (vm.hero.routerLink) {
+                <a class="overview-page__primary-action" [routerLink]="vm.hero.routerLink">
+                  {{ vm.hero.ctaLabel }}
+                </a>
+              } @else if (vm.hero.href) {
+                <a class="overview-page__primary-action" [href]="vm.hero.href">
+                  {{ vm.hero.ctaLabel }}
+                </a>
+              }
+              <a routerLink="/matches">Últimas partidas</a>
+              <a routerLink="/maps">Mapas mais jogados</a>
             </div>
-          </app-data-card>
+          </div>
+
+          @if (vm.hero.kind === 'season') {
+            <aside class="overview-page__hero-panel" aria-label="Resumo competitivo">
+              @if (vm.leader) {
+                <span>Líder atual</span>
+                <strong>{{ vm.leader.name }}</strong>
+                <p>{{ vm.leader.score.toFixed(1) }} pts | {{ playerMeta(vm.leader) }}</p>
+              } @else {
+                <span>Temporada</span>
+                <strong>Em aberto</strong>
+                <p>Os primeiros nomes ainda não entraram na classificação.</p>
+              }
+            </aside>
+          }
+        </section>
+
+        <section class="overview-page__stat-strip" aria-label="Resumo do clube">
+          <div>
+            <span>Jogadores</span>
+            <strong>{{ vm.playersCount }}</strong>
+          </div>
+          <div>
+            <span>Partidas</span>
+            <strong>{{ vm.matchesCount }}</strong>
+          </div>
+          <div>
+            <span>Mapas</span>
+            <strong>{{ vm.mapsCount }}</strong>
+          </div>
+        </section>
+
+        <section class="overview-page__section">
+          <header>
+            <span class="overview-page__eyebrow">Ao vivo no clube</span>
+            <h2>No ritmo do clube</h2>
+          </header>
+
+          <div class="overview-page__main-grid">
+            <article class="overview-page__leader-card">
+              <span class="overview-page__eyebrow">Ranking</span>
+              <h3>Líder da temporada</h3>
+              @if (vm.leader) {
+                <strong>{{ vm.leader.name }}</strong>
+                <p>{{ playerMeta(vm.leader) }}</p>
+                <a routerLink="/ranking">Explorar classificação</a>
+              } @else {
+                <p>Ranking ainda sem jogadores classificados.</p>
+              }
+            </article>
+
+            <div class="overview-page__side-stack">
+              <article class="overview-page__match-card" [style.--match-map-bg]="mapBackgroundImage(vm.latestMatch)">
+                @if (vm.latestMatch) {
+                  <header class="overview-page__match-meta">
+                    <span>#{{ vm.latestMatch.matchid }}</span>
+                    <span>{{ vm.latestMatch.series_type }}</span>
+                    <span>{{ formatDate(matchEndedAt(vm.latestMatch)) }}</span>
+                    <span>{{ primaryMapName(vm.latestMatch) }}</span>
+                  </header>
+
+                  <div class="overview-page__match-main">
+                    <div [class.overview-page__team--winner]="winnerSide(vm.latestMatch) === 'team1'">
+                      <strong>{{ vm.latestMatch.team1_name }}</strong>
+                    </div>
+                    <div class="overview-page__score">
+                      <strong>{{ formatPrimaryScore(vm.latestMatch) }}</strong>
+                      <span>{{ primaryMapName(vm.latestMatch) }}</span>
+                    </div>
+                    <div [class.overview-page__team--winner]="winnerSide(vm.latestMatch) === 'team2'">
+                      <strong>{{ vm.latestMatch.team2_name }}</strong>
+                    </div>
+                  </div>
+
+                  <footer class="overview-page__match-footer">
+                    <p>Vencedor: <strong>{{ winnerLabel(vm.latestMatch) }}</strong></p>
+                    <a [routerLink]="['/matches', vm.latestMatch.matchid]">Abrir partida</a>
+                  </footer>
+                } @else {
+                  <span class="overview-page__eyebrow">Última partida</span>
+                  <h3>Sem partidas</h3>
+                  <p>Nenhuma partida foi encontrada para a temporada atual.</p>
+                }
+              </article>
+
+              <article class="overview-page__maps-card">
+                <header>
+                  <span class="overview-page__eyebrow">Mapas mais jogados</span>
+                  <a routerLink="/maps">Explorar mapas</a>
+                </header>
+
+                @if (vm.mostPlayedMaps.length) {
+                  <div class="overview-page__map-list">
+                    @for (map of vm.mostPlayedMaps; track map.map; let position = $index) {
+                      <a
+                        [routerLink]="['/maps', map.map]"
+                        class="overview-page__map-tile"
+                        [style.--map-bg]="mapSummaryBackgroundImage(map)"
+                      >
+                        <small>#{{ position + 1 }}</small>
+                        <strong>{{ mapLabel(map) }}</strong>
+                        <span>{{ map.matches }} partidas · {{ map.rounds }} rounds</span>
+                      </a>
+                    }
+                  </div>
+                } @else {
+                  <h3>Sem mapas</h3>
+                  <p>Nenhum mapa foi encontrado para a temporada atual.</p>
+                }
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="overview-page__section">
+          <header class="overview-page__section-head">
+            <div>
+              <span class="overview-page__eyebrow">Comunidade</span>
+              <h2>Últimas notícias</h2>
+            </div>
+            <a href="/portal/cs2/news/">Ver News</a>
+          </header>
+
+          @if (vm.newsItems.length) {
+            <div class="overview-page__news-grid">
+              @for (item of vm.newsItems; track item.slug || item.title) {
+                <a class="overview-page__news-card" [href]="newsHref(item)">
+                  <div class="overview-page__news-media">
+                    @if (item.image_url) {
+                      <img [src]="item.image_url" alt="" />
+                    } @else {
+                      <span>HSC</span>
+                    }
+                  </div>
+                  <div>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.excerpt || 'Nova publicação da comunidade HSC.' }}</p>
+                    @if (item.published_at) {
+                      <small>{{ formatDate(item.published_at) }}</small>
+                    }
+                  </div>
+                </a>
+              }
+            </div>
+          } @else {
+            <p class="overview-page__quiet">Nenhuma notícia publicada por enquanto.</p>
+          }
+        </section>
+
+        <section class="overview-page__section overview-page__plans">
+          <header>
+            <div>
+              <span class="overview-page__eyebrow">Assinatura</span>
+              <h2>Apoie o HSC</h2>
+              <p>Área logada em evolução para fortalecer a comunidade e o competitivo do clube.</p>
+            </div>
+          </header>
+
+          <div class="overview-page__plan-grid">
+            <article>
+              <span>em breve</span>
+              <h3>Membro HSC</h3>
+              <p>Identidade da comunidade, presença no clube e benefícios futuros da área logada.</p>
+              <ul>
+                <li>Perfil de membro</li>
+                <li>Presença na comunidade</li>
+                <li>Benefícios futuros</li>
+              </ul>
+              <button type="button" disabled>Em breve</button>
+            </article>
+            <article class="overview-page__plan-featured">
+              <span>recomendado · em breve</span>
+              <h3>Apoiador do Clube</h3>
+              <p>Para quem quer fortalecer o competitivo, ajudar a evolução do portal e vestir a camisa.</p>
+              <ul>
+                <li>Apoio ao competitivo</li>
+                <li>Identidade de apoiador</li>
+                <li>Novidades em primeira mão</li>
+              </ul>
+              <button type="button" disabled>Em breve</button>
+            </article>
+          </div>
         </section>
       }
     }

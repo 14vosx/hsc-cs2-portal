@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 interface PortalNavItem {
   label: string;
   path?: string;
+  href?: string;
 }
 
 @Component({
@@ -18,6 +19,6 @@ export class PortalHeader {
     { label: 'Ranking', path: '/ranking' },
     { label: 'Partidas', path: '/matches' },
     { label: 'Mapas', path: '/maps' },
-    { label: 'News' },
+    { label: 'News', href: '/portal/cs2/news/' },
   ];
 }

@@ -9,9 +9,9 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  width: min(100%, var(--page-max));
-  margin: 0 auto;
-  padding: var(--space-5);
+  width: min(100%, 1440px);
+  margin: 0;
+  padding: var(--space-5) clamp(var(--space-4), 3vw, var(--space-7));
   gap: var(--space-3);
   font-size: 0.86rem;
 }
