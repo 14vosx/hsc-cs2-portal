@@ -1,0 +1,56 @@
+<section class="news-page">
+  <header class="news-page__hero">
+    <span>News HSC</span>
+    <h1>Últimas notícias do clube</h1>
+    <p>Comunicados, bastidores e atualizações da comunidade CS2 HSC.</p>
+  </header>
+
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <section class="news-page__loading">
+          <span>Carregando notícias...</span>
+        </section>
+      }
+
+      @case ('error') {
+        <app-empty-state
+          title="News indisponível"
+          description="As publicações não puderam ser carregadas neste momento."
+        />
+      }
+
+      @case ('ready') {
+        @if (vm.items.length) {
+          <div class="news-page__grid">
+            @for (item of vm.items; track item.slug || item.title) {
+              <article class="news-card">
+                <a class="news-card__media" [routerLink]="newsLink(item)" aria-label="Abrir notícia">
+                  @if (item.image_url) {
+                    <img [src]="item.image_url" alt="" />
+                  } @else {
+                    <span>HSC</span>
+                  }
+                </a>
+
+                <div class="news-card__body">
+                  <small>{{ formatDate(item.published_at) }}</small>
+                  <h2>
+                    <a [routerLink]="newsLink(item)">{{ item.title }}</a>
+                  </h2>
+                  <p>{{ item.excerpt || 'Nova publicação da comunidade HSC.' }}</p>
+                  <a class="news-card__cta" [routerLink]="newsLink(item)">Ler notícia</a>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <app-empty-state
+            title="Nenhuma notícia publicada"
+            description="As próximas mensagens do clube aparecerão por aqui."
+          />
+        }
+      }
+    }
+  }
+</section>

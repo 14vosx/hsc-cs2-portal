@@ -17,7 +17,6 @@ interface OverviewHero {
   description: string;
   meta: string;
   ctaLabel: string;
-  href?: string;
   routerLink?: string;
 }
 
@@ -193,7 +192,7 @@ export class OverviewPage {
   }
 
   protected newsHref(item: NewsIndexItemDto): string {
-    return item.slug ? `/portal/cs2/news/item/?slug=${encodeURIComponent(item.slug)}` : '/portal/cs2/news/';
+    return item.slug ? `/news/${item.slug}` : '/news';
   }
 
   private buildHero(
@@ -215,9 +214,7 @@ export class OverviewPage {
           ? `Publicado em ${this.formatDate(latestNews.published_at)}`
           : 'News HSC',
         ctaLabel: 'Ler notícia',
-        href: latestNews.slug
-          ? `/portal/cs2/news/item/?slug=${encodeURIComponent(latestNews.slug)}`
-          : '/portal/cs2/news/',
+        routerLink: latestNews.slug ? `/news/${latestNews.slug}` : '/news',
       };
     }
 

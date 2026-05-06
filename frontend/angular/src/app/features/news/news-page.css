@@ -1,0 +1,112 @@
+.news-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.news-page__hero {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid rgba(127, 226, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  background:
+    linear-gradient(135deg, rgba(29, 167, 242, 0.18), rgba(5, 8, 11, 0.2) 42%),
+    linear-gradient(180deg, rgba(20, 27, 34, 0.82), rgba(5, 8, 11, 0.94));
+}
+
+.news-page__hero span,
+.news-card small {
+  color: var(--color-primary-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.news-page__hero h1,
+.news-card h2 {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.news-page__hero h1 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.96;
+}
+
+.news-page__hero p,
+.news-card p,
+.news-page__loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.news-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.news-card {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+.news-card__media {
+  display: grid;
+  aspect-ratio: 16 / 9;
+  place-items: center;
+  background:
+    linear-gradient(135deg, rgba(246, 200, 95, 0.12), transparent 42%),
+    radial-gradient(circle at 80% 20%, rgba(127, 226, 255, 0.16), transparent 34%),
+    rgba(29, 167, 242, 0.12);
+  color: #f6c85f;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.news-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.news-card__body {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.news-card a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.news-card__cta {
+  width: fit-content;
+  color: var(--color-primary-strong);
+  font-weight: 800;
+}
+
+.news-page__loading {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+@media (max-width: 980px) {
+  .news-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .news-page__grid {
+    grid-template-columns: 1fr;
+  }
+}

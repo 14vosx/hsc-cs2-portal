@@ -36,6 +36,17 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'news',
+    loadComponent: () => import('./features/news/news-page').then((component) => component.NewsPage),
+  },
+  {
+    path: 'news/:slug',
+    loadComponent: () =>
+      import('./features/news/news-detail-page/news-detail-page').then(
+        (component) => component.NewsDetailPage,
+      ),
+  },
+  {
     path: 'api-smoke',
     loadComponent: () =>
       import('./features/api-smoke/api-smoke').then((component) => component.ApiSmoke),
