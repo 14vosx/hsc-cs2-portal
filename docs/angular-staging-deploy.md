@@ -752,3 +752,74 @@ A Static API v2 permaneceu preservada em:
 ```text
 /api/cs2/v2/
 ```
+
+---
+
+## Refresh de staging — 2026-05-06 — Seasons, paleta e tabelas
+
+Documentação detalhada:
+
+```text
+docs/cs2-next-staging-release-20260506.md
+```
+
+Esta atualização publicou em staging:
+
+```text
+#24 feat(cs2-next): add player-facing seasons experience
+#25 style(cs2-next): unify portal accent palette
+#26 feat(cs2-next): enrich season ranking tables
+```
+
+Build publicado:
+
+```text
+f757687 feat(cs2-next): enrich season ranking tables (#26)
+```
+
+Artefato:
+
+```text
+/tmp/hsc-cs2-next-20260506-200156-f757687.tar.gz
+```
+
+SHA256:
+
+```text
+ff1bd962c60c5434b8b6cd46fca36600e3dd76b3a681559556dbe83520bf33b6
+```
+
+Backup de rollback:
+
+```text
+/root/hsc-deploy-work/backups/cs2-next-before-20260506-200156-f757687.tar.gz
+```
+
+Validação pública:
+
+```text
+/portal/cs2-next/
+/portal/cs2-next/seasons
+/portal/cs2-next/seasons/current
+/portal/cs2-next/seasons/current/ranking
+/portal/cs2-next/seasons/s01-2026
+/portal/cs2-next/seasons/s01-2026/ranking
+/portal/cs2-next/ranking
+/portal/cs2-next/matches
+/portal/cs2-next/maps
+/portal/cs2-next/maps/de_mirage
+/portal/cs2-next/news
+```
+
+Todas as rotas acima retornaram HTTP 200.
+
+A publicação preservou:
+
+```text
+portal legado
+Nginx
+backend
+ETL
+contratos da Static API v2
+```
+

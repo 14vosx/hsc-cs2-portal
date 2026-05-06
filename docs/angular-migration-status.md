@@ -336,3 +336,74 @@ portal legado
 contratos da Static API v2
 cutover para /portal/cs2
 ```
+
+---
+
+## Atualização — 2026-05-06 — Seasons player-facing em staging
+
+A aplicação Angular `cs2-next` está publicada em staging público:
+
+```text
+https://haxixesmokeclub.com/portal/cs2-next/
+```
+
+Release documentada em:
+
+```text
+docs/cs2-next-staging-release-20260506.md
+```
+
+### Novas rotas relevantes
+
+```text
+/seasons
+/seasons/current
+/seasons/current/ranking
+/seasons/:slug
+/seasons/:slug/ranking
+/news
+/news/:slug
+```
+
+A rota antiga:
+
+```text
+/ranking
+```
+
+permanece disponível como compatibilidade e redireciona para:
+
+```text
+/seasons/current/ranking
+```
+
+### Decisão de produto
+
+Seasons passa a ser a feature competitiva principal do CS2 Next.
+
+O ranking oficial player-facing é o ranking da Season atual.
+
+Ranking geral/all-time fica fora da navegação principal por enquanto.
+
+### Status visual
+
+Foram publicados:
+
+* pódio Top 3 com linguagem de collectable cards;
+* paleta roxo/verde/ciano unificada;
+* tabelas competitivas com headers reais;
+* truncamento de nicknames longos com ellipsis;
+* páginas de News no Angular;
+* correção definitiva do conflito entre rota `/maps` e assets de mapas usando `map-images/`.
+
+### Dívidas conhecidas
+
+O build passa, mas existem CSS budget warnings em:
+
+```text
+overview-page.css
+season-detail-page.css
+season-ranking-page.css
+```
+
+A dívida deve ser tratada por redução de duplicação CSS, sem aumentar budgets automaticamente.
