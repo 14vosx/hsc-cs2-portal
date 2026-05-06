@@ -77,9 +77,21 @@
               <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'ranking')">Ranking completo</a>
             </header>
 
-            <div class="ranking-preview">
+            <div class="ranking-preview" role="table" aria-label="Top da Season">
+              <div class="ranking-preview__header" role="row">
+                <span>Rank</span>
+                <span>Jogador</span>
+                <span>Elegibilidade</span>
+                <span>Score</span>
+                <span>V/D</span>
+                <span>K/D</span>
+                <span>HS%</span>
+                <span>ADR</span>
+                <span>Mapas</span>
+                <span>Rounds</span>
+              </div>
               @for (player of rankingPreview(vm.players); track player.steamid64 || player.name) {
-                <article>
+                <article role="row">
                   <span class="ranking-preview__rank">#{{ player.rank ?? '-' }}</span>
                   <div class="ranking-preview__player">
                     <div class="ranking-preview__avatar">
@@ -94,11 +106,13 @@
                   <span class="season-badge" [class.season-badge--eligible]="player.prizeEligible">
                     {{ eligibilityLabel(player) }}
                   </span>
-                  <span>{{ formatNumber(player.score) }}</span>
-                  <span>K/D {{ formatNumber(player.kdRatio) }}</span>
-                  <span>ADR {{ formatNumber(player.adr, 1) }}</span>
-                  <span>{{ player.mapsPlayed ?? 0 }} mapas</span>
-                  <span>{{ player.roundsPlayed ?? 0 }} rounds</span>
+                  <span>{{ formatStat(player.score) }}</span>
+                  <span>{{ formatInteger(player.wins) }}/{{ formatInteger(player.losses) }}</span>
+                  <span>{{ formatStat(player.kdRatio) }}</span>
+                  <span>{{ formatPercent(player.headshotPct) }}</span>
+                  <span>{{ formatStat(player.adr, 1) }}</span>
+                  <span>{{ formatInteger(player.mapsPlayed) }}</span>
+                  <span>{{ formatInteger(player.roundsPlayed) }}</span>
                 </article>
               }
             </div>
