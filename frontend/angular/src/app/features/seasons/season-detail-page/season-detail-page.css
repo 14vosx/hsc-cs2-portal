@@ -11,7 +11,8 @@
 .season-hub__soon,
 .season-hub__rules,
 .season-hub__loading,
-.ranking-preview article {
+.ranking-preview article,
+.ranking-preview__header {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: rgba(8, 12, 16, 0.72);
@@ -142,6 +143,10 @@
   margin: 0;
 }
 
+.ranking-preview {
+  overflow-x: auto;
+}
+
 .season-hub dl {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -187,12 +192,22 @@
   justify-content: space-between;
 }
 
+.ranking-preview__header,
 .ranking-preview article {
   display: grid;
-  grid-template-columns: 54px minmax(180px, 1fr) repeat(6, minmax(82px, auto));
+  grid-template-columns: 54px minmax(180px, 1fr) 130px repeat(7, minmax(72px, 1fr));
+  min-width: 1040px;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
+}
+
+.ranking-preview__header {
+  color: var(--color-accent-lime);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .ranking-preview__player {
@@ -218,12 +233,61 @@
   .season-hub__metrics {
     grid-template-columns: 1fr;
   }
+}
+/* Unified premium table/list treatment */
+.ranking-preview {
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
 
-  .ranking-preview article {
-    grid-template-columns: 44px minmax(0, 1fr);
-  }
+.ranking-preview__header,
+.ranking-preview article {
+  min-width: 980px;
+  align-items: center;
+}
 
-  .ranking-preview article > span:not(.ranking-preview__rank):not(.season-badge) {
-    display: none;
-  }
+.ranking-preview__header {
+  border: 1px solid rgba(142, 92, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(6, 10, 14, 0.72);
+  color: var(--color-accent-lime);
+}
+
+.ranking-preview article {
+  min-height: 54px;
+  border: 1px solid rgba(142, 92, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(6, 10, 14, 0.62);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.ranking-preview article:hover {
+  border-color: rgba(47, 211, 255, 0.34);
+  background: rgba(10, 17, 23, 0.82);
+  transform: translateY(-1px);
+}
+
+.ranking-preview__player {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ranking-preview__player strong {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-preview__rank {
+  white-space: nowrap;
+}
+
+.ranking-preview span {
+  min-width: 0;
 }

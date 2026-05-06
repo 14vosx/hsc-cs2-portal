@@ -54,16 +54,19 @@
 
             @if (visiblePlayers(vm.players).length) {
               <div class="season-ranking__table-wrap">
-                <table>
+                <table class="season-ranking__table">
                   <thead>
                     <tr>
                       <th>Rank</th>
                       <th>Jogador</th>
                       <th>Elegibilidade</th>
                       <th>Score</th>
-                      <th>V/D</th>
+                      <th>V</th>
+                      <th>D</th>
                       <th>K/D</th>
+                      <th>HS%</th>
                       <th>ADR</th>
+                      <th>Impact</th>
                       <th>Mapas</th>
                       <th>Rounds</th>
                     </tr>
@@ -88,12 +91,15 @@
                           <span class="season-ranking__badge {{ badgeClass(player) }}">{{ eligibilityLabel(player) }}</span>
                           <small>{{ eligibilityReason(player) }}</small>
                         </td>
-                        <td>{{ formatNumber(player.score) }}</td>
-                        <td>{{ player.wins ?? 0 }}/{{ player.losses ?? 0 }}</td>
-                        <td>{{ formatNumber(player.kdRatio) }}</td>
-                        <td>{{ formatNumber(player.adr, 1) }}</td>
-                        <td>{{ player.mapsPlayed ?? 0 }}</td>
-                        <td>{{ player.roundsPlayed ?? 0 }}</td>
+                        <td>{{ formatStat(player.score) }}</td>
+                        <td>{{ formatInteger(player.wins) }}</td>
+                        <td>{{ formatInteger(player.losses) }}</td>
+                        <td>{{ formatStat(player.kdRatio) }}</td>
+                        <td>{{ formatPercent(player.headshotPct) }}</td>
+                        <td>{{ formatStat(player.adr, 1) }}</td>
+                        <td>{{ formatStat(player.impactRating, 3) }}</td>
+                        <td>{{ formatInteger(player.mapsPlayed) }}</td>
+                        <td>{{ formatInteger(player.roundsPlayed) }}</td>
                       </tr>
                     }
                   </tbody>

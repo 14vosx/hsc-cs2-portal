@@ -13,6 +13,9 @@ import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import {
   eligibilityLabel,
   eligibilityReason,
+  formatInteger,
+  formatPercent,
+  formatStat,
   playerAvatar,
   playerInitials,
   seasonCoverImage,
@@ -46,6 +49,9 @@ export class SeasonDetailPage {
   protected readonly playerInitials = playerInitials;
   protected readonly eligibilityLabel = eligibilityLabel;
   protected readonly eligibilityReason = eligibilityReason;
+  protected readonly formatInteger = formatInteger;
+  protected readonly formatPercent = formatPercent;
+  protected readonly formatStat = formatStat;
   protected readonly seasonCoverImage = seasonCoverImage;
 
   protected formatDate(value?: string | null, includeTime = false): string {

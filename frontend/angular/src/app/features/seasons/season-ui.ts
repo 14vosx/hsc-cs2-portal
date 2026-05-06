@@ -78,3 +78,15 @@ export function podiumPlacementLabel(player: SeasonRankingPlayerDto): string {
       return 'Top da Season';
   }
 }
+
+export function formatStat(value?: number | null, digits = 2): string {
+  return typeof value === 'number' ? value.toFixed(digits) : '—';
+}
+
+export function formatInteger(value?: number | null): string {
+  return typeof value === 'number' ? String(value) : '—';
+}
+
+export function formatPercent(value?: number | null, digits = 1): string {
+  return typeof value === 'number' ? `${value.toFixed(digits)}%` : '—';
+}
