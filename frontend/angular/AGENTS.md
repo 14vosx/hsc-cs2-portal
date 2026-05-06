@@ -82,12 +82,10 @@ Prefer:
 - visible winner;
 - contextual navigation;
 - readable tables;
-- restrained visual effects;
 - subtle interactivity.
 
 Avoid:
 
-- aggressive colors;
 - excessive chips;
 - too many borders;
 - generic GPT-looking cards;
@@ -98,13 +96,13 @@ Avoid:
 `/matches` uses map images from:
 
 ```text
-public/maps/*.png
+public/map-images/*.png
 ```
 
 These are referenced as:
 
 ```text
-maps/de_mirage.png
+map-images/de_mirage.png
 ```
 
 Do not remove these assets unless explicitly requested.
@@ -131,11 +129,6 @@ Do not break these routes:
 ```
 
 ## Styling
-
-Keep component CSS within Angular budget.
-
-Do not increase CSS budgets in `angular.json` unless explicitly requested.
-
 Prefer reducing duplication and simplifying selectors.
 
 ## Files outside scope

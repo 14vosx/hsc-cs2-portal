@@ -84,7 +84,7 @@
               @if (vm.leader) {
                 <strong>{{ vm.leader.name }}</strong>
                 <p>{{ playerMeta(vm.leader) }}</p>
-                <a routerLink="/ranking">Explorar classificação</a>
+                <a routerLink="/seasons/current/ranking">Explorar classificação</a>
               } @else {
                 <p>Ranking ainda sem jogadores classificados.</p>
               }
