@@ -31,10 +31,38 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'seasons/current/matches',
+    loadComponent: () =>
+      import('./features/seasons/season-matches-page/season-matches-page').then(
+        (component) => component.SeasonMatchesPage,
+      ),
+  },
+  {
+    path: 'seasons/current/maps',
+    loadComponent: () =>
+      import('./features/seasons/season-maps-page/season-maps-page').then(
+        (component) => component.SeasonMapsPage,
+      ),
+  },
+  {
     path: 'seasons/:slug/ranking',
     loadComponent: () =>
       import('./features/seasons/season-ranking-page/season-ranking-page').then(
         (component) => component.SeasonRankingPage,
+      ),
+  },
+  {
+    path: 'seasons/:slug/matches',
+    loadComponent: () =>
+      import('./features/seasons/season-matches-page/season-matches-page').then(
+        (component) => component.SeasonMatchesPage,
+      ),
+  },
+  {
+    path: 'seasons/:slug/maps',
+    loadComponent: () =>
+      import('./features/seasons/season-maps-page/season-maps-page').then(
+        (component) => component.SeasonMapsPage,
       ),
   },
   {

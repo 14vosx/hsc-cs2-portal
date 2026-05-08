@@ -34,8 +34,12 @@
             <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'ranking')" class="season-tabs__item">
               Ranking
             </a>
-            <span class="season-tabs__item season-tabs__item--disabled">Partidas · em breve</span>
-            <span class="season-tabs__item season-tabs__item--disabled">Mapas · em breve</span>
+            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'matches')" class="season-tabs__item">
+              Partidas
+            </a>
+            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'maps')" class="season-tabs__item">
+              Mapas
+            </a>
           </nav>
 
           <section class="season-hub__prize">
@@ -121,11 +125,11 @@
           <section class="season-hub__soon">
             <div>
               <span>Partidas e mapas da Season</span>
-              <strong>Recortes por temporada em breve.</strong>
-              <p>As páginas globais continuam disponíveis no menu principal; aqui entraremos com filtros oficiais da Season quando o contrato estiver pronto.</p>
+              <strong>Recortes oficiais da temporada.</strong>
+              <p>Consulte as partidas e os mapas que pertencem a esta Season pelo contrato publicado da Static API v2.</p>
             </div>
-            <button type="button" disabled>Partidas em breve</button>
-            <button type="button" disabled>Mapas em breve</button>
+            <a class="season-hub__cta" [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'matches')">Ver partidas</a>
+            <a class="season-hub__cta" [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'maps')">Ver mapas</a>
           </section>
 
           <section class="season-hub__rules">

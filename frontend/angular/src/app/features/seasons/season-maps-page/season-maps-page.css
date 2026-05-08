@@ -1,0 +1,184 @@
+.season-maps {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.season-maps__hero,
+.season-maps__panel,
+.season-maps__loading,
+.season-map-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+.season-maps__hero {
+  --season-cover: none;
+  display: grid;
+  gap: var(--space-3);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  background:
+    linear-gradient(90deg, rgba(5, 8, 11, 0.94), rgba(5, 8, 11, 0.62)),
+    var(--season-cover) center / cover,
+    linear-gradient(180deg, rgba(20, 27, 34, 0.82), rgba(5, 8, 11, 0.94));
+}
+
+.season-maps h1,
+.season-maps h2,
+.season-maps strong {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.season-maps h1 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.96;
+}
+
+.season-maps p,
+.season-maps small,
+.season-maps dd,
+.season-maps__loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.season-maps__hero > span,
+.season-maps__metrics span,
+.season-maps__panel header span,
+.season-map-card dt {
+  color: var(--color-primary-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.season-tabs,
+.season-maps__panel > header,
+.season-maps__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.season-tabs__item,
+.season-map-card a {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(5, 8, 11, 0.48);
+  color: var(--color-primary-strong);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.season-tabs__item--active {
+  border-color: var(--color-accent-purple-border);
+  color: var(--color-accent-purple-strong);
+}
+
+.season-maps__metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.season-maps__metrics div {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+}
+
+.season-maps__metrics strong {
+  display: block;
+  color: var(--color-accent-cyan);
+  font-size: 1.25rem;
+}
+
+.season-maps__panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.season-maps__panel > header {
+  align-items: end;
+  justify-content: space-between;
+}
+
+.season-maps__controls input,
+.season-maps__controls select {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--color-text);
+  background: rgba(18, 24, 33, 0.72);
+}
+
+.season-maps__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.season-map-card {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.season-map-card header span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.season-map-card header strong {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 1.35rem;
+}
+
+.season-map-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.season-map-card dl div {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  background: rgba(7, 9, 13, 0.38);
+}
+
+.season-map-card dd {
+  margin-top: var(--space-2);
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+.season-map-card a {
+  width: fit-content;
+  border-color: var(--color-accent-purple-border);
+  color: var(--color-accent-purple-strong);
+  background: var(--color-accent-purple-soft);
+}
+
+.season-maps__loading {
+  padding: var(--space-4);
+}
+
+@media (max-width: 980px) {
+  .season-maps__metrics,
+  .season-maps__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .season-maps__metrics,
+  .season-maps__grid,
+  .season-map-card dl {
+    grid-template-columns: 1fr;
+  }
+}

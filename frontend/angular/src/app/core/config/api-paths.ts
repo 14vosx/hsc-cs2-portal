@@ -11,6 +11,10 @@ export const cs2ApiPaths = {
   season: (slug: string) => `${CS2_API_BASE_PATH}/season/${encodeURIComponent(slug)}.json`,
   seasonRanking: (slug: string) =>
     `${CS2_API_BASE_PATH}/season/${encodeURIComponent(slug)}/ranking.json`,
+  seasonMatches: (slug: string) =>
+    `${CS2_API_BASE_PATH}/season/${encodeURIComponent(slug)}/matches.json`,
+  seasonMaps: (slug: string) =>
+    `${CS2_API_BASE_PATH}/season/${encodeURIComponent(slug)}/maps.json`,
   player: (steamId64: string) => `${CS2_API_BASE_PATH}/player/${encodeURIComponent(steamId64)}.json`,
   steamCache: (steamId64: string) =>
     `${CS2_API_BASE_PATH}/steam-cache/${encodeURIComponent(steamId64)}.json`,

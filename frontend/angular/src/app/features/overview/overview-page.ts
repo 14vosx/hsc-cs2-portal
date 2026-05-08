@@ -38,7 +38,7 @@ type OverviewVm = OverviewReadyVm | { state: 'loading' } | { state: 'error' };
   selector: 'app-overview-page',
   imports: [AsyncPipe, EmptyState, RouterLink],
   templateUrl: './overview-page.html',
-  styleUrl: './overview-page.css',
+  styleUrls: ['./overview-page.css', './overview-page-content.css', './overview-page-responsive.css'],
 })
 export class OverviewPage {
   private readonly cs2Api = inject(Cs2ApiService);

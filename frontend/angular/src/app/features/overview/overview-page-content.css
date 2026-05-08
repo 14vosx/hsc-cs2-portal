@@ -1,0 +1,108 @@
+.overview-page__section > header {
+  align-items: end;
+  justify-content: space-between;
+}
+
+.overview-page__section > header p {
+  max-width: 62ch;
+  margin-top: var(--space-2);
+}
+
+.overview-page__main-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+}
+
+article,
+.overview-page__news-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(8, 12, 16, 0.72);
+}
+
+.overview-page__leader-card,
+.overview-page__side-stack article,
+.overview-page__news-card > div:last-child {
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.overview-page__leader-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: end;
+  min-height: 420px;
+  gap: var(--space-3);
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+  overflow: hidden;
+  background: rgba(5, 8, 11, 0.92);
+}
+
+.overview-page__leader-card::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(5, 8, 11, 0.95), rgba(5, 8, 11, 0.78) 46%, rgba(5, 8, 11, 0.54));
+  content: '';
+}
+
+.overview-page__leader-card-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overview-page__leader-card strong {
+  font-size: clamp(2rem, 4vw, 3.8rem);
+  max-width: 11ch;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.64);
+}
+
+.overview-page__leader-card p {
+  max-width: 34ch;
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.overview-page__leader-card a {
+  width: fit-content;
+  border-left: 2px solid var(--overview-accent-warm);
+  padding-left: var(--space-3);
+  color: var(--overview-accent-warm);
+}
+
+.overview-page__match-card,
+.overview-page__map-tile {
+  overflow: hidden;
+  background-image: linear-gradient(90deg, rgba(7, 9, 13, 0.98), rgba(7, 9, 13, 0.76)), var(--match-map-bg);
+  background-position: center;
+  background-size: cover;
+}
+
+.overview-page__map-tile {
+  background-image: linear-gradient(90deg, rgba(5, 8, 11, 0.98), rgba(5, 8, 11, 0.74)), var(--map-bg);
+}
+
+.overview-page__match-main {
+  display: grid;
+  grid-template-columns: 1fr minmax(108px, 150px) 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.overview-page__match-main > div:last-child {
+  text-align: right;
+}
+
+.overview-page__team--winner {
+  border-left: 2px solid var(--color-accent-lime);
+  background: var(--color-accent-lime-soft);
+}
+
+.overview-page__score {
+  display: grid;
+  justify-items: center;
+}

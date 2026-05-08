@@ -31,7 +31,7 @@ type SeasonDetailVm =
   selector: 'app-season-detail-page',
   imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium],
   templateUrl: './season-detail-page.html',
-  styleUrl: './season-detail-page.css',
+  styleUrls: ['./season-detail-page.css', './season-detail-page-table.css'],
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonDetailPage {
@@ -78,9 +78,14 @@ export class SeasonDetailPage {
     return typeof value === 'number' ? value.toFixed(digits) : '-';
   }
 
-  protected tabLink(isCurrent: boolean, slug: string | undefined, target: 'overview' | 'ranking'): string {
+  protected tabLink(
+    isCurrent: boolean,
+    slug: string | undefined,
+    target: 'overview' | 'ranking' | 'matches' | 'maps',
+  ): string {
     const base = isCurrent || !slug ? '/seasons/current' : `/seasons/${slug}`;
-    return target === 'ranking' ? `${base}/ranking` : base;
+
+    return target === 'overview' ? base : `${base}/${target}`;
   }
 
   protected rankingPreview(players?: SeasonRankingPlayerDto[]): SeasonRankingPlayerDto[] {
