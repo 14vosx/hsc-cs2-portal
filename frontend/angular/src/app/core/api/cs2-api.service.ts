@@ -11,6 +11,8 @@ import { RankingDto } from './dto/ranking.dto';
 import { MapDetailDto } from './dto/map-detail.dto';
 import { MatchDetailDto } from './dto/match-detail.dto';
 import { SeasonDetailDto, SeasonsIndexDto } from './dto/season.dto';
+import { SeasonMapsDto } from './dto/season-maps.dto';
+import { SeasonMatchesDto } from './dto/season-matches.dto';
 import { SeasonRankingDto } from './dto/season-ranking.dto';
 
 @Injectable({
@@ -49,6 +51,14 @@ export class Cs2ApiService {
 
   getSeasonRanking(slug: string): Observable<SeasonRankingDto> {
     return this.http.get<SeasonRankingDto>(cs2ApiPaths.seasonRanking(slug));
+  }
+
+  getSeasonMatches(slug: string): Observable<SeasonMatchesDto> {
+    return this.http.get<SeasonMatchesDto>(cs2ApiPaths.seasonMatches(slug));
+  }
+
+  getSeasonMaps(slug: string): Observable<SeasonMapsDto> {
+    return this.http.get<SeasonMapsDto>(cs2ApiPaths.seasonMaps(slug));
   }
 
   getMatch(id: number | string): Observable<MatchDetailDto> {

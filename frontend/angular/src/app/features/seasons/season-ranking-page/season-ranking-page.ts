@@ -31,7 +31,7 @@ type SeasonRankingVm =
   selector: 'app-season-ranking-page',
   imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium],
   templateUrl: './season-ranking-page.html',
-  styleUrl: './season-ranking-page.css',
+  styleUrls: ['./season-ranking-page.css', './season-ranking-page-table.css'],
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonRankingPage {
@@ -99,6 +99,14 @@ export class SeasonRankingPage {
 
   protected rankingLink(isCurrent: boolean, slug?: string): string {
     return isCurrent || !slug ? '/seasons/current/ranking' : `/seasons/${slug}/ranking`;
+  }
+
+  protected matchesLink(isCurrent: boolean, slug?: string): string {
+    return isCurrent || !slug ? '/seasons/current/matches' : `/seasons/${slug}/matches`;
+  }
+
+  protected mapsLink(isCurrent: boolean, slug?: string): string {
+    return isCurrent || !slug ? '/seasons/current/maps' : `/seasons/${slug}/maps`;
   }
 
   protected badgeClass(player: SeasonRankingPlayerDto): string {

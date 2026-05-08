@@ -24,8 +24,8 @@
           <nav class="season-tabs" aria-label="Navegação da Season">
             <a [routerLink]="seasonLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item">Visão geral</a>
             <a [routerLink]="rankingLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item season-tabs__item--active">Ranking</a>
-            <span class="season-tabs__item season-tabs__item--disabled">Partidas · em breve</span>
-            <span class="season-tabs__item season-tabs__item--disabled">Mapas · em breve</span>
+            <a [routerLink]="matchesLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item">Partidas</a>
+            <a [routerLink]="mapsLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item">Mapas</a>
           </nav>
 
           <section class="season-ranking__prize">

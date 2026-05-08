@@ -1,0 +1,114 @@
+<section class="season-maps">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <p class="season-maps__loading">Carregando mapas da Season...</p>
+      }
+
+      @case ('error') {
+        <app-empty-state
+          title="Mapas da Season indisponíveis"
+          description="Não foi possível carregar este recorte da Season neste momento."
+        />
+      }
+
+      @case ('ready') {
+        @if (vm.season) {
+          <header class="season-maps__hero" [style.--season-cover]="seasonCoverImage(vm.season)">
+            <span>Mapas da Season</span>
+            <h1>{{ vm.season.name || vm.season.slug || 'Temporada HSC' }}</h1>
+            <p>{{ vm.season.status || 'season' }} · {{ formatDate(vm.season.start_at, false) }} - {{ formatDate(vm.season.end_at, false) }}</p>
+            @if (vm.generatedAt) {
+              <small>Atualizado em {{ formatDate(vm.generatedAt) }}</small>
+            }
+          </header>
+
+          <nav class="season-tabs" aria-label="Navegação da Season">
+            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'overview')" class="season-tabs__item">Visão geral</a>
+            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'ranking')" class="season-tabs__item">Ranking</a>
+            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'matches')" class="season-tabs__item">Partidas</a>
+            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'maps')" class="season-tabs__item season-tabs__item--active">Mapas</a>
+          </nav>
+
+          <section class="season-maps__metrics" aria-label="Resumo dos mapas da Season">
+            <div><span>Partidas</span><strong>{{ vm.summary?.matches ?? 0 }}</strong></div>
+            <div><span>Mapas</span><strong>{{ vm.summary?.maps ?? 0 }}</strong></div>
+            <div><span>Rounds</span><strong>{{ vm.summary?.rounds ?? 0 }}</strong></div>
+            <div><span>Jogadores</span><strong>{{ vm.summary?.players ?? 0 }}</strong></div>
+            <div><span>Mapas distintos</span><strong>{{ vm.computed?.distinctMaps ?? vm.maps.length }}</strong></div>
+            <div><span>Último mapa</span><strong>{{ formatDate(vm.summary?.lastMapEndedAt) }}</strong></div>
+          </section>
+
+          @if (vm.maps.length) {
+            <section class="season-maps__panel">
+              <header>
+                <div>
+                  <span>Rotação da Season</span>
+                  <h2>Mapas válidos</h2>
+                </div>
+                <div class="season-maps__controls">
+                  <input
+                    type="search"
+                    placeholder="Buscar mapa"
+                    [value]="searchTerm()"
+                    (input)="updateSearch($event)"
+                  />
+                  <select [value]="sortBy()" (change)="updateSort($event)">
+                    <option value="matches">Partidas desc</option>
+                    <option value="rounds">Rounds desc</option>
+                    <option value="lastPlayed">Último uso desc</option>
+                  </select>
+                </div>
+              </header>
+
+              @let maps = visibleMaps(vm.maps);
+
+              @if (maps.length) {
+                <div class="season-maps__grid">
+                  @for (mapSummary of maps; track mapSummary.map) {
+                    <article class="season-map-card">
+                      <header>
+                        <span>Mapa</span>
+                        <strong>{{ mapSummary.map }}</strong>
+                      </header>
+
+                      <dl>
+                        <div>
+                          <dt>Partidas</dt>
+                          <dd>{{ mapSummary.matches }}</dd>
+                        </div>
+                        <div>
+                          <dt>Rounds</dt>
+                          <dd>{{ mapSummary.rounds }}</dd>
+                        </div>
+                        <div>
+                          <dt>Média de rounds</dt>
+                          <dd>{{ formatNumber(mapSummary.avgRoundsPerMatch, 1) }}</dd>
+                        </div>
+                        <div>
+                          <dt>Último uso</dt>
+                          <dd>{{ formatDate(mapSummary.lastPlayed) }}</dd>
+                        </div>
+                      </dl>
+
+                      <a [routerLink]="['/maps', mapSummary.map]">Ver mapa</a>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <app-empty-state title="Nenhum mapa encontrado" description="A busca atual não encontrou mapas neste recorte." />
+              }
+            </section>
+          } @else {
+            <app-empty-state
+              title="Nenhum mapa na Season"
+              description="O recorte publicado não retornou mapas válidos para esta Season."
+            />
+          }
+        } @else {
+          <app-empty-state title="Season não encontrada" description="A Season solicitada não está disponível." />
+        }
+      }
+    }
+  }
+</section>
