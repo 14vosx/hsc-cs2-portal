@@ -224,6 +224,75 @@
           }
         }
 
+        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.timeline; as timeline) {
+          @if (timeline.length > 0) {
+            <section class="bunker-timeline" aria-label="Timeline da temporada">
+              @for (timelineItem of timeline; track timelineItem.matchId ?? timelineItem.at ?? $index) {
+                <article>
+                  <div class="bunker-timeline__marker" aria-hidden="true"></div>
+
+                  <div class="bunker-timeline__content">
+                    <div class="bunker-timeline__header">
+                      <div>
+                        <span>Evento</span>
+                        <strong>{{ textOrFallback(timelineItem.event) }}</strong>
+                      </div>
+                      <p>{{ textOrFallback(timelineItem.at) }}</p>
+                    </div>
+
+                    <dl>
+                      <div>
+                        <dt>Mapa</dt>
+                        <dd>{{ textOrFallback(timelineItem.mapName) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Match</dt>
+                        <dd>{{ textOrFallback(timelineItem.matchId) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Mapa #</dt>
+                        <dd>{{ formatInteger(timelineItem.mapNumber) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Resultado</dt>
+                        <dd>{{ textOrFallback(timelineItem.result) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Score</dt>
+                        <dd>{{ textOrFallback(timelineItem.score) }}</dd>
+                      </div>
+                      <div>
+                        <dt>K</dt>
+                        <dd>{{ formatInteger(timelineItem.kills) }}</dd>
+                      </div>
+                      <div>
+                        <dt>D</dt>
+                        <dd>{{ formatInteger(timelineItem.deaths) }}</dd>
+                      </div>
+                      <div>
+                        <dt>A</dt>
+                        <dd>{{ formatInteger(timelineItem.assists) }}</dd>
+                      </div>
+                      <div>
+                        <dt>K/D</dt>
+                        <dd>{{ formatDecimal(timelineItem.kdRatio, 2) }}</dd>
+                      </div>
+                      <div>
+                        <dt>ADR</dt>
+                        <dd>{{ formatDecimal(timelineItem.adr, 1) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Impact</dt>
+                        <dd>{{ formatDecimal(timelineItem.impactRating, 2) }}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </article>
+              }
+            </section>
+          }
+        }
+
         <section class="bunker-panel bunker-panel--quiet">
           <span class="bunker-panel__eyebrow">Resumo</span>
           <p>

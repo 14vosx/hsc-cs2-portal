@@ -21,6 +21,7 @@ export interface PlayerBunkerSeasonPlayerDto {
   summary?: PlayerBunkerSeasonPlayerSummaryDto | null;
   byMap?: PlayerBunkerSeasonPlayerMapDto[] | null;
   recentMaps?: PlayerBunkerSeasonPlayerRecentMapDto[] | null;
+  timeline?: PlayerBunkerSeasonPlayerTimelineItemDto[] | null;
 }
 
 export interface PlayerBunkerSeasonPlayerSummaryDto {
@@ -57,6 +58,32 @@ export interface PlayerBunkerSeasonPlayerRecentMapDto {
   startedAt?: string | null;
   startTime?: string | null;
   start_time?: string | null;
+  matchId?: string | null;
+  matchid?: string | null;
+  mapNumber?: number | null;
+  mapnumber?: number | null;
+  result?: string | null;
+  outcome?: string | null;
+  score?: string | null;
+  kills?: number | null;
+  deaths?: number | null;
+  assists?: number | null;
+  kdRatio?: number | null;
+  adr?: number | null;
+  impactRating?: number | null;
+}
+
+export interface PlayerBunkerSeasonPlayerTimelineItemDto {
+  at?: string | null;
+  timestamp?: string | null;
+  startedAt?: string | null;
+  startTime?: string | null;
+  start_time?: string | null;
+  event?: string | null;
+  type?: string | null;
+  mapName?: string | null;
+  mapname?: string | null;
+  map?: string | null;
   matchId?: string | null;
   matchid?: string | null;
   mapNumber?: number | null;

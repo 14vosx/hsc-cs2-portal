@@ -17,6 +17,7 @@ import {
   PlayerBunkerSeasonPlayerMapDto,
   PlayerBunkerSeasonPlayerRecentMapDto,
   PlayerBunkerSeasonPlayerSummaryDto,
+  PlayerBunkerSeasonPlayerTimelineItemDto,
   PlayerBunkerSummaryDataDto,
   PlayerBunkerSummaryDto,
   PlayerIdentityDto,
@@ -239,8 +240,9 @@ export class BunkerPage {
     const summary = this.normalizeSeasonPlayerSummary(seasonPlayer['summary']);
     const byMap = this.normalizeSeasonPlayerByMap(seasonPlayer['byMap']);
     const recentMaps = this.normalizeSeasonPlayerRecentMaps(seasonPlayer['recentMaps']);
+    const timeline = this.normalizeSeasonPlayerTimeline(seasonPlayer['timeline']);
 
-    if (!summary && byMap.length === 0 && recentMaps.length === 0) {
+    if (!summary && byMap.length === 0 && recentMaps.length === 0 && timeline.length === 0) {
       return null;
     }
 
@@ -248,6 +250,7 @@ export class BunkerPage {
       summary,
       byMap,
       recentMaps,
+      timeline,
     };
   }
 
@@ -345,6 +348,55 @@ export class BunkerPage {
     return recentMap;
   }
 
+  private normalizeSeasonPlayerTimeline(
+    timeline: unknown,
+  ): PlayerBunkerSeasonPlayerTimelineItemDto[] {
+    if (!Array.isArray(timeline)) {
+      return [];
+    }
+
+    return timeline
+      .map((item) => this.normalizeSeasonPlayerTimelineItem(item))
+      .filter((item): item is PlayerBunkerSeasonPlayerTimelineItemDto => item !== null)
+      .slice(0, 8);
+  }
+
+  private normalizeSeasonPlayerTimelineItem(
+    item: unknown,
+  ): PlayerBunkerSeasonPlayerTimelineItemDto | null {
+    if (!this.isRecord(item)) {
+      return null;
+    }
+
+    const timelineItem = {
+      at: this.toOptionalString(
+        item['at'] ??
+          item['timestamp'] ??
+          item['startedAt'] ??
+          item['startTime'] ??
+          item['start_time'],
+      ),
+      event: this.toOptionalString(item['event'] ?? item['type']),
+      mapName: this.toOptionalString(item['mapName'] ?? item['mapname'] ?? item['map']),
+      matchId: this.toOptionalString(item['matchId'] ?? item['matchid']),
+      mapNumber: this.toOptionalNumber(item['mapNumber'] ?? item['mapnumber']),
+      result: this.toOptionalString(item['result'] ?? item['outcome']),
+      score: this.toOptionalString(item['score']),
+      kills: this.toOptionalNumber(item['kills']),
+      deaths: this.toOptionalNumber(item['deaths']),
+      assists: this.toOptionalNumber(item['assists']),
+      kdRatio: this.toOptionalNumber(item['kdRatio']),
+      adr: this.toOptionalNumber(item['adr']),
+      impactRating: this.toOptionalNumber(item['impactRating']),
+    };
+
+    if (!this.hasTimelineIdentity(timelineItem) && !this.hasTimelineStats(timelineItem)) {
+      return null;
+    }
+
+    return timelineItem;
+  }
+
   private normalizePlayer(payload: PlayerMeDto): BunkerPlayer | null {
     if (payload.authenticated === false) {
       return null;
@@ -424,6 +476,29 @@ export class BunkerPage {
   }
 
   private hasRecentMapStats(item: PlayerBunkerSeasonPlayerRecentMapDto): boolean {
+    return [
+      item.mapNumber,
+      item.kills,
+      item.deaths,
+      item.assists,
+      item.kdRatio,
+      item.adr,
+      item.impactRating,
+    ].some((value) => this.isFiniteNumber(value));
+  }
+
+  private hasTimelineIdentity(item: PlayerBunkerSeasonPlayerTimelineItemDto): boolean {
+    return [
+      item.at,
+      item.event,
+      item.mapName,
+      item.matchId,
+      item.result,
+      item.score,
+    ].some((value) => Boolean(value));
+  }
+
+  private hasTimelineStats(item: PlayerBunkerSeasonPlayerTimelineItemDto): boolean {
     return [
       item.mapNumber,
       item.kills,

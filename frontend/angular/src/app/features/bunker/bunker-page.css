@@ -5,7 +5,8 @@
 
 .bunker-hero,
 .bunker-panel,
-:is(.bunker-summary, .bunker-season-summary, .bunker-map-breakdown, .bunker-recent-maps) article {
+:is(.bunker-summary, .bunker-season-summary, .bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline)
+  article {
   display: grid;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -91,7 +92,7 @@
   color: var(--color-text-subtle);
 }
 
-:is(.bunker-summary, .bunker-season-summary, .bunker-map-breakdown, .bunker-recent-maps) {
+:is(.bunker-summary, .bunker-season-summary, .bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) {
   display: grid;
   gap: var(--space-4);
 }
@@ -104,18 +105,21 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-:is(.bunker-summary, .bunker-season-summary, .bunker-map-breakdown, .bunker-recent-maps) article {
+:is(.bunker-summary, .bunker-season-summary, .bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline)
+  article {
   padding: var(--space-4);
 }
 
 :is(.bunker-summary, .bunker-season-summary) article,
 .bunker-map-breakdown__header,
-.bunker-recent-maps__header div {
+.bunker-recent-maps__header div,
+.bunker-timeline__header div {
   gap: var(--space-2);
 }
 
 :is(.bunker-map-breakdown, .bunker-recent-maps) article,
-.bunker-recent-maps__header {
+.bunker-recent-maps__header,
+.bunker-timeline__content {
   gap: var(--space-4);
 }
 
@@ -145,20 +149,39 @@
   background: linear-gradient(135deg, #7fe2ff14, #1da7f20a), #080c10b8;
 }
 
+.bunker-timeline article {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  background: linear-gradient(135deg, #9f63ff14, #7fe2ff0a), #080c10b8;
+}
+
+.bunker-timeline__marker {
+  width: 11px;
+  height: 11px;
+  margin-top: 4px;
+  border: 2px solid var(--color-primary-strong);
+  border-radius: 999px;
+  box-shadow: 0 0 0 4px #1da7f21c;
+}
+
 .bunker-map-breakdown__header,
 .bunker-recent-maps__header div,
-:is(.bunker-map-breakdown, .bunker-recent-maps) dl,
-:is(.bunker-map-breakdown, .bunker-recent-maps) dl div {
+.bunker-timeline__content,
+.bunker-timeline__header div,
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dl,
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dl div {
   display: grid;
 }
 
-.bunker-recent-maps__header {
+.bunker-recent-maps__header,
+.bunker-timeline__header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
 }
 
-.bunker-recent-maps__header p {
+.bunker-recent-maps__header p,
+.bunker-timeline__header p {
   margin: 0;
   color: var(--color-text-subtle);
   font-family: var(--font-mono);
@@ -166,7 +189,7 @@
   text-align: right;
 }
 
-:is(.bunker-map-breakdown, .bunker-recent-maps) strong {
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) strong {
   line-height: 1.1;
 }
 
@@ -178,7 +201,7 @@
   font-size: clamp(1.15rem, 2.3vw, 1.55rem);
 }
 
-:is(.bunker-map-breakdown, .bunker-recent-maps) dl {
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dl {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-3);
   margin: 0;
@@ -188,11 +211,15 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
-:is(.bunker-map-breakdown, .bunker-recent-maps) dl div {
+.bunker-timeline dl {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dl div {
   gap: 4px;
 }
 
-:is(.bunker-map-breakdown, .bunker-recent-maps) dt {
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dt {
   color: var(--color-text-subtle);
   font-size: 0.72rem;
   font-weight: 800;
@@ -200,7 +227,7 @@
   text-transform: uppercase;
 }
 
-:is(.bunker-map-breakdown, .bunker-recent-maps) dd {
+:is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dd {
   margin: 0;
   color: var(--color-text);
   font-size: 1rem;
@@ -251,15 +278,18 @@
   .bunker-season-summary,
   .bunker-map-breakdown,
   .bunker-recent-maps,
-  .bunker-recent-maps__header {
+  .bunker-timeline,
+  .bunker-recent-maps__header,
+  .bunker-timeline__header {
     grid-template-columns: 1fr;
   }
 
-  :is(.bunker-map-breakdown, .bunker-recent-maps) dl {
+  :is(.bunker-map-breakdown, .bunker-recent-maps, .bunker-timeline) dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .bunker-recent-maps__header p {
+  .bunker-recent-maps__header p,
+  .bunker-timeline__header p {
     text-align: left;
   }
 
