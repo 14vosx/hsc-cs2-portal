@@ -64,7 +64,7 @@
         <section class="bunker-summary" aria-label="Resumo do Bunker">
           <article>
             <span>Status</span>
-            <strong>{{ vm.summary.status || (vm.summaryState === 'error' ? 'indisponível' : 'preparando') }}</strong>
+            <strong>{{ vm.summaryState === 'error' ? 'indisponível' : statusLabel(vm.summary.status) }}</strong>
           </article>
           <article>
             <span>seasonFirst</span>
@@ -72,14 +72,14 @@
           </article>
           <article>
             <span>statsAvailable</span>
-            <strong>{{ summaryLabel(vm.summary.statsAvailable) }}</strong>
+            <strong>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</strong>
           </article>
         </section>
 
         <section class="bunker-panel bunker-panel--quiet">
           <span class="bunker-panel__eyebrow">Resumo</span>
           <p>
-            Shell inicial do Bunker ativo. As estatísticas entram depois que o contrato real estiver disponível.
+            {{ summaryMessage(vm.summary, vm.summaryState) }}
           </p>
         </section>
       }

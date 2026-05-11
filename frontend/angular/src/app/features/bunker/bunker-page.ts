@@ -107,6 +107,37 @@ export class BunkerPage {
     return 'aguardando';
   }
 
+  protected statsAvailabilityLabel(value?: boolean | null): string {
+    if (value === false) {
+      return 'pendente';
+    }
+
+    return this.summaryLabel(value);
+  }
+
+  protected statusLabel(status?: string | null): string {
+    if (status === 'ready') {
+      return 'Identidade conectada';
+    }
+
+    return status || 'preparando';
+  }
+
+  protected summaryMessage(
+    summary: PlayerBunkerSummaryDataDto,
+    summaryState: BunkerAuthenticatedVm['summaryState'],
+  ): string {
+    if (summaryState === 'error') {
+      return 'Sessão de jogador ativa. O resumo do Bunker não pôde ser carregado agora.';
+    }
+
+    if (summary.status === 'ready' && summary.statsAvailable === false) {
+      return 'Sessão e identidade do jogador conectadas. Estatísticas reais ainda pendentes.';
+    }
+
+    return 'Shell inicial do Bunker ativo. As estatísticas entram depois que o contrato real estiver disponível.';
+  }
+
   private playerVm(payload: PlayerMeDto): Observable<BunkerVm> {
     const player = this.normalizePlayer(payload);
 
