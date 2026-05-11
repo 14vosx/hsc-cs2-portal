@@ -163,6 +163,67 @@
           }
         }
 
+        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.recentMaps; as recentMaps) {
+          @if (recentMaps.length > 0) {
+            <section class="bunker-recent-maps" aria-label="Mapas recentes da temporada">
+              @for (recentMap of recentMaps; track recentMap.matchId ?? recentMap.startedAt ?? $index) {
+                <article>
+                  <div class="bunker-recent-maps__header">
+                    <div>
+                      <span>Mapa recente</span>
+                      <strong>{{ recentMap.mapName || '—' }}</strong>
+                    </div>
+                    <p>{{ textOrFallback(recentMap.startedAt) }}</p>
+                  </div>
+
+                  <dl>
+                    <div>
+                      <dt>Match</dt>
+                      <dd>{{ textOrFallback(recentMap.matchId) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Mapa #</dt>
+                      <dd>{{ formatInteger(recentMap.mapNumber) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Resultado</dt>
+                      <dd>{{ textOrFallback(recentMap.result) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Score</dt>
+                      <dd>{{ textOrFallback(recentMap.score) }}</dd>
+                    </div>
+                    <div>
+                      <dt>K</dt>
+                      <dd>{{ formatInteger(recentMap.kills) }}</dd>
+                    </div>
+                    <div>
+                      <dt>D</dt>
+                      <dd>{{ formatInteger(recentMap.deaths) }}</dd>
+                    </div>
+                    <div>
+                      <dt>A</dt>
+                      <dd>{{ formatInteger(recentMap.assists) }}</dd>
+                    </div>
+                    <div>
+                      <dt>K/D</dt>
+                      <dd>{{ formatDecimal(recentMap.kdRatio, 2) }}</dd>
+                    </div>
+                    <div>
+                      <dt>ADR</dt>
+                      <dd>{{ formatDecimal(recentMap.adr, 1) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Impact</dt>
+                      <dd>{{ formatDecimal(recentMap.impactRating, 2) }}</dd>
+                    </div>
+                  </dl>
+                </article>
+              }
+            </section>
+          }
+        }
+
         <section class="bunker-panel bunker-panel--quiet">
           <span class="bunker-panel__eyebrow">Resumo</span>
           <p>

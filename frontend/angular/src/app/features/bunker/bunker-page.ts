@@ -15,6 +15,7 @@ import {
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import {
   PlayerBunkerSeasonPlayerMapDto,
+  PlayerBunkerSeasonPlayerRecentMapDto,
   PlayerBunkerSeasonPlayerSummaryDto,
   PlayerBunkerSummaryDataDto,
   PlayerBunkerSummaryDto,
@@ -187,6 +188,10 @@ export class BunkerPage {
     return this.formatInteger(mapSummary.mapsPlayed ?? mapSummary.matchesPlayed);
   }
 
+  protected textOrFallback(value?: string | null): string {
+    return value || '—';
+  }
+
   private playerVm(payload: PlayerMeDto): Observable<BunkerVm> {
     const player = this.normalizePlayer(payload);
 
@@ -233,14 +238,16 @@ export class BunkerPage {
 
     const summary = this.normalizeSeasonPlayerSummary(seasonPlayer['summary']);
     const byMap = this.normalizeSeasonPlayerByMap(seasonPlayer['byMap']);
+    const recentMaps = this.normalizeSeasonPlayerRecentMaps(seasonPlayer['recentMaps']);
 
-    if (!summary && byMap.length === 0) {
+    if (!summary && byMap.length === 0 && recentMaps.length === 0) {
       return null;
     }
 
     return {
       summary,
       byMap,
+      recentMaps,
     };
   }
 
@@ -298,6 +305,46 @@ export class BunkerPage {
     return mapSummary;
   }
 
+  private normalizeSeasonPlayerRecentMaps(
+    recentMaps: unknown,
+  ): PlayerBunkerSeasonPlayerRecentMapDto[] {
+    if (!Array.isArray(recentMaps)) {
+      return [];
+    }
+
+    return recentMaps
+      .map((item) => this.normalizeSeasonPlayerRecentMap(item))
+      .filter((item): item is PlayerBunkerSeasonPlayerRecentMapDto => item !== null)
+      .slice(0, 5);
+  }
+
+  private normalizeSeasonPlayerRecentMap(item: unknown): PlayerBunkerSeasonPlayerRecentMapDto | null {
+    if (!this.isRecord(item)) {
+      return null;
+    }
+
+    const recentMap = {
+      mapName: this.toOptionalString(item['mapName'] ?? item['mapname'] ?? item['map']),
+      startedAt: this.toOptionalString(item['startedAt'] ?? item['startTime'] ?? item['start_time']),
+      matchId: this.toOptionalString(item['matchId'] ?? item['matchid']),
+      mapNumber: this.toOptionalNumber(item['mapNumber'] ?? item['mapnumber']),
+      result: this.toOptionalString(item['result'] ?? item['outcome']),
+      score: this.toOptionalString(item['score']),
+      kills: this.toOptionalNumber(item['kills']),
+      deaths: this.toOptionalNumber(item['deaths']),
+      assists: this.toOptionalNumber(item['assists']),
+      kdRatio: this.toOptionalNumber(item['kdRatio']),
+      adr: this.toOptionalNumber(item['adr']),
+      impactRating: this.toOptionalNumber(item['impactRating']),
+    };
+
+    if (!this.hasRecentMapIdentity(recentMap) && !this.hasRecentMapStats(recentMap)) {
+      return null;
+    }
+
+    return recentMap;
+  }
+
   private normalizePlayer(payload: PlayerMeDto): BunkerPlayer | null {
     if (payload.authenticated === false) {
       return null;
@@ -342,7 +389,15 @@ export class BunkerPage {
   }
 
   private toOptionalString(value: unknown): string | null {
-    return typeof value === 'string' && value.trim() ? value.trim() : null;
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return String(value);
+    }
+
+    return null;
   }
 
   private hasMapStats(item: PlayerBunkerSeasonPlayerMapDto): boolean {
@@ -352,6 +407,28 @@ export class BunkerPage {
       item.wins,
       item.losses,
       item.winRate,
+      item.kdRatio,
+      item.adr,
+      item.impactRating,
+    ].some((value) => this.isFiniteNumber(value));
+  }
+
+  private hasRecentMapIdentity(item: PlayerBunkerSeasonPlayerRecentMapDto): boolean {
+    return [
+      item.mapName,
+      item.startedAt,
+      item.matchId,
+      item.result,
+      item.score,
+    ].some((value) => Boolean(value));
+  }
+
+  private hasRecentMapStats(item: PlayerBunkerSeasonPlayerRecentMapDto): boolean {
+    return [
+      item.mapNumber,
+      item.kills,
+      item.deaths,
+      item.assists,
       item.kdRatio,
       item.adr,
       item.impactRating,

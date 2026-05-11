@@ -7,7 +7,8 @@
 .bunker-panel,
 .bunker-summary article,
 .bunker-season-summary article,
-.bunker-map-breakdown article {
+.bunker-map-breakdown article,
+.bunker-recent-maps article {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: rgba(8, 12, 16, 0.72);
@@ -33,7 +34,8 @@
 .bunker-panel__eyebrow,
 .bunker-summary span,
 .bunker-season-summary span,
-.bunker-map-breakdown span {
+.bunker-map-breakdown span,
+.bunker-recent-maps span {
   color: var(--color-primary-strong);
   font-size: 0.76rem;
   font-weight: 800;
@@ -45,7 +47,8 @@
 .bunker-panel h2,
 .bunker-summary strong,
 .bunker-season-summary strong,
-.bunker-map-breakdown strong {
+.bunker-map-breakdown strong,
+.bunker-recent-maps strong {
   margin: 0;
   color: var(--color-text);
 }
@@ -119,6 +122,11 @@
   gap: var(--space-4);
 }
 
+.bunker-recent-maps {
+  display: grid;
+  gap: var(--space-4);
+}
+
 .bunker-summary article,
 .bunker-season-summary article {
   display: grid;
@@ -153,9 +161,38 @@
     rgba(8, 12, 16, 0.72);
 }
 
+.bunker-recent-maps article {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background:
+    linear-gradient(135deg, rgba(127, 226, 255, 0.08), rgba(29, 167, 242, 0.04)),
+    rgba(8, 12, 16, 0.72);
+}
+
 .bunker-map-breakdown__header {
   display: grid;
   gap: var(--space-2);
+}
+
+.bunker-recent-maps__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.bunker-recent-maps__header div {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.bunker-recent-maps__header p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  text-align: right;
 }
 
 .bunker-map-breakdown strong {
@@ -163,19 +200,31 @@
   line-height: 1.1;
 }
 
-.bunker-map-breakdown dl {
+.bunker-recent-maps strong {
+  font-size: clamp(1.15rem, 2.3vw, 1.55rem);
+  line-height: 1.1;
+}
+
+.bunker-map-breakdown dl,
+.bunker-recent-maps dl {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-3);
   margin: 0;
 }
 
-.bunker-map-breakdown dl div {
+.bunker-recent-maps dl {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.bunker-map-breakdown dl div,
+.bunker-recent-maps dl div {
   display: grid;
   gap: 4px;
 }
 
-.bunker-map-breakdown dt {
+.bunker-map-breakdown dt,
+.bunker-recent-maps dt {
   color: var(--color-text-subtle);
   font-size: 0.72rem;
   font-weight: 800;
@@ -183,7 +232,8 @@
   text-transform: uppercase;
 }
 
-.bunker-map-breakdown dd {
+.bunker-map-breakdown dd,
+.bunker-recent-maps dd {
   margin: 0;
   color: var(--color-text);
   font-size: 1rem;
@@ -232,12 +282,22 @@
   .bunker-player,
   .bunker-summary,
   .bunker-season-summary,
-  .bunker-map-breakdown {
+  .bunker-map-breakdown,
+  .bunker-recent-maps {
     grid-template-columns: 1fr;
   }
 
-  .bunker-map-breakdown dl {
+  .bunker-map-breakdown dl,
+  .bunker-recent-maps dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bunker-recent-maps__header {
+    grid-template-columns: 1fr;
+  }
+
+  .bunker-recent-maps__header p {
+    text-align: left;
   }
 
   .bunker-button {
