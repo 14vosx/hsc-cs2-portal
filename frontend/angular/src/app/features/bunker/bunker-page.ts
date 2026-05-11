@@ -14,9 +14,10 @@ import {
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import {
+  PlayerBunkerSeasonPlayerMapDto,
+  PlayerBunkerSeasonPlayerSummaryDto,
   PlayerBunkerSummaryDataDto,
   PlayerBunkerSummaryDto,
-  PlayerBunkerSeasonPlayerSummaryDto,
   PlayerIdentityDto,
   PlayerMeDto,
 } from '../../core/api/dto/player-bunker.dto';
@@ -182,6 +183,10 @@ export class BunkerPage {
     return this.formatInteger(summary.mapsPlayed ?? summary.matchesPlayed);
   }
 
+  protected mapPlayedValue(mapSummary: PlayerBunkerSeasonPlayerMapDto): string {
+    return this.formatInteger(mapSummary.mapsPlayed ?? mapSummary.matchesPlayed);
+  }
+
   private playerVm(payload: PlayerMeDto): Observable<BunkerVm> {
     const player = this.normalizePlayer(payload);
 
@@ -227,8 +232,16 @@ export class BunkerPage {
     }
 
     const summary = this.normalizeSeasonPlayerSummary(seasonPlayer['summary']);
+    const byMap = this.normalizeSeasonPlayerByMap(seasonPlayer['byMap']);
 
-    return summary ? { summary } : null;
+    if (!summary && byMap.length === 0) {
+      return null;
+    }
+
+    return {
+      summary,
+      byMap,
+    };
   }
 
   private normalizeSeasonPlayerSummary(summary: unknown): PlayerBunkerSeasonPlayerSummaryDto | null {
@@ -248,6 +261,41 @@ export class BunkerPage {
       deaths: this.toOptionalNumber(summary['deaths']),
       assists: this.toOptionalNumber(summary['assists']),
     };
+  }
+
+  private normalizeSeasonPlayerByMap(byMap: unknown): PlayerBunkerSeasonPlayerMapDto[] {
+    if (!Array.isArray(byMap)) {
+      return [];
+    }
+
+    return byMap
+      .map((item) => this.normalizeSeasonPlayerMap(item))
+      .filter((item): item is PlayerBunkerSeasonPlayerMapDto => item !== null)
+      .slice(0, 6);
+  }
+
+  private normalizeSeasonPlayerMap(item: unknown): PlayerBunkerSeasonPlayerMapDto | null {
+    if (!this.isRecord(item)) {
+      return null;
+    }
+
+    const mapSummary = {
+      mapName: this.toOptionalString(item['mapName'] ?? item['mapname'] ?? item['map']),
+      mapsPlayed: this.toOptionalNumber(item['mapsPlayed']),
+      matchesPlayed: this.toOptionalNumber(item['matchesPlayed']),
+      wins: this.toOptionalNumber(item['wins']),
+      losses: this.toOptionalNumber(item['losses']),
+      winRate: this.toOptionalNumber(item['winRate']),
+      kdRatio: this.toOptionalNumber(item['kdRatio']),
+      adr: this.toOptionalNumber(item['adr']),
+      impactRating: this.toOptionalNumber(item['impactRating']),
+    };
+
+    if (!mapSummary.mapName && !this.hasMapStats(mapSummary)) {
+      return null;
+    }
+
+    return mapSummary;
   }
 
   private normalizePlayer(payload: PlayerMeDto): BunkerPlayer | null {
@@ -291,6 +339,23 @@ export class BunkerPage {
     }
 
     return null;
+  }
+
+  private toOptionalString(value: unknown): string | null {
+    return typeof value === 'string' && value.trim() ? value.trim() : null;
+  }
+
+  private hasMapStats(item: PlayerBunkerSeasonPlayerMapDto): boolean {
+    return [
+      item.mapsPlayed,
+      item.matchesPlayed,
+      item.wins,
+      item.losses,
+      item.winRate,
+      item.kdRatio,
+      item.adr,
+      item.impactRating,
+    ].some((value) => this.isFiniteNumber(value));
   }
 
   private isFiniteNumber(value: unknown): value is number {
