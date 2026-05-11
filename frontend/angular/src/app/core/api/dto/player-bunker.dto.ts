@@ -14,6 +14,24 @@ export interface PlayerBunkerSummaryDataDto {
   status?: string | null;
   seasonFirst?: boolean | null;
   statsAvailable?: boolean | null;
+  seasonPlayer?: PlayerBunkerSeasonPlayerDto | null;
+}
+
+export interface PlayerBunkerSeasonPlayerDto {
+  summary?: PlayerBunkerSeasonPlayerSummaryDto | null;
+}
+
+export interface PlayerBunkerSeasonPlayerSummaryDto {
+  mapsPlayed?: number | null;
+  matchesPlayed?: number | null;
+  wins?: number | null;
+  winRate?: number | null;
+  kdRatio?: number | null;
+  adr?: number | null;
+  impactRating?: number | null;
+  kills?: number | null;
+  deaths?: number | null;
+  assists?: number | null;
 }
 
 export interface PlayerBunkerSummaryDto extends PlayerBunkerSummaryDataDto {
@@ -21,5 +39,6 @@ export interface PlayerBunkerSummaryDto extends PlayerBunkerSummaryDataDto {
   data?: {
     player?: PlayerIdentityDto | null;
     bunker?: PlayerBunkerSummaryDataDto | null;
+    seasonPlayer?: PlayerBunkerSeasonPlayerDto | null;
   } | null;
 }

@@ -30,7 +30,7 @@
           <div>
             <span class="bunker-panel__eyebrow">Conta Steam</span>
             <h2>Entre para acessar o Bunker</h2>
-            <p>O Bunker ainda não mostra estatísticas reais. Esta primeira versão valida a sessão e prepara o resumo do jogador.</p>
+            <p>Entre com Steam para validar sua sessão de jogador e carregar seu resumo competitivo quando disponível.</p>
           </div>
 
           <button class="bunker-button bunker-button--primary" type="button" (click)="loginWithSteam()">
@@ -75,6 +75,47 @@
             <strong>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</strong>
           </article>
         </section>
+
+        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.summary; as playerSummary) {
+          <section class="bunker-season-summary" aria-label="Métricas defensivas da temporada">
+            <article>
+              <span>{{ playedLabel(playerSummary) }}</span>
+              <strong>{{ playedValue(playerSummary) }}</strong>
+            </article>
+            <article>
+              <span>Vitórias</span>
+              <strong>{{ formatInteger(playerSummary.wins) }}</strong>
+            </article>
+            <article>
+              <span>Win rate</span>
+              <strong>{{ formatPercent(playerSummary.winRate) }}</strong>
+            </article>
+            <article>
+              <span>K/D</span>
+              <strong>{{ formatDecimal(playerSummary.kdRatio, 2) }}</strong>
+            </article>
+            <article>
+              <span>ADR</span>
+              <strong>{{ formatDecimal(playerSummary.adr, 1) }}</strong>
+            </article>
+            <article>
+              <span>Impact</span>
+              <strong>{{ formatDecimal(playerSummary.impactRating, 2) }}</strong>
+            </article>
+            <article>
+              <span>Kills</span>
+              <strong>{{ formatInteger(playerSummary.kills) }}</strong>
+            </article>
+            <article>
+              <span>Deaths</span>
+              <strong>{{ formatInteger(playerSummary.deaths) }}</strong>
+            </article>
+            <article>
+              <span>Assists</span>
+              <strong>{{ formatInteger(playerSummary.assists) }}</strong>
+            </article>
+          </section>
+        }
 
         <section class="bunker-panel bunker-panel--quiet">
           <span class="bunker-panel__eyebrow">Resumo</span>
