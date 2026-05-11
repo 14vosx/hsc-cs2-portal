@@ -5,7 +5,8 @@
 
 .bunker-hero,
 .bunker-panel,
-.bunker-summary article {
+.bunker-summary article,
+.bunker-season-summary article {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: rgba(8, 12, 16, 0.72);
@@ -29,7 +30,8 @@
 
 .bunker-hero span,
 .bunker-panel__eyebrow,
-.bunker-summary span {
+.bunker-summary span,
+.bunker-season-summary span {
   color: var(--color-primary-strong);
   font-size: 0.76rem;
   font-weight: 800;
@@ -39,7 +41,8 @@
 
 .bunker-hero h1,
 .bunker-panel h2,
-.bunker-summary strong {
+.bunker-summary strong,
+.bunker-season-summary strong {
   margin: 0;
   color: var(--color-text);
 }
@@ -101,7 +104,14 @@
   gap: var(--space-4);
 }
 
-.bunker-summary article {
+.bunker-season-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.bunker-summary article,
+.bunker-season-summary article {
   display: grid;
   gap: var(--space-2);
   padding: var(--space-4);
@@ -110,6 +120,19 @@
 .bunker-summary strong {
   font-size: clamp(1.4rem, 3vw, 2.2rem);
   line-height: 1;
+}
+
+.bunker-season-summary strong {
+  font-size: clamp(1.35rem, 2.7vw, 2rem);
+  line-height: 1;
+}
+
+.bunker-season-summary article {
+  min-height: 112px;
+  align-content: space-between;
+  background:
+    linear-gradient(135deg, rgba(127, 226, 255, 0.08), rgba(159, 99, 255, 0.04)),
+    rgba(8, 12, 16, 0.72);
 }
 
 .bunker-panel--quiet {
@@ -152,7 +175,8 @@
 @media (max-width: 760px) {
   .bunker-auth,
   .bunker-player,
-  .bunker-summary {
+  .bunker-summary,
+  .bunker-season-summary {
     grid-template-columns: 1fr;
   }
 

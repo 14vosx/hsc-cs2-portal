@@ -16,6 +16,7 @@ import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import {
   PlayerBunkerSummaryDataDto,
   PlayerBunkerSummaryDto,
+  PlayerBunkerSeasonPlayerSummaryDto,
   PlayerIdentityDto,
   PlayerMeDto,
 } from '../../core/api/dto/player-bunker.dto';
@@ -135,7 +136,50 @@ export class BunkerPage {
       return 'Sessão e identidade do jogador conectadas. Estatísticas reais ainda pendentes.';
     }
 
-    return 'Shell inicial do Bunker ativo. As estatísticas entram depois que o contrato real estiver disponível.';
+    if (summary.statsAvailable === true && summary.seasonPlayer?.summary) {
+      return 'Resumo competitivo da temporada carregado com dados do artifact do jogador.';
+    }
+
+    return 'Sessão de jogador ativa. O Bunker está pronto para carregar dados competitivos quando disponíveis.';
+  }
+
+  protected formatInteger(value?: number | null): string {
+    if (!this.isFiniteNumber(value)) {
+      return '—';
+    }
+
+    return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(value);
+  }
+
+  protected formatDecimal(value?: number | null, digits = 2): string {
+    if (!this.isFiniteNumber(value)) {
+      return '—';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(value);
+  }
+
+  protected formatPercent(value?: number | null): string {
+    if (!this.isFiniteNumber(value)) {
+      return '—';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'percent',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(value);
+  }
+
+  protected playedLabel(summary: PlayerBunkerSeasonPlayerSummaryDto): string {
+    return this.isFiniteNumber(summary.mapsPlayed) ? 'Mapas jogados' : 'Partidas jogadas';
+  }
+
+  protected playedValue(summary: PlayerBunkerSeasonPlayerSummaryDto): string {
+    return this.formatInteger(summary.mapsPlayed ?? summary.matchesPlayed);
   }
 
   private playerVm(payload: PlayerMeDto): Observable<BunkerVm> {
@@ -167,11 +211,42 @@ export class BunkerPage {
 
   private normalizeSummary(payload: PlayerBunkerSummaryDto): PlayerBunkerSummaryDataDto {
     const summary = payload.data?.bunker ?? payload;
+    const seasonPlayer = payload.data?.seasonPlayer ?? summary.seasonPlayer;
 
     return {
       status: summary.status ?? null,
       seasonFirst: summary.seasonFirst ?? null,
       statsAvailable: summary.statsAvailable ?? null,
+      seasonPlayer: this.normalizeSeasonPlayer(seasonPlayer),
+    };
+  }
+
+  private normalizeSeasonPlayer(seasonPlayer: unknown): PlayerBunkerSummaryDataDto['seasonPlayer'] {
+    if (!this.isRecord(seasonPlayer)) {
+      return null;
+    }
+
+    const summary = this.normalizeSeasonPlayerSummary(seasonPlayer['summary']);
+
+    return summary ? { summary } : null;
+  }
+
+  private normalizeSeasonPlayerSummary(summary: unknown): PlayerBunkerSeasonPlayerSummaryDto | null {
+    if (!this.isRecord(summary)) {
+      return null;
+    }
+
+    return {
+      mapsPlayed: this.toOptionalNumber(summary['mapsPlayed']),
+      matchesPlayed: this.toOptionalNumber(summary['matchesPlayed']),
+      wins: this.toOptionalNumber(summary['wins']),
+      winRate: this.toOptionalNumber(summary['winRate']),
+      kdRatio: this.toOptionalNumber(summary['kdRatio']),
+      adr: this.toOptionalNumber(summary['adr']),
+      impactRating: this.toOptionalNumber(summary['impactRating']),
+      kills: this.toOptionalNumber(summary['kills']),
+      deaths: this.toOptionalNumber(summary['deaths']),
+      assists: this.toOptionalNumber(summary['assists']),
     };
   }
 
@@ -203,5 +278,26 @@ export class BunkerPage {
 
   private errorVm(error: unknown): BunkerVm {
     return this.isAuthMiss(error) ? { state: 'unauthenticated' } : { state: 'error' };
+  }
+
+  private toOptionalNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+  }
+
+  private isFiniteNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
   }
 }
