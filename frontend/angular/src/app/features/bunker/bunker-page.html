@@ -1,0 +1,88 @@
+<section class="bunker-page">
+  <header class="bunker-hero">
+    <div>
+      <span>Bunker HSC</span>
+      <h1>Seu espaço de jogador</h1>
+      <p>Entre com Steam para abrir a primeira casca player-facing do portal.</p>
+    </div>
+  </header>
+
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <section class="bunker-panel bunker-panel--loading" aria-label="Carregando Bunker">
+          <span class="bunker-panel__eyebrow">Conectando</span>
+          <div class="bunker-skeleton bunker-skeleton--title"></div>
+          <div class="bunker-skeleton"></div>
+          <div class="bunker-skeleton bunker-skeleton--short"></div>
+        </section>
+      }
+
+      @case ('error') {
+        <app-empty-state
+          title="Bunker indisponível"
+          description="Não foi possível carregar sua sessão de jogador agora."
+        />
+      }
+
+      @case ('unauthenticated') {
+        <section class="bunker-panel bunker-auth">
+          <div>
+            <span class="bunker-panel__eyebrow">Conta Steam</span>
+            <h2>Entre para acessar o Bunker</h2>
+            <p>O Bunker ainda não mostra estatísticas reais. Esta primeira versão valida a sessão e prepara o resumo do jogador.</p>
+          </div>
+
+          <button class="bunker-button bunker-button--primary" type="button" (click)="loginWithSteam()">
+            Entrar com Steam
+          </button>
+        </section>
+      }
+
+      @case ('authenticated') {
+        <section class="bunker-panel bunker-player">
+          <div class="bunker-player__identity">
+            <span class="bunker-panel__eyebrow">Jogador autenticado</span>
+            <h2>{{ vm.player.displayName }}</h2>
+            <p>{{ vm.player.steamid64 }}</p>
+          </div>
+
+          <button
+            class="bunker-button"
+            type="button"
+            [disabled]="logoutPending()"
+            (click)="logout()"
+          >
+            {{ logoutPending() ? 'Saindo...' : 'Sair' }}
+          </button>
+        </section>
+
+        @if (logoutFailed()) {
+          <p class="bunker-page__error">Não foi possível encerrar a sessão. Tente novamente.</p>
+        }
+
+        <section class="bunker-summary" aria-label="Resumo do Bunker">
+          <article>
+            <span>Status</span>
+            <strong>{{ vm.summary.status || (vm.summaryState === 'error' ? 'indisponível' : 'preparando') }}</strong>
+          </article>
+          <article>
+            <span>seasonFirst</span>
+            <strong>{{ summaryLabel(vm.summary.seasonFirst) }}</strong>
+          </article>
+          <article>
+            <span>statsAvailable</span>
+            <strong>{{ summaryLabel(vm.summary.statsAvailable) }}</strong>
+          </article>
+        </section>
+
+        <section class="bunker-panel bunker-panel--quiet">
+          <span class="bunker-panel__eyebrow">Resumo</span>
+          <p>
+            Shell inicial do Bunker ativo. As estatísticas entram depois que o contrato real estiver disponível.
+          </p>
+        </section>
+      }
+    }
+  }
+</section>

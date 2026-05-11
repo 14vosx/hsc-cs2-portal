@@ -10,5 +10,11 @@
     "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"
+  },
+  "/player": {
+    "target": "http://127.0.0.1:3010",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
   }
 }

@@ -18,6 +18,10 @@ export const cs2ApiPaths = {
   player: (steamId64: string) => `${CS2_API_BASE_PATH}/player/${encodeURIComponent(steamId64)}.json`,
   steamCache: (steamId64: string) =>
     `${CS2_API_BASE_PATH}/steam-cache/${encodeURIComponent(steamId64)}.json`,
+  playerMe: '/player/me',
+  playerBunkerSummary: '/player/bunker/summary',
+  playerAuthLogout: '/player/auth/logout',
+  playerAuthSteamStart: '/player/auth/steam/start',
   newsIndex: '/content/news/',
   newsItem: (slug: string) => `/content/news/${encodeURIComponent(slug)}/`,
 } as const;

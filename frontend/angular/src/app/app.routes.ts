@@ -108,6 +108,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'bunker',
+    loadComponent: () =>
+      import('./features/bunker/bunker-page').then((component) => component.BunkerPage),
+  },
+  {
     path: 'api-smoke',
     loadComponent: () =>
       import('./features/api-smoke/api-smoke').then((component) => component.ApiSmoke),

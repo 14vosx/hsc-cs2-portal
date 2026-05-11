@@ -7,6 +7,7 @@ import { HealthDto } from './dto/health.dto';
 import { MapsDto } from './dto/maps.dto';
 import { MatchesDto } from './dto/matches.dto';
 import { NewsDetailDto, NewsIndexDto } from './dto/news.dto';
+import { PlayerBunkerSummaryDto, PlayerMeDto } from './dto/player-bunker.dto';
 import { RankingDto } from './dto/ranking.dto';
 import { MapDetailDto } from './dto/map-detail.dto';
 import { MatchDetailDto } from './dto/match-detail.dto';
@@ -20,6 +21,7 @@ import { SeasonRankingDto } from './dto/season-ranking.dto';
 })
 export class Cs2ApiService {
   private readonly http = inject(HttpClient);
+  readonly playerAuthSteamStartUrl = cs2ApiPaths.playerAuthSteamStart;
 
   getHealth(): Observable<HealthDto> {
     return this.http.get<HealthDto>(cs2ApiPaths.health);
@@ -71,5 +73,27 @@ export class Cs2ApiService {
 
   getNewsItem(slug: string): Observable<NewsDetailDto> {
     return this.http.get<NewsDetailDto>(cs2ApiPaths.newsItem(slug));
+  }
+
+  getPlayerMe(): Observable<PlayerMeDto> {
+    return this.http.get<PlayerMeDto>(cs2ApiPaths.playerMe, {
+      withCredentials: true,
+    });
+  }
+
+  getPlayerBunkerSummary(): Observable<PlayerBunkerSummaryDto> {
+    return this.http.get<PlayerBunkerSummaryDto>(cs2ApiPaths.playerBunkerSummary, {
+      withCredentials: true,
+    });
+  }
+
+  logoutPlayer(): Observable<unknown> {
+    return this.http.post(
+      cs2ApiPaths.playerAuthLogout,
+      {},
+      {
+        withCredentials: true,
+      },
+    );
   }
 }

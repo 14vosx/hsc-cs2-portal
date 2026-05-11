@@ -23,6 +23,7 @@ export class PortalHeader {
     { label: 'Partidas', path: '/matches' },
     { label: 'Mapas', path: '/maps' },
     { label: 'News', path: '/news' },
+    { label: 'Bunker', path: '/bunker' },
   ];
 
   protected isActive(item: PortalNavItem): boolean {
