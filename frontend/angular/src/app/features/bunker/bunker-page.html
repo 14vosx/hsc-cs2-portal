@@ -117,6 +117,52 @@
           </section>
         }
 
+        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.byMap; as byMap) {
+          @if (byMap.length > 0) {
+            <section class="bunker-map-breakdown" aria-label="Métricas por mapa da temporada">
+              @for (mapSummary of byMap; track mapSummary.mapName ?? $index) {
+                <article>
+                  <div class="bunker-map-breakdown__header">
+                    <span>Mapa</span>
+                    <strong>{{ mapSummary.mapName || '—' }}</strong>
+                  </div>
+
+                  <dl>
+                    <div>
+                      <dt>Jogos</dt>
+                      <dd>{{ mapPlayedValue(mapSummary) }}</dd>
+                    </div>
+                    <div>
+                      <dt>V</dt>
+                      <dd>{{ formatInteger(mapSummary.wins) }}</dd>
+                    </div>
+                    <div>
+                      <dt>D</dt>
+                      <dd>{{ formatInteger(mapSummary.losses) }}</dd>
+                    </div>
+                    <div>
+                      <dt>WR</dt>
+                      <dd>{{ formatPercent(mapSummary.winRate) }}</dd>
+                    </div>
+                    <div>
+                      <dt>K/D</dt>
+                      <dd>{{ formatDecimal(mapSummary.kdRatio, 2) }}</dd>
+                    </div>
+                    <div>
+                      <dt>ADR</dt>
+                      <dd>{{ formatDecimal(mapSummary.adr, 1) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Impact</dt>
+                      <dd>{{ formatDecimal(mapSummary.impactRating, 2) }}</dd>
+                    </div>
+                  </dl>
+                </article>
+              }
+            </section>
+          }
+        }
+
         <section class="bunker-panel bunker-panel--quiet">
           <span class="bunker-panel__eyebrow">Resumo</span>
           <p>

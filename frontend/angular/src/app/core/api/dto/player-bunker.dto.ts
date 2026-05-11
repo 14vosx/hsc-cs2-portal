@@ -19,6 +19,7 @@ export interface PlayerBunkerSummaryDataDto {
 
 export interface PlayerBunkerSeasonPlayerDto {
   summary?: PlayerBunkerSeasonPlayerSummaryDto | null;
+  byMap?: PlayerBunkerSeasonPlayerMapDto[] | null;
 }
 
 export interface PlayerBunkerSeasonPlayerSummaryDto {
@@ -32,6 +33,20 @@ export interface PlayerBunkerSeasonPlayerSummaryDto {
   kills?: number | null;
   deaths?: number | null;
   assists?: number | null;
+}
+
+export interface PlayerBunkerSeasonPlayerMapDto {
+  mapName?: string | null;
+  mapname?: string | null;
+  map?: string | null;
+  mapsPlayed?: number | null;
+  matchesPlayed?: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  winRate?: number | null;
+  kdRatio?: number | null;
+  adr?: number | null;
+  impactRating?: number | null;
 }
 
 export interface PlayerBunkerSummaryDto extends PlayerBunkerSummaryDataDto {
