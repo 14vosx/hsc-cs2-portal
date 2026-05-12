@@ -189,6 +189,44 @@ export class BunkerPage {
     return this.formatInteger(mapSummary.mapsPlayed ?? mapSummary.matchesPlayed);
   }
 
+  protected playerName(vm: BunkerAuthenticatedVm): string {
+    return vm.summary.seasonPlayer?.name?.trim() || vm.player.displayName || 'Jogador HSC';
+  }
+
+  protected playerInitials(vm: BunkerAuthenticatedVm): string {
+    const name = this.playerName(vm);
+    const initials = name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('');
+
+    return initials.toUpperCase() || 'HSC';
+  }
+
+  protected seasonSlugLabel(summary: PlayerBunkerSummaryDataDto): string {
+    return summary.currentSeason?.slug ? `Season ${summary.currentSeason.slug}` : 'Season —';
+  }
+
+  protected seasonScopeLabel(summary: PlayerBunkerSummaryDataDto): string {
+    const scope = summary.currentSeason?.scope;
+
+    if (!scope?.startAt && !scope?.endAt) {
+      return 'Período —';
+    }
+
+    return `${this.textOrFallback(scope.startAt)} até ${this.textOrFallback(scope.endAt)}`;
+  }
+
+  protected ringValue(value?: number | null, max = 1): string {
+    if (!this.isFiniteNumber(value) || max <= 0) {
+      return '0%';
+    }
+
+    return `${Math.min(Math.max((value / max) * 100, 0), 100)}%`;
+  }
+
   protected textOrFallback(value?: string | null): string {
     return value || '—';
   }
@@ -222,13 +260,33 @@ export class BunkerPage {
 
   private normalizeSummary(payload: PlayerBunkerSummaryDto): PlayerBunkerSummaryDataDto {
     const summary = payload.data?.bunker ?? payload;
+    const currentSeason = payload.data?.currentSeason ?? summary.currentSeason;
     const seasonPlayer = payload.data?.seasonPlayer ?? summary.seasonPlayer;
 
     return {
       status: summary.status ?? null,
       seasonFirst: summary.seasonFirst ?? null,
       statsAvailable: summary.statsAvailable ?? null,
+      currentSeason: this.normalizeCurrentSeason(currentSeason),
       seasonPlayer: this.normalizeSeasonPlayer(seasonPlayer),
+    };
+  }
+
+  private normalizeCurrentSeason(
+    currentSeason: unknown,
+  ): PlayerBunkerSummaryDataDto['currentSeason'] {
+    if (!this.isRecord(currentSeason)) {
+      return null;
+    }
+
+    const scope = this.isRecord(currentSeason['scope']) ? currentSeason['scope'] : null;
+
+    return {
+      slug: this.toOptionalString(currentSeason['slug']),
+      scope: {
+        startAt: this.toOptionalString(scope?.['startAt']),
+        endAt: this.toOptionalString(scope?.['endAt']),
+      },
     };
   }
 
@@ -237,16 +295,20 @@ export class BunkerPage {
       return null;
     }
 
+    const name = this.toOptionalString(seasonPlayer['name']);
+    const steamid64 = this.toOptionalString(seasonPlayer['steamid64'] ?? seasonPlayer['steamId64']);
     const summary = this.normalizeSeasonPlayerSummary(seasonPlayer['summary']);
     const byMap = this.normalizeSeasonPlayerByMap(seasonPlayer['byMap']);
     const recentMaps = this.normalizeSeasonPlayerRecentMaps(seasonPlayer['recentMaps']);
     const timeline = this.normalizeSeasonPlayerTimeline(seasonPlayer['timeline']);
 
-    if (!summary && byMap.length === 0 && recentMaps.length === 0 && timeline.length === 0) {
+    if (!name && !steamid64 && !summary && byMap.length === 0 && recentMaps.length === 0 && timeline.length === 0) {
       return null;
     }
 
     return {
+      name,
+      steamid64,
       summary,
       byMap,
       recentMaps,
