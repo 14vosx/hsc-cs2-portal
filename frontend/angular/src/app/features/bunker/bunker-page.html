@@ -1,20 +1,12 @@
-<section class="bunker-page">
-  <header class="bunker-hero">
-    <div>
-      <span>Bunker HSC</span>
-      <h1>Seu espaço de jogador</h1>
-      <p>Entre com Steam para abrir a primeira casca player-facing do portal.</p>
-    </div>
-  </header>
-
+<section class="b-page">
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <section class="bunker-panel bunker-panel--loading" aria-label="Carregando Bunker">
-          <span class="bunker-panel__eyebrow">Conectando</span>
-          <div class="bunker-skeleton bunker-skeleton--title"></div>
-          <div class="bunker-skeleton"></div>
-          <div class="bunker-skeleton bunker-skeleton--short"></div>
+        <section class="bpnl bpnl--loading" aria-label="Carregando Bunker">
+          <span class="bpnl__eyebrow">Conectando</span>
+          <div class="bsk bsk--title"></div>
+          <div class="bsk"></div>
+          <div class="bsk bsk--short"></div>
         </section>
       }
 
@@ -26,275 +18,347 @@
       }
 
       @case ('unauthenticated') {
-        <section class="bunker-panel bunker-auth">
+        <section class="bpnl bunker-auth">
           <div>
-            <span class="bunker-panel__eyebrow">Conta Steam</span>
+            <span class="bpnl__eyebrow">Conta Steam</span>
             <h2>Entre para acessar o Bunker</h2>
             <p>Entre com Steam para validar sua sessão de jogador e carregar seu resumo competitivo quando disponível.</p>
           </div>
 
-          <button class="bunker-button bunker-button--primary" type="button" (click)="loginWithSteam()">
+          <button class="bb bb--primary" type="button" (click)="loginWithSteam()">
             Entrar com Steam
           </button>
         </section>
       }
 
       @case ('authenticated') {
-        <section class="bunker-panel bunker-player">
-          <div class="bunker-player__identity">
-            <span class="bunker-panel__eyebrow">Jogador autenticado</span>
-            <h2>{{ vm.player.displayName }}</h2>
-            <p>{{ vm.player.steamid64 }}</p>
+        <header class="bp">
+          <div class="bp__identity">
+            <div
+              class="bp__avatar"
+              aria-label="Avatar local HSC, não é avatar Steam"
+            >
+              {{ playerInitials(vm) }}
+            </div>
+
+            <div>
+              <span>Bunker HSC</span>
+              <h1>{{ playerName(vm) }}</h1>
+              <p>SteamID {{ vm.summary.seasonPlayer?.steamid64 || vm.player.steamid64 }}</p>
+              <small>Monograma visual HSC. Avatar Steam real ainda não faz parte do contrato.</small>
+            </div>
           </div>
 
-          <button
-            class="bunker-button"
-            type="button"
-            [disabled]="logoutPending()"
-            (click)="logout()"
-          >
-            {{ logoutPending() ? 'Saindo...' : 'Sair' }}
-          </button>
-        </section>
+          <div class="bp__actions">
+            <div class="bc-list" aria-label="Estado do Bunker">
+              <span class="bc bc--ok">
+                <i class="bi bi--player" aria-hidden="true"></i>
+                Sessão conectada
+              </span>
+              <span class="bc">
+                <i class="bi bi--target" aria-hidden="true"></i>
+                Dados {{ statsAvailabilityLabel(vm.summary.statsAvailable) }}
+              </span>
+              <span class="bc">
+                <i class="bi bi--trophy" aria-hidden="true"></i>
+                Primeira season {{ summaryLabel(vm.summary.seasonFirst) }}
+              </span>
+            </div>
+
+            <button
+              class="bb"
+              type="button"
+              [disabled]="logoutPending()"
+              (click)="logout()"
+            >
+              {{ logoutPending() ? 'Saindo...' : 'Sair' }}
+            </button>
+          </div>
+        </header>
 
         @if (logoutFailed()) {
-          <p class="bunker-page__error">Não foi possível encerrar a sessão. Tente novamente.</p>
+          <p class="b-page__error">Não foi possível encerrar a sessão. Tente novamente.</p>
         }
 
-        <section class="bunker-summary" aria-label="Resumo do Bunker">
-          <article>
-            <span>Status</span>
-            <strong>{{ vm.summaryState === 'error' ? 'indisponível' : statusLabel(vm.summary.status) }}</strong>
-          </article>
-          <article>
-            <span>seasonFirst</span>
-            <strong>{{ summaryLabel(vm.summary.seasonFirst) }}</strong>
-          </article>
-          <article>
-            <span>statsAvailable</span>
-            <strong>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</strong>
-          </article>
+        <section class="bsn" aria-labelledby="bsn-title">
+          <div>
+            <span>
+              <i class="bi bi--trophy" aria-hidden="true"></i>
+              Temporada atual
+            </span>
+            <h2 id="bsn-title">{{ seasonSlugLabel(vm.summary) }}</h2>
+            <p>{{ seasonScopeLabel(vm.summary) }}</p>
+          </div>
+
+          <dl>
+            <div>
+              <dt>Status</dt>
+              <dd>{{ vm.summaryState === 'error' ? 'indisponível' : statusLabel(vm.summary.status) }}</dd>
+            </div>
+            <div>
+              <dt>Dados</dt>
+              <dd>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</dd>
+            </div>
+          </dl>
         </section>
 
-        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.summary; as playerSummary) {
-          <section class="bunker-season-summary" aria-label="Métricas defensivas da temporada">
-            <article>
-              <span>{{ playedLabel(playerSummary) }}</span>
-              <strong>{{ playedValue(playerSummary) }}</strong>
-            </article>
-            <article>
-              <span>Vitórias</span>
-              <strong>{{ formatInteger(playerSummary.wins) }}</strong>
-            </article>
-            <article>
-              <span>Win rate</span>
-              <strong>{{ formatPercent(playerSummary.winRate) }}</strong>
-            </article>
-            <article>
-              <span>K/D</span>
-              <strong>{{ formatDecimal(playerSummary.kdRatio, 2) }}</strong>
-            </article>
-            <article>
-              <span>ADR</span>
-              <strong>{{ formatDecimal(playerSummary.adr, 1) }}</strong>
-            </article>
-            <article>
-              <span>Impact</span>
-              <strong>{{ formatDecimal(playerSummary.impactRating, 2) }}</strong>
-            </article>
-            <article>
-              <span>Kills</span>
-              <strong>{{ formatInteger(playerSummary.kills) }}</strong>
-            </article>
-            <article>
-              <span>Deaths</span>
-              <strong>{{ formatInteger(playerSummary.deaths) }}</strong>
-            </article>
-            <article>
-              <span>Assists</span>
-              <strong>{{ formatInteger(playerSummary.assists) }}</strong>
-            </article>
-          </section>
-        }
+        <section class="bs bs--overview" aria-labelledby="bunker-overview-title">
+          <div class="bh">
+            <div>
+              <span>
+                <i class="bi bi--target" aria-hidden="true"></i>
+                Resumo
+              </span>
+              <h2 id="bunker-overview-title">Visão geral da temporada</h2>
+            </div>
+            <p>Leitura rápida das métricas centrais do jogador nesta season.</p>
+          </div>
+
+          @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.summary; as playerSummary) {
+            <div class="brs" aria-label="Métricas principais da temporada">
+              <article>
+                <div
+                  class="brg"
+                  [style.--ring-value]="ringValue(playerSummary.kdRatio, 2)"
+                  aria-hidden="true"
+                >
+                  <strong>{{ formatDecimal(playerSummary.kdRatio, 2) }}</strong>
+                </div>
+                <span>K/D</span>
+                <p>Eficiência em troca</p>
+              </article>
+              <article>
+                <div
+                  class="brg"
+                  [style.--ring-value]="ringValue(playerSummary.winRate)"
+                  aria-hidden="true"
+                >
+                  <strong>{{ formatPercent(playerSummary.winRate) }}</strong>
+                </div>
+                <span>Win rate</span>
+                <p>Conversão em vitórias</p>
+              </article>
+              <article>
+                <div
+                  class="brg"
+                  [style.--ring-value]="ringValue(playerSummary.impactRating, 2)"
+                  aria-hidden="true"
+                >
+                  <strong>{{ formatDecimal(playerSummary.impactRating, 2) }}</strong>
+                </div>
+                <span>Impact</span>
+                <p>Peso nos mapas</p>
+              </article>
+            </div>
+
+            <div class="bsm" aria-label="Resumo numérico da temporada">
+              <article>
+                <span>ADR</span>
+                <strong>{{ formatDecimal(playerSummary.adr, 1) }}</strong>
+              </article>
+              <article>
+                <span>{{ playedLabel(playerSummary) }}</span>
+                <strong>{{ playedValue(playerSummary) }}</strong>
+              </article>
+              <article>
+                <span>Vitórias</span>
+                <strong>{{ formatInteger(playerSummary.wins) }}</strong>
+              </article>
+              <article>
+                <span>Kills</span>
+                <strong>{{ formatInteger(playerSummary.kills) }}</strong>
+              </article>
+              <article>
+                <span>Deaths</span>
+                <strong>{{ formatInteger(playerSummary.deaths) }}</strong>
+              </article>
+              <article>
+                <span>Assists</span>
+                <strong>{{ formatInteger(playerSummary.assists) }}</strong>
+              </article>
+            </div>
+          } @else {
+            <div class="bsm" aria-label="Resumo do Bunker">
+              <article>
+                <span>Status</span>
+                <strong>{{ vm.summaryState === 'error' ? 'indisponível' : statusLabel(vm.summary.status) }}</strong>
+              </article>
+              <article>
+                <span>Primeira season</span>
+                <strong>{{ summaryLabel(vm.summary.seasonFirst) }}</strong>
+              </article>
+              <article>
+                <span>Dados</span>
+                <strong>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</strong>
+              </article>
+            </div>
+          }
+        </section>
 
         @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.byMap; as byMap) {
           @if (byMap.length > 0) {
-            <section class="bunker-map-breakdown" aria-label="Métricas por mapa da temporada">
-              @for (mapSummary of byMap; track mapSummary.mapName ?? $index) {
-                <article>
-                  <div class="bunker-map-breakdown__header">
-                    <span>Mapa</span>
-                    <strong>{{ mapSummary.mapName || '—' }}</strong>
-                  </div>
+            <section class="bs bs--maps" aria-labelledby="bm-title">
+              <div class="bh">
+                <div>
+                  <span>
+                    <i class="bi bi--map" aria-hidden="true"></i>
+                    Map pool
+                  </span>
+                  <h2 id="bm-title">Performance por mapa</h2>
+                </div>
+                <p>Cada linha mostra volume, resultado e eficiência individual no mapa.</p>
+              </div>
 
-                  <dl>
-                    <div>
-                      <dt>Jogos</dt>
-                      <dd>{{ mapPlayedValue(mapSummary) }}</dd>
-                    </div>
-                    <div>
-                      <dt>V</dt>
-                      <dd>{{ formatInteger(mapSummary.wins) }}</dd>
-                    </div>
-                    <div>
-                      <dt>D</dt>
-                      <dd>{{ formatInteger(mapSummary.losses) }}</dd>
-                    </div>
-                    <div>
-                      <dt>WR</dt>
-                      <dd>{{ formatPercent(mapSummary.winRate) }}</dd>
-                    </div>
-                    <div>
-                      <dt>K/D</dt>
-                      <dd>{{ formatDecimal(mapSummary.kdRatio, 2) }}</dd>
-                    </div>
-                    <div>
-                      <dt>ADR</dt>
-                      <dd>{{ formatDecimal(mapSummary.adr, 1) }}</dd>
-                    </div>
-                    <div>
-                      <dt>Impact</dt>
-                      <dd>{{ formatDecimal(mapSummary.impactRating, 2) }}</dd>
-                    </div>
-                  </dl>
-                </article>
-              }
+              <div class="bm" aria-label="Métricas por mapa da temporada">
+                <div class="bm__row bm__row--head" aria-hidden="true">
+                  <span>Mapa</span>
+                  <span>Jogos</span>
+                  <span>V</span>
+                  <span>D</span>
+                  <span>WR</span>
+                  <span>K/D</span>
+                  <span>ADR</span>
+                  <span>Impact</span>
+                </div>
+
+                @for (mapSummary of byMap; track mapSummary.mapName ?? $index) {
+                  <article class="bm__row">
+                    <strong>{{ mapSummary.mapName || '—' }}</strong>
+                    <span data-label="Jogos">{{ mapPlayedValue(mapSummary) }}</span>
+                    <span data-label="V">{{ formatInteger(mapSummary.wins) }}</span>
+                    <span data-label="D">{{ formatInteger(mapSummary.losses) }}</span>
+                    <span data-label="WR">{{ formatPercent(mapSummary.winRate) }}</span>
+                    <span data-label="K/D">{{ formatDecimal(mapSummary.kdRatio, 2) }}</span>
+                    <span data-label="ADR">{{ formatDecimal(mapSummary.adr, 1) }}</span>
+                    <span data-label="Impact">{{ formatDecimal(mapSummary.impactRating, 2) }}</span>
+                  </article>
+                }
+              </div>
             </section>
           }
         }
 
         @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.recentMaps; as recentMaps) {
           @if (recentMaps.length > 0) {
-            <section class="bunker-recent-maps" aria-label="Mapas recentes da temporada">
-              @for (recentMap of recentMaps; track recentMap.matchId ?? recentMap.startedAt ?? $index) {
-                <article>
-                  <div class="bunker-recent-maps__header">
-                    <div>
-                      <span>Mapa recente</span>
-                      <strong>{{ recentMap.mapName || '—' }}</strong>
-                    </div>
-                    <p>{{ textOrFallback(recentMap.startedAt) }}</p>
-                  </div>
+            <section class="bs bs--recent" aria-labelledby="brc-title">
+              <div class="bh">
+                <div>
+                  <span>
+                    <i class="bi bi--clock" aria-hidden="true"></i>
+                    Recorte recente
+                  </span>
+                  <h2 id="brc-title">Últimos mapas jogados</h2>
+                </div>
+                <p>Lista curta dos mapas mais recentes, com partida e linha individual.</p>
+              </div>
 
-                  <dl>
-                    <div>
-                      <dt>Match</dt>
-                      <dd>{{ textOrFallback(recentMap.matchId) }}</dd>
+              <div class="brc" aria-label="Mapas recentes da temporada">
+                @for (recentMap of recentMaps; track recentMap.matchId ?? recentMap.startedAt ?? $index) {
+                  <article>
+                    <div class="brc__header">
+                      <div>
+                        <span>{{ textOrFallback(recentMap.startedAt) }}</span>
+                        <strong>{{ recentMap.mapName || '—' }}</strong>
+                      </div>
+                      <p>Match {{ textOrFallback(recentMap.matchId) }}</p>
                     </div>
-                    <div>
-                      <dt>Mapa #</dt>
-                      <dd>{{ formatInteger(recentMap.mapNumber) }}</dd>
-                    </div>
-                    <div>
-                      <dt>Resultado</dt>
-                      <dd>{{ textOrFallback(recentMap.result) }}</dd>
-                    </div>
-                    <div>
-                      <dt>Score</dt>
-                      <dd>{{ textOrFallback(recentMap.score) }}</dd>
-                    </div>
-                    <div>
-                      <dt>K</dt>
-                      <dd>{{ formatInteger(recentMap.kills) }}</dd>
-                    </div>
-                    <div>
-                      <dt>D</dt>
-                      <dd>{{ formatInteger(recentMap.deaths) }}</dd>
-                    </div>
-                    <div>
-                      <dt>A</dt>
-                      <dd>{{ formatInteger(recentMap.assists) }}</dd>
-                    </div>
-                    <div>
-                      <dt>K/D</dt>
-                      <dd>{{ formatDecimal(recentMap.kdRatio, 2) }}</dd>
-                    </div>
-                    <div>
-                      <dt>ADR</dt>
-                      <dd>{{ formatDecimal(recentMap.adr, 1) }}</dd>
-                    </div>
-                    <div>
-                      <dt>Impact</dt>
-                      <dd>{{ formatDecimal(recentMap.impactRating, 2) }}</dd>
-                    </div>
-                  </dl>
-                </article>
-              }
+
+                    <dl>
+                      <div>
+                        <dt>K/D</dt>
+                        <dd>{{ formatDecimal(recentMap.kdRatio, 2) }}</dd>
+                      </div>
+                      <div>
+                        <dt>K D A</dt>
+                        <dd>
+                          {{ formatInteger(recentMap.kills) }}
+                          {{ formatInteger(recentMap.deaths) }}
+                          {{ formatInteger(recentMap.assists) }}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>ADR</dt>
+                        <dd>{{ formatDecimal(recentMap.adr, 1) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Impact</dt>
+                        <dd>{{ formatDecimal(recentMap.impactRating, 2) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Resultado</dt>
+                        <dd>{{ textOrFallback(recentMap.result) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Score</dt>
+                        <dd>{{ textOrFallback(recentMap.score) }}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                }
+              </div>
             </section>
           }
         }
 
         @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.timeline; as timeline) {
           @if (timeline.length > 0) {
-            <section class="bunker-timeline" aria-label="Timeline da temporada">
-              @for (timelineItem of timeline; track timelineItem.matchId ?? timelineItem.at ?? $index) {
-                <article>
-                  <div class="bunker-timeline__marker" aria-hidden="true"></div>
+            <section class="bs bs--timeline" aria-labelledby="bt-title">
+              <div class="bh">
+                <div>
+                  <span>
+                    <i class="bi bi--calendar" aria-hidden="true"></i>
+                    Linha do tempo
+                  </span>
+                  <h2 id="bt-title">Timeline da temporada</h2>
+                </div>
+                <p>Sequência cronológica com o mapa, a partida e as métricas que contam o momento.</p>
+              </div>
 
-                  <div class="bunker-timeline__content">
-                    <div class="bunker-timeline__header">
-                      <div>
-                        <span>Evento</span>
-                        <strong>{{ textOrFallback(timelineItem.event) }}</strong>
+              <div class="bt" aria-label="Timeline da temporada">
+                @for (timelineItem of timeline; track timelineItem.matchId ?? timelineItem.at ?? $index) {
+                  <article>
+                    <div class="bt__marker" aria-hidden="true"></div>
+
+                    <div class="bt__content">
+                      <div class="bt__header">
+                        <div>
+                          <span>{{ textOrFallback(timelineItem.at) }}</span>
+                          <strong>{{ textOrFallback(timelineItem.mapName) }}</strong>
+                        </div>
+                        <p>Match {{ textOrFallback(timelineItem.matchId) }}</p>
                       </div>
-                      <p>{{ textOrFallback(timelineItem.at) }}</p>
+
+                      <div class="bt__meta" aria-label="Contexto do evento">
+                        <span>{{ textOrFallback(timelineItem.event) }}</span>
+                        <span>Mapa #{{ formatInteger(timelineItem.mapNumber) }}</span>
+                        <span>{{ textOrFallback(timelineItem.result) }}</span>
+                        <span>Score {{ textOrFallback(timelineItem.score) }}</span>
+                      </div>
+
+                      <dl class="bt__metrics">
+                        <div>
+                          <dt>K/D</dt>
+                          <dd>{{ formatDecimal(timelineItem.kdRatio, 2) }}</dd>
+                        </div>
+                        <div>
+                          <dt>ADR</dt>
+                          <dd>{{ formatDecimal(timelineItem.adr, 1) }}</dd>
+                        </div>
+                        <div>
+                          <dt>Impact</dt>
+                          <dd>{{ formatDecimal(timelineItem.impactRating, 2) }}</dd>
+                        </div>
+                      </dl>
                     </div>
-
-                    <dl>
-                      <div>
-                        <dt>Mapa</dt>
-                        <dd>{{ textOrFallback(timelineItem.mapName) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Match</dt>
-                        <dd>{{ textOrFallback(timelineItem.matchId) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Mapa #</dt>
-                        <dd>{{ formatInteger(timelineItem.mapNumber) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Resultado</dt>
-                        <dd>{{ textOrFallback(timelineItem.result) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Score</dt>
-                        <dd>{{ textOrFallback(timelineItem.score) }}</dd>
-                      </div>
-                      <div>
-                        <dt>K</dt>
-                        <dd>{{ formatInteger(timelineItem.kills) }}</dd>
-                      </div>
-                      <div>
-                        <dt>D</dt>
-                        <dd>{{ formatInteger(timelineItem.deaths) }}</dd>
-                      </div>
-                      <div>
-                        <dt>A</dt>
-                        <dd>{{ formatInteger(timelineItem.assists) }}</dd>
-                      </div>
-                      <div>
-                        <dt>K/D</dt>
-                        <dd>{{ formatDecimal(timelineItem.kdRatio, 2) }}</dd>
-                      </div>
-                      <div>
-                        <dt>ADR</dt>
-                        <dd>{{ formatDecimal(timelineItem.adr, 1) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Impact</dt>
-                        <dd>{{ formatDecimal(timelineItem.impactRating, 2) }}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </article>
-              }
+                  </article>
+                }
+              </div>
             </section>
           }
         }
 
-        <section class="bunker-panel bunker-panel--quiet">
-          <span class="bunker-panel__eyebrow">Resumo</span>
+        <section class="bpnl bpnl--quiet">
+          <span class="bpnl__eyebrow">Resumo</span>
           <p>
             {{ summaryMessage(vm.summary, vm.summaryState) }}
           </p>

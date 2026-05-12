@@ -14,10 +14,21 @@ export interface PlayerBunkerSummaryDataDto {
   status?: string | null;
   seasonFirst?: boolean | null;
   statsAvailable?: boolean | null;
+  currentSeason?: PlayerBunkerCurrentSeasonDto | null;
   seasonPlayer?: PlayerBunkerSeasonPlayerDto | null;
 }
 
+export interface PlayerBunkerCurrentSeasonDto {
+  slug?: string | null;
+  scope?: {
+    startAt?: string | null;
+    endAt?: string | null;
+  } | null;
+}
+
 export interface PlayerBunkerSeasonPlayerDto {
+  name?: string | null;
+  steamid64?: string | null;
   summary?: PlayerBunkerSeasonPlayerSummaryDto | null;
   byMap?: PlayerBunkerSeasonPlayerMapDto[] | null;
   recentMaps?: PlayerBunkerSeasonPlayerRecentMapDto[] | null;
@@ -104,6 +115,7 @@ export interface PlayerBunkerSummaryDto extends PlayerBunkerSummaryDataDto {
   data?: {
     player?: PlayerIdentityDto | null;
     bunker?: PlayerBunkerSummaryDataDto | null;
+    currentSeason?: PlayerBunkerCurrentSeasonDto | null;
     seasonPlayer?: PlayerBunkerSeasonPlayerDto | null;
   } | null;
 }
