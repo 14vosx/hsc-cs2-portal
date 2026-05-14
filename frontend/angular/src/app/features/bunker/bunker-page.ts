@@ -59,6 +59,7 @@ export class BunkerPage {
 
   protected readonly logoutPending = signal(false);
   protected readonly logoutFailed = signal(false);
+  protected readonly activeSection = signal('bunker-summary');
 
   protected readonly vm$: Observable<BunkerVm> = this.reload$.pipe(
     switchMap((action) => this.loadVm(action)),
@@ -257,11 +258,46 @@ export class BunkerPage {
       return 'Período —';
     }
 
-    return `${this.textOrFallback(scope.startAt)} até ${this.textOrFallback(scope.endAt)}`;
+    return `${this.formatDateLabel(scope.startAt)} a ${this.formatDateLabel(scope.endAt)}`;
+  }
+
+  protected formatDateLabel(value?: string | null): string {
+    const date = this.parseDate(value);
+
+    if (!date) {
+      return this.textOrFallback(value);
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  }
+
+  protected formatDateTimeLabel(value?: string | null): string {
+    const date = this.parseDate(value);
+
+    if (!date) {
+      return this.textOrFallback(value);
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   }
 
   protected scrollToSection(id: string): void {
+    this.activeSection.set(id);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  protected navButtonClass(id: string): string {
+    return this.activeSection() === id ? 'is-active' : '';
   }
 
   protected seasonTitle(summary: PlayerBunkerSummaryDataDto): string {
@@ -269,14 +305,38 @@ export class BunkerPage {
   }
 
   protected seasonStatusLabel(summary: PlayerBunkerSummaryDataDto): string {
+    const status = `${summary.currentSeason?.status || summary.status || ''}`.toLowerCase();
+
+    if (['active', 'ativo'].includes(status)) {
+      return 'active';
+    }
+
+    if (['inactive', 'inativo', 'closed', 'archived'].includes(status)) {
+      return status;
+    }
+
     return summary.currentSeason?.status || summary.status || 'preparando';
   }
 
+  protected seasonStatusToneClass(summary: PlayerBunkerSummaryDataDto): string {
+    const status = `${summary.currentSeason?.status || summary.status || ''}`.toLowerCase();
+
+    if (['active', 'ativo'].includes(status)) {
+      return 'bpill is-win';
+    }
+
+    if (['inactive', 'inativo', 'closed', 'archived'].includes(status)) {
+      return 'bpill is-loss';
+    }
+
+    return 'bpill';
+  }
+
   protected dataUpdatedLabel(summary: PlayerBunkerSummaryDataDto): string {
-    return (
+    return this.formatDateTimeLabel(
       summary.seasonPlayer?.generatedAt ||
       summary.competitiveProfile?.generatedAt ||
-      'Atualização —'
+      null,
     );
   }
 
@@ -292,12 +352,67 @@ export class BunkerPage {
     return item.result || item.outcome || 'Resultado —';
   }
 
+  protected resultToneClass(item: { isWin?: boolean | null; result?: string | null; outcome?: string | null }): string {
+    const result = `${item.result ?? item.outcome ?? ''}`.toLowerCase();
+
+    if (item.isWin === true || result.includes('vit') || result.includes('win')) {
+      return 'is-win';
+    }
+
+    if (item.isWin === false || result.includes('der') || result.includes('loss')) {
+      return 'is-loss';
+    }
+
+    return '';
+  }
+
+  protected timelineMatchItems(
+    timeline: PlayerBunkerSeasonPlayerTimelineItemDto[],
+  ): PlayerBunkerSeasonPlayerTimelineItemDto[] {
+    const matches = timeline.filter((item) => {
+      const event = `${item.event ?? item.type ?? ''}`.toLowerCase();
+      return Boolean(item.matchId ?? item.matchid) || event.includes('match') || event.includes('partida');
+    });
+
+    return matches.length > 0 ? matches : timeline;
+  }
+
+  protected timelineDateLabel(item: PlayerBunkerSeasonPlayerTimelineItemDto): string {
+    return this.formatDateLabel(item.at ?? item.timestamp ?? item.startedAt ?? item.startTime ?? item.start_time);
+  }
+
+  protected timelineResultToneClass(item: PlayerBunkerSeasonPlayerTimelineItemDto): string {
+    return this.resultToneClass(item);
+  }
+
+  protected timelineResultLabel(item: PlayerBunkerSeasonPlayerTimelineItemDto): string {
+    return item.result || item.outcome || 'Resultado —';
+  }
+
   protected recentMapScoreLabel(item: PlayerBunkerSeasonPlayerRecentMapDto): string {
     if (this.isFiniteNumber(item.team1_score) && this.isFiniteNumber(item.team2_score)) {
       return `${item.team1_score} x ${item.team2_score}`;
     }
 
     return item.score || 'Score —';
+  }
+
+  protected rateToneClass(value?: number | null): string {
+    if (!this.isFiniteNumber(value)) {
+      return '';
+    }
+
+    const rate = value > 1 ? value / 100 : value;
+
+    if (rate >= 0.55) {
+      return 'is-good';
+    }
+
+    if (rate < 0.5) {
+      return 'is-bad';
+    }
+
+    return '';
   }
 
   protected recentMapKd(item: PlayerBunkerSeasonPlayerRecentMapDto): number | null {
@@ -362,6 +477,20 @@ export class BunkerPage {
     return parts.length > 0 ? parts.join(' · ') : 'Multi-kills —';
   }
 
+  protected multiKillItems(item: {
+    enemy2ks?: number | null;
+    enemy3ks?: number | null;
+    enemy4ks?: number | null;
+    enemy5ks?: number | null;
+  }): { label: string; value: string }[] {
+    return [
+      { label: '2K', value: this.formatInteger(item.enemy2ks) },
+      { label: '3K', value: this.formatInteger(item.enemy3ks) },
+      { label: '4K', value: this.formatInteger(item.enemy4ks) },
+      { label: '5K', value: this.formatInteger(item.enemy5ks) },
+    ];
+  }
+
   protected clutchLabel(item: {
     v1Count?: number | null;
     v1Wins?: number | null;
@@ -390,6 +519,28 @@ export class BunkerPage {
     ].filter(Boolean);
 
     return parts.length > 0 ? parts.join(' · ') : 'Clutches —';
+  }
+
+  protected clutchItems(item: {
+    v1Count?: number | null;
+    v1Wins?: number | null;
+    v1WinRate?: number | null;
+    v2Count?: number | null;
+    v2Wins?: number | null;
+    v2WinRate?: number | null;
+  }): { label: string; value: string; rate: string }[] {
+    return [
+      {
+        label: '1v1',
+        value: `${this.formatInteger(item.v1Wins)}/${this.formatInteger(item.v1Count)}`,
+        rate: this.formatRatePercent(item.v1WinRate),
+      },
+      {
+        label: '1v2',
+        value: `${this.formatInteger(item.v2Wins)}/${this.formatInteger(item.v2Count)}`,
+        rate: this.formatRatePercent(item.v2WinRate),
+      },
+    ];
   }
 
   protected mostPlayedMap(byMap: PlayerBunkerSeasonPlayerMapDto[]): PlayerBunkerSeasonPlayerMapDto | null {
@@ -421,7 +572,7 @@ export class BunkerPage {
   }
 
   protected timelineSparklinePoints(timeline: PlayerBunkerSeasonPlayerTimelineItemDto[]): string {
-    const values = timeline
+    const values = this.timelineMatchItems(timeline)
       .map((item) => item.impactRating ?? item.adr ?? item.kdRatio)
       .filter((value): value is number => this.isFiniteNumber(value));
 
@@ -883,6 +1034,21 @@ export class BunkerPage {
     }
 
     return null;
+  }
+
+  private parseDate(value?: string | null): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+    if (dateOnly) {
+      return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
   private toOptionalBoolean(value: unknown): boolean | null {
