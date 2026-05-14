@@ -100,60 +100,32 @@
           <dl>
             <div>
               <dt>Status</dt>
-              <dd>{{ vm.summaryState === 'error' ? 'indisponível' : statusLabel(vm.summary.status) }}</dd>
+              <dd>{{ vm.summaryState === 'error' ? 'indisponível' : seasonStatusLabel(vm.summary) }}</dd>
             </div>
             <div>
-              <dt>Dados</dt>
-              <dd>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</dd>
+              <dt>Atualizado</dt>
+              <dd>{{ dataUpdatedLabel(vm.summary) }}</dd>
             </div>
           </dl>
         </section>
 
-        @if (hasCompetitiveLifetime(vm.summary)) {
-          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
-            <section class="bs bs--lifetime" aria-labelledby="bunker-lifetime-title">
-              <div class="bh">
-                <div>
-                  <span>
-                    <i class="bi bi--target" aria-hidden="true"></i>
-                    Lifetime geral, não Season
-                  </span>
-                  <h2 id="bunker-lifetime-title">Perfil competitivo lifetime</h2>
-                </div>
-                <p>Histórico competitivo geral vindo do profile estático do jogador.</p>
-              </div>
-
-              <div class="bsm" aria-label="Métricas lifetime do perfil competitivo">
-                <article>
-                  <span>Mapas</span>
-                  <strong>{{ formatInteger(lifetime.mapsPlayed) }}</strong>
-                </article>
-                <article>
-                  <span>Vitórias</span>
-                  <strong>{{ formatInteger(lifetime.wins) }}</strong>
-                </article>
-                <article>
-                  <span>Win rate</span>
-                  <strong>{{ formatPercent(lifetime.winRate) }}</strong>
-                </article>
-                <article>
-                  <span>K/D</span>
-                  <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
-                </article>
-                <article>
-                  <span>ADR</span>
-                  <strong>{{ formatDecimal(lifetime.adr, 1) }}</strong>
-                </article>
-                <article>
-                  <span>Impact</span>
-                  <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
-                </article>
-              </div>
-            </section>
+        <nav class="bnav" aria-label="Navegação do Bunker">
+          <button type="button" (click)="scrollToSection('bunker-summary')">Resumo</button>
+          @if (vm.summary.seasonPlayer?.byMap?.length) {
+            <button type="button" (click)="scrollToSection('bunker-maps')">Mapas</button>
           }
-        }
+          @if (vm.summary.seasonPlayer?.recentMaps?.length) {
+            <button type="button" (click)="scrollToSection('bunker-recent')">Últimos mapas</button>
+          }
+          @if (vm.summary.seasonPlayer?.timeline?.length) {
+            <button type="button" (click)="scrollToSection('bunker-timeline')">Timeline</button>
+          }
+          @if (hasCompetitiveLifetime(vm.summary)) {
+            <button type="button" (click)="scrollToSection('bunker-lifetime')">Lifetime</button>
+          }
+        </nav>
 
-        <section class="bs bs--overview" aria-labelledby="bunker-overview-title">
+        <section id="bunker-summary" class="bs bs--overview" aria-labelledby="bunker-overview-title">
           <div class="bh">
             <div>
               <span>
@@ -184,7 +156,7 @@
                   [style.--ring-value]="ringValue(playerSummary.winRate)"
                   aria-hidden="true"
                 >
-                  <strong>{{ formatPercent(playerSummary.winRate) }}</strong>
+                  <strong>{{ formatRatePercent(playerSummary.winRate) }}</strong>
                 </div>
                 <span>Win rate</span>
                 <p>Conversão em vitórias</p>
@@ -216,6 +188,14 @@
                 <strong>{{ formatInteger(playerSummary.wins) }}</strong>
               </article>
               <article>
+                <span>Derrotas</span>
+                <strong>{{ formatInteger(playerSummary.losses) }}</strong>
+              </article>
+              <article>
+                <span>Rounds</span>
+                <strong>{{ formatInteger(playerSummary.roundsPlayed) }}</strong>
+              </article>
+              <article>
                 <span>Kills</span>
                 <strong>{{ formatInteger(playerSummary.kills) }}</strong>
               </article>
@@ -226,6 +206,41 @@
               <article>
                 <span>Assists</span>
                 <strong>{{ formatInteger(playerSummary.assists) }}</strong>
+              </article>
+              <article>
+                <span>HS%</span>
+                <strong>{{ formatRatePercent(playerSummary.headshotPct) }}</strong>
+              </article>
+              <article>
+                <span>Accuracy</span>
+                <strong>{{ formatRatePercent(playerSummary.accuracy) }}</strong>
+              </article>
+              <article>
+                <span>Util/R</span>
+                <strong>{{ formatDecimal(playerSummary.utilityDmgPerRound, 1) }}</strong>
+              </article>
+              <article>
+                <span>Entry WR</span>
+                <strong>{{ formatRatePercent(playerSummary.entryWinRate) }}</strong>
+              </article>
+              <article>
+                <span>Score</span>
+                <strong>{{ formatDecimal(playerSummary.score, 1) }}</strong>
+              </article>
+            </div>
+
+            <div class="bhl" aria-label="Highlights simples da temporada">
+              <article>
+                <span>Clutches</span>
+                <strong>{{ clutchLabel(playerSummary) }}</strong>
+              </article>
+              <article>
+                <span>Multi-kills</span>
+                <strong>{{ multiKillLabel(playerSummary) }}</strong>
+              </article>
+              <article>
+                <span>Amostra</span>
+                <strong>{{ formatDecimal(playerSummary.sampleWeight, 1) }}</strong>
               </article>
             </div>
           } @else {
@@ -248,7 +263,7 @@
 
         @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.byMap; as byMap) {
           @if (byMap.length > 0) {
-            <section class="bs bs--maps" aria-labelledby="bm-title">
+            <section id="bunker-maps" class="bs bs--maps" aria-labelledby="bm-title">
               <div class="bh">
                 <div>
                   <span>
@@ -260,6 +275,37 @@
                 <p>Cada linha mostra volume, resultado e eficiência individual no mapa.</p>
               </div>
 
+              <div class="bhl" aria-label="Highlights simples por mapa">
+                @if (mostPlayedMap(byMap); as mapSummary) {
+                  <article>
+                    <span>Mais jogado</span>
+                    <strong>{{ mapSummary.mapName || '—' }}</strong>
+                    <p>{{ mapPlayedValue(mapSummary) }} mapas</p>
+                  </article>
+                }
+                @if (bestAdrMap(byMap); as mapSummary) {
+                  <article>
+                    <span>Melhor ADR</span>
+                    <strong>{{ mapSummary.mapName || '—' }}</strong>
+                    <p>{{ formatDecimal(mapSummary.adr, 1) }}</p>
+                  </article>
+                }
+                @if (bestWinRateMap(byMap); as mapSummary) {
+                  <article>
+                    <span>Melhor WR</span>
+                    <strong>{{ mapSummary.mapName || '—' }}</strong>
+                    <p>{{ formatRatePercent(mapSummary.winRate) }}</p>
+                  </article>
+                }
+                @if (attentionMap(byMap); as mapSummary) {
+                  <article>
+                    <span>Atenção</span>
+                    <strong>{{ mapSummary.mapName || '—' }}</strong>
+                    <p>{{ formatRatePercent(mapSummary.winRate) }} WR</p>
+                  </article>
+                }
+              </div>
+
               <div class="bm" aria-label="Métricas por mapa da temporada">
                 <div class="bm__row bm__row--head" aria-hidden="true">
                   <span>Mapa</span>
@@ -269,7 +315,8 @@
                   <span>WR</span>
                   <span>K/D</span>
                   <span>ADR</span>
-                  <span>Impact</span>
+                  <span>HS%</span>
+                  <span>Entry</span>
                 </div>
 
                 @for (mapSummary of byMap; track mapSummary.mapName ?? $index) {
@@ -278,10 +325,11 @@
                     <span data-label="Jogos">{{ mapPlayedValue(mapSummary) }}</span>
                     <span data-label="V">{{ formatInteger(mapSummary.wins) }}</span>
                     <span data-label="D">{{ formatInteger(mapSummary.losses) }}</span>
-                    <span data-label="WR">{{ formatPercent(mapSummary.winRate) }}</span>
+                    <span data-label="WR">{{ formatRatePercent(mapSummary.winRate) }}</span>
                     <span data-label="K/D">{{ formatDecimal(mapSummary.kdRatio, 2) }}</span>
                     <span data-label="ADR">{{ formatDecimal(mapSummary.adr, 1) }}</span>
-                    <span data-label="Impact">{{ formatDecimal(mapSummary.impactRating, 2) }}</span>
+                    <span data-label="HS%">{{ formatRatePercent(mapSummary.headshotPct) }}</span>
+                    <span data-label="Entry">{{ formatRatePercent(mapSummary.entryWinRate) }}</span>
                   </article>
                 }
               </div>
@@ -291,7 +339,7 @@
 
         @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.recentMaps; as recentMaps) {
           @if (recentMaps.length > 0) {
-            <section class="bs bs--recent" aria-labelledby="brc-title">
+            <section id="bunker-recent" class="bs bs--recent" aria-labelledby="brc-title">
               <div class="bh">
                 <div>
                   <span>
@@ -311,13 +359,19 @@
                         <span>{{ textOrFallback(recentMap.startedAt) }}</span>
                         <strong>{{ recentMap.mapName || '—' }}</strong>
                       </div>
-                      <p>Match {{ textOrFallback(recentMap.matchId) }}</p>
+                      <p>{{ recentMapResultLabel(recentMap) }} · {{ recentMapScoreLabel(recentMap) }}</p>
+                    </div>
+
+                    <div class="bmeta">
+                      <span>Match {{ textOrFallback(recentMap.matchId) }}</span>
+                      <span>Time {{ textOrFallback(recentMap.team) }}</span>
+                      <span>Vencedor {{ textOrFallback(recentMap.winner) }}</span>
                     </div>
 
                     <dl>
                       <div>
                         <dt>K/D</dt>
-                        <dd>{{ formatDecimal(recentMap.kdRatio, 2) }}</dd>
+                        <dd>{{ formatDecimal(recentMapKd(recentMap), 2) }}</dd>
                       </div>
                       <div>
                         <dt>K D A</dt>
@@ -329,21 +383,26 @@
                       </div>
                       <div>
                         <dt>ADR</dt>
-                        <dd>{{ formatDecimal(recentMap.adr, 1) }}</dd>
+                        <dd>{{ formatDecimal(recentMapAdr(recentMap), 1) }}</dd>
                       </div>
                       <div>
-                        <dt>Impact</dt>
-                        <dd>{{ formatDecimal(recentMap.impactRating, 2) }}</dd>
+                        <dt>HS%</dt>
+                        <dd>{{ formatRatePercent(recentMapHsPct(recentMap)) }}</dd>
                       </div>
                       <div>
-                        <dt>Resultado</dt>
-                        <dd>{{ textOrFallback(recentMap.result) }}</dd>
+                        <dt>Accuracy</dt>
+                        <dd>{{ formatRatePercent(recentMapAccuracy(recentMap)) }}</dd>
                       </div>
                       <div>
-                        <dt>Score</dt>
-                        <dd>{{ textOrFallback(recentMap.score) }}</dd>
+                        <dt>Util</dt>
+                        <dd>{{ formatInteger(recentMap.utility_damage) }}</dd>
                       </div>
                     </dl>
+
+                    <div class="bmeta">
+                      <span>{{ clutchLabel(recentMap) }}</span>
+                      <span>{{ multiKillLabel(recentMap) }}</span>
+                    </div>
                   </article>
                 }
               </div>
@@ -353,7 +412,7 @@
 
         @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.timeline; as timeline) {
           @if (timeline.length > 0) {
-            <section class="bs bs--timeline" aria-labelledby="bt-title">
+            <section id="bunker-timeline" class="bs bs--timeline" aria-labelledby="bt-title">
               <div class="bh">
                 <div>
                   <span>
@@ -363,6 +422,28 @@
                   <h2 id="bt-title">Timeline da temporada</h2>
                 </div>
                 <p>Sequência cronológica com o mapa, a partida e as métricas que contam o momento.</p>
+              </div>
+
+              <div class="bspark" aria-label="Sparkline da timeline">
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline [attr.points]="timelineSparklinePoints(timeline)"></polyline>
+                </svg>
+                <div class="bhl">
+                  @if (bestTimelineItem(timeline); as timelineItem) {
+                    <article>
+                      <span>Melhor ponto</span>
+                      <strong>{{ textOrFallback(timelineItem.mapName) }}</strong>
+                      <p>{{ formatDecimal(timelineItem.impactRating ?? timelineItem.adr ?? timelineItem.kdRatio, 2) }}</p>
+                    </article>
+                  }
+                  @if (worstTimelineItem(timeline); as timelineItem) {
+                    <article>
+                      <span>Pior ponto</span>
+                      <strong>{{ textOrFallback(timelineItem.mapName) }}</strong>
+                      <p>{{ formatDecimal(timelineItem.impactRating ?? timelineItem.adr ?? timelineItem.kdRatio, 2) }}</p>
+                    </article>
+                  }
+                </div>
               </div>
 
               <div class="bt" aria-label="Timeline da temporada">
@@ -403,6 +484,44 @@
                     </div>
                   </article>
                 }
+              </div>
+            </section>
+          }
+        }
+
+        @if (hasCompetitiveLifetime(vm.summary)) {
+          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
+            <section id="bunker-lifetime" class="bs bs--lifetime" aria-labelledby="bunker-lifetime-title">
+              <div class="bh">
+                <div>
+                  <span>
+                    <i class="bi bi--target" aria-hidden="true"></i>
+                    Lifetime geral, não Season
+                  </span>
+                  <h2 id="bunker-lifetime-title">Perfil competitivo lifetime</h2>
+                </div>
+                <p>Histórico competitivo geral vindo do profile estático do jogador.</p>
+              </div>
+
+              <div class="bsm" aria-label="Métricas lifetime do perfil competitivo">
+                <article><span>Mapas</span><strong>{{ formatInteger(lifetime.mapsPlayed) }}</strong></article>
+                <article><span>Vitórias</span><strong>{{ formatInteger(lifetime.wins) }}</strong></article>
+                <article><span>Derrotas</span><strong>{{ formatInteger(lifetime.losses) }}</strong></article>
+                <article><span>Win rate</span><strong>{{ formatRatePercent(lifetime.winRate) }}</strong></article>
+                <article><span>K/D</span><strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong></article>
+                <article><span>ADR</span><strong>{{ formatDecimal(lifetime.adr, 1) }}</strong></article>
+                <article><span>HS%</span><strong>{{ formatRatePercent(lifetime.headshotPct) }}</strong></article>
+                <article><span>Accuracy</span><strong>{{ formatRatePercent(lifetime.accuracy) }}</strong></article>
+                <article><span>Util/R</span><strong>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</strong></article>
+                <article><span>Entry WR</span><strong>{{ formatRatePercent(lifetime.entryWinRate) }}</strong></article>
+                <article><span>Score</span><strong>{{ formatDecimal(lifetime.score, 1) }}</strong></article>
+                <article><span>Impact</span><strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong></article>
+              </div>
+
+              <div class="bhl" aria-label="Highlights lifetime">
+                <article><span>Clutches</span><strong>{{ clutchLabel(lifetime) }}</strong></article>
+                <article><span>Multi-kills</span><strong>{{ multiKillLabel(lifetime) }}</strong></article>
+                <article><span>Amostra</span><strong>{{ formatDecimal(lifetime.sampleWeight, 1) }}</strong></article>
               </div>
             </section>
           }

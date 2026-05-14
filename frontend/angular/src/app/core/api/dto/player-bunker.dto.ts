@@ -45,10 +45,29 @@ export interface PlayerBunkerCompetitiveLifetimeDto {
   assists?: number | null;
   headshotPct?: number | null;
   accuracy?: number | null;
+  utilityDmgPerRound?: number | null;
+  killsPerRound?: number | null;
+  assistsPerRound?: number | null;
+  deathsPerRound?: number | null;
+  entryWinRate?: number | null;
+  v1Count?: number | null;
+  v1Wins?: number | null;
+  v1WinRate?: number | null;
+  v2Count?: number | null;
+  v2Wins?: number | null;
+  v2WinRate?: number | null;
+  enemy2ks?: number | null;
+  enemy3ks?: number | null;
+  enemy4ks?: number | null;
+  enemy5ks?: number | null;
+  sampleWeight?: number | null;
+  score?: number | null;
 }
 
 export interface PlayerBunkerCurrentSeasonDto {
   slug?: string | null;
+  name?: string | null;
+  status?: string | null;
   scope?: {
     startAt?: string | null;
     endAt?: string | null;
@@ -58,6 +77,7 @@ export interface PlayerBunkerCurrentSeasonDto {
 export interface PlayerBunkerSeasonPlayerDto {
   name?: string | null;
   steamid64?: string | null;
+  generatedAt?: string | null;
   summary?: PlayerBunkerSeasonPlayerSummaryDto | null;
   byMap?: PlayerBunkerSeasonPlayerMapDto[] | null;
   recentMaps?: PlayerBunkerSeasonPlayerRecentMapDto[] | null;
@@ -75,6 +95,27 @@ export interface PlayerBunkerSeasonPlayerSummaryDto {
   kills?: number | null;
   deaths?: number | null;
   assists?: number | null;
+  roundsPlayed?: number | null;
+  losses?: number | null;
+  headshotPct?: number | null;
+  accuracy?: number | null;
+  utilityDmgPerRound?: number | null;
+  killsPerRound?: number | null;
+  assistsPerRound?: number | null;
+  deathsPerRound?: number | null;
+  entryWinRate?: number | null;
+  v1Count?: number | null;
+  v1Wins?: number | null;
+  v1WinRate?: number | null;
+  v2Count?: number | null;
+  v2Wins?: number | null;
+  v2WinRate?: number | null;
+  enemy2ks?: number | null;
+  enemy3ks?: number | null;
+  enemy4ks?: number | null;
+  enemy5ks?: number | null;
+  sampleWeight?: number | null;
+  score?: number | null;
 }
 
 export interface PlayerBunkerSeasonPlayerMapDto {
@@ -89,6 +130,18 @@ export interface PlayerBunkerSeasonPlayerMapDto {
   kdRatio?: number | null;
   adr?: number | null;
   impactRating?: number | null;
+  roundsPlayed?: number | null;
+  kills?: number | null;
+  deaths?: number | null;
+  assists?: number | null;
+  headshotPct?: number | null;
+  accuracy?: number | null;
+  utilityDmgPerRound?: number | null;
+  entryWinRate?: number | null;
+  enemy2ks?: number | null;
+  enemy3ks?: number | null;
+  enemy4ks?: number | null;
+  enemy5ks?: number | null;
 }
 
 export interface PlayerBunkerSeasonPlayerRecentMapDto {
@@ -105,6 +158,27 @@ export interface PlayerBunkerSeasonPlayerRecentMapDto {
   result?: string | null;
   outcome?: string | null;
   score?: string | null;
+  team?: string | null;
+  winner?: string | null;
+  isWin?: boolean | null;
+  team1_score?: number | null;
+  team2_score?: number | null;
+  rounds?: number | null;
+  damage?: number | null;
+  utility_damage?: number | null;
+  head_shot_kills?: number | null;
+  entry_count?: number | null;
+  entry_wins?: number | null;
+  v1_count?: number | null;
+  v1_wins?: number | null;
+  v2_count?: number | null;
+  v2_wins?: number | null;
+  enemy2ks?: number | null;
+  enemy3ks?: number | null;
+  enemy4ks?: number | null;
+  enemy5ks?: number | null;
+  shots_fired_total?: number | null;
+  shots_on_target_total?: number | null;
   kills?: number | null;
   deaths?: number | null;
   assists?: number | null;

@@ -179,6 +179,20 @@ export class BunkerPage {
     }).format(value);
   }
 
+  protected formatRatePercent(value?: number | null, digits = 1): string {
+    if (!this.isFiniteNumber(value)) {
+      return '—';
+    }
+
+    const rate = value > 1 ? value / 100 : value;
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'percent',
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(rate);
+  }
+
   protected playedLabel(summary: PlayerBunkerSeasonPlayerSummaryDto): string {
     return this.isFiniteNumber(summary.mapsPlayed) ? 'Mapas jogados' : 'Partidas jogadas';
   }
@@ -233,7 +247,7 @@ export class BunkerPage {
   }
 
   protected seasonSlugLabel(summary: PlayerBunkerSummaryDataDto): string {
-    return summary.currentSeason?.slug ? `Season ${summary.currentSeason.slug}` : 'Season —';
+    return this.seasonTitle(summary);
   }
 
   protected seasonScopeLabel(summary: PlayerBunkerSummaryDataDto): string {
@@ -244,6 +258,192 @@ export class BunkerPage {
     }
 
     return `${this.textOrFallback(scope.startAt)} até ${this.textOrFallback(scope.endAt)}`;
+  }
+
+  protected scrollToSection(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  protected seasonTitle(summary: PlayerBunkerSummaryDataDto): string {
+    return summary.currentSeason?.name || (summary.currentSeason?.slug ? `Season ${summary.currentSeason.slug}` : 'Season —');
+  }
+
+  protected seasonStatusLabel(summary: PlayerBunkerSummaryDataDto): string {
+    return summary.currentSeason?.status || summary.status || 'preparando';
+  }
+
+  protected dataUpdatedLabel(summary: PlayerBunkerSummaryDataDto): string {
+    return (
+      summary.seasonPlayer?.generatedAt ||
+      summary.competitiveProfile?.generatedAt ||
+      'Atualização —'
+    );
+  }
+
+  protected recentMapResultLabel(item: PlayerBunkerSeasonPlayerRecentMapDto): string {
+    if (item.isWin === true) {
+      return 'Vitória';
+    }
+
+    if (item.isWin === false) {
+      return 'Derrota';
+    }
+
+    return item.result || item.outcome || 'Resultado —';
+  }
+
+  protected recentMapScoreLabel(item: PlayerBunkerSeasonPlayerRecentMapDto): string {
+    if (this.isFiniteNumber(item.team1_score) && this.isFiniteNumber(item.team2_score)) {
+      return `${item.team1_score} x ${item.team2_score}`;
+    }
+
+    return item.score || 'Score —';
+  }
+
+  protected recentMapKd(item: PlayerBunkerSeasonPlayerRecentMapDto): number | null {
+    if (this.isFiniteNumber(item.kdRatio)) {
+      return item.kdRatio;
+    }
+
+    if (!this.isFiniteNumber(item.kills) || !this.isFiniteNumber(item.deaths)) {
+      return null;
+    }
+
+    return item.deaths > 0 ? item.kills / item.deaths : item.kills;
+  }
+
+  protected recentMapAdr(item: PlayerBunkerSeasonPlayerRecentMapDto): number | null {
+    if (this.isFiniteNumber(item.adr)) {
+      return item.adr;
+    }
+
+    if (!this.isFiniteNumber(item.damage) || !this.isFiniteNumber(item.rounds) || item.rounds <= 0) {
+      return null;
+    }
+
+    return item.damage / item.rounds;
+  }
+
+  protected recentMapHsPct(item: PlayerBunkerSeasonPlayerRecentMapDto): number | null {
+    if (!this.isFiniteNumber(item.head_shot_kills) || !this.isFiniteNumber(item.kills) || item.kills <= 0) {
+      return null;
+    }
+
+    return item.head_shot_kills / item.kills;
+  }
+
+  protected recentMapAccuracy(item: PlayerBunkerSeasonPlayerRecentMapDto): number | null {
+    if (
+      !this.isFiniteNumber(item.shots_on_target_total) ||
+      !this.isFiniteNumber(item.shots_fired_total) ||
+      item.shots_fired_total <= 0
+    ) {
+      return null;
+    }
+
+    return item.shots_on_target_total / item.shots_fired_total;
+  }
+
+  protected multiKillLabel(item: {
+    enemy2ks?: number | null;
+    enemy3ks?: number | null;
+    enemy4ks?: number | null;
+    enemy5ks?: number | null;
+  }): string {
+    const parts = [
+      ['2K', item.enemy2ks],
+      ['3K', item.enemy3ks],
+      ['4K', item.enemy4ks],
+      ['5K', item.enemy5ks],
+    ]
+      .filter(([, value]) => this.isFiniteNumber(value))
+      .map(([label, value]) => `${label} ${this.formatInteger(value as number)}`);
+
+    return parts.length > 0 ? parts.join(' · ') : 'Multi-kills —';
+  }
+
+  protected clutchLabel(item: {
+    v1Count?: number | null;
+    v1Wins?: number | null;
+    v1WinRate?: number | null;
+    v2Count?: number | null;
+    v2Wins?: number | null;
+    v2WinRate?: number | null;
+    v1_count?: number | null;
+    v1_wins?: number | null;
+    v2_count?: number | null;
+    v2_wins?: number | null;
+  }): string {
+    const v1Count = item.v1Count ?? item.v1_count;
+    const v1Wins = item.v1Wins ?? item.v1_wins;
+    const v2Count = item.v2Count ?? item.v2_count;
+    const v2Wins = item.v2Wins ?? item.v2_wins;
+    const v1Rate = this.isFiniteNumber(item.v1WinRate) ? ` ${this.formatRatePercent(item.v1WinRate)}` : '';
+    const v2Rate = this.isFiniteNumber(item.v2WinRate) ? ` ${this.formatRatePercent(item.v2WinRate)}` : '';
+    const parts = [
+      this.isFiniteNumber(v1Count) || this.isFiniteNumber(v1Wins)
+        ? `1v1 ${this.formatInteger(v1Wins)}/${this.formatInteger(v1Count)}${v1Rate}`
+        : null,
+      this.isFiniteNumber(v2Count) || this.isFiniteNumber(v2Wins)
+        ? `1v2 ${this.formatInteger(v2Wins)}/${this.formatInteger(v2Count)}${v2Rate}`
+        : null,
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(' · ') : 'Clutches —';
+  }
+
+  protected mostPlayedMap(byMap: PlayerBunkerSeasonPlayerMapDto[]): PlayerBunkerSeasonPlayerMapDto | null {
+    return this.bestMapBy(byMap, (item) => item.mapsPlayed ?? item.matchesPlayed);
+  }
+
+  protected bestAdrMap(byMap: PlayerBunkerSeasonPlayerMapDto[]): PlayerBunkerSeasonPlayerMapDto | null {
+    return this.bestMapBy(byMap, (item) => item.adr);
+  }
+
+  protected bestWinRateMap(byMap: PlayerBunkerSeasonPlayerMapDto[]): PlayerBunkerSeasonPlayerMapDto | null {
+    return this.bestMapBy(byMap, (item) => item.winRate);
+  }
+
+  protected attentionMap(byMap: PlayerBunkerSeasonPlayerMapDto[]): PlayerBunkerSeasonPlayerMapDto | null {
+    return this.bestMapBy(byMap, (item) => (this.isFiniteNumber(item.winRate) ? 1 - item.winRate : null));
+  }
+
+  protected bestTimelineItem(
+    timeline: PlayerBunkerSeasonPlayerTimelineItemDto[],
+  ): PlayerBunkerSeasonPlayerTimelineItemDto | null {
+    return this.bestTimelineBy(timeline, 1);
+  }
+
+  protected worstTimelineItem(
+    timeline: PlayerBunkerSeasonPlayerTimelineItemDto[],
+  ): PlayerBunkerSeasonPlayerTimelineItemDto | null {
+    return this.bestTimelineBy(timeline, -1);
+  }
+
+  protected timelineSparklinePoints(timeline: PlayerBunkerSeasonPlayerTimelineItemDto[]): string {
+    const values = timeline
+      .map((item) => item.impactRating ?? item.adr ?? item.kdRatio)
+      .filter((value): value is number => this.isFiniteNumber(value));
+
+    if (values.length === 0) {
+      return '';
+    }
+
+    if (values.length === 1) {
+      return '0,20 100,20';
+    }
+
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const spread = max - min || 1;
+
+    return values
+      .map((value, index) => {
+        const x = (index / (values.length - 1)) * 100;
+        const y = 36 - ((value - min) / spread) * 32;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
   }
 
   protected ringValue(value?: number | null, max = 1): string {
@@ -360,6 +560,23 @@ export class BunkerPage {
       assists: this.toOptionalNumber(lifetime['assists']),
       headshotPct: this.toOptionalNumber(lifetime['headshotPct']),
       accuracy: this.toOptionalNumber(lifetime['accuracy']),
+      utilityDmgPerRound: this.toOptionalNumber(lifetime['utilityDmgPerRound']),
+      killsPerRound: this.toOptionalNumber(lifetime['killsPerRound']),
+      assistsPerRound: this.toOptionalNumber(lifetime['assistsPerRound']),
+      deathsPerRound: this.toOptionalNumber(lifetime['deathsPerRound']),
+      entryWinRate: this.toOptionalNumber(lifetime['entryWinRate']),
+      v1Count: this.toOptionalNumber(lifetime['v1Count']),
+      v1Wins: this.toOptionalNumber(lifetime['v1Wins']),
+      v1WinRate: this.toOptionalNumber(lifetime['v1WinRate']),
+      v2Count: this.toOptionalNumber(lifetime['v2Count']),
+      v2Wins: this.toOptionalNumber(lifetime['v2Wins']),
+      v2WinRate: this.toOptionalNumber(lifetime['v2WinRate']),
+      enemy2ks: this.toOptionalNumber(lifetime['enemy2ks']),
+      enemy3ks: this.toOptionalNumber(lifetime['enemy3ks']),
+      enemy4ks: this.toOptionalNumber(lifetime['enemy4ks']),
+      enemy5ks: this.toOptionalNumber(lifetime['enemy5ks']),
+      sampleWeight: this.toOptionalNumber(lifetime['sampleWeight']),
+      score: this.toOptionalNumber(lifetime['score']),
     };
 
     return Object.values(normalized).some((value) => this.isFiniteNumber(value)) ? normalized : null;
@@ -376,6 +593,8 @@ export class BunkerPage {
 
     return {
       slug: this.toOptionalString(currentSeason['slug']),
+      name: this.toOptionalString(currentSeason['name']),
+      status: this.toOptionalString(currentSeason['status']),
       scope: {
         startAt: this.toOptionalString(scope?.['startAt']),
         endAt: this.toOptionalString(scope?.['endAt']),
@@ -390,18 +609,20 @@ export class BunkerPage {
 
     const name = this.toOptionalString(seasonPlayer['name']);
     const steamid64 = this.toOptionalString(seasonPlayer['steamid64'] ?? seasonPlayer['steamId64']);
+    const generatedAt = this.toOptionalString(seasonPlayer['generatedAt']);
     const summary = this.normalizeSeasonPlayerSummary(seasonPlayer['summary']);
     const byMap = this.normalizeSeasonPlayerByMap(seasonPlayer['byMap']);
     const recentMaps = this.normalizeSeasonPlayerRecentMaps(seasonPlayer['recentMaps']);
     const timeline = this.normalizeSeasonPlayerTimeline(seasonPlayer['timeline']);
 
-    if (!name && !steamid64 && !summary && byMap.length === 0 && recentMaps.length === 0 && timeline.length === 0) {
+    if (!name && !steamid64 && !generatedAt && !summary && byMap.length === 0 && recentMaps.length === 0 && timeline.length === 0) {
       return null;
     }
 
     return {
       name,
       steamid64,
+      generatedAt,
       summary,
       byMap,
       recentMaps,
@@ -425,6 +646,27 @@ export class BunkerPage {
       kills: this.toOptionalNumber(summary['kills']),
       deaths: this.toOptionalNumber(summary['deaths']),
       assists: this.toOptionalNumber(summary['assists']),
+      roundsPlayed: this.toOptionalNumber(summary['roundsPlayed']),
+      losses: this.toOptionalNumber(summary['losses']),
+      headshotPct: this.toOptionalNumber(summary['headshotPct']),
+      accuracy: this.toOptionalNumber(summary['accuracy']),
+      utilityDmgPerRound: this.toOptionalNumber(summary['utilityDmgPerRound']),
+      killsPerRound: this.toOptionalNumber(summary['killsPerRound']),
+      assistsPerRound: this.toOptionalNumber(summary['assistsPerRound']),
+      deathsPerRound: this.toOptionalNumber(summary['deathsPerRound']),
+      entryWinRate: this.toOptionalNumber(summary['entryWinRate']),
+      v1Count: this.toOptionalNumber(summary['v1Count']),
+      v1Wins: this.toOptionalNumber(summary['v1Wins']),
+      v1WinRate: this.toOptionalNumber(summary['v1WinRate']),
+      v2Count: this.toOptionalNumber(summary['v2Count']),
+      v2Wins: this.toOptionalNumber(summary['v2Wins']),
+      v2WinRate: this.toOptionalNumber(summary['v2WinRate']),
+      enemy2ks: this.toOptionalNumber(summary['enemy2ks']),
+      enemy3ks: this.toOptionalNumber(summary['enemy3ks']),
+      enemy4ks: this.toOptionalNumber(summary['enemy4ks']),
+      enemy5ks: this.toOptionalNumber(summary['enemy5ks']),
+      sampleWeight: this.toOptionalNumber(summary['sampleWeight']),
+      score: this.toOptionalNumber(summary['score']),
     };
   }
 
@@ -454,6 +696,18 @@ export class BunkerPage {
       kdRatio: this.toOptionalNumber(item['kdRatio']),
       adr: this.toOptionalNumber(item['adr']),
       impactRating: this.toOptionalNumber(item['impactRating']),
+      roundsPlayed: this.toOptionalNumber(item['roundsPlayed']),
+      kills: this.toOptionalNumber(item['kills']),
+      deaths: this.toOptionalNumber(item['deaths']),
+      assists: this.toOptionalNumber(item['assists']),
+      headshotPct: this.toOptionalNumber(item['headshotPct']),
+      accuracy: this.toOptionalNumber(item['accuracy']),
+      utilityDmgPerRound: this.toOptionalNumber(item['utilityDmgPerRound']),
+      entryWinRate: this.toOptionalNumber(item['entryWinRate']),
+      enemy2ks: this.toOptionalNumber(item['enemy2ks']),
+      enemy3ks: this.toOptionalNumber(item['enemy3ks']),
+      enemy4ks: this.toOptionalNumber(item['enemy4ks']),
+      enemy5ks: this.toOptionalNumber(item['enemy5ks']),
     };
 
     if (!mapSummary.mapName && !this.hasMapStats(mapSummary)) {
@@ -487,7 +741,29 @@ export class BunkerPage {
       matchId: this.toOptionalString(item['matchId'] ?? item['matchid']),
       mapNumber: this.toOptionalNumber(item['mapNumber'] ?? item['mapnumber']),
       result: this.toOptionalString(item['result'] ?? item['outcome']),
+      outcome: this.toOptionalString(item['outcome']),
       score: this.toOptionalString(item['score']),
+      team: this.toOptionalString(item['team']),
+      winner: this.toOptionalString(item['winner']),
+      isWin: this.toOptionalBoolean(item['isWin']),
+      team1_score: this.toOptionalNumber(item['team1_score']),
+      team2_score: this.toOptionalNumber(item['team2_score']),
+      rounds: this.toOptionalNumber(item['rounds']),
+      damage: this.toOptionalNumber(item['damage']),
+      utility_damage: this.toOptionalNumber(item['utility_damage']),
+      head_shot_kills: this.toOptionalNumber(item['head_shot_kills']),
+      entry_count: this.toOptionalNumber(item['entry_count']),
+      entry_wins: this.toOptionalNumber(item['entry_wins']),
+      v1_count: this.toOptionalNumber(item['v1_count']),
+      v1_wins: this.toOptionalNumber(item['v1_wins']),
+      v2_count: this.toOptionalNumber(item['v2_count']),
+      v2_wins: this.toOptionalNumber(item['v2_wins']),
+      enemy2ks: this.toOptionalNumber(item['enemy2ks']),
+      enemy3ks: this.toOptionalNumber(item['enemy3ks']),
+      enemy4ks: this.toOptionalNumber(item['enemy4ks']),
+      enemy5ks: this.toOptionalNumber(item['enemy5ks']),
+      shots_fired_total: this.toOptionalNumber(item['shots_fired_total']),
+      shots_on_target_total: this.toOptionalNumber(item['shots_on_target_total']),
       kills: this.toOptionalNumber(item['kills']),
       deaths: this.toOptionalNumber(item['deaths']),
       assists: this.toOptionalNumber(item['assists']),
@@ -609,6 +885,63 @@ export class BunkerPage {
     return null;
   }
 
+  private toOptionalBoolean(value: unknown): boolean | null {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+
+      if (['true', '1', 'win', 'won', 'vitória', 'vitoria'].includes(normalized)) {
+        return true;
+      }
+
+      if (['false', '0', 'loss', 'lost', 'derrota'].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return null;
+  }
+
+  private bestMapBy(
+    byMap: PlayerBunkerSeasonPlayerMapDto[],
+    valueFor: (item: PlayerBunkerSeasonPlayerMapDto) => number | null | undefined,
+  ): PlayerBunkerSeasonPlayerMapDto | null {
+    return byMap.reduce<PlayerBunkerSeasonPlayerMapDto | null>((best, item) => {
+      const value = valueFor(item);
+
+      if (!this.isFiniteNumber(value)) {
+        return best;
+      }
+
+      const bestValue = best ? valueFor(best) : null;
+      return !this.isFiniteNumber(bestValue) || value > bestValue ? item : best;
+    }, null);
+  }
+
+  private bestTimelineBy(
+    timeline: PlayerBunkerSeasonPlayerTimelineItemDto[],
+    direction: 1 | -1,
+  ): PlayerBunkerSeasonPlayerTimelineItemDto | null {
+    return timeline.reduce<PlayerBunkerSeasonPlayerTimelineItemDto | null>((best, item) => {
+      const value = item.impactRating ?? item.adr ?? item.kdRatio;
+
+      if (!this.isFiniteNumber(value)) {
+        return best;
+      }
+
+      const bestValue = best ? best.impactRating ?? best.adr ?? best.kdRatio : null;
+
+      if (!this.isFiniteNumber(bestValue)) {
+        return item;
+      }
+
+      return direction === 1 ? (value > bestValue ? item : best) : value < bestValue ? item : best;
+    }, null);
+  }
+
   private hasMapStats(item: PlayerBunkerSeasonPlayerMapDto): boolean {
     return [
       item.mapsPlayed,
@@ -619,6 +952,18 @@ export class BunkerPage {
       item.kdRatio,
       item.adr,
       item.impactRating,
+      item.roundsPlayed,
+      item.kills,
+      item.deaths,
+      item.assists,
+      item.headshotPct,
+      item.accuracy,
+      item.utilityDmgPerRound,
+      item.entryWinRate,
+      item.enemy2ks,
+      item.enemy3ks,
+      item.enemy4ks,
+      item.enemy5ks,
     ].some((value) => this.isFiniteNumber(value));
   }
 
@@ -628,7 +973,10 @@ export class BunkerPage {
       item.startedAt,
       item.matchId,
       item.result,
+      item.outcome,
       item.score,
+      item.team,
+      item.winner,
     ].some((value) => Boolean(value));
   }
 
@@ -641,6 +989,24 @@ export class BunkerPage {
       item.kdRatio,
       item.adr,
       item.impactRating,
+      item.team1_score,
+      item.team2_score,
+      item.rounds,
+      item.damage,
+      item.utility_damage,
+      item.head_shot_kills,
+      item.entry_count,
+      item.entry_wins,
+      item.v1_count,
+      item.v1_wins,
+      item.v2_count,
+      item.v2_wins,
+      item.enemy2ks,
+      item.enemy3ks,
+      item.enemy4ks,
+      item.enemy5ks,
+      item.shots_fired_total,
+      item.shots_on_target_total,
     ].some((value) => this.isFiniteNumber(value));
   }
 
