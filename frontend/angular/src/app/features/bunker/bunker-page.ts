@@ -28,6 +28,8 @@ import { EmptyState } from '../../shared/components/empty-state/empty-state';
 interface BunkerPlayer {
   displayName: string;
   steamid64: string;
+  avatarMedium?: string | null;
+  steamProfileUrl?: string | null;
 }
 
 interface BunkerAuthenticatedVm {
@@ -190,7 +192,32 @@ export class BunkerPage {
   }
 
   protected playerName(vm: BunkerAuthenticatedVm): string {
-    return vm.summary.seasonPlayer?.name?.trim() || vm.player.displayName || 'Jogador HSC';
+    return (
+      vm.summary.seasonPlayer?.name?.trim() ||
+      vm.summary.competitiveProfile?.name?.trim() ||
+      vm.player.displayName ||
+      'Jogador HSC'
+    );
+  }
+
+  protected playerSteamId(vm: BunkerAuthenticatedVm): string {
+    return (
+      vm.summary.seasonPlayer?.steamid64?.trim() ||
+      vm.summary.competitiveProfile?.steamid64?.trim() ||
+      vm.player.steamid64
+    );
+  }
+
+  protected playerAvatarUrl(vm: BunkerAuthenticatedVm): string | null {
+    return vm.summary.competitiveProfile?.avatarMedium || vm.player.avatarMedium || null;
+  }
+
+  protected playerSteamProfileUrl(vm: BunkerAuthenticatedVm): string | null {
+    return vm.summary.competitiveProfile?.steamProfileUrl || vm.player.steamProfileUrl || null;
+  }
+
+  protected hasCompetitiveLifetime(summary: PlayerBunkerSummaryDataDto): boolean {
+    return Boolean(summary.competitiveProfile?.lifetime);
   }
 
   protected playerInitials(vm: BunkerAuthenticatedVm): string {
@@ -260,6 +287,8 @@ export class BunkerPage {
 
   private normalizeSummary(payload: PlayerBunkerSummaryDto): PlayerBunkerSummaryDataDto {
     const summary = payload.data?.bunker ?? payload;
+    const responsePlayer = payload.data?.player;
+    const competitiveProfile = payload.data?.competitiveProfile ?? summary.competitiveProfile;
     const currentSeason = payload.data?.currentSeason ?? summary.currentSeason;
     const seasonPlayer = payload.data?.seasonPlayer ?? summary.seasonPlayer;
 
@@ -269,7 +298,71 @@ export class BunkerPage {
       statsAvailable: summary.statsAvailable ?? null,
       currentSeason: this.normalizeCurrentSeason(currentSeason),
       seasonPlayer: this.normalizeSeasonPlayer(seasonPlayer),
+      competitiveProfile: this.normalizeCompetitiveProfile(competitiveProfile, responsePlayer),
     };
+  }
+
+  private normalizeCompetitiveProfile(
+    competitiveProfile: unknown,
+    responsePlayer?: PlayerIdentityDto | null,
+  ): PlayerBunkerSummaryDataDto['competitiveProfile'] {
+    if (!this.isRecord(competitiveProfile) && !this.isRecord(responsePlayer)) {
+      return null;
+    }
+
+    const profile = this.isRecord(competitiveProfile) ? competitiveProfile : {};
+    const player = this.isRecord(responsePlayer) ? responsePlayer : {};
+    const lifetime = this.normalizeCompetitiveLifetime(profile['lifetime']);
+    const normalized = {
+      generatedAt: this.toOptionalString(profile['generatedAt']),
+      steamid64: this.toOptionalString(
+        profile['steamid64'] ?? profile['steamId64'] ?? player['steamid64'] ?? player['steamId64'],
+      ),
+      name: this.toOptionalString(profile['name'] ?? player['displayName']),
+      avatarMedium: this.toOptionalString(profile['avatarMedium'] ?? player['avatarMedium']),
+      steamProfileUrl: this.toOptionalString(profile['steamProfileUrl'] ?? player['steamProfileUrl']),
+      lifetime,
+    };
+
+    if (
+      !normalized.generatedAt &&
+      !normalized.steamid64 &&
+      !normalized.name &&
+      !normalized.avatarMedium &&
+      !normalized.steamProfileUrl &&
+      !normalized.lifetime
+    ) {
+      return null;
+    }
+
+    return normalized;
+  }
+
+  private normalizeCompetitiveLifetime(lifetime: unknown): NonNullable<
+    PlayerBunkerSummaryDataDto['competitiveProfile']
+  >['lifetime'] {
+    if (!this.isRecord(lifetime)) {
+      return null;
+    }
+
+    const normalized = {
+      matchesPlayed: this.toOptionalNumber(lifetime['matchesPlayed']),
+      mapsPlayed: this.toOptionalNumber(lifetime['mapsPlayed']),
+      roundsPlayed: this.toOptionalNumber(lifetime['roundsPlayed']),
+      wins: this.toOptionalNumber(lifetime['wins']),
+      losses: this.toOptionalNumber(lifetime['losses']),
+      winRate: this.toOptionalNumber(lifetime['winRate']),
+      kdRatio: this.toOptionalNumber(lifetime['kdRatio']),
+      adr: this.toOptionalNumber(lifetime['adr']),
+      impactRating: this.toOptionalNumber(lifetime['impactRating']),
+      kills: this.toOptionalNumber(lifetime['kills']),
+      deaths: this.toOptionalNumber(lifetime['deaths']),
+      assists: this.toOptionalNumber(lifetime['assists']),
+      headshotPct: this.toOptionalNumber(lifetime['headshotPct']),
+      accuracy: this.toOptionalNumber(lifetime['accuracy']),
+    };
+
+    return Object.values(normalized).some((value) => this.isFiniteNumber(value)) ? normalized : null;
   }
 
   private normalizeCurrentSeason(
@@ -474,6 +567,8 @@ export class BunkerPage {
     return {
       displayName: identity.displayName?.trim() || 'Jogador HSC',
       steamid64,
+      avatarMedium: identity.avatarMedium?.trim() || null,
+      steamProfileUrl: identity.steamProfileUrl?.trim() || null,
     };
   }
 

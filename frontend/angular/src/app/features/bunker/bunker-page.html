@@ -34,18 +34,25 @@
       @case ('authenticated') {
         <header class="bp">
           <div class="bp__identity">
-            <div
-              class="bp__avatar"
-              aria-label="Avatar local HSC, não é avatar Steam"
-            >
-              {{ playerInitials(vm) }}
-            </div>
+            @if (playerAvatarUrl(vm); as avatarUrl) {
+              <div class="bp__avatar">
+                <img [src]="avatarUrl" [alt]="'Avatar Steam de ' + playerName(vm)" />
+              </div>
+            } @else {
+              <div class="bp__avatar" aria-label="Monograma do jogador">
+                {{ playerInitials(vm) }}
+              </div>
+            }
 
             <div>
               <span>Bunker HSC</span>
               <h1>{{ playerName(vm) }}</h1>
-              <p>SteamID {{ vm.summary.seasonPlayer?.steamid64 || vm.player.steamid64 }}</p>
-              <small>Monograma visual HSC. Avatar Steam real ainda não faz parte do contrato.</small>
+              <p>SteamID {{ playerSteamId(vm) }}</p>
+              @if (playerSteamProfileUrl(vm); as steamProfileUrl) {
+                <a class="bp__link" [href]="steamProfileUrl" target="_blank" rel="noopener noreferrer">
+                  Ver perfil Steam
+                </a>
+              }
             </div>
           </div>
 
@@ -101,6 +108,50 @@
             </div>
           </dl>
         </section>
+
+        @if (hasCompetitiveLifetime(vm.summary)) {
+          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
+            <section class="bs bs--lifetime" aria-labelledby="bunker-lifetime-title">
+              <div class="bh">
+                <div>
+                  <span>
+                    <i class="bi bi--target" aria-hidden="true"></i>
+                    Lifetime geral, não Season
+                  </span>
+                  <h2 id="bunker-lifetime-title">Perfil competitivo lifetime</h2>
+                </div>
+                <p>Histórico competitivo geral vindo do profile estático do jogador.</p>
+              </div>
+
+              <div class="bsm" aria-label="Métricas lifetime do perfil competitivo">
+                <article>
+                  <span>Mapas</span>
+                  <strong>{{ formatInteger(lifetime.mapsPlayed) }}</strong>
+                </article>
+                <article>
+                  <span>Vitórias</span>
+                  <strong>{{ formatInteger(lifetime.wins) }}</strong>
+                </article>
+                <article>
+                  <span>Win rate</span>
+                  <strong>{{ formatPercent(lifetime.winRate) }}</strong>
+                </article>
+                <article>
+                  <span>K/D</span>
+                  <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
+                </article>
+                <article>
+                  <span>ADR</span>
+                  <strong>{{ formatDecimal(lifetime.adr, 1) }}</strong>
+                </article>
+                <article>
+                  <span>Impact</span>
+                  <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
+                </article>
+              </div>
+            </section>
+          }
+        }
 
         <section class="bs bs--overview" aria-labelledby="bunker-overview-title">
           <div class="bh">
