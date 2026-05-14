@@ -2,6 +2,8 @@ export interface PlayerIdentityDto {
   displayName?: string | null;
   steamid64?: string | null;
   steamId64?: string | null;
+  avatarMedium?: string | null;
+  steamProfileUrl?: string | null;
 }
 
 export interface PlayerMeDto extends PlayerIdentityDto {
@@ -16,6 +18,33 @@ export interface PlayerBunkerSummaryDataDto {
   statsAvailable?: boolean | null;
   currentSeason?: PlayerBunkerCurrentSeasonDto | null;
   seasonPlayer?: PlayerBunkerSeasonPlayerDto | null;
+  competitiveProfile?: PlayerBunkerCompetitiveProfileDto | null;
+}
+
+export interface PlayerBunkerCompetitiveProfileDto {
+  generatedAt?: string | null;
+  steamid64?: string | null;
+  name?: string | null;
+  avatarMedium?: string | null;
+  steamProfileUrl?: string | null;
+  lifetime?: PlayerBunkerCompetitiveLifetimeDto | null;
+}
+
+export interface PlayerBunkerCompetitiveLifetimeDto {
+  matchesPlayed?: number | null;
+  mapsPlayed?: number | null;
+  roundsPlayed?: number | null;
+  wins?: number | null;
+  losses?: number | null;
+  winRate?: number | null;
+  kdRatio?: number | null;
+  adr?: number | null;
+  impactRating?: number | null;
+  kills?: number | null;
+  deaths?: number | null;
+  assists?: number | null;
+  headshotPct?: number | null;
+  accuracy?: number | null;
 }
 
 export interface PlayerBunkerCurrentSeasonDto {
@@ -115,6 +144,7 @@ export interface PlayerBunkerSummaryDto extends PlayerBunkerSummaryDataDto {
   data?: {
     player?: PlayerIdentityDto | null;
     bunker?: PlayerBunkerSummaryDataDto | null;
+    competitiveProfile?: PlayerBunkerCompetitiveProfileDto | null;
     currentSeason?: PlayerBunkerCurrentSeasonDto | null;
     seasonPlayer?: PlayerBunkerSeasonPlayerDto | null;
   } | null;
