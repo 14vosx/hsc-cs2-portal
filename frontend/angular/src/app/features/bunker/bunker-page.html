@@ -185,7 +185,7 @@
               </article>
             </div>
 
-            <div class="grid grid-auto-rows-1" aria-label="Score da temporada">
+            <div class="grid-auto-rows-1" aria-label="Score da temporada">
               <article>
                 <span>Score</span>
                 <strong class="is-score">{{ formatDecimal(playerSummary.score, 1) }}</strong>
@@ -263,8 +263,8 @@
                           <td><em>{{ clutch.rate }}</em></td>
                         </tr>
                       }
-                    </tbody> 
-                  </table>  
+                    </tbody>
+                  </table>
                 </strong>
               </article>
               <article>
@@ -500,12 +500,12 @@
                           <small>K/D</small><span>{{ formatDecimal(timelineItem.kdRatio, 2) }}</span>
                           <small>ADR</small><span>{{ formatDecimal(timelineItem.adr, 1) }}</span>
                           <small>Impact</small><span>{{ formatDecimal(timelineItem.impactRating, 2) }}</span>
-              Sincronizado:     </div>
+                        </div>
                       </div>
                     </article>
                   }
                 </div>
- :             }
+              }
             </section>
           }
         }
@@ -524,7 +524,7 @@
                 <p>Histórico competitivo geral vindo do profile estático do jogador.</p>
               </div>
 
-              <div class="grid grid-auto-rows-1" aria-label="Score da temporada">
+              <div class="grid-auto-rows-1" aria-label="Score da temporada">
                 <article>
                   <span>Score</span>
                   <strong class="is-score">{{ formatDecimal(lifetime.score, 1) }}</strong>
@@ -535,9 +535,9 @@
                 <article><span>Mapas</span><strong>{{ formatInteger(lifetime.mapsPlayed) }}</strong></article>
                 <article><span>Vitórias</span><strong>{{ formatInteger(lifetime.wins) }}</strong></article>
                 <article><span>Derrotas</span><strong>{{ formatInteger(lifetime.losses) }}</strong></article>
-                <article><span>Win rate</span><strong class="is-cyan">{{ formatRatePercent(lifetime.winRate) }}</strong></article>
-                <article><span>K/D</span><strong class="is-cyan">{{ formatDecimal(lifetime.kdRatio, 2) }}</strong></article>
-                <article><span>ADR</span><strong class="is-cyan">{{ formatDecimal(lifetime.adr, 1) }}</strong></article>
+                <article><span>Win rate</span><strong class="is-map">{{ formatRatePercent(lifetime.winRate) }}</strong></article>
+                <article><span>K/D</span><strong class="is-map">{{ formatDecimal(lifetime.kdRatio, 2) }}</strong></article>
+                <article><span>ADR</span><strong class="is-map">{{ formatDecimal(lifetime.adr, 1) }}</strong></article>
                 <article><span>HS%</span><strong>{{ formatRatePercent(lifetime.headshotPct) }}</strong></article>
                 <article><span>Accuracy</span><strong>{{ formatRatePercent(lifetime.accuracy) }}</strong></article>
                 <article><span>Util/R</span><strong>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</strong></article>
