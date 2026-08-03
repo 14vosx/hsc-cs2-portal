@@ -1,4 +1,4 @@
-﻿import { HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -7,7 +7,7 @@ import { HealthDto } from './dto/health.dto';
 import { MapsDto } from './dto/maps.dto';
 import { MatchesDto } from './dto/matches.dto';
 import { NewsDetailDto, NewsIndexDto } from './dto/news.dto';
-import { PlayerBunkerSummaryDto, PlayerMeDto } from './dto/player-bunker.dto';
+import { PlayerBunkerSummaryDto } from './dto/player-bunker.dto';
 import { RankingDto } from './dto/ranking.dto';
 import { MapDetailDto } from './dto/map-detail.dto';
 import { MatchDetailDto } from './dto/match-detail.dto';
@@ -73,12 +73,6 @@ export class Cs2ApiService {
 
   getNewsItem(slug: string): Observable<NewsDetailDto> {
     return this.http.get<NewsDetailDto>(cs2ApiPaths.newsItem(slug));
-  }
-
-  getPlayerMe(): Observable<PlayerMeDto> {
-    return this.http.get<PlayerMeDto>(cs2ApiPaths.playerMe, {
-      withCredentials: true,
-    });
   }
 
   getPlayerBunkerSummary(): Observable<PlayerBunkerSummaryDto> {

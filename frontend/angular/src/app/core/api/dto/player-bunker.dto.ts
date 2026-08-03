@@ -6,12 +6,6 @@ export interface PlayerIdentityDto {
   steamProfileUrl?: string | null;
 }
 
-export interface PlayerMeDto extends PlayerIdentityDto {
-  authenticated?: boolean | null;
-  player?: PlayerIdentityDto | null;
-  user?: PlayerIdentityDto | null;
-}
-
 export interface PlayerBunkerSummaryDataDto {
   status?: string | null;
   seasonFirst?: boolean | null;
