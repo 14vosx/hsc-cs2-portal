@@ -68,7 +68,6 @@
 }
 
 .season-hub__hero div,
-.season-tabs,
 .season-hub__prize,
 .season-hub__soon,
 .season-hub__preview header,
@@ -79,22 +78,19 @@
 }
 
 .season-hub__hero small,
-.season-badge,
-.season-tabs__item {
+.season-badge {
   border: 1px solid var(--color-border);
   border-radius: 999px;
   padding: 6px 9px;
   background: rgba(5, 8, 11, 0.48);
 }
 
-.season-hub a,
-.season-tabs__item {
+.season-hub a {
   color: var(--color-primary-strong);
   font-weight: 800;
   text-decoration: none;
 }
 
-.season-tabs__item--active,
 .season-badge--eligible {
   border-color: var(--color-accent-purple-border);
   color: var(--color-accent-purple-strong);
@@ -106,10 +102,6 @@
 }
 
 .season-badge--neutral {
-  color: var(--color-text-muted);
-}
-
-.season-tabs__item--disabled {
   color: var(--color-text-muted);
 }
 

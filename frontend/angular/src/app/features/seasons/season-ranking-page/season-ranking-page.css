@@ -71,28 +71,17 @@
   padding: var(--space-4);
 }
 
-.season-tabs,
 .season-ranking__prize {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
 }
 
-.season-tabs__item,
 .season-ranking__badge {
   border: 1px solid var(--color-border);
   border-radius: 999px;
   padding: 6px 9px;
   background: rgba(5, 8, 11, 0.48);
-}
-
-.season-tabs__item--active {
-  border-color: var(--color-accent-purple-border);
-  color: var(--color-accent-purple-strong);
-}
-
-.season-tabs__item--disabled {
-  color: var(--color-text-muted);
 }
 
 .season-ranking__prize {

@@ -1,0 +1,12 @@
+<nav class="season-tabs" aria-label="Navegação da Season">
+  @for (tab of tabs; track tab.id) {
+    <a
+      class="season-tabs__item"
+      [class.season-tabs__item--active]="tab.id === activeTab"
+      [attr.aria-current]="tab.id === activeTab ? 'page' : null"
+      [routerLink]="tabLink(tab.id)"
+    >
+      {{ tab.label }}
+    </a>
+  }
+</nav>

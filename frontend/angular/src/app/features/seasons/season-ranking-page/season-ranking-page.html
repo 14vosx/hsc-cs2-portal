@@ -21,12 +21,10 @@
             <small>Atualizado em {{ formatDate(vm.generatedAt, true) }}</small>
           </header>
 
-          <nav class="season-tabs" aria-label="Navegação da Season">
-            <a [routerLink]="seasonLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item">Visão geral</a>
-            <a [routerLink]="rankingLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item season-tabs__item--active">Ranking</a>
-            <a [routerLink]="matchesLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item">Partidas</a>
-            <a [routerLink]="mapsLink(vm.isCurrent, vm.season.slug)" class="season-tabs__item">Mapas</a>
-          </nav>
+          <app-season-tabs
+            [seasonSlug]="vm.season.slug"
+            activeTab="ranking"
+          />
 
           <section class="season-ranking__prize">
             <strong>Top 3 da Season serão premiados.</strong>

@@ -48,28 +48,12 @@
   text-transform: uppercase;
 }
 
-.season-tabs,
 .season-match-card__meta,
 .season-match-card__footer,
 .season-match-card__maps {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-}
-
-.season-tabs__item {
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 6px 9px;
-  background: rgba(5, 8, 11, 0.48);
-  color: var(--color-primary-strong);
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.season-tabs__item--active {
-  border-color: var(--color-accent-purple-border);
-  color: var(--color-accent-purple-strong);
 }
 
 .season-matches__metrics {

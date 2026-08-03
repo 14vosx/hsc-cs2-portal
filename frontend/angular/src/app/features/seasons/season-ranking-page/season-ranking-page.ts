@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
 
 import { Cs2ApiService } from '../../../core/api/cs2-api.service';
@@ -20,16 +20,19 @@ import {
   playerInitials,
   seasonCoverImage,
 } from '../season-ui';
+import { resolveSeasonContext } from '../season-context';
 import { SeasonPodium } from '../season-podium/season-podium';
 
+import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
+
 type SeasonRankingVm =
-  | ({ state: 'ready'; isCurrent: boolean } & SeasonRankingDto)
+  | ({ state: 'ready' } & SeasonRankingDto)
   | { state: 'loading' }
   | { state: 'error' };
 
 @Component({
   selector: 'app-season-ranking-page',
-  imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium],
+  imports: [AsyncPipe, EmptyState, SeasonPodium, SeasonTabs],
   templateUrl: './season-ranking-page.html',
   styleUrls: ['./season-ranking-page.css', './season-ranking-page-table.css'],
   encapsulation: ViewEncapsulation.None,
@@ -93,22 +96,6 @@ export class SeasonRankingPage {
     return typeof value === 'number' ? value.toFixed(digits) : '-';
   }
 
-  protected seasonLink(isCurrent: boolean, slug?: string): string {
-    return isCurrent || !slug ? '/seasons/current' : `/seasons/${slug}`;
-  }
-
-  protected rankingLink(isCurrent: boolean, slug?: string): string {
-    return isCurrent || !slug ? '/seasons/current/ranking' : `/seasons/${slug}/ranking`;
-  }
-
-  protected matchesLink(isCurrent: boolean, slug?: string): string {
-    return isCurrent || !slug ? '/seasons/current/matches' : `/seasons/${slug}/matches`;
-  }
-
-  protected mapsLink(isCurrent: boolean, slug?: string): string {
-    return isCurrent || !slug ? '/seasons/current/maps' : `/seasons/${slug}/maps`;
-  }
-
   protected badgeClass(player: SeasonRankingPlayerDto): string {
     if (player.prizeEligible === true) {
       return 'season-ranking__badge--eligible';
@@ -128,20 +115,26 @@ export class SeasonRankingPage {
   private loadRanking(slug: string): Observable<SeasonRankingVm> {
     if (slug) {
       return this.cs2Api.getSeasonRanking(slug).pipe(
-        map((payload): SeasonRankingVm => ({ ...payload, state: 'ready', isCurrent: false })),
+        map((payload): SeasonRankingVm => ({
+          ...payload,
+          state: 'ready',
+        })),
       );
     }
 
     return this.cs2Api.getSeasons().pipe(
       switchMap((index) => {
-        const activeSeasonSlug = index.activeSeasonSlug?.trim();
+        const context = resolveSeasonContext(index);
 
-        if (!activeSeasonSlug) {
+        if (!context) {
           return of({ state: 'error' } satisfies SeasonRankingVm);
         }
 
-        return this.cs2Api.getSeasonRanking(activeSeasonSlug).pipe(
-          map((payload): SeasonRankingVm => ({ ...payload, state: 'ready', isCurrent: true })),
+        return this.cs2Api.getSeasonRanking(context.slug).pipe(
+          map((payload): SeasonRankingVm => ({
+            ...payload,
+            state: 'ready',
+          })),
         );
       }),
     );

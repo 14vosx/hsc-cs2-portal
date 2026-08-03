@@ -20,16 +20,22 @@ import {
   playerInitials,
   seasonCoverImage,
 } from '../season-ui';
+import { resolveSeasonContext } from '../season-context';
 import { SeasonPodium } from '../season-podium/season-podium';
 
+import {
+  SeasonTabs,
+  seasonTabLink,
+} from '../../../shared/components/season-tabs/season-tabs';
+
 type SeasonDetailVm =
-  | ({ state: 'ready'; isCurrent: boolean } & SeasonRankingDto)
+  | ({ state: 'ready' } & SeasonRankingDto)
   | { state: 'loading' }
   | { state: 'error' };
 
 @Component({
   selector: 'app-season-detail-page',
-  imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium],
+  imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium, SeasonTabs],
   templateUrl: './season-detail-page.html',
   styleUrls: ['./season-detail-page.css', './season-detail-page-table.css'],
   encapsulation: ViewEncapsulation.None,
@@ -53,6 +59,7 @@ export class SeasonDetailPage {
   protected readonly formatPercent = formatPercent;
   protected readonly formatStat = formatStat;
   protected readonly seasonCoverImage = seasonCoverImage;
+  protected readonly seasonTabLink = seasonTabLink;
 
   protected formatDate(value?: string | null, includeTime = false): string {
     if (!value) {
@@ -78,16 +85,6 @@ export class SeasonDetailPage {
     return typeof value === 'number' ? value.toFixed(digits) : '-';
   }
 
-  protected tabLink(
-    isCurrent: boolean,
-    slug: string | undefined,
-    target: 'overview' | 'ranking' | 'matches' | 'maps',
-  ): string {
-    const base = isCurrent || !slug ? '/seasons/current' : `/seasons/${slug}`;
-
-    return target === 'overview' ? base : `${base}/${target}`;
-  }
-
   protected rankingPreview(players?: SeasonRankingPlayerDto[]): SeasonRankingPlayerDto[] {
     return (players ?? []).slice(0, 12);
   }
@@ -99,20 +96,26 @@ export class SeasonDetailPage {
   private loadSeasonHub(slug: string): Observable<SeasonDetailVm> {
     if (slug) {
       return this.cs2Api.getSeasonRanking(slug).pipe(
-        map((payload): SeasonDetailVm => ({ ...payload, state: 'ready', isCurrent: false })),
+        map((payload): SeasonDetailVm => ({
+          ...payload,
+          state: 'ready',
+        })),
       );
     }
 
     return this.cs2Api.getSeasons().pipe(
       switchMap((index) => {
-        const activeSeasonSlug = index.activeSeasonSlug?.trim();
+        const context = resolveSeasonContext(index);
 
-        if (!activeSeasonSlug) {
+        if (!context) {
           return of({ state: 'error' } satisfies SeasonDetailVm);
         }
 
-        return this.cs2Api.getSeasonRanking(activeSeasonSlug).pipe(
-          map((payload): SeasonDetailVm => ({ ...payload, state: 'ready', isCurrent: true })),
+        return this.cs2Api.getSeasonRanking(context.slug).pipe(
+          map((payload): SeasonDetailVm => ({
+            ...payload,
+            state: 'ready',
+          })),
         );
       }),
     );

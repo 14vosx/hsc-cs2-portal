@@ -27,20 +27,10 @@
             </div>
           </header>
 
-          <nav class="season-tabs" aria-label="Navegação da Season">
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'overview')" class="season-tabs__item season-tabs__item--active">
-              Visão geral
-            </a>
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'ranking')" class="season-tabs__item">
-              Ranking
-            </a>
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'matches')" class="season-tabs__item">
-              Partidas
-            </a>
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'maps')" class="season-tabs__item">
-              Mapas
-            </a>
-          </nav>
+          <app-season-tabs
+            [seasonSlug]="vm.season.slug"
+            activeTab="overview"
+          />
 
           <section class="season-hub__prize">
             <div>
@@ -78,7 +68,7 @@
                 <span>Ranking oficial</span>
                 <h2>Top da Season</h2>
               </div>
-              <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'ranking')">Ranking completo</a>
+              <a [routerLink]="seasonTabLink(vm.season.slug, 'ranking')">Ranking completo</a>
             </header>
 
             <div class="ranking-preview" role="table" aria-label="Top da Season">
@@ -128,8 +118,8 @@
               <strong>Recortes oficiais da temporada.</strong>
               <p>Consulte as partidas e os mapas que pertencem a esta Season pelo contrato publicado da Static API v2.</p>
             </div>
-            <a class="season-hub__cta" [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'matches')">Ver partidas</a>
-            <a class="season-hub__cta" [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'maps')">Ver mapas</a>
+            <a class="season-hub__cta" [routerLink]="seasonTabLink(vm.season.slug, 'matches')">Ver partidas</a>
+            <a class="season-hub__cta" [routerLink]="seasonTabLink(vm.season.slug, 'maps')">Ver mapas</a>
           </section>
 
           <section class="season-hub__rules">
