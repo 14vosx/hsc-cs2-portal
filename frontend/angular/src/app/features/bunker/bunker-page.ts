@@ -21,20 +21,14 @@ import {
   PlayerBunkerSummaryDataDto,
   PlayerBunkerSummaryDto,
   PlayerIdentityDto,
-  PlayerMeDto,
 } from '../../core/api/dto/player-bunker.dto';
+import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
+import type { PlayerIdentity } from '../player/domain/player-identity.model';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
-
-interface BunkerPlayer {
-  displayName: string;
-  steamid64: string;
-  avatarMedium?: string | null;
-  steamProfileUrl?: string | null;
-}
 
 interface BunkerAuthenticatedVm {
   state: 'authenticated';
-  player: BunkerPlayer;
+  player: PlayerIdentity;
   summary: PlayerBunkerSummaryDataDto;
   summaryState: 'ready' | 'error';
 }
@@ -55,6 +49,7 @@ type BunkerReloadAction = 'load' | 'signed-out';
 })
 export class BunkerPage {
   private readonly cs2Api = inject(Cs2ApiService);
+  private readonly playerIdentityApi = inject(PlayerIdentityApiService);
   private readonly reload$ = new BehaviorSubject<BunkerReloadAction>('load');
 
   protected readonly logoutPending = signal(false);
@@ -95,8 +90,8 @@ export class BunkerPage {
       return of({ state: 'unauthenticated' } satisfies BunkerVm);
     }
 
-    return this.cs2Api.getPlayerMe().pipe(
-      switchMap((payload) => this.playerVm(payload)),
+    return this.playerIdentityApi.getCurrentIdentity().pipe(
+      switchMap((identity) => this.playerVm(identity)),
       startWith({ state: 'loading' } satisfies BunkerVm),
       catchError((error: unknown) => of(this.errorVm(error))),
     );
@@ -219,7 +214,7 @@ export class BunkerPage {
     return (
       vm.summary.seasonPlayer?.steamid64?.trim() ||
       vm.summary.competitiveProfile?.steamid64?.trim() ||
-      vm.player.steamid64
+      vm.player.steamId64
     );
   }
 
@@ -609,9 +604,7 @@ export class BunkerPage {
     return value || '—';
   }
 
-  private playerVm(payload: PlayerMeDto): Observable<BunkerVm> {
-    const player = this.normalizePlayer(payload);
-
+  private playerVm(player: PlayerIdentity | null): Observable<BunkerVm> {
     if (!player) {
       return of({ state: 'unauthenticated' } satisfies BunkerVm);
     }
@@ -979,29 +972,7 @@ export class BunkerPage {
     return timelineItem;
   }
 
-  private normalizePlayer(payload: PlayerMeDto): BunkerPlayer | null {
-    if (payload.authenticated === false) {
-      return null;
-    }
 
-    const identity = payload.player ?? payload.user ?? payload;
-    const steamid64 = this.steamId(identity);
-
-    if (!steamid64) {
-      return null;
-    }
-
-    return {
-      displayName: identity.displayName?.trim() || 'Jogador HSC',
-      steamid64,
-      avatarMedium: identity.avatarMedium?.trim() || null,
-      steamProfileUrl: identity.steamProfileUrl?.trim() || null,
-    };
-  }
-
-  private steamId(identity: PlayerIdentityDto): string | null {
-    return identity.steamid64?.trim() || identity.steamId64?.trim() || null;
-  }
 
   private isAuthMiss(error: unknown): boolean {
     return error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403);
