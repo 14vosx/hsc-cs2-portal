@@ -2,20 +2,22 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { catchError, map, Observable, of, startWith } from 'rxjs';
 
-import { Cs2ApiService } from '../../core/api/cs2-api.service';
-import { RankingPlayerDto } from '../../core/api/dto/ranking.dto';
 import { DataCard } from '../../shared/components/data-card/data-card';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { MetricCard } from '../../shared/components/metric-card/metric-card';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
+import { RankingApiService } from './data-access/ranking-api.service';
+import type { Ranking, RankingPlayer } from './domain/ranking.model';
 
 interface RankingReadyVm {
   state: 'ready';
-  generatedAt: string;
-  mapsFinalizados: number;
-  players: RankingPlayerDto[];
-  podium: RankingPlayerDto[];
+  generatedAt: string | null;
+  completedMaps: number;
+  players: readonly RankingPlayer[];
+  rankedPlayerCount: number;
+  leader: RankingPlayer | null;
+  podium: readonly RankingPlayer[];
 }
 
 type RankingVm = RankingReadyVm | { state: 'loading' } | { state: 'error' };
@@ -27,20 +29,20 @@ type RankingVm = RankingReadyVm | { state: 'loading' } | { state: 'error' };
   styleUrl: './ranking-page.css',
 })
 export class RankingPage {
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly rankingApi = inject(RankingApiService);
 
   protected readonly searchTerm = signal('');
 
-  protected readonly vm$: Observable<RankingVm> = this.cs2Api.getRanking().pipe(
+  protected readonly vm$: Observable<RankingVm> = this.rankingApi.getRanking().pipe(
     map((ranking): RankingVm => {
-      const players = ranking.players ?? [];
-
       return {
         state: 'ready',
         generatedAt: ranking.generatedAt,
-        mapsFinalizados: ranking.mapsFinalizados ?? 0,
-        players,
-        podium: players.slice(0, 3),
+        completedMaps: ranking.completedMaps,
+        players: ranking.players,
+        rankedPlayerCount: ranking.rankedPlayerCount,
+        leader: ranking.leader,
+        podium: ranking.players.slice(0, 3),
       };
     }),
     startWith({ state: 'loading' } satisfies RankingVm),
@@ -52,7 +54,7 @@ export class RankingPage {
     this.searchTerm.set(input.value);
   }
 
-  protected filteredPlayers(players: RankingPlayerDto[]): RankingPlayerDto[] {
+  protected filteredPlayers(players: readonly RankingPlayer[]): readonly RankingPlayer[] {
     const term = this.searchTerm().trim().toLowerCase();
 
     if (!term) {
@@ -61,13 +63,13 @@ export class RankingPage {
 
     return players.filter((player) => {
       return (
-        player.name.toLowerCase().includes(term) ||
-        player.steamid64.toLowerCase().includes(term)
+        (player.name ?? '').toLowerCase().includes(term) ||
+        player.steamId64.toLowerCase().includes(term)
       );
     });
   }
 
-  protected formatDate(value?: string): string {
+  protected formatDate(value?: string | null): string {
     if (!value) {
       return 'Sem data disponível';
     }

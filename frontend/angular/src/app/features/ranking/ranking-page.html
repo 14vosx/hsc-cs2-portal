@@ -39,21 +39,21 @@
         </section>
 
         <section class="ranking-page__metrics" aria-label="Resumo do ranking">
-          <app-metric-card label="Jogadores" [value]="vm.players.length" tone="ranking" />
-          <app-metric-card label="Mapas finalizados" [value]="vm.mapsFinalizados" />
+          <app-metric-card label="Jogadores" [value]="vm.rankedPlayerCount" tone="ranking" />
+          <app-metric-card label="Mapas finalizados" [value]="vm.completedMaps" />
           <app-metric-card
             label="Líder"
-            [value]="vm.players[0]?.name || 'Sem líder'"
-            [tone]="vm.players[0] ? 'success' : 'default'"
+            [value]="vm.leader?.name || 'Sem líder'"
+            [tone]="vm.leader ? 'success' : 'default'"
           />
         </section>
 
         @if (vm.players.length > 0) {
           <section class="ranking-page__podium" aria-label="Pódio top 3">
-            @for (player of vm.podium; track player.steamid64; let position = $index) {
+            @for (player of vm.podium; track player.steamId64) {
               <app-data-card
-                eyebrow="Top {{ position + 1 }}"
-                [title]="player.name"
+                eyebrow="Top {{ player.position }}"
+                [title]="player.name || ''"
                 [meta]="formatNumber(player.score, 1) + ' pts'"
               >
                 <div class="ranking-page__podium-body">
@@ -97,12 +97,12 @@
                       </tr>
                     </thead>
                     <tbody>
-                      @for (player of visiblePlayers; track player.steamid64) {
+                      @for (player of visiblePlayers; track player.steamId64) {
                         <tr>
-                          <td>#{{ vm.players.indexOf(player) + 1 }}</td>
+                          <td>#{{ player.position }}</td>
                           <td>
                             <strong>{{ player.name }}</strong>
-                            <span>{{ player.steamid64 }}</span>
+                            <span>{{ player.steamId64 }}</span>
                           </td>
                           <td>{{ formatNumber(player.score, 1) }}</td>
                           <td>{{ formatNumber(player.impactRating, 2) }}</td>
