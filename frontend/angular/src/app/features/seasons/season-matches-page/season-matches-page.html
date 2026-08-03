@@ -23,12 +23,10 @@
             }
           </header>
 
-          <nav class="season-tabs" aria-label="Navegação da Season">
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'overview')" class="season-tabs__item">Visão geral</a>
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'ranking')" class="season-tabs__item">Ranking</a>
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'matches')" class="season-tabs__item season-tabs__item--active">Partidas</a>
-            <a [routerLink]="tabLink(vm.isCurrent, vm.season.slug, 'maps')" class="season-tabs__item">Mapas</a>
-          </nav>
+          <app-season-tabs
+            [seasonSlug]="vm.season.slug"
+            activeTab="matches"
+          />
 
           <section class="season-matches__metrics" aria-label="Resumo das partidas da Season">
             <div><span>Partidas</span><strong>{{ vm.summary?.matches ?? 0 }}</strong></div>

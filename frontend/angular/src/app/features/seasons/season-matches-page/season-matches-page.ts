@@ -11,15 +11,18 @@ import {
 } from '../../../core/api/dto/season-matches.dto';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { formatInteger, seasonCoverImage } from '../season-ui';
+import { resolveSeasonContext } from '../season-context';
+
+import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 
 type SeasonMatchesVm =
-  | ({ state: 'ready'; isCurrent: boolean; matches: SeasonMatchSummaryDto[] } & SeasonMatchesDto)
+  | ({ state: 'ready'; matches: SeasonMatchSummaryDto[] } & SeasonMatchesDto)
   | { state: 'loading' }
   | { state: 'error' };
 
 @Component({
   selector: 'app-season-matches-page',
-  imports: [AsyncPipe, EmptyState, RouterLink],
+  imports: [AsyncPipe, EmptyState, RouterLink, SeasonTabs],
   templateUrl: './season-matches-page.html',
   styleUrl: './season-matches-page.css',
   encapsulation: ViewEncapsulation.None,
@@ -56,16 +59,6 @@ export class SeasonMatchesPage {
       hour: includeTime ? '2-digit' : undefined,
       minute: includeTime ? '2-digit' : undefined,
     }).format(date);
-  }
-
-  protected tabLink(
-    isCurrent: boolean,
-    slug: string | undefined,
-    target: 'overview' | 'ranking' | 'matches' | 'maps',
-  ): string {
-    const base = isCurrent || !slug ? '/seasons/current' : `/seasons/${slug}`;
-
-    return target === 'overview' ? base : `${base}/${target}`;
   }
 
   protected matchEndedAt(match: SeasonMatchSummaryDto): string | undefined {
@@ -118,25 +111,23 @@ export class SeasonMatchesPage {
           ...payload,
           matches: this.sortedMatches(payload.matches),
           state: 'ready',
-          isCurrent: false,
         })),
       );
     }
 
     return this.cs2Api.getSeasons().pipe(
       switchMap((index) => {
-        const activeSeasonSlug = index.activeSeasonSlug?.trim();
+        const context = resolveSeasonContext(index);
 
-        if (!activeSeasonSlug) {
+        if (!context) {
           return of({ state: 'error' } satisfies SeasonMatchesVm);
         }
 
-        return this.cs2Api.getSeasonMatches(activeSeasonSlug).pipe(
+        return this.cs2Api.getSeasonMatches(context.slug).pipe(
           map((payload): SeasonMatchesVm => ({
             ...payload,
             matches: this.sortedMatches(payload.matches),
             state: 'ready',
-            isCurrent: true,
           })),
         );
       }),

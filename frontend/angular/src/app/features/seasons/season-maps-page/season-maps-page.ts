@@ -8,17 +8,20 @@ import { MapSummaryDto } from '../../../core/api/dto/maps.dto';
 import { SeasonMapsDto } from '../../../core/api/dto/season-maps.dto';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { seasonCoverImage } from '../season-ui';
+import { resolveSeasonContext } from '../season-context';
+
+import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 
 type MapSort = 'matches' | 'rounds' | 'lastPlayed';
 
 type SeasonMapsVm =
-  | ({ state: 'ready'; isCurrent: boolean; maps: MapSummaryDto[] } & SeasonMapsDto)
+  | ({ state: 'ready'; maps: MapSummaryDto[] } & SeasonMapsDto)
   | { state: 'loading' }
   | { state: 'error' };
 
 @Component({
   selector: 'app-season-maps-page',
-  imports: [AsyncPipe, EmptyState, RouterLink],
+  imports: [AsyncPipe, EmptyState, RouterLink, SeasonTabs],
   templateUrl: './season-maps-page.html',
   styleUrl: './season-maps-page.css',
   encapsulation: ViewEncapsulation.None,
@@ -91,16 +94,6 @@ export class SeasonMapsPage {
     return typeof value === 'number' ? value.toFixed(digits) : '-';
   }
 
-  protected tabLink(
-    isCurrent: boolean,
-    slug: string | undefined,
-    target: 'overview' | 'ranking' | 'matches' | 'maps',
-  ): string {
-    const base = isCurrent || !slug ? '/seasons/current' : `/seasons/${slug}`;
-
-    return target === 'overview' ? base : `${base}/${target}`;
-  }
-
   private loadSeasonMaps(slug: string): Observable<SeasonMapsVm> {
     if (slug) {
       return this.cs2Api.getSeasonMaps(slug).pipe(
@@ -108,25 +101,23 @@ export class SeasonMapsPage {
           ...payload,
           maps: payload.maps ?? [],
           state: 'ready',
-          isCurrent: false,
         })),
       );
     }
 
     return this.cs2Api.getSeasons().pipe(
       switchMap((index) => {
-        const activeSeasonSlug = index.activeSeasonSlug?.trim();
+        const context = resolveSeasonContext(index);
 
-        if (!activeSeasonSlug) {
+        if (!context) {
           return of({ state: 'error' } satisfies SeasonMapsVm);
         }
 
-        return this.cs2Api.getSeasonMaps(activeSeasonSlug).pipe(
+        return this.cs2Api.getSeasonMaps(context.slug).pipe(
           map((payload): SeasonMapsVm => ({
             ...payload,
             maps: payload.maps ?? [],
             state: 'ready',
-            isCurrent: true,
           })),
         );
       }),
