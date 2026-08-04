@@ -1,67 +1,68 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeSeasonMatches } from './season-matches.normalizer';
 
-describe('normalizeSeasonMatches', () => {
-  it('normaliza payload completo convertendo snake_case para camelCase', () => {
-    const raw = {
-      generatedAt: '2026-08-04T12:00:00Z',
-      season: {
-        slug: 'season-1',
-        name: 'Season 1',
-        description: 'Primeira temporada',
-        status: 'active',
-        start_at: '2026-01-01T00:00:00Z',
-        end_at: '2026-06-30T23:59:59Z',
-        cover_image_url: 'https://example.com/cover.png',
-      },
-      rules: {
-        minRoundsPerMap: 12,
-        seasonMembership: 'regular',
-        matchDetailEndpoint: '/api/cs2/v2/match/{id}.json',
-        mapDetailEndpoint: '/api/cs2/v2/map/{name}.json',
-      },
-      summary: {
-        matches: 10,
-        maps: 25,
-        rounds: 400,
-        players: 30,
-        lastMapEndedAt: '2026-06-30T20:00:00Z',
-      },
-      computed: {
-        firstMapStartedAt: '2026-01-02T10:00:00Z',
-      },
-      matches: [
+const createValidPayload = () => ({
+  generatedAt: '2026-08-04T12:00:00Z',
+  season: {
+    slug: 'season-1',
+    name: 'Season 1',
+    description: 'Primeira temporada',
+    status: 'active',
+    start_at: '2026-01-01T00:00:00Z',
+    end_at: '2026-06-30T23:59:59Z',
+    cover_image_url: 'https://example.com/cover.png',
+  },
+  rules: {
+    minRoundsPerMap: 12,
+    seasonMembership: 'regular',
+    matchDetailEndpoint: '/api/cs2/v2/match/{id}.json',
+    mapDetailEndpoint: '/api/cs2/v2/map/{name}.json',
+  },
+  summary: {
+    matches: 10,
+    maps: 25,
+    rounds: 400,
+    players: 30,
+    lastMapEndedAt: '2026-06-30T20:00:00Z',
+  },
+  computed: {
+    firstMapStartedAt: '2026-01-02T10:00:00Z',
+  },
+  matches: [
+    {
+      matchid: 101,
+      start_time: '2026-01-02T10:00:00Z',
+      end_time: '2026-01-02T11:30:00Z',
+      winner: 'Team A',
+      series_type: 'BO3',
+      team1_name: 'Team A',
+      team1_score: 2,
+      team2_name: 'Team B',
+      team2_score: 1,
+      server_ip: '10.0.0.1',
+      seasonMapCount: 3,
+      seasonRounds: 45,
+      seasonFirstMapStartedAt: '2026-01-02T10:00:00Z',
+      seasonLastMapEndedAt: '2026-01-02T11:30:00Z',
+      maps: [
         {
-          matchid: 101,
+          mapnumber: 1,
           start_time: '2026-01-02T10:00:00Z',
-          end_time: '2026-01-02T11:30:00Z',
+          end_time: '2026-01-02T10:40:00Z',
           winner: 'Team A',
-          series_type: 'BO3',
-          team1_name: 'Team A',
-          team1_score: 2,
-          team2_name: 'Team B',
-          team2_score: 1,
-          server_ip: '10.0.0.1',
-          seasonMapCount: 3,
-          seasonRounds: 45,
-          seasonFirstMapStartedAt: '2026-01-02T10:00:00Z',
-          seasonLastMapEndedAt: '2026-01-02T11:30:00Z',
-          maps: [
-            {
-              mapnumber: 1,
-              start_time: '2026-01-02T10:00:00Z',
-              end_time: '2026-01-02T10:40:00Z',
-              winner: 'Team A',
-              mapname: 'de_nuke',
-              team1_score: 13,
-              team2_score: 7,
-              rounds: 20,
-            },
-          ],
+          mapname: 'de_nuke',
+          team1_score: 13,
+          team2_score: 7,
+          rounds: 20,
         },
       ],
-    };
+    },
+  ],
+});
 
+describe('normalizeSeasonMatches', () => {
+  it('normaliza payload completo convertendo snake_case para camelCase', () => {
+    const raw = createValidPayload();
     const normalized = normalizeSeasonMatches(raw);
 
     expect(normalized).not.toBeNull();
@@ -83,6 +84,46 @@ describe('normalizeSeasonMatches', () => {
     expect(normalizeSeasonMatches(null)).toBeNull();
     expect(normalizeSeasonMatches({})).toBeNull();
     expect(normalizeSeasonMatches({ generatedAt: '2026-08-04T12:00:00Z', season: { name: 'Sem slug' } })).toBeNull();
+  });
+
+  it('rejeita objetos estruturais que sejam arrays (rules, summary, computed)', () => {
+    const base = createValidPayload();
+
+    expect(normalizeSeasonMatches({ ...base, rules: [] })).toBeNull();
+    expect(normalizeSeasonMatches({ ...base, summary: [] })).toBeNull();
+    expect(normalizeSeasonMatches({ ...base, computed: [] })).toBeNull();
+  });
+
+  it('valida computed.firstMapStartedAt com string', () => {
+    const raw = createValidPayload();
+    const normalized = normalizeSeasonMatches(raw);
+    expect(normalized?.computed.firstMapStartedAt).toBe('2026-01-02T10:00:00Z');
+  });
+
+  it('valida computed.firstMapStartedAt com null explícito', () => {
+    const raw = {
+      ...createValidPayload(),
+      computed: { firstMapStartedAt: null },
+    };
+    const normalized = normalizeSeasonMatches(raw);
+    expect(normalized).not.toBeNull();
+    expect(normalized?.computed.firstMapStartedAt).toBeNull();
+  });
+
+  it('retorna null se computed não contiver firstMapStartedAt', () => {
+    const raw = {
+      ...createValidPayload(),
+      computed: {},
+    };
+    expect(normalizeSeasonMatches(raw)).toBeNull();
+  });
+
+  it('retorna null se computed.firstMapStartedAt possuir tipo inválido (ex: number)', () => {
+    const raw = {
+      ...createValidPayload(),
+      computed: { firstMapStartedAt: 12345 },
+    };
+    expect(normalizeSeasonMatches(raw)).toBeNull();
   });
 
   it('ignora partidas e mapas inválidos sem invalidar todo o root', () => {

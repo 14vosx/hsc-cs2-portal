@@ -156,20 +156,42 @@ function normalizeSeasonMapItem(raw: unknown): SeasonMapSummary | null {
     return null;
   }
 
-  const lastPlayedAt =
-    readNullableString(raw['lastPlayed']) ?? readNullableString(raw['lastPlayedAt']);
+  const lastPlayedRes = readRequiredNullableStringProperty(raw, ['lastPlayed', 'lastPlayedAt']);
+  if (lastPlayedRes.state === 'invalid') {
+    return null;
+  }
 
   return {
     name,
     matches,
     rounds,
     averageRoundsPerMatch: avgRounds,
-    lastPlayedAt,
+    lastPlayedAt: lastPlayedRes.value,
   };
 }
 
 function isObject(val: unknown): val is Record<string, unknown> {
-  return typeof val === 'object' && val !== null;
+  return typeof val === 'object' && val !== null && !Array.isArray(val);
+}
+
+function readRequiredNullableStringProperty(
+  raw: Record<string, unknown>,
+  keys: string[]
+): { state: 'valid'; value: string | null } | { state: 'invalid' } {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(raw, key)) {
+      const val = raw[key];
+      if (val === null) {
+        return { state: 'valid', value: null };
+      }
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        return { state: 'valid', value: trimmed.length > 0 ? trimmed : null };
+      }
+      return { state: 'invalid' };
+    }
+  }
+  return { state: 'invalid' };
 }
 
 function readString(val: unknown): string | null {

@@ -130,9 +130,21 @@ function normalizeComputed(raw: unknown): SeasonMatchesComputed | null {
     return null;
   }
 
-  return {
-    firstMapStartedAt: readNullableString(raw['firstMapStartedAt']),
-  };
+  if (!Object.prototype.hasOwnProperty.call(raw, 'firstMapStartedAt')) {
+    return null;
+  }
+
+  const val = raw['firstMapStartedAt'];
+  if (val === null) {
+    return { firstMapStartedAt: null };
+  }
+
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    return { firstMapStartedAt: trimmed.length > 0 ? trimmed : null };
+  }
+
+  return null;
 }
 
 function normalizeSeasonMatchItem(raw: unknown): SeasonMatchSummary | null {
@@ -263,7 +275,7 @@ function normalizeSeasonMatchMapItem(raw: unknown): SeasonMatchMap | null {
 }
 
 function isObject(val: unknown): val is Record<string, unknown> {
-  return typeof val === 'object' && val !== null;
+  return typeof val === 'object' && val !== null && !Array.isArray(val);
 }
 
 function readString(val: unknown): string | null {
