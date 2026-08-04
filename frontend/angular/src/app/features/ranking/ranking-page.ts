@@ -1,14 +1,16 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { catchError, map, Observable, of, startWith } from 'rxjs';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { DataCard } from '../../shared/components/data-card/data-card';
+import { UiCard } from '../../shared/components/card/card';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { MetricCard } from '../../shared/components/metric-card/metric-card';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PageState } from '../../shared/components/page-state/page-state';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { RankingApiService } from './data-access/ranking-api.service';
-import type { Ranking, RankingPlayer } from './domain/ranking.model';
+import type { RankingPlayer } from './domain/ranking.model';
 
 interface RankingReadyVm {
   state: 'ready';
@@ -20,34 +22,61 @@ interface RankingReadyVm {
   podium: readonly RankingPlayer[];
 }
 
-type RankingVm = RankingReadyVm | { state: 'loading' } | { state: 'error' };
+type RankingVm =
+  | RankingReadyVm
+  | { state: 'loading' }
+  | { state: 'error' }
+  | { state: 'empty' };
 
 @Component({
   selector: 'app-ranking-page',
-  imports: [AsyncPipe, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
+  imports: [
+    AsyncPipe,
+    EmptyState,
+    MetricCard,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    StatusBadge,
+    UiCard,
+  ],
   templateUrl: './ranking-page.html',
   styleUrl: './ranking-page.css',
 })
 export class RankingPage {
   private readonly rankingApi = inject(RankingApiService);
+  private readonly reload$ = new Subject<void>();
 
   protected readonly searchTerm = signal('');
 
-  protected readonly vm$: Observable<RankingVm> = this.rankingApi.getRanking().pipe(
-    map((ranking): RankingVm => {
-      return {
-        state: 'ready',
-        generatedAt: ranking.generatedAt,
-        completedMaps: ranking.completedMaps,
-        players: ranking.players,
-        rankedPlayerCount: ranking.rankedPlayerCount,
-        leader: ranking.leader,
-        podium: ranking.players.slice(0, 3),
-      };
-    }),
-    startWith({ state: 'loading' } satisfies RankingVm),
-    catchError(() => of({ state: 'error' } satisfies RankingVm)),
+  protected readonly vm$: Observable<RankingVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.rankingApi.getRanking().pipe(
+        map((ranking): RankingVm => {
+          if (ranking.players.length === 0) {
+            return { state: 'empty' };
+          }
+
+          return {
+            state: 'ready',
+            generatedAt: ranking.generatedAt,
+            completedMaps: ranking.completedMaps,
+            players: ranking.players,
+            rankedPlayerCount: ranking.rankedPlayerCount,
+            leader: ranking.leader,
+            podium: ranking.players.slice(0, 3),
+          };
+        }),
+        startWith({ state: 'loading' } satisfies RankingVm),
+        catchError(() => of({ state: 'error' } satisfies RankingVm)),
+      ),
+    ),
   );
+
+  protected retry(): void {
+    this.reload$.next();
+  }
 
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;

@@ -21,7 +21,7 @@ export class PrimaryNav {
   protected readonly navItems: readonly PrimaryNavItem[] = [
     { id: 'home', label: 'Home', path: '/' },
     { id: 'seasons', label: 'Temporadas', path: '/seasons/current' },
-    { id: 'ranking', label: 'Ranking', path: '/seasons/current/ranking' },
+    { id: 'ranking', label: 'Ranking', path: '/ranking' },
     { id: 'matches', label: 'Partidas', path: '/matches' },
     { id: 'maps', label: 'Mapas', path: '/maps' },
     { id: 'news', label: 'News', path: '/news' },
@@ -36,11 +36,11 @@ export class PrimaryNav {
     }
 
     if (item.id === 'seasons') {
-      return url === '/seasons' || (/^\/seasons\/[^/]+$/.test(url) && !url.endsWith('/ranking'));
+      return url === '/seasons' || url.startsWith('/seasons/');
     }
 
     if (item.id === 'ranking') {
-      return url === '/ranking' || /^\/seasons\/[^/]+\/ranking$/.test(url);
+      return url === '/ranking' || url.startsWith('/ranking/');
     }
 
     return url === item.path || url.startsWith(`${item.path}/`);

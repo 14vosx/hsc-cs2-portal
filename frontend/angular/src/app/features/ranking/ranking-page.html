@@ -2,43 +2,59 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-section-header
-          eyebrow="Ranking"
-          title="Ranking HSC CS2"
-          description="Carregando a classificação mais recente."
+        <app-page-header
+          eyebrow="Ranking Geral"
+          title="Ranking Geral HSC"
+          description="Classificação geral acumulada dos jogadores com score competitivo, impacto, consistência e volume de rodadas em todas as partidas elegíveis."
         />
-
-        <p class="ranking-page__loading">Carregando ranking...</p>
+        <app-page-state
+          type="loading"
+          title="Carregando ranking geral..."
+          message="Sincronizando a classificação dos jogadores."
+        />
       }
 
       @case ('error') {
-        <app-section-header
-          eyebrow="Ranking"
-          title="Ranking HSC CS2"
-          description="Não foi possível carregar a classificação agora."
+        <app-page-header
+          eyebrow="Ranking Geral"
+          title="Ranking Geral HSC"
+          description="Classificação geral acumulada dos jogadores com score competitivo, impacto, consistência e volume de rodadas em todas as partidas elegíveis."
         />
-
-        <app-empty-state
+        <app-page-state
+          type="error"
           title="Ranking indisponível"
-          description="Confira o servidor local com proxy ativo e tente novamente."
+          message="Não foi possível carregar a classificação geral no momento. Verifique a conexão com a API e tente novamente."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
+        />
+      }
+
+      @case ('empty') {
+        <app-page-header
+          eyebrow="Ranking Geral"
+          title="Ranking Geral HSC"
+          description="Classificação geral acumulada dos jogadores com score competitivo, impacto, consistência e volume de rodadas em todas as partidas elegíveis."
+        />
+        <app-page-state
+          type="empty"
+          title="Nenhum jogador classificado"
+          message="Não há dados de ranking geral disponíveis no momento."
         />
       }
 
       @case ('ready') {
-        <section class="ranking-page__hero">
-          <app-section-header
-            eyebrow="Ranking"
-            title="Ranking HSC CS2"
-            description="Classificação geral dos jogadores com score competitivo, impacto, consistência e volume de rodadas."
-          />
-
-          <div class="ranking-page__status">
+        <app-page-header
+          eyebrow="Ranking Geral"
+          title="Ranking Geral HSC"
+          description="Classificação geral acumulada dos jogadores com score competitivo, impacto, consistência e volume de rodadas em todas as partidas elegíveis."
+        >
+          <div meta class="ranking-page__header-status">
             <app-status-badge label="Dados sincronizados" tone="success" />
-            <span>Atualizado em {{ formatDate(vm.generatedAt) }}</span>
+            <span class="ranking-page__updated-at">Atualizado em {{ formatDate(vm.generatedAt) }}</span>
           </div>
-        </section>
+        </app-page-header>
 
-        <section class="ranking-page__metrics" aria-label="Resumo do ranking">
+        <section class="ranking-page__metrics" aria-label="Resumo do ranking geral">
           <app-metric-card label="Jogadores" [value]="vm.rankedPlayerCount" tone="ranking" />
           <app-metric-card label="Mapas finalizados" [value]="vm.completedMaps" />
           <app-metric-card
@@ -48,102 +64,126 @@
           />
         </section>
 
-        @if (vm.players.length > 0) {
-          <section class="ranking-page__podium" aria-label="Pódio top 3">
+        <section class="ranking-page__podium-section" aria-label="Pódio top 3">
+          <app-section-header
+            eyebrow="Pódio"
+            title="Top 3 da Comunidade"
+            description="Jogadores com maior pontuação acumulada na classificação geral."
+          />
+          <div class="ranking-page__podium-grid">
             @for (player of vm.podium; track player.steamId64) {
-              <app-data-card
-                eyebrow="Top {{ player.position }}"
-                [title]="player.name || ''"
-                [meta]="formatNumber(player.score, 1) + ' pts'"
-              >
-                <div class="ranking-page__podium-body">
-                  <strong>Impact {{ formatNumber(player.impactRating, 2) }}</strong>
-                  <span>{{ player.wins }}V {{ player.losses }}D</span>
-                  <p>K/D {{ formatNumber(player.kdRatio, 2) }} | ADR {{ formatNumber(player.adr, 1) }}</p>
+              <app-ui-card [variant]="player.position === 1 ? 'highlight' : 'default'">
+                <div class="ranking-page__podium-card">
+                  <header class="ranking-page__podium-card-header">
+                    <app-status-badge
+                      [label]="'Top #' + player.position"
+                      [tone]="player.position === 1 ? 'active' : 'neutral'"
+                    />
+                    <span class="ranking-page__podium-score">{{ formatNumber(player.score, 1) }} pts</span>
+                  </header>
+                  <div class="ranking-page__podium-card-body">
+                    <h3 class="ranking-page__podium-name">{{ player.name || player.steamId64 }}</h3>
+                    <strong class="ranking-page__podium-impact">Impact {{ formatNumber(player.impactRating, 2) }}</strong>
+                    <span class="ranking-page__podium-record">{{ player.wins }}V {{ player.losses }}D</span>
+                    <p class="ranking-page__podium-stats">
+                      K/D {{ formatNumber(player.kdRatio, 2) }} | ADR {{ formatNumber(player.adr, 1) }}
+                    </p>
+                  </div>
                 </div>
-              </app-data-card>
+              </app-ui-card>
             }
-          </section>
+          </div>
+        </section>
 
-          <section class="ranking-page__content">
-            <app-data-card eyebrow="Tabela" title="Classificação completa" meta="busca local">
-              <label class="ranking-page__search">
-                <span>Buscar jogador</span>
-                <input
-                  type="search"
-                  placeholder="Nome ou SteamID64"
-                  [value]="searchTerm()"
-                  (input)="updateSearch($event)"
-                />
-              </label>
+        <section class="ranking-page__table-section" aria-label="Tabela de classificação completa">
+          <app-section-header
+            eyebrow="Tabela"
+            title="Classificação Completa"
+            description="Lista ordinal de todos os jogadores qualificados com busca local rápida."
+          />
 
-              @let visiblePlayers = filteredPlayers(vm.players);
+          <div class="ranking-page__search-bar">
+            <label class="ranking-page__search-label" for="ranking-search-input">
+              <span>Buscar jogador</span>
+            </label>
+            <input
+              id="ranking-search-input"
+              type="search"
+              class="ranking-page__search-input"
+              placeholder="Nome ou SteamID64"
+              [value]="searchTerm()"
+              (input)="updateSearch($event)"
+            />
+          </div>
 
-              @if (visiblePlayers.length > 0) {
-                <div class="ranking-page__table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Pos</th>
-                        <th>Jogador</th>
-                        <th>Score</th>
-                        <th>Impact</th>
-                        <th>V/D</th>
-                        <th>K/D</th>
-                        <th>ADR</th>
-                        <th>HS%</th>
-                        <th>Win%</th>
-                        <th>Rounds</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (player of visiblePlayers; track player.steamId64) {
-                        <tr>
-                          <td>#{{ player.position }}</td>
-                          <td>
-                            <strong>{{ player.name }}</strong>
-                            <span>{{ player.steamId64 }}</span>
-                          </td>
-                          <td>{{ formatNumber(player.score, 1) }}</td>
-                          <td>{{ formatNumber(player.impactRating, 2) }}</td>
-                          <td>{{ player.wins }}/{{ player.losses }}</td>
-                          <td>{{ formatNumber(player.kdRatio, 2) }}</td>
-                          <td>{{ formatNumber(player.adr, 1) }}</td>
-                          <td>{{ formatPct(player.headshotPct) }}</td>
-                          <td>{{ formatRateAsPct(player.winRate) }}</td>
-                          <td>{{ player.roundsPlayed }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              } @else {
-                <app-empty-state
-                  title="Nenhum jogador encontrado"
-                  description="A busca atual não encontrou nome ou SteamID64 correspondente."
-                />
-              }
-            </app-data-card>
+          @let visiblePlayers = filteredPlayers(vm.players);
 
-            <app-data-card eyebrow="Como ler" title="Score e Impact">
+          @if (visiblePlayers.length > 0) {
+            <div class="ranking-page__table-wrap" tabindex="0" role="region" aria-label="Tabela de ranking navegável">
+              <table class="ranking-page__table">
+                <thead>
+                  <tr>
+                    <th scope="col">Pos</th>
+                    <th scope="col">Jogador</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">Impact</th>
+                    <th scope="col">V/D</th>
+                    <th scope="col">K/D</th>
+                    <th scope="col">ADR</th>
+                    <th scope="col">HS%</th>
+                    <th scope="col">Win%</th>
+                    <th scope="col">Rounds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (player of visiblePlayers; track player.steamId64) {
+                    <tr>
+                      <td class="ranking-page__cell-pos">#{{ player.position }}</td>
+                      <td class="ranking-page__cell-player">
+                        <strong class="ranking-page__player-name">{{ player.name || 'Sem nome' }}</strong>
+                        <span class="ranking-page__player-steamid">{{ player.steamId64 }}</span>
+                      </td>
+                      <td class="ranking-page__cell-score">{{ formatNumber(player.score, 1) }}</td>
+                      <td>{{ formatNumber(player.impactRating, 2) }}</td>
+                      <td>{{ player.wins }}/{{ player.losses }}</td>
+                      <td>{{ formatNumber(player.kdRatio, 2) }}</td>
+                      <td>{{ formatNumber(player.adr, 1) }}</td>
+                      <td>{{ formatPct(player.headshotPct) }}</td>
+                      <td>{{ formatRateAsPct(player.winRate) }}</td>
+                      <td>{{ player.roundsPlayed }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <app-empty-state
+              title="Nenhum jogador encontrado"
+              description="A busca atual não encontrou nome ou SteamID64 correspondente."
+            />
+          }
+        </section>
+
+        <section class="ranking-page__guide-section">
+          <app-ui-card variant="default">
+            <div class="ranking-page__guide-card">
+              <app-section-header
+                eyebrow="Como ler"
+                title="Score e Impact"
+              />
               <div class="ranking-page__explain">
                 <p>
-                  Score resume a classificação geral do jogador no ranking, combinando performance
-                  e consistência na amostra atual.
+                  <strong>Score:</strong> Resume a classificação geral do jogador no ranking, combinando performance
+                  e consistência em todas as partidas registradas.
                 </p>
                 <p>
-                  Impact destaca influência direta em rounds: eliminações, participação e peso das
-                  ações dentro das partidas.
+                  <strong>Impact:</strong> Destaca a influência direta em rounds: eliminações, participação e peso das
+                  ações decisivas dentro das partidas.
                 </p>
               </div>
-            </app-data-card>
-          </section>
-        } @else {
-          <app-empty-state
-            title="Ranking vazio"
-            description="A sincronização atual não retornou jogadores para classificar."
-          />
-        }
+            </div>
+          </app-ui-card>
+        </section>
       }
     }
   }
