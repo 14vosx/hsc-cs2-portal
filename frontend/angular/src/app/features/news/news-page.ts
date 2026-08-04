@@ -1,76 +1,69 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith } from 'rxjs';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { Cs2ApiService } from '../../core/api/cs2-api.service';
-import { NewsIndexItemDto } from '../../core/api/dto/news.dto';
-import { EmptyState } from '../../shared/components/empty-state/empty-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PageState } from '../../shared/components/page-state/page-state';
+import { SectionHeader } from '../../shared/components/section-header/section-header';
+import { StatusBadge } from '../../shared/components/status-badge/status-badge';
+import { NewsCard } from './components/news-card/news-card';
+import { NewsApiService } from './data-access/news-api.service';
+import type { NewsSummary } from './domain/news.model';
 
 interface NewsReadyVm {
-  state: 'ready';
-  items: NewsIndexItemDto[];
+  readonly state: 'ready';
+  readonly count: number;
+  readonly items: readonly NewsSummary[];
 }
 
-type NewsVm = NewsReadyVm | { state: 'loading' } | { state: 'error' };
+type NewsVm =
+  | NewsReadyVm
+  | { readonly state: 'loading' }
+  | { readonly state: 'empty' }
+  | { readonly state: 'error' };
 
 @Component({
   selector: 'app-news-page',
-  imports: [AsyncPipe, EmptyState, RouterLink],
+  imports: [
+    AsyncPipe,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    StatusBadge,
+    NewsCard,
+  ],
   templateUrl: './news-page.html',
   styleUrl: './news-page.css',
 })
 export class NewsPage {
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly newsApi = inject(NewsApiService);
+  private readonly reload$ = new Subject<void>();
 
-  protected readonly vm$: Observable<NewsVm> = this.cs2Api.getNewsIndex().pipe(
-    map((payload): NewsVm => ({ state: 'ready', items: this.sortedItems(payload.items) })),
-    startWith({ state: 'loading' } satisfies NewsVm),
-    catchError(() => of({ state: 'error' } satisfies NewsVm)),
+  protected readonly vm$: Observable<NewsVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.newsApi.getNewsIndex().pipe(
+        map((index): NewsVm => {
+          if (index.items.length === 0) {
+            return { state: 'empty' };
+          }
+          return {
+            state: 'ready',
+            count: index.count,
+            items: index.items,
+          };
+        }),
+        startWith({ state: 'loading' } satisfies NewsVm),
+        catchError(() => of({ state: 'error' } satisfies NewsVm))
+      )
+    )
   );
 
-  protected formatDate(value?: string | null): string {
-    if (!value) {
-      return 'Sem data';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
+  protected retry(): void {
+    this.reload$.next();
   }
 
-  protected newsLink(item: NewsIndexItemDto): string {
-    return item.slug ? `/news/${item.slug}` : '/news';
-  }
-
-  private sortedItems(items?: NewsIndexItemDto[]): NewsIndexItemDto[] {
-    return (items ?? []).filter((item) => item.title?.trim()).sort((current, next) => {
-      const nextTime = new Date(next.published_at ?? '').getTime();
-      const currentTime = new Date(current.published_at ?? '').getTime();
-
-      if (Number.isNaN(nextTime) && Number.isNaN(currentTime)) {
-        return 0;
-      }
-
-      if (Number.isNaN(nextTime)) {
-        return 1;
-      }
-
-      if (Number.isNaN(currentTime)) {
-        return -1;
-      }
-
-      return nextTime - currentTime;
-    });
+  protected publicationCountLabel(count: number): string {
+    return count === 1 ? '1 publicação' : `${count} publicações`;
   }
 }
