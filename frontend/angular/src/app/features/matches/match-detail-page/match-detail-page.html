@@ -2,28 +2,49 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-section-header
+        <app-page-header
           eyebrow="Partidas"
           title="Detalhe da partida"
           description="Carregando relatório competitivo."
         />
+        <app-page-state
+          type="loading"
+          title="Carregando partida..."
+          message="Buscando detalhes do confronto."
+        />
+      }
 
-        <p class="match-detail-page__loading">Carregando partida...</p>
+      @case ('not-found') {
+        <app-page-header
+          eyebrow="Partidas"
+          title="Partida não encontrada"
+          description="O registro solicitado não foi localizado."
+        />
+        <app-page-state
+          type="empty"
+          title="Partida não encontrada"
+          message="Não encontramos a partida solicitada no histórico competitivo."
+          actionLabel="Voltar para partidas"
+          (actionClick)="goBack()"
+        />
       }
 
       @case ('error') {
-        <app-section-header
+        <app-page-header
           eyebrow="Partidas"
           title="Partida indisponível"
           description="Não foi possível carregar o detalhe desta partida."
         />
-
-        <app-empty-state
-          title="Partida não encontrada"
-          description="Volte para a lista de partidas e tente abrir outro registro."
+        <app-page-state
+          type="error"
+          title="Erro ao carregar partida"
+          message="Não foi possível carregar as informações desta partida no momento."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
         />
-
-        <a class="match-detail-page__back" routerLink="/matches">← voltar para partidas</a>
+        <div class="match-detail-page__back-wrap">
+          <a class="match-detail-page__back" routerLink="/matches">← voltar para partidas</a>
+        </div>
       }
 
       @case ('ready') {
@@ -32,173 +53,176 @@
           <span>/</span>
           <a routerLink="/matches">Partidas</a>
           <span>/</span>
-          <strong>#{{ vm.detail.matchid }}</strong>
+          <strong>#{{ vm.detail.id }}</strong>
         </nav>
 
-        <section class="match-detail-page__hero">
-          <app-section-header
-            eyebrow="Detalhe da partida"
-            [title]="matchTitle(vm.detail)"
-            [description]="
-              'Match #' +
-              vm.detail.matchid +
-              ' · ' +
-              vm.detail.match.series_type +
-              ' · ' +
-              formatDate(vm.detail.match.end_time || vm.detail.match.start_time)
-            "
-          />
-
-          <div class="match-detail-page__actions">
+        <app-page-header
+          eyebrow="Detalhe da partida"
+          [title]="matchTitle(vm.detail)"
+          [description]="
+            'Match #' +
+            vm.detail.id +
+            ' · ' +
+            (vm.detail.match.seriesType || 'Série não informada') +
+            ' · ' +
+            formatDate(vm.detail.match.endedAt || vm.detail.match.startedAt)
+          "
+        >
+          <div meta class="match-detail-page__actions">
             <a class="match-detail-page__back" routerLink="/matches">← voltar</a>
             <a
               class="match-detail-page__api"
-              [href]="'/api/cs2/v2/match/' + vm.detail.matchid + '.json'"
+              [href]="'/api/cs2/v2/match/' + vm.detail.id + '.json'"
               target="_blank"
             >
-              /api/cs2/v2/match/{{ vm.detail.matchid }}.json
+              /api/cs2/v2/match/{{ vm.detail.id }}.json
             </a>
           </div>
+        </app-page-header>
+
+        <section class="match-detail-page__scoreboard-section">
+          <app-section-header
+            eyebrow="Placar"
+            title="Resumo da série"
+            description="Resultado global do confronto."
+          />
+          <app-ui-card variant="highlight">
+            <div class="match-detail-page__scoreboard">
+              <div
+                class="match-detail-page__team"
+                [class.match-detail-page__team--winner]="
+                  isWinner(vm.detail.match.winner, vm.detail.match.team1.name)
+                "
+              >
+                <strong>{{ vm.detail.match.team1.name || 'Time não informado' }}</strong>
+                <span>{{ vm.detail.match.team1.score ?? '—' }}</span>
+              </div>
+
+              <span class="match-detail-page__versus">x</span>
+
+              <div
+                class="match-detail-page__team"
+                [class.match-detail-page__team--winner]="
+                  isWinner(vm.detail.match.winner, vm.detail.match.team2.name)
+                "
+              >
+                <span>{{ vm.detail.match.team2.score ?? '—' }}</span>
+                <strong>{{ vm.detail.match.team2.name || 'Time não informado' }}</strong>
+              </div>
+            </div>
+
+            <div class="match-detail-page__winner">
+              <app-status-badge
+                [label]="'Vencedor: ' + winnerLabel(vm.detail.match.winner)"
+                tone="warning"
+              />
+            </div>
+          </app-ui-card>
         </section>
 
-        <app-data-card eyebrow="Placar" title="Resumo da série" meta="resultado oficial do cache">
-          <div class="match-detail-page__scoreboard">
-            <div
-              class="match-detail-page__team"
-              [class.match-detail-page__team--winner]="
-                isWinner(vm.detail.match.winner, vm.detail.match.team1_name)
-              "
-            >
-              <strong>{{ vm.detail.match.team1_name }}</strong>
-              <span>{{ vm.detail.match.team1_score }}</span>
-            </div>
-
-            <span class="match-detail-page__versus">x</span>
-
-            <div
-              class="match-detail-page__team"
-              [class.match-detail-page__team--winner]="
-                isWinner(vm.detail.match.winner, vm.detail.match.team2_name)
-              "
-            >
-              <span>{{ vm.detail.match.team2_score }}</span>
-              <strong>{{ vm.detail.match.team2_name }}</strong>
-            </div>
-          </div>
-
-          <div class="match-detail-page__winner">
-            <app-status-badge
-              [label]="'Vencedor: ' + winnerLabel(vm.detail.match.winner)"
-              tone="warning"
-            />
-          </div>
-        </app-data-card>
-
         <section class="match-detail-page__metrics" aria-label="Resumo da partida">
-          <app-metric-card label="Série" [value]="vm.detail.match.series_type" tone="ranking" />
-          <app-metric-card label="Placar" [value]="formatSeriesScore(vm.detail)" tone="success" />
+          <app-metric-card
+            label="Série"
+            [value]="vm.detail.match.seriesType || 'Série não informada'"
+            tone="ranking"
+          />
+          <app-metric-card
+            label="Placar"
+            [value]="formatSeriesScore(vm.detail.match)"
+            tone="success"
+          />
           <app-metric-card label="Mapas" [value]="vm.detail.computed.mapsPlayed" />
           <app-metric-card label="Best of" [value]="vm.detail.computed.bestOf" />
         </section>
 
-        <app-data-card eyebrow="Mapas" title="Mapas jogados" meta="navegação cruzada">
-          <div class="match-detail-page__maps">
-            @for (mapDetail of vm.detail.maps; track mapDetail.mapnumber) {
-              <a class="match-detail-page__map-link" [routerLink]="['/maps', mapDetail.mapname]">
-                <span>{{ mapDetail.mapname }}</span>
-                <strong>{{ formatMapScore(mapDetail) }}</strong>
-                <small>Vencedor: {{ winnerLabel(mapDetail.winner) }}</small>
-              </a>
-            }
-          </div>
-        </app-data-card>
+        @if (vm.detail.maps.length > 0) {
+          <section class="match-detail-page__maps-section">
+            <app-section-header
+              eyebrow="Mapas"
+              title="Mapas jogados"
+              description="Navegação cruzada das estatísticas por mapa."
+            />
+            <app-ui-card variant="default">
+              <div class="match-detail-page__maps-grid">
+                @for (mapDetail of vm.detail.maps; track $index) {
+                  @if (mapDetail.name) {
+                    <a class="match-detail-page__map-link" [routerLink]="['/maps', mapDetail.name]">
+                      <span>{{ mapDetail.name }}</span>
+                      <strong>{{ formatMapScore(mapDetail) }}</strong>
+                      <small>Vencedor: {{ winnerLabel(mapDetail.winner) }}</small>
+                    </a>
+                  } @else {
+                    <div class="match-detail-page__map-span">
+                      <span>Mapa sem nome</span>
+                      <strong>{{ formatMapScore(mapDetail) }}</strong>
+                      <small>Vencedor: {{ winnerLabel(mapDetail.winner) }}</small>
+                    </div>
+                  }
+                }
+              </div>
+            </app-ui-card>
+          </section>
+        }
 
-        @for (mapDetail of vm.detail.maps; track mapDetail.mapnumber) {
-          <app-data-card
-            eyebrow="Scoreboard"
-            [title]="mapDetail.mapname + ' · ' + formatMapScore(mapDetail)"
-            [meta]="
-              'Mapa #' +
-              mapDetail.mapnumber +
-              ' · ' +
-              formatDate(mapDetail.end_time || mapDetail.start_time)
-            "
-          >
-            <div class="match-detail-page__map-header">
-              <app-status-badge
-                [label]="'Vencedor do mapa: ' + winnerLabel(mapDetail.winner)"
-                tone="warning"
-              />
-              <a [routerLink]="['/maps', mapDetail.mapname]">Ver detalhe do mapa →</a>
-            </div>
+        @for (mapDetail of vm.detail.maps; track $index) {
+          <section class="match-detail-page__map-scoreboard">
+            <app-section-header
+              eyebrow="Scoreboard"
+              [title]="(mapDetail.name || 'Mapa') + ' · ' + formatMapScore(mapDetail)"
+              [description]="
+                'Mapa #' +
+                (mapDetail.mapNumber ?? '—') +
+                ' · ' +
+                formatDate(mapDetail.endedAt || mapDetail.startedAt)
+              "
+            />
 
-            @for (team of mapDetail.teams; track team.team) {
-              <section class="match-detail-page__team-section">
-                <header>
-                  <h3>{{ team.team }}</h3>
-                  <span
-                    >{{ team.teamTotals.kills }} K · {{ team.teamTotals.deaths }} D ·
-                    {{ team.teamTotals.damage }} DMG</span
-                  >
-                </header>
+            <app-ui-card variant="default">
+              <div class="match-detail-page__map-header">
+                <app-status-badge
+                  [label]="'Vencedor do mapa: ' + winnerLabel(mapDetail.winner)"
+                  tone="warning"
+                />
+                @if (mapDetail.name) {
+                  <a [routerLink]="['/maps', mapDetail.name]">Ver detalhe do mapa →</a>
+                }
+              </div>
 
-                <div class="match-detail-page__table-wrap">
-                  <table class="match-detail-page__table">
-                    <thead>
-                      <tr>
-                        <th>Player</th>
-                        <th>K</th>
-                        <th>D</th>
-                        <th>A</th>
-                        <th>K/D</th>
-                        <th>ADR</th>
-                        <th>DMG</th>
-                        <th>HS%</th>
-                        <th>Entry</th>
-                        <th>UD</th>
-                        <th>Flash</th>
-                        <th>SteamID64</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (player of sortedPlayers(team.players); track player.steamid64) {
-                        <tr>
-                          <td>
-                            <strong>{{ player.name }}</strong>
-                          </td>
-                          <td>{{ player.kills }}</td>
-                          <td>{{ player.deaths }}</td>
-                          <td>{{ player.assists }}</td>
-                          <td>{{ formatKd(player) }}</td>
-                          <td>{{ formatAdr(player, mapDetail) }}</td>
-                          <td>{{ player.damage }}</td>
-                          <td>{{ formatHeadshotPct(player) }}</td>
-                          <td>{{ formatEntry(player) }}</td>
-                          <td>{{ player.utility_damage }}</td>
-                          <td>{{ player.enemies_flashed }}</td>
-                          <td class="match-detail-page__steamid">{{ player.steamid64 }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            }
-          </app-data-card>
+              @for (team of mapDetail.teams; track team.team) {
+                <section class="match-detail-page__team-section">
+                  <header class="match-detail-page__team-header">
+                    <h3>{{ team.team || 'Time não informado' }}</h3>
+                    <span class="match-detail-page__team-totals">
+                      {{ team.teamTotals.kills }} K · {{ team.teamTotals.deaths }} D ·
+                      {{ team.teamTotals.damage }} DMG
+                    </span>
+                  </header>
+
+                  <app-match-player-table
+                    [players]="team.players"
+                    [roundCount]="roundCount(mapDetail)"
+                  />
+                </section>
+              }
+            </app-ui-card>
+          </section>
         }
 
         @if (limitations(vm.detail).length > 0) {
-          <app-data-card
-            eyebrow="Notas"
-            title="Limitações do relatório"
-            meta="schema MatchZy atual"
-          >
-            <ul class="match-detail-page__notes">
-              @for (limitation of limitations(vm.detail); track limitation) {
-                <li>{{ limitation }}</li>
-              }
-            </ul>
-          </app-data-card>
+          <section class="match-detail-page__notes-section">
+            <app-section-header
+              eyebrow="Notas"
+              title="Limitações do relatório"
+              description="Observações técnicas do contrato Zy."
+            />
+            <app-ui-card variant="default">
+              <ul class="match-detail-page__notes">
+                @for (limitation of limitations(vm.detail); track limitation) {
+                  <li>{{ limitation }}</li>
+                }
+              </ul>
+            </app-ui-card>
+          </section>
         }
       }
     }

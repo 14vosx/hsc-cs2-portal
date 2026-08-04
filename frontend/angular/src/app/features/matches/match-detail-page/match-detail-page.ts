@@ -1,57 +1,98 @@
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { Cs2ApiService } from '../../../core/api/cs2-api.service';
-import {
-  MatchDetailDto,
-  MatchDetailMapDto,
-  MatchDetailPlayerDto,
-} from '../../../core/api/dto/match-detail.dto';
-import { DataCard } from '../../../shared/components/data-card/data-card';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import { UiCard } from '../../../shared/components/card/card';
 import { MetricCard } from '../../../shared/components/metric-card/metric-card';
+import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { PageState } from '../../../shared/components/page-state/page-state';
 import { SectionHeader } from '../../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
+import { MatchesApiService } from '../data-access/matches-api.service';
+import type { MatchDetail, MatchDetailMap, MatchHeader } from '../domain/match.model';
+import { MatchPlayerTable } from '../match-player-table/match-player-table';
 
 interface MatchDetailReadyVm {
   state: 'ready';
-  detail: MatchDetailDto;
+  detail: MatchDetail;
 }
 
-type MatchDetailVm = MatchDetailReadyVm | { state: 'loading' } | { state: 'error' };
+type MatchDetailVm =
+  | MatchDetailReadyVm
+  | { state: 'loading' }
+  | { state: 'not-found' }
+  | { state: 'error' };
 
 @Component({
   selector: 'app-match-detail-page',
-  imports: [AsyncPipe, RouterLink, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
+  imports: [
+    AsyncPipe,
+    RouterLink,
+    MetricCard,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    StatusBadge,
+    UiCard,
+    MatchPlayerTable,
+  ],
   templateUrl: './match-detail-page.html',
   styleUrl: './match-detail-page.css',
 })
 export class MatchDetailPage {
   private readonly route = inject(ActivatedRoute);
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly router = inject(Router);
+  private readonly matchesApi = inject(MatchesApiService);
+  private readonly reload$ = new Subject<void>();
 
-  protected readonly vm$: Observable<MatchDetailVm> = this.route.paramMap.pipe(
-    map((params) => params.get('matchId') ?? ''),
-    switchMap((matchId) => {
-      if (!matchId) {
-        return of({ state: 'error' } satisfies MatchDetailVm);
-      }
+  protected readonly vm$: Observable<MatchDetailVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.route.paramMap.pipe(
+        map((params) => params.get('matchId') ?? ''),
+        switchMap((matchIdRaw) => {
+          const trimmed = matchIdRaw.trim();
+          if (!trimmed || !/^\d+$/.test(trimmed)) {
+            return of({ state: 'not-found' } satisfies MatchDetailVm);
+          }
 
-      return this.cs2Api.getMatch(matchId).pipe(
-        map((detail) => ({ state: 'ready', detail }) satisfies MatchDetailVm),
-        startWith({ state: 'loading' } satisfies MatchDetailVm),
-        catchError(() => of({ state: 'error' } satisfies MatchDetailVm)),
-      );
-    }),
+          const matchId = Number(trimmed);
+          if (!Number.isInteger(matchId) || matchId <= 0) {
+            return of({ state: 'not-found' } satisfies MatchDetailVm);
+          }
+
+          return this.matchesApi.getMatch(matchId).pipe(
+            map((detail) => ({ state: 'ready', detail }) satisfies MatchDetailVm),
+            startWith({ state: 'loading' } satisfies MatchDetailVm),
+            catchError((err: unknown) => {
+              if (err instanceof HttpErrorResponse && err.status === 404) {
+                return of({ state: 'not-found' } satisfies MatchDetailVm);
+              }
+              return of({ state: 'error' } satisfies MatchDetailVm);
+            })
+          );
+        })
+      )
+    )
   );
 
-  protected matchTitle(detail: MatchDetailDto): string {
-    return `${detail.match.team1_name} vs ${detail.match.team2_name}`;
+  protected retry(): void {
+    this.reload$.next();
   }
 
-  protected formatDate(value?: string): string {
+  protected goBack(): void {
+    this.router.navigate(['/matches']);
+  }
+
+  protected matchTitle(detail: MatchDetail): string {
+    const t1 = detail.match.team1.name || 'Time não informado';
+    const t2 = detail.match.team2.name || 'Time não informado';
+    return `${t1} vs ${t2}`;
+  }
+
+  protected formatDate(value?: string | null): string {
     if (!value) {
       return 'Sem data disponível';
     }
@@ -71,71 +112,43 @@ export class MatchDetailPage {
     }).format(date);
   }
 
-  protected formatSeriesScore(detail: MatchDetailDto): string {
-    return `${detail.match.team1_score} x ${detail.match.team2_score}`;
+  protected formatSeriesScore(header: MatchHeader): string {
+    const t1 = header.team1.score;
+    const t2 = header.team2.score;
+    if (t1 !== null && t2 !== null) {
+      return `${t1} x ${t2}`;
+    }
+    return '— x —';
   }
 
-  protected formatMapScore(mapDetail: MatchDetailMapDto): string {
-    return `${mapDetail.team1_score} x ${mapDetail.team2_score}`;
+  protected formatMapScore(mapDetail: MatchDetailMap): string {
+    const t1 = mapDetail.team1Score;
+    const t2 = mapDetail.team2Score;
+    if (t1 !== null && t2 !== null) {
+      return `${t1} x ${t2}`;
+    }
+    return '— x —';
   }
 
-  protected winnerLabel(value?: string): string {
+  protected winnerLabel(value?: string | null): string {
     return value || 'Sem vencedor';
   }
 
-  protected isWinner(winner: string, teamName: string): boolean {
+  protected isWinner(winner: string | null, teamName: string | null): boolean {
+    if (!winner || !teamName) {
+      return false;
+    }
     return winner === teamName;
   }
 
-  protected roundCount(mapDetail: MatchDetailMapDto): number {
-    return mapDetail.team1_score + mapDetail.team2_score;
-  }
-
-  protected formatAdr(player: MatchDetailPlayerDto, mapDetail: MatchDetailMapDto): string {
-    const rounds = this.roundCount(mapDetail);
-
-    if (rounds <= 0) {
-      return '0.0';
+  protected roundCount(mapDetail: MatchDetailMap): number {
+    if (mapDetail.team1Score !== null && mapDetail.team2Score !== null) {
+      return mapDetail.team1Score + mapDetail.team2Score;
     }
-
-    return (player.damage / rounds).toFixed(1);
+    return 0;
   }
 
-  protected formatKd(player: MatchDetailPlayerDto): string {
-    if (player.deaths <= 0) {
-      return player.kills.toFixed(2);
-    }
-
-    return (player.kills / player.deaths).toFixed(2);
-  }
-
-  protected formatHeadshotPct(player: MatchDetailPlayerDto): string {
-    if (player.kills <= 0) {
-      return '0%';
-    }
-
-    return `${Math.round((player.head_shot_kills / player.kills) * 100)}%`;
-  }
-
-  protected formatEntry(player: MatchDetailPlayerDto): string {
-    if (player.entry_count <= 0) {
-      return '-';
-    }
-
-    return `${player.entry_wins}/${player.entry_count}`;
-  }
-
-  protected sortedPlayers(players: MatchDetailPlayerDto[]): MatchDetailPlayerDto[] {
-    return [...players].sort((current, next) => {
-      if (next.kills !== current.kills) {
-        return next.kills - current.kills;
-      }
-
-      return next.damage - current.damage;
-    });
-  }
-
-  protected limitations(detail: MatchDetailDto): string[] {
-    return detail.notes?.limitations ?? [];
+  protected limitations(detail: MatchDetail): readonly string[] {
+    return detail.limitations ?? [];
   }
 }

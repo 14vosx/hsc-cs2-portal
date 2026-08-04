@@ -1,0 +1,40 @@
+<div class="table-wrap" tabindex="0" role="region" aria-label="Tabela de estatísticas dos jogadores">
+  <table class="player-table">
+    <thead>
+      <tr>
+        <th scope="col">Player</th>
+        <th scope="col">K</th>
+        <th scope="col">D</th>
+        <th scope="col">A</th>
+        <th scope="col">K/D</th>
+        <th scope="col">ADR</th>
+        <th scope="col">DMG</th>
+        <th scope="col">HS%</th>
+        <th scope="col">Entry</th>
+        <th scope="col">UD</th>
+        <th scope="col">Flash</th>
+        <th scope="col">SteamID64</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (player of sortedPlayers(); track $index) {
+        <tr>
+          <td class="cell-player">
+            <strong>{{ nameLabel(player.name) }}</strong>
+          </td>
+          <td>{{ player.kills }}</td>
+          <td>{{ player.deaths }}</td>
+          <td>{{ player.assists }}</td>
+          <td>{{ formatKd(player) }}</td>
+          <td>{{ formatAdr(player) }}</td>
+          <td>{{ player.damage }}</td>
+          <td>{{ formatHeadshotPct(player) }}</td>
+          <td>{{ formatEntry(player) }}</td>
+          <td>{{ player.utilityDamage }}</td>
+          <td>{{ player.enemiesFlashed }}</td>
+          <td class="cell-steamid">{{ steamIdLabel(player.steamId64) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,59 @@
+<article
+  class="match-card"
+  [class.match-card--highlight]="highlight()"
+  [style.--match-map-bg]="mapBackgroundImage()"
+>
+  <header class="match-card__meta">
+    <span class="match-card__id">#{{ match().id }}</span>
+    <span class="match-card__series-type">{{ seriesTypeLabel() }}</span>
+    <span class="match-card__date">{{ endedAtLabel() }}</span>
+    <span class="match-card__map-name">{{ primaryMapName() }}</span>
+  </header>
+
+  <div class="match-card__main">
+    <div
+      class="match-card__team match-card__team--1"
+      [class.match-card__team--winner]="winnerSide() === 'team1'"
+    >
+      <strong>{{ team1Name() }}</strong>
+    </div>
+
+    <div class="match-card__score">
+      <strong>{{ primaryScore() }}</strong>
+      <span>{{ primaryMapName() }}</span>
+    </div>
+
+    <div
+      class="match-card__team match-card__team--2"
+      [class.match-card__team--winner]="winnerSide() === 'team2'"
+    >
+      <strong>{{ team2Name() }}</strong>
+    </div>
+  </div>
+
+  <footer class="match-card__footer">
+    <p class="match-card__winner">
+      Vencedor: <strong>{{ winnerLabel() }}</strong>
+    </p>
+    <p class="match-card__series-score">Série {{ seriesScore() }}</p>
+    <a class="match-card__cta" [routerLink]="['/matches', match().id]">
+      {{ ctaText() }}
+    </a>
+  </footer>
+
+  @if (isSeriesMatch()) {
+    <div class="match-card__maps" aria-label="Mapas jogados">
+      @for (mapItem of match().maps; track $index) {
+        @if (mapItem.name) {
+          <a [routerLink]="['/maps', mapItem.name]">
+            {{ mapItem.name }} · {{ mapItem.team1Score ?? '—' }} x {{ mapItem.team2Score ?? '—' }}
+          </a>
+        } @else {
+          <span class="match-card__map-span">
+            Mapa · {{ mapItem.team1Score ?? '—' }} x {{ mapItem.team2Score ?? '—' }}
+          </span>
+        }
+      }
+    </div>
+  }
+</article>

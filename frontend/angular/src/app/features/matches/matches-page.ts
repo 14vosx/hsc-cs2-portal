@@ -1,79 +1,92 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith } from 'rxjs';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { Cs2ApiService } from '../../core/api/cs2-api.service';
-import { MatchMapDto, MatchSummaryDto } from '../../core/api/dto/matches.dto';
-import { DataCard } from '../../shared/components/data-card/data-card';
-import { EmptyState } from '../../shared/components/empty-state/empty-state';
+import { UiCard } from '../../shared/components/card/card';
 import { MetricCard } from '../../shared/components/metric-card/metric-card';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { PageState } from '../../shared/components/page-state/page-state';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
+import { MatchesApiService } from './data-access/matches-api.service';
+import type { MatchSummary } from './domain/match.model';
+import { MatchScoreCard } from './match-score-card/match-score-card';
 
 interface MatchesReadyVm {
   state: 'ready';
   generatedAt: string;
-  matches: MatchSummaryDto[];
-  mapOptions: string[];
-  latestMatch?: MatchSummaryDto;
+  matches: readonly MatchSummary[];
+  mapOptions: readonly string[];
+  latestMatch?: MatchSummary;
   totalMapsPlayed: number;
 }
 
-type MatchesVm = MatchesReadyVm | { state: 'loading' } | { state: 'error' };
+type MatchesVm =
+  | MatchesReadyVm
+  | { state: 'loading' }
+  | { state: 'error' }
+  | { state: 'empty' };
 
 @Component({
   selector: 'app-matches-page',
-  imports: [AsyncPipe, RouterLink, DataCard, EmptyState, MetricCard, SectionHeader, StatusBadge],
+  imports: [
+    AsyncPipe,
+    MetricCard,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    StatusBadge,
+    UiCard,
+    MatchScoreCard,
+  ],
   templateUrl: './matches-page.html',
   styleUrl: './matches-page.css',
 })
 export class MatchesPage {
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly matchesApi = inject(MatchesApiService);
+  private readonly reload$ = new Subject<void>();
 
   protected readonly searchTerm = signal('');
   protected readonly selectedMap = signal('');
 
-  private readonly knownMapImages = new Set([
-    'de_ancient',
-    'de_anubis',
-    'de_dust2',
-    'de_inferno',
-    'de_mirage',
-    'de_nuke',
-    'de_overpass',
-    'de_train',
-  ]);
+  protected readonly vm$: Observable<MatchesVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.matchesApi.getMatches().pipe(
+        map((index): MatchesVm => {
+          if (index.matches.length === 0) {
+            return { state: 'empty' };
+          }
 
-  protected readonly vm$: Observable<MatchesVm> = this.cs2Api.getMatches().pipe(
-    map((payload): MatchesVm => {
-      const matches = [...(payload.matches ?? [])].sort((current, next) => {
-        const nextTime = this.matchTimestamp(next);
-        const currentTime = this.matchTimestamp(current);
+          const mapOptions = Array.from(
+            new Set(
+              index.matches
+                .flatMap((m) => m.maps.map((map) => map.name))
+                .filter((name): name is string => typeof name === 'string' && name.trim() !== '')
+            )
+          ).sort((a, b) => a.localeCompare(b));
 
-        if (nextTime !== currentTime) {
-          return nextTime - currentTime;
-        }
-
-        return next.matchid - current.matchid;
-      });
-
-      const mapOptions = Array.from(
-        new Set(matches.flatMap((match) => match.maps.map((map) => map.mapname)).filter(Boolean)),
-      ).sort((a, b) => a.localeCompare(b));
-
-      return {
-        state: 'ready',
-        generatedAt: payload.generatedAt,
-        matches,
-        mapOptions,
-        latestMatch: matches[0],
-        totalMapsPlayed: matches.reduce((total, match) => total + match.maps.length, 0),
-      };
-    }),
-    startWith({ state: 'loading' } satisfies MatchesVm),
-    catchError(() => of({ state: 'error' } satisfies MatchesVm)),
+          return {
+            state: 'ready',
+            generatedAt: index.generatedAt,
+            matches: index.matches,
+            mapOptions,
+            latestMatch: index.matches[0],
+            totalMapsPlayed: index.matches.reduce(
+              (total, match) => total + match.maps.length,
+              0
+            ),
+          };
+        }),
+        startWith({ state: 'loading' } satisfies MatchesVm),
+        catchError(() => of({ state: 'error' } satisfies MatchesVm))
+      )
+    )
   );
+
+  protected retry(): void {
+    this.reload$.next();
+  }
 
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -85,13 +98,14 @@ export class MatchesPage {
     this.selectedMap.set(select.value);
   }
 
-  protected filteredMatches(matches: MatchSummaryDto[]): MatchSummaryDto[] {
+  protected filteredMatches(matches: readonly MatchSummary[]): readonly MatchSummary[] {
     const term = this.searchTerm().trim().toLowerCase();
     const mapFilter = this.selectedMap();
 
     return matches.filter((match) => {
       const matchesMap =
-        !mapFilter || match.maps.some((map) => map.mapname.toLowerCase() === mapFilter.toLowerCase());
+        !mapFilter ||
+        match.maps.some((map) => (map.name ?? '').toLowerCase() === mapFilter.toLowerCase());
 
       if (!matchesMap) {
         return false;
@@ -102,12 +116,12 @@ export class MatchesPage {
       }
 
       const searchable = [
-        String(match.matchid),
-        match.team1_name,
-        match.team2_name,
-        match.winner,
-        match.series_type,
-        ...match.maps.map((map) => map.mapname),
+        String(match.id),
+        match.team1.name ?? '',
+        match.team2.name ?? '',
+        match.winner ?? '',
+        match.seriesType ?? '',
+        ...match.maps.map((map) => map.name ?? ''),
       ]
         .join(' ')
         .toLowerCase();
@@ -116,7 +130,7 @@ export class MatchesPage {
     });
   }
 
-  protected formatDate(value?: string): string {
+  protected formatDate(value?: string | null): string {
     if (!value) {
       return 'Sem data disponível';
     }
@@ -134,75 +148,5 @@ export class MatchesPage {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
-  }
-
-  protected formatScore(match: MatchSummaryDto): string {
-    return `${match.team1_score} x ${match.team2_score}`;
-  }
-
-  protected primaryMap(match: MatchSummaryDto): MatchMapDto | undefined {
-    return match.maps[0];
-  }
-
-  protected formatPrimaryScore(match: MatchSummaryDto): string {
-    const map = this.primaryMap(match);
-
-    if (map) {
-      return `${map.team1_score} x ${map.team2_score}`;
-    }
-
-    return this.formatScore(match);
-  }
-
-  protected primaryMapName(match: MatchSummaryDto): string {
-    return this.primaryMap(match)?.mapname || 'Mapa não informado';
-  }
-
-  protected mapBackgroundImage(match: MatchSummaryDto): string {
-    const mapName = this.primaryMap(match)?.mapname;
-
-    if (!mapName || !this.knownMapImages.has(mapName)) {
-      return 'none';
-    }
-
-    return `url("map-images/${mapName}.png")`;
-  }
-
-  protected formatSeriesScore(match: MatchSummaryDto): string {
-    return `${match.team1_score} x ${match.team2_score}`;
-  }
-
-  protected matchEndedAt(match: MatchSummaryDto): string {
-    return match.end_time || match.start_time;
-  }
-
-  protected winnerLabel(match: MatchSummaryDto): string {
-    return match.winner || 'Sem vencedor';
-  }
-
-  protected winnerSide(match: MatchSummaryDto): 'team1' | 'team2' | 'unknown' {
-    if (match.winner === match.team1_name) {
-      return 'team1';
-    }
-
-    if (match.winner === match.team2_name) {
-      return 'team2';
-    }
-
-    return 'unknown';
-  }
-
-  protected isSeriesMatch(match: MatchSummaryDto): boolean {
-    return match.maps.length > 1 || match.series_type !== 'BO1';
-  }
-
-  private matchTimestamp(match: MatchSummaryDto): number {
-    const timestamp = new Date(match.end_time || match.start_time).getTime();
-
-    if (Number.isNaN(timestamp)) {
-      return match.matchid;
-    }
-
-    return timestamp;
   }
 }
