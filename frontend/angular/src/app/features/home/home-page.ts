@@ -9,7 +9,7 @@ import { PageState } from '../../shared/components/page-state/page-state';
 import { SectionHeader } from '../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { HomeApiService } from './data-access/home-api.service';
-import { HomeEditorialItem, HomeSeasonState } from './domain/home-season.model';
+import { HomeEditorialItem, HomeSeasonContextMode, HomeSeasonState } from './domain/home-season.model';
 
 @Component({
   selector: 'app-home-page',
@@ -35,4 +35,12 @@ export class HomePage {
   protected readonly editorialHighlight$: Observable<HomeEditorialItem | null> = this.homeApi
     .getEditorialHighlight()
     .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+  protected seasonOverviewLink(seasonSlug: string, contextMode: HomeSeasonContextMode): string {
+    return contextMode === 'active' ? '/seasons/current' : `/seasons/${seasonSlug}`;
+  }
+
+  protected seasonRankingLink(seasonSlug: string, contextMode: HomeSeasonContextMode): string {
+    return contextMode === 'active' ? '/seasons/current/ranking' : `/seasons/${seasonSlug}/ranking`;
+  }
 }

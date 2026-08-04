@@ -26,6 +26,7 @@ describe('PrimaryNav', () => {
       providers: [
         provideRouter([
           { path: '', component: TestHostComponent },
+          { path: 'seasons', component: TestHostComponent },
           { path: 'ranking', component: TestHostComponent },
           { path: 'seasons/current', component: TestHostComponent },
           { path: 'seasons/s2-2026', component: TestHostComponent },
@@ -73,11 +74,11 @@ describe('PrimaryNav', () => {
     expect(rankingLink.classList.contains('primary-nav__link--active')).toBe(true);
   });
 
-  it('/seasons/current ativa Temporadas', async () => {
-    await router.navigateByUrl('/seasons/current');
+  it('/seasons ativa Temporadas', async () => {
+    await router.navigateByUrl('/seasons');
     fixture.detectChanges();
 
-    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons/current"]');
+    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons"]');
     expect(seasonsLink.classList.contains('primary-nav__link--active')).toBe(true);
   });
 
@@ -85,7 +86,7 @@ describe('PrimaryNav', () => {
     await router.navigateByUrl('/seasons/s2-2026/ranking');
     fixture.detectChanges();
 
-    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons/current"]');
+    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons"]');
     const rankingLink = fixture.nativeElement.querySelector('a[href="/ranking"]');
     expect(seasonsLink.classList.contains('primary-nav__link--active')).toBe(true);
     expect(rankingLink.classList.contains('primary-nav__link--active')).toBe(false);
@@ -95,7 +96,7 @@ describe('PrimaryNav', () => {
     await router.navigateByUrl('/seasons/s2-2026/matches');
     fixture.detectChanges();
 
-    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons/current"]');
+    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons"]');
     const matchesLink = fixture.nativeElement.querySelector('a[href="/matches"]');
     expect(seasonsLink.classList.contains('primary-nav__link--active')).toBe(true);
     expect(matchesLink.classList.contains('primary-nav__link--active')).toBe(false);
@@ -105,7 +106,7 @@ describe('PrimaryNav', () => {
     await router.navigateByUrl('/seasons/s2-2026/maps');
     fixture.detectChanges();
 
-    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons/current"]');
+    const seasonsLink = fixture.nativeElement.querySelector('a[href="/seasons"]');
     const mapsLink = fixture.nativeElement.querySelector('a[href="/maps"]');
     expect(seasonsLink.classList.contains('primary-nav__link--active')).toBe(true);
     expect(mapsLink.classList.contains('primary-nav__link--active')).toBe(false);

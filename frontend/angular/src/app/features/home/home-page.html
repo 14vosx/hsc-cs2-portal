@@ -6,10 +6,10 @@
     description="Acompanhe temporadas, classificações, estatísticas de partidas e desempenho dos jogadores no circuito oficial HSC Counter-Strike 2."
   >
     <div actions class="home-page__hero-actions">
-      <a routerLink="/seasons/current/ranking" class="home-page__btn home-page__btn--primary">
+      <a routerLink="/ranking" class="home-page__btn home-page__btn--primary">
         Ver Ranking
       </a>
-      <a routerLink="/seasons/current" class="home-page__btn home-page__btn--secondary">
+      <a routerLink="/seasons" class="home-page__btn home-page__btn--secondary">
         Ver Temporadas
       </a>
     </div>
@@ -69,13 +69,19 @@
                       Pontos: <strong>{{ season.leader.score }}</strong> | Vitórias: <strong>{{ season.leader.wins }}</strong> | K/D: <strong>{{ season.leader.kdRatio }}</strong>
                     </span>
                   </div>
-                  <a [routerLink]="['/seasons', season.seasonSlug, 'ranking']" class="home-page__btn home-page__btn--small">
-                    Ver Tabela Completa
-                  </a>
                 </div>
               } @else {
                 <p class="home-page__empty-leader">Nenhum jogador classificado nesta temporada até o momento.</p>
               }
+
+              <div class="home-page__season-actions">
+                <a [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)" class="home-page__btn home-page__btn--small">
+                  Ver temporada
+                </a>
+                <a [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)" class="home-page__btn home-page__btn--small">
+                  Ver ranking da Season
+                </a>
+              </div>
             </div>
           </app-ui-card>
         }
@@ -120,8 +126,11 @@
               />
 
               <div class="home-page__season-actions">
-                <a [routerLink]="['/seasons', state.seasonSlug]" class="home-page__btn home-page__btn--secondary">
-                  Ver Temporada
+                <a [routerLink]="seasonOverviewLink(state.seasonSlug, state.contextMode)" class="home-page__btn home-page__btn--small">
+                  Ver temporada
+                </a>
+                <a routerLink="/seasons" class="home-page__btn home-page__btn--secondary">
+                  Ver todas as temporadas
                 </a>
               </div>
             </div>
@@ -136,7 +145,7 @@
     <app-section-header title="Áreas do Portal" subtitle="Acesse os módulos principais da plataforma competitiva" />
 
     <div class="home-page__shortcuts-grid">
-      <a routerLink="/seasons/current/ranking" class="home-page__card-link">
+      <a routerLink="/ranking" class="home-page__card-link">
         <app-ui-card variant="interactive">
           <div class="home-page__shortcut">
             <h3 class="home-page__shortcut-title">Ranking Geral</h3>
@@ -146,7 +155,7 @@
         </app-ui-card>
       </a>
 
-      <a routerLink="/seasons/current" class="home-page__card-link">
+      <a routerLink="/seasons" class="home-page__card-link">
         <app-ui-card variant="interactive">
           <div class="home-page__shortcut">
             <h3 class="home-page__shortcut-title">Temporadas</h3>
