@@ -1,0 +1,38 @@
+<div class="table-wrap" tabindex="0" role="region" aria-label="Tabela de partidas recentes do mapa">
+  <table class="recent-matches-table">
+    <thead>
+      <tr>
+        <th scope="col">Encerrado em</th>
+        <th scope="col">Match</th>
+        <th scope="col">Série</th>
+        <th scope="col">Times</th>
+        <th scope="col">Placar da série</th>
+        <th scope="col">Número do mapa</th>
+        <th scope="col">Placar do mapa</th>
+        <th scope="col">Vencedor</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (match of recentMatches(); track match.matchId) {
+        <tr>
+          <td>{{ formatDate(match.endedAt) }}</td>
+          <td>
+            <a class="match-link" [routerLink]="['/matches', match.matchId]">
+              #{{ match.matchId }}
+            </a>
+          </td>
+          <td>{{ seriesTypeLabel(match.seriesType) }}</td>
+          <td>
+            <span [class.team--winner]="isTeam1Winner(match)">{{ team1Name(match) }}</span>
+            <span class="versus"> vs </span>
+            <span [class.team--winner]="isTeam2Winner(match)">{{ team2Name(match) }}</span>
+          </td>
+          <td>{{ seriesScoreLabel(match) }}</td>
+          <td>{{ mapNumberLabel(match.mapNumber) }}</td>
+          <td>{{ mapScoreLabel(match) }}</td>
+          <td>{{ winnerLabel(match.winner) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
