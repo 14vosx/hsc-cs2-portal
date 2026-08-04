@@ -1,45 +1,97 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ViewEncapsulation, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { Cs2ApiService } from '../../../core/api/cs2-api.service';
-import {
-  SeasonMatchesDto,
-  SeasonMatchMapDto,
-  SeasonMatchSummaryDto,
-} from '../../../core/api/dto/season-matches.dto';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { formatInteger, seasonCoverImage } from '../season-ui';
-import { resolveSeasonContext } from '../season-context';
-
+import { MatchScoreCard } from '../../matches/match-score-card/match-score-card';
+import { MetricCard } from '../../../shared/components/metric-card/metric-card';
+import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { PageState } from '../../../shared/components/page-state/page-state';
+import { SectionHeader } from '../../../shared/components/section-header/section-header';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
+import { StatusBadge, type StatusBadgeVariant } from '../../../shared/components/status-badge/status-badge';
+import { SeasonMatchesApiService } from '../data-access/season-matches-api.service';
+import type { SeasonMatches } from '../domain/season-matches.model';
+
+interface SeasonMatchesReadyVm {
+  state: 'ready';
+  data: SeasonMatches;
+}
+
+interface SeasonMatchesEmptyVm {
+  state: 'empty';
+  data: SeasonMatches;
+}
 
 type SeasonMatchesVm =
-  | ({ state: 'ready'; matches: SeasonMatchSummaryDto[] } & SeasonMatchesDto)
+  | SeasonMatchesReadyVm
+  | SeasonMatchesEmptyVm
   | { state: 'loading' }
+  | { state: 'season-unavailable' }
   | { state: 'error' };
 
 @Component({
   selector: 'app-season-matches-page',
-  imports: [AsyncPipe, EmptyState, RouterLink, SeasonTabs],
+  imports: [
+    AsyncPipe,
+    RouterLink,
+    MetricCard,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    SeasonTabs,
+    StatusBadge,
+    MatchScoreCard,
+  ],
   templateUrl: './season-matches-page.html',
   styleUrl: './season-matches-page.css',
-  encapsulation: ViewEncapsulation.None,
 })
 export class SeasonMatchesPage {
   private readonly route = inject(ActivatedRoute);
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly router = inject(Router);
+  private readonly seasonMatchesApi = inject(SeasonMatchesApiService);
+  private readonly reload$ = new Subject<void>();
 
-  protected readonly formatInteger = formatInteger;
-  protected readonly seasonCoverImage = seasonCoverImage;
+  protected readonly vm$: Observable<SeasonMatchesVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.route.paramMap.pipe(
+        map((params) => params.get('slug')?.trim() || null),
+        switchMap((slug) =>
+          this.seasonMatchesApi.getMatches(slug).pipe(
+            map((result): SeasonMatchesVm => {
+              if (result.kind === 'season-unavailable') {
+                return { state: 'season-unavailable' };
+              }
 
-  protected readonly vm$: Observable<SeasonMatchesVm> = this.route.paramMap.pipe(
-    map((params) => params.get('slug')?.trim() ?? ''),
-    switchMap((slug) => this.loadSeasonMatches(slug)),
-    startWith({ state: 'loading' } satisfies SeasonMatchesVm),
-    catchError(() => of({ state: 'error' } satisfies SeasonMatchesVm)),
+              if (result.matches.matches.length === 0) {
+                return { state: 'empty', data: result.matches };
+              }
+
+              return { state: 'ready', data: result.matches };
+            }),
+            startWith({ state: 'loading' } satisfies SeasonMatchesVm),
+            catchError(() => of({ state: 'error' } satisfies SeasonMatchesVm))
+          )
+        )
+      )
+    )
   );
+
+  protected retry(): void {
+    this.reload$.next();
+  }
+
+  protected goBack(): void {
+    this.router.navigate(['/seasons']);
+  }
+
+  protected seasonCoverStyle(url?: string | null): string {
+    if (!url) {
+      return 'none';
+    }
+    return `url("${url}")`;
+  }
 
   protected formatDate(value?: string | null, includeTime = true): string {
     if (!value) {
@@ -61,101 +113,28 @@ export class SeasonMatchesPage {
     }).format(date);
   }
 
-  protected matchEndedAt(match: SeasonMatchSummaryDto): string | undefined {
-    return match.seasonLastMapEndedAt || match.end_time || match.start_time;
+  protected seasonStatusLabel(status?: string | null): string {
+    if (!status) {
+      return 'Status indisponível';
+    }
+    if (status.toLowerCase() === 'active') {
+      return 'Season ativa';
+    }
+    if (status.toLowerCase() === 'closed') {
+      return 'Season encerrada';
+    }
+    return status;
   }
 
-  protected firstMapStartedAt(match: SeasonMatchSummaryDto): string | undefined {
-    return match.seasonFirstMapStartedAt || match.start_time;
-  }
-
-  protected formatSeriesScore(match: SeasonMatchSummaryDto): string {
-    return `${match.team1_score} x ${match.team2_score}`;
-  }
-
-  protected winnerLabel(match: SeasonMatchSummaryDto): string {
-    return match.winner || 'Sem vencedor';
-  }
-
-  protected winnerSide(match: SeasonMatchSummaryDto): 'team1' | 'team2' | 'unknown' {
-    if (match.winner === match.team1_name) {
-      return 'team1';
+  protected seasonStatusTone(status?: string | null): StatusBadgeVariant {
+    if (status === 'active') {
+      return 'active';
     }
 
-    if (match.winner === match.team2_name) {
-      return 'team2';
+    if (status === 'closed') {
+      return 'closed';
     }
 
-    return 'unknown';
-  }
-
-  protected mapRounds(mapSummary: SeasonMatchMapDto): string {
-    return formatInteger(mapSummary.rounds);
-  }
-
-  protected mapScore(mapSummary: SeasonMatchMapDto): string {
-    const team1Score = mapSummary.team1_score;
-    const team2Score = mapSummary.team2_score;
-
-    if (typeof team1Score !== 'number' || typeof team2Score !== 'number') {
-      return '-';
-    }
-
-    return `${team1Score} x ${team2Score}`;
-  }
-
-  private loadSeasonMatches(slug: string): Observable<SeasonMatchesVm> {
-    if (slug) {
-      return this.cs2Api.getSeasonMatches(slug).pipe(
-        map((payload): SeasonMatchesVm => ({
-          ...payload,
-          matches: this.sortedMatches(payload.matches),
-          state: 'ready',
-        })),
-      );
-    }
-
-    return this.cs2Api.getSeasons().pipe(
-      switchMap((index) => {
-        const context = resolveSeasonContext(index);
-
-        if (!context) {
-          return of({ state: 'error' } satisfies SeasonMatchesVm);
-        }
-
-        return this.cs2Api.getSeasonMatches(context.slug).pipe(
-          map((payload): SeasonMatchesVm => ({
-            ...payload,
-            matches: this.sortedMatches(payload.matches),
-            state: 'ready',
-          })),
-        );
-      }),
-    );
-  }
-
-  private sortedMatches(matches?: SeasonMatchSummaryDto[]): SeasonMatchSummaryDto[] {
-    return [...(matches ?? [])].sort((current, next) => {
-      const nextTime = this.matchTimestamp(next);
-      const currentTime = this.matchTimestamp(current);
-
-      if (nextTime !== currentTime) {
-        return nextTime - currentTime;
-      }
-
-      return next.matchid - current.matchid;
-    });
-  }
-
-  private matchTimestamp(match: SeasonMatchSummaryDto): number {
-    const timestamp = new Date(
-      match.seasonLastMapEndedAt || match.end_time || match.seasonFirstMapStartedAt || match.start_time,
-    ).getTime();
-
-    if (Number.isNaN(timestamp)) {
-      return match.matchid;
-    }
-
-    return timestamp;
+    return 'neutral';
   }
 }
