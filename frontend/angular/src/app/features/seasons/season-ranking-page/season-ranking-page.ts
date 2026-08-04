@@ -1,12 +1,16 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import { MetricCard } from '../../../shared/components/metric-card/metric-card';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
+import { SectionHeader } from '../../../shared/components/section-header/section-header';
+import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
+import { UiCard } from '../../../shared/components/card/card';
 import { SeasonRankingApiService } from '../data-access/season-ranking-api.service';
 import { SeasonRankingPlayer, SeasonRankingRules, SeasonRankingSeason } from '../domain/season-ranking.model';
 import { SeasonPodium } from '../season-podium/season-podium';
@@ -38,10 +42,9 @@ interface SeasonRankingSummary {
 
 @Component({
   selector: 'app-season-ranking-page',
-  imports: [AsyncPipe, EmptyState, PageHeader, PageState, SeasonPodium, SeasonTabs],
+  imports: [AsyncPipe, EmptyState, MetricCard, PageHeader, PageState, SeasonPodium, SeasonTabs, SectionHeader, StatusBadge, UiCard],
   templateUrl: './season-ranking-page.html',
   styleUrls: ['./season-ranking-page.css', './season-ranking-page-table.css'],
-  encapsulation: ViewEncapsulation.None,
 })
 export class SeasonRankingPage {
   private readonly route = inject(ActivatedRoute);
@@ -159,16 +162,22 @@ export class SeasonRankingPage {
     }
   }
 
-  protected badgeClass(player: SeasonRankingPlayer): string {
-    if (player.prizeEligible === true) {
-      return 'season-ranking__badge--eligible';
-    }
+  protected eligibilityTone(player: SeasonRankingPlayer): 'success' | 'info' | 'neutral' {
+    if (player.prizeEligible === true) return 'success';
+    if (player.prizeEligible === false) return 'info';
+    return 'neutral';
+  }
 
-    if (player.prizeEligible === false) {
-      return 'season-ranking__badge--progress';
-    }
+  protected seasonStatusLabel(status?: string | null): string {
+    if (status === 'active') return 'Season ativa';
+    if (status === 'closed') return 'Season encerrada';
+    return status || 'Status indisponível';
+  }
 
-    return 'season-ranking__badge--neutral';
+  protected seasonStatusTone(status?: string | null): 'active' | 'closed' | 'neutral' {
+    if (status === 'active') return 'active';
+    if (status === 'closed') return 'closed';
+    return 'neutral';
   }
 
   protected seasonCoverImage(season?: SeasonRankingSeason | null): string {
