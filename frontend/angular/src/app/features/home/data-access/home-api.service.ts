@@ -2,7 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, startWith, switchMap, distinctUntilChanged } from 'rxjs';
 
 import { Cs2ApiService } from '../../../core/api/cs2-api.service';
-import { NewsIndexDto } from '../../../core/api/dto/news.dto';
+import { NewsApiService } from '../../news/data-access/news-api.service';
+import type { NewsIndex } from '../../news/domain/news.model';
 import { resolveSeasonContext } from '../../seasons/season-context';
 import { HomeEditorialItem, HomeSeasonState } from '../domain/home-season.model';
 import { normalizeHomeSeasonMetrics } from '../domain/home-season.normalizer';
@@ -10,6 +11,7 @@ import { normalizeHomeSeasonMetrics } from '../domain/home-season.normalizer';
 @Injectable({ providedIn: 'root' })
 export class HomeApiService {
   private readonly cs2Api = inject(Cs2ApiService);
+  private readonly newsApi = inject(NewsApiService);
 
   getHomeSeasonMetrics(): Observable<HomeSeasonState> {
     return this.cs2Api.getSeasons().pipe(
@@ -53,23 +55,20 @@ export class HomeApiService {
   }
 
   getEditorialHighlight(): Observable<HomeEditorialItem | null> {
-    return this.cs2Api.getNewsIndex().pipe(
-      map((newsDto: NewsIndexDto): HomeEditorialItem | null => {
-        if (!Array.isArray(newsDto?.items) || newsDto.items.length === 0) {
+    return this.newsApi.getNewsIndex().pipe(
+      map((newsIndex: NewsIndex): HomeEditorialItem | null => {
+        if (!newsIndex.items || newsIndex.items.length === 0) {
           return null;
         }
 
-        const firstItem = newsDto.items[0];
-        if (!firstItem || !firstItem.title || !firstItem.slug) {
-          return null;
-        }
+        const firstItem = newsIndex.items[0];
 
         return {
           id: firstItem.slug,
           title: firstItem.title,
-          summary: firstItem.excerpt || '',
+          summary: firstItem.excerpt ?? '',
           slug: firstItem.slug,
-          date: firstItem.published_at || '',
+          date: firstItem.publishedAt ?? '',
         };
       }),
       catchError(() => of<HomeEditorialItem | null>(null)),
