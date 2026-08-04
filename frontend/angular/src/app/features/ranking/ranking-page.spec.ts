@@ -17,6 +17,10 @@ class TestableRankingPage extends RankingPage {
     return this.searchTerm();
   }
 
+  callRetry(): void {
+    this.retry();
+  }
+
   callUpdateSearch(event: Event): void {
     this.updateSearch(event);
   }
@@ -355,42 +359,26 @@ describe('RankingPage', () => {
     expect(filtered).toHaveLength(4);
   });
 
-  it('16. Ranking vazio é tratado como sucesso válido', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm).toEqual({
-      state: 'ready',
-      generatedAt: '2026-08-03T12:00:00Z',
-      completedMaps: 0,
-      players: [],
-      rankedPlayerCount: 0,
-      leader: null,
-      podium: [],
-    });
-  });
-
-  it('17. Ranking vazio não exibe líder fictício', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.leader).toBeNull();
-  });
-
-  it('18. Ranking vazio não é tratado como erro', () => {
+  it('16. Ranking vazio emite estado empty', () => {
     mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
 
     const page = TestBed.inject(TestableRankingPage);
     const vm = captureLatest(page.publicVm$);
 
+    expect(vm).toEqual({ state: 'empty' });
+  });
+
+  it('17. Ranking vazio não é tratado como erro', () => {
+    mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
+
+    const page = TestBed.inject(TestableRankingPage);
+    const vm = captureLatest(page.publicVm$);
+
+    expect(vm?.state).toBe('empty');
     expect(vm?.state).not.toBe('error');
   });
 
-  it('19. erro do Observable exibe o estado de erro atual', () => {
+  it('18. erro do Observable exibe o estado de erro atual', () => {
     mockRankingApi.getRanking.mockReturnValue(throwError(() => new Error('HTTP 500')));
 
     const page = TestBed.inject(TestableRankingPage);
@@ -399,7 +387,7 @@ describe('RankingPage', () => {
     expect(vm).toEqual({ state: 'error' });
   });
 
-  it('20. erro encerra loading', () => {
+  it('19. erro encerra loading', () => {
     const errorSubject = new Subject<Ranking>();
     mockRankingApi.getRanking.mockReturnValue(errorSubject.asObservable());
 
@@ -416,7 +404,7 @@ describe('RankingPage', () => {
     sub.unsubscribe();
   });
 
-  it('21. erro não exibe dados de sucesso', () => {
+  it('20. erro não exibe dados de sucesso', () => {
     mockRankingApi.getRanking.mockReturnValue(throwError(() => new Error('HTTP 500')));
 
     const page = TestBed.inject(TestableRankingPage);
@@ -426,7 +414,7 @@ describe('RankingPage', () => {
     expect('rankedPlayerCount' in vm).toBe(false);
   });
 
-  it('22. não existe segunda chamada ao serviço durante detecções de mudança', () => {
+  it('21. não existe segunda chamada ao serviço durante detecções de mudança', () => {
     mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
 
     const fixture = TestBed.createComponent(RankingPage);
@@ -434,5 +422,35 @@ describe('RankingPage', () => {
     fixture.detectChanges();
 
     expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(1);
+  });
+
+  it('22. chamada de retry re-executa a requisição após erro e transita para ready', () => {
+    mockRankingApi.getRanking.mockReturnValueOnce(throwError(() => new Error('HTTP 500')));
+    mockRankingApi.getRanking.mockReturnValueOnce(of(mockRanking));
+
+    const page = TestBed.inject(TestableRankingPage);
+    const states: string[] = [];
+
+    const sub = page.publicVm$.subscribe((vm) => states.push(vm.state));
+
+    expect(states).toEqual(['loading', 'error']);
+
+    page.callRetry();
+
+    expect(states).toEqual(['loading', 'error', 'loading', 'ready']);
+    expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(2);
+
+    sub.unsubscribe();
+  });
+
+  it('23. template no estado empty renderiza app-page-header e app-page-state', () => {
+    mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('app-page-header')).not.toBeNull();
+    expect(element.querySelector('app-page-state')).not.toBeNull();
   });
 });

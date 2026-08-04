@@ -8,8 +8,8 @@ export const routes: Routes = [
   },
   {
     path: 'ranking',
-    redirectTo: 'seasons/current/ranking',
-    pathMatch: 'full',
+    loadComponent: () =>
+      import('./features/ranking/ranking-page').then((component) => component.RankingPage),
   },
   {
     path: 'seasons',

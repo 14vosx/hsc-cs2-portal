@@ -1,171 +1,221 @@
 .ranking-page {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-6);
 }
 
-.ranking-page__hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--space-5);
-}
-
-.ranking-page__status {
-  display: grid;
-  justify-items: end;
-  gap: var(--space-2);
-  min-width: 230px;
+.ranking-page__header-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   color: var(--color-text-muted);
-  font-size: 0.86rem;
+  font-size: 0.875rem;
 }
 
-.ranking-page__metrics,
-.ranking-page__podium {
+.ranking-page__updated-at {
+  color: var(--color-text-muted);
+}
+
+.ranking-page__metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
 }
 
-.ranking-page__content {
+.ranking-page__podium-section,
+.ranking-page__table-section,
+.ranking-page__guide-section {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.ranking-page__podium-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.ranking-page__podium-card {
   display: grid;
   gap: var(--space-3);
 }
 
-.ranking-page__podium-body,
-.ranking-page__explain {
-  display: grid;
-  gap: var(--space-2);
+.ranking-page__podium-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.ranking-page__podium-body strong {
+.ranking-page__podium-score {
   color: var(--color-ranking);
-  font-size: 1.1rem;
+  font-weight: var(--font-weight-bold, 700);
+  font-size: 0.95rem;
 }
 
-.ranking-page__podium-body span,
-.ranking-page__podium-body p,
-.ranking-page__explain p {
+.ranking-page__podium-card-body {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.ranking-page__podium-name {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-bold, 700);
+}
+
+.ranking-page__podium-impact {
+  color: var(--color-ranking);
+  font-size: 1rem;
+}
+
+.ranking-page__podium-record,
+.ranking-page__podium-stats {
   margin: 0;
   color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
-.ranking-page__search {
+.ranking-page__search-bar {
   display: grid;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  max-width: 420px;
+  max-width: 440px;
 }
 
-.ranking-page__search span {
+.ranking-page__search-label span {
   color: var(--color-accent-lime);
   font-size: 0.8rem;
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.ranking-page__search input {
+.ranking-page__search-input {
   width: 100%;
+  min-height: 44px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: var(--space-2) var(--space-3);
   color: var(--color-text);
-  background: rgba(18, 24, 33, 0.72);
+  background: var(--color-surface);
+  font-size: 0.95rem;
   outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ranking-page__search input:focus {
+.ranking-page__search-input:focus-visible {
   border-color: var(--color-border-strong);
+  box-shadow: 0 0 0 2px var(--color-accent-purple-soft);
 }
 
 .ranking-page__table-wrap {
-  overflow-x: auto;
-}
-
-table {
   width: 100%;
-  min-width: 920px;
-  border-collapse: separate;
-  border-spacing: 0 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
 }
 
-th,
-td {
-  padding: 12px 10px;
+.ranking-page__table-wrap:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+
+.ranking-page__table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.ranking-page__table th,
+.ranking-page__table td {
+  padding: var(--space-3) var(--space-4);
   text-align: left;
   vertical-align: middle;
 }
 
-th {
+.ranking-page__table th {
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-accent-lime);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  background: var(--color-bg-base);
 }
 
-td {
-  border-block: 1px solid var(--color-border);
+.ranking-page__table td {
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text);
   font-size: 0.9rem;
-  background: rgba(8, 12, 16, 0.58);
 }
 
-td:first-child {
-  border-left: 1px solid var(--color-border);
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+.ranking-page__table tbody tr:last-child td {
+  border-bottom: none;
 }
 
-td:last-child {
-  border-right: 1px solid var(--color-border);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+.ranking-page__table tbody tr:hover td {
+  background: var(--color-accent-purple-soft);
 }
 
-td:first-child,
-td:nth-child(3) {
+.ranking-page__cell-pos,
+.ranking-page__cell-score {
   color: var(--color-ranking);
   font-weight: 800;
 }
 
-td strong,
-td span {
-  display: block;
+.ranking-page__cell-player {
+  display: flex;
+  flex-direction: column;
 }
 
-td span {
+.ranking-page__player-name {
+  color: var(--color-text);
+}
+
+.ranking-page__player-steamid {
   margin-top: 2px;
   color: var(--color-text-muted);
   font-family: var(--font-mono);
   font-size: 0.72rem;
 }
 
-tbody tr:hover {
-  background: transparent;
+.ranking-page__guide-card {
+  display: grid;
+  gap: var(--space-3);
 }
 
-tbody tr:hover td {
-  background: var(--color-accent-purple-soft);
+.ranking-page__explain {
+  display: grid;
+  gap: var(--space-2);
 }
 
-.ranking-page__loading {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+.ranking-page__explain p {
+  margin: 0;
   color: var(--color-text-muted);
-  background: var(--color-surface);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ranking-page__explain strong {
+  color: var(--color-text);
 }
 
 @media (max-width: 980px) {
-  .ranking-page__hero {
-    grid-template-columns: 1fr;
+  .ranking-page__metrics,
+  .ranking-page__podium-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
-  .ranking-page__status {
-    justify-items: start;
+@media (max-width: 640px) {
+  .ranking-page__header-status {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .ranking-page__metrics,
-  .ranking-page__podium {
+  .ranking-page__podium-grid {
     grid-template-columns: 1fr;
   }
 }
