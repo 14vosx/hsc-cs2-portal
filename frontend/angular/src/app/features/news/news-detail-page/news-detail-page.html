@@ -1,60 +1,94 @@
-<section class="news-detail">
-  <a class="news-detail__back" routerLink="/news">Voltar para News</a>
+<section class="news-detail-page">
+  <a class="news-detail-page__back" routerLink="/news">
+    <span aria-hidden="true">←</span>
+    Voltar para News
+  </a>
 
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <section class="news-detail__loading">
-          <span>Carregando notícia...</span>
-        </section>
+        <app-page-header
+          eyebrow="News HSC"
+          title="Artigo editorial"
+          description="Carregando a publicação selecionada."
+        />
+
+        <app-page-state
+          type="loading"
+          title="Carregando notícia..."
+          message="Sincronizando o conteúdo editorial do HSC."
+        />
+      }
+
+      @case ('not-found') {
+        <app-page-header
+          eyebrow="News HSC"
+          title="Notícia não encontrada"
+          description="A publicação solicitada não está disponível."
+        />
+
+        <app-page-state
+          type="empty"
+          title="Notícia não encontrada"
+          message="Esta publicação não existe ou não está disponível publicamente."
+        />
       }
 
       @case ('error') {
-        <section class="news-detail__empty">
-          <app-empty-state
-            title="Notícia indisponível"
-            description="Esta publicação não pôde ser carregada neste momento."
-          />
-          <a routerLink="/news">Ver todas as notícias</a>
-        </section>
+        <app-page-header
+          eyebrow="News HSC"
+          title="Notícia indisponível"
+          description="O conteúdo editorial não pôde ser carregado."
+        />
+
+        <app-page-state
+          type="error"
+          title="Notícia indisponível"
+          message="Não foi possível carregar esta publicação neste momento."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
+        />
       }
 
       @case ('ready') {
-        @if (vm.item) {
-          <article>
-            <header class="news-detail__hero">
-              <small>{{ formatDate(vm.item.published_at) }}</small>
-              <h1>{{ vm.item.title }}</h1>
-              @if (vm.item.excerpt) {
-                <p>{{ vm.item.excerpt }}</p>
-              }
-            </header>
+        <article class="news-detail-page__article">
+          <app-page-header
+            eyebrow="News HSC"
+            [title]="vm.article.title"
+            [description]="articleDescription(vm.article.excerpt)"
+          >
+            <div meta class="news-detail-page__meta">
+              <app-status-badge label="Publicação oficial" tone="info" />
+              <time [attr.datetime]="vm.article.publishedAt">
+                {{ formatDate(vm.article.publishedAt) }}
+              </time>
+            </div>
+          </app-page-header>
 
-            <div class="news-detail__media">
-              @if (vm.item.image_url) {
-                <img [src]="vm.item.image_url" alt="" />
-              } @else {
+          <div class="news-detail-page__media">
+            @if (showHeroImage(vm.article.imageUrl)) {
+              <img
+                [src]="vm.article.imageUrl!"
+                [alt]="vm.article.title"
+                decoding="async"
+                (error)="onHeroImageError(vm.article.imageUrl)"
+              />
+            } @else {
+              <div class="news-detail-page__media-fallback" aria-hidden="true">
                 <span>HSC</span>
-              }
-            </div>
+              </div>
+            }
+          </div>
 
-            <div class="news-detail__content">
-              @for (paragraph of paragraphs(vm.item.content); track paragraph) {
-                <p>{{ paragraph }}</p>
-              } @empty {
-                <p>Conteúdo da notícia em preparação.</p>
-              }
-            </div>
-          </article>
-        } @else {
-          <section class="news-detail__empty">
-            <app-empty-state
-              title="Notícia não encontrada"
-              description="A publicação solicitada não está disponível."
-            />
-            <a routerLink="/news">Ver todas as notícias</a>
+          <section
+            class="news-detail-page__content"
+            aria-label="Conteúdo da notícia"
+          >
+            <app-ui-card variant="default">
+              <app-news-article-body [contentHtml]="vm.article.contentHtml" />
+            </app-ui-card>
           </section>
-        }
+        </article>
       }
     }
   }

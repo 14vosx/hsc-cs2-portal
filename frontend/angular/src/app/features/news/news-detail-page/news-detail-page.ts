@@ -1,45 +1,104 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  map,
+  Observable,
+  of,
+  startWith,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 
-import { Cs2ApiService } from '../../../core/api/cs2-api.service';
-import { NewsDetailItemDto } from '../../../core/api/dto/news.dto';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { PageState } from '../../../shared/components/page-state/page-state';
+import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
+import { UiCard } from '../../../shared/components/card/card';
+import { NewsArticleBody } from '../components/news-article-body/news-article-body';
+import { NewsApiService } from '../data-access/news-api.service';
+import type { NewsArticle } from '../domain/news.model';
 
 interface NewsDetailReadyVm {
-  state: 'ready';
-  item?: NewsDetailItemDto;
+  readonly state: 'ready';
+  readonly article: NewsArticle;
 }
 
-type NewsDetailVm = NewsDetailReadyVm | { state: 'loading' } | { state: 'error' };
+type NewsDetailVm =
+  | NewsDetailReadyVm
+  | { readonly state: 'loading' }
+  | { readonly state: 'not-found' }
+  | { readonly state: 'error' };
 
 @Component({
   selector: 'app-news-detail-page',
-  imports: [AsyncPipe, EmptyState, RouterLink],
+  imports: [
+    AsyncPipe,
+    RouterLink,
+    NewsArticleBody,
+    PageHeader,
+    PageState,
+    StatusBadge,
+    UiCard,
+  ],
   templateUrl: './news-detail-page.html',
   styleUrl: './news-detail-page.css',
 })
-export class NewsDetailPage {
+export class NewsDetailPage implements OnDestroy {
   private readonly route = inject(ActivatedRoute);
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly newsApi = inject(NewsApiService);
+  private readonly title = inject(Title);
+  private readonly reload$ = new Subject<void>();
 
-  protected readonly vm$: Observable<NewsDetailVm> = this.route.paramMap.pipe(
-    map((params) => params.get('slug')?.trim() ?? ''),
-    switchMap((slug) => {
-      if (!slug) {
-        return of({ state: 'error' } satisfies NewsDetailVm);
-      }
+  private readonly previousDocumentTitle = this.title.getTitle();
+  private readonly newsDocumentTitle = 'HSC — News';
 
-      return this.cs2Api.getNewsItem(slug).pipe(
-        map((payload): NewsDetailVm => ({ state: 'ready', item: payload.item ?? undefined })),
-        startWith({ state: 'loading' } satisfies NewsDetailVm),
-        catchError(() => of({ state: 'error' } satisfies NewsDetailVm)),
-      );
-    }),
+  private readonly failedImageUrl = signal<string | null>(null);
+
+  protected readonly vm$: Observable<NewsDetailVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.route.paramMap.pipe(
+        map((params) => params.get('slug')?.trim() ?? ''),
+        distinctUntilChanged(),
+        tap(() => this.title.setTitle(this.newsDocumentTitle)),
+        switchMap((slug) => {
+          if (!slug) {
+            return of({ state: 'not-found' } satisfies NewsDetailVm);
+          }
+
+          return this.newsApi.getNewsArticle(slug).pipe(
+            map((article): NewsDetailVm => {
+              this.title.setTitle(`HSC — ${article.title}`);
+              return { state: 'ready', article };
+            }),
+            startWith({ state: 'loading' } satisfies NewsDetailVm),
+            catchError((error: unknown) => {
+              if (error instanceof HttpErrorResponse && error.status === 404) {
+                return of({ state: 'not-found' } satisfies NewsDetailVm);
+              }
+
+              return of({ state: 'error' } satisfies NewsDetailVm);
+            }),
+          );
+        }),
+      ),
+    ),
   );
 
-  protected formatDate(value?: string | null): string {
+  protected retry(): void {
+    this.reload$.next();
+  }
+
+  ngOnDestroy(): void {
+    this.title.setTitle(this.previousDocumentTitle);
+  }
+
+  protected formatDate(value: string | null): string {
     if (!value) {
       return 'Sem data';
     }
@@ -52,17 +111,30 @@ export class NewsDetailPage {
 
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
-      month: '2-digit',
+      month: 'long',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
   }
 
-  protected paragraphs(content?: string | null): string[] {
-    return (content ?? '')
-      .split(/\n{2,}|\r?\n/)
-      .map((paragraph) => paragraph.trim())
-      .filter(Boolean);
+  protected articleDescription(excerpt: string | null): string | undefined {
+    if (!excerpt || excerpt.trim().length === 0) {
+      return undefined;
+    }
+    return excerpt;
+  }
+
+  protected showHeroImage(imageUrl: string | null): boolean {
+    if (!imageUrl || imageUrl.trim().length === 0) {
+      return false;
+    }
+    return this.failedImageUrl() !== imageUrl;
+  }
+
+  protected onHeroImageError(imageUrl: string | null): void {
+    if (imageUrl && imageUrl.trim().length > 0) {
+      this.failedImageUrl.set(imageUrl);
+    }
   }
 }
