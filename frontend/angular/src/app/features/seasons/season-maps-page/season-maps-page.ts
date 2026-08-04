@@ -1,45 +1,106 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ViewEncapsulation, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { Cs2ApiService } from '../../../core/api/cs2-api.service';
-import { MapSummaryDto } from '../../../core/api/dto/maps.dto';
-import { SeasonMapsDto } from '../../../core/api/dto/season-maps.dto';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { seasonCoverImage } from '../season-ui';
-import { resolveSeasonContext } from '../season-context';
-
+import { UiCard } from '../../../shared/components/card/card';
+import { MetricCard } from '../../../shared/components/metric-card/metric-card';
+import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { PageState } from '../../../shared/components/page-state/page-state';
+import { SectionHeader } from '../../../shared/components/section-header/section-header';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
+import { StatusBadge, type StatusBadgeVariant } from '../../../shared/components/status-badge/status-badge';
+import { SeasonMapsApiService } from '../data-access/season-maps-api.service';
+import type { SeasonMaps, SeasonMapSummary } from '../domain/season-maps.model';
 
-type MapSort = 'matches' | 'rounds' | 'lastPlayed';
+export type MapSort = 'published' | 'matches' | 'rounds' | 'lastPlayed' | 'name';
+
+interface SeasonMapsReadyVm {
+  state: 'ready';
+  data: SeasonMaps;
+}
+
+interface SeasonMapsEmptyVm {
+  state: 'empty';
+  data: SeasonMaps;
+}
 
 type SeasonMapsVm =
-  | ({ state: 'ready'; maps: MapSummaryDto[] } & SeasonMapsDto)
+  | SeasonMapsReadyVm
+  | SeasonMapsEmptyVm
   | { state: 'loading' }
+  | { state: 'season-unavailable' }
   | { state: 'error' };
 
 @Component({
   selector: 'app-season-maps-page',
-  imports: [AsyncPipe, EmptyState, RouterLink, SeasonTabs],
+  imports: [
+    AsyncPipe,
+    RouterLink,
+    MetricCard,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    SeasonTabs,
+    StatusBadge,
+    UiCard,
+  ],
   templateUrl: './season-maps-page.html',
   styleUrl: './season-maps-page.css',
-  encapsulation: ViewEncapsulation.None,
 })
 export class SeasonMapsPage {
   private readonly route = inject(ActivatedRoute);
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly router = inject(Router);
+  private readonly seasonMapsApi = inject(SeasonMapsApiService);
+  private readonly reload$ = new Subject<void>();
 
   protected readonly searchTerm = signal('');
-  protected readonly sortBy = signal<MapSort>('matches');
-  protected readonly seasonCoverImage = seasonCoverImage;
+  protected readonly sortBy = signal<MapSort>('published');
 
-  protected readonly vm$: Observable<SeasonMapsVm> = this.route.paramMap.pipe(
-    map((params) => params.get('slug')?.trim() ?? ''),
-    switchMap((slug) => this.loadSeasonMaps(slug)),
-    startWith({ state: 'loading' } satisfies SeasonMapsVm),
-    catchError(() => of({ state: 'error' } satisfies SeasonMapsVm)),
+  private readonly knownMapImages = new Set([
+    'de_ancient',
+    'de_anubis',
+    'de_dust2',
+    'de_inferno',
+    'de_mirage',
+    'de_nuke',
+    'de_overpass',
+    'de_train',
+  ]);
+
+  protected readonly vm$: Observable<SeasonMapsVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.route.paramMap.pipe(
+        map((params) => params.get('slug')?.trim() || null),
+        switchMap((slug) =>
+          this.seasonMapsApi.getMaps(slug).pipe(
+            map((result): SeasonMapsVm => {
+              if (result.kind === 'season-unavailable') {
+                return { state: 'season-unavailable' };
+              }
+
+              if (result.maps.maps.length === 0) {
+                return { state: 'empty', data: result.maps };
+              }
+
+              return { state: 'ready', data: result.maps };
+            }),
+            startWith({ state: 'loading' } satisfies SeasonMapsVm),
+            catchError(() => of({ state: 'error' } satisfies SeasonMapsVm))
+          )
+        )
+      )
+    )
   );
+
+  protected retry(): void {
+    this.reload$.next();
+  }
+
+  protected goBack(): void {
+    this.router.navigate(['/seasons']);
+  }
 
   protected updateSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -51,23 +112,54 @@ export class SeasonMapsPage {
     this.sortBy.set(select.value as MapSort);
   }
 
-  protected visibleMaps(maps: MapSummaryDto[]): MapSummaryDto[] {
+  protected visibleMaps(maps: readonly SeasonMapSummary[]): readonly SeasonMapSummary[] {
     const term = this.searchTerm().trim().toLowerCase();
     const filtered = term
-      ? maps.filter((mapSummary) => mapSummary.map.toLowerCase().includes(term))
+      ? maps.filter((m) => m.name.toLowerCase().includes(term))
       : [...maps];
 
-    return filtered.sort((current, next) => {
-      if (this.sortBy() === 'rounds') {
-        return next.rounds - current.rounds;
+    const sort = this.sortBy();
+    if (sort === 'published') {
+      return filtered;
+    }
+
+    return [...filtered].sort((a, b) => {
+      if (sort === 'matches') {
+        if (b.matches !== a.matches) return b.matches - a.matches;
+      } else if (sort === 'rounds') {
+        if (b.rounds !== a.rounds) return b.rounds - a.rounds;
+      } else if (sort === 'lastPlayed') {
+        const timeA = a.lastPlayedAt ? new Date(a.lastPlayedAt).getTime() : NaN;
+        const timeB = b.lastPlayedAt ? new Date(b.lastPlayedAt).getTime() : NaN;
+        const validA = !Number.isNaN(timeA);
+        const validB = !Number.isNaN(timeB);
+
+        if (validA && validB && timeA !== timeB) {
+          return timeB - timeA;
+        }
+        if (validA && !validB) return -1;
+        if (!validA && validB) return 1;
+      } else if (sort === 'name') {
+        const cmp = a.name.localeCompare(b.name, 'pt-BR');
+        if (cmp !== 0) return cmp;
       }
 
-      if (this.sortBy() === 'lastPlayed') {
-        return this.mapTimestamp(next) - this.mapTimestamp(current);
-      }
-
-      return next.matches - current.matches;
+      return maps.indexOf(a) - maps.indexOf(b);
     });
+  }
+
+  protected seasonCoverStyle(url?: string | null): string {
+    if (!url) {
+      return 'none';
+    }
+    return `url("${url}")`;
+  }
+
+  protected mapBackgroundImage(name: string): string {
+    if (!name || !this.knownMapImages.has(name)) {
+      return 'none';
+    }
+    return `url("map-images/${name}.png")`;
   }
 
   protected formatDate(value?: string | null, includeTime = true): string {
@@ -90,47 +182,35 @@ export class SeasonMapsPage {
     }).format(date);
   }
 
-  protected formatNumber(value?: number | null, digits = 1): string {
-    return typeof value === 'number' ? value.toFixed(digits) : '-';
+  protected formatAvg(val: number): string {
+    if (typeof val !== 'number' || !Number.isFinite(val)) {
+      return '—';
+    }
+    return val.toFixed(1);
   }
 
-  private loadSeasonMaps(slug: string): Observable<SeasonMapsVm> {
-    if (slug) {
-      return this.cs2Api.getSeasonMaps(slug).pipe(
-        map((payload): SeasonMapsVm => ({
-          ...payload,
-          maps: payload.maps ?? [],
-          state: 'ready',
-        })),
-      );
+  protected seasonStatusLabel(status?: string | null): string {
+    if (!status) {
+      return 'Status indisponível';
     }
-
-    return this.cs2Api.getSeasons().pipe(
-      switchMap((index) => {
-        const context = resolveSeasonContext(index);
-
-        if (!context) {
-          return of({ state: 'error' } satisfies SeasonMapsVm);
-        }
-
-        return this.cs2Api.getSeasonMaps(context.slug).pipe(
-          map((payload): SeasonMapsVm => ({
-            ...payload,
-            maps: payload.maps ?? [],
-            state: 'ready',
-          })),
-        );
-      }),
-    );
+    if (status.toLowerCase() === 'active') {
+      return 'Season ativa';
+    }
+    if (status.toLowerCase() === 'closed') {
+      return 'Season encerrada';
+    }
+    return status;
   }
 
-  private mapTimestamp(mapSummary: MapSummaryDto): number {
-    const timestamp = new Date(mapSummary.lastPlayed).getTime();
-
-    if (Number.isNaN(timestamp)) {
-      return 0;
+  protected seasonStatusTone(status?: string | null): StatusBadgeVariant {
+    if (status === 'active') {
+      return 'active';
     }
 
-    return timestamp;
+    if (status === 'closed') {
+      return 'closed';
+    }
+
+    return 'neutral';
   }
 }

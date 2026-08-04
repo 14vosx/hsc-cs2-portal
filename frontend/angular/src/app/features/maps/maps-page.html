@@ -2,55 +2,88 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-section-header
+        <app-page-header
           eyebrow="Mapas"
           title="Rotação de mapas"
-          description="Carregando estatísticas da rotação competitiva."
+          description="Leitura geral dos mapas jogados no HSC CS2, com volume de partidas, rounds e recência."
         />
-
-        <p class="maps-page__loading">Carregando mapas...</p>
+        <app-page-state
+          type="loading"
+          title="Carregando mapas..."
+          message="Sincronizando a rotação de mapas."
+        />
       }
 
       @case ('error') {
-        <app-section-header
+        <app-page-header
           eyebrow="Mapas"
           title="Rotação de mapas"
-          description="Não foi possível carregar os mapas agora."
+          description="Leitura geral dos mapas jogados no HSC CS2, com volume de partidas, rounds e recência."
         />
-
-        <app-empty-state
+        <app-page-state
+          type="error"
           title="Mapas indisponíveis"
-          description="Confira o servidor local com proxy ativo e tente novamente."
+          message="Não foi possível carregar a rotação de mapas no momento. Verifique a conexão com a API e tente novamente."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
+        />
+      }
+
+      @case ('empty') {
+        <app-page-header
+          eyebrow="Mapas"
+          title="Rotação de mapas"
+          description="Leitura geral dos mapas jogados no HSC CS2, com volume de partidas, rounds e recência."
+        />
+        <app-page-state
+          type="empty"
+          title="Nenhum mapa encontrado"
+          message="Nenhum mapa foi publicado."
         />
       }
 
       @case ('ready') {
-        <section class="maps-page__hero">
-          <app-section-header
-            eyebrow="Mapas"
-            title="Rotação de mapas"
-            description="Leitura geral dos mapas jogados no HSC CS2, com volume de partidas, rounds e recência."
-          />
-
-          <div class="maps-page__status">
+        <app-page-header
+          eyebrow="Mapas"
+          title="Rotação de mapas"
+          description="Leitura geral dos mapas jogados no HSC CS2, com volume de partidas, rounds e recência."
+        >
+          <div meta class="maps-page__header-status">
             <app-status-badge label="Sincronização ativa" tone="success" />
-            <span>Atualizado em {{ formatDate(vm.generatedAt) }}</span>
+            <span class="maps-page__updated-at">Atualizado em {{ formatDate(vm.generatedAt) }}</span>
           </div>
-        </section>
+        </app-page-header>
 
         <section class="maps-page__metrics" aria-label="Resumo dos mapas">
           <app-metric-card label="Mapas" [value]="vm.maps.length" tone="ranking" />
           <app-metric-card
             label="Mapa mais jogado"
-            [value]="vm.mostPlayedMap?.map || 'Sem mapa'"
+            [value]="vm.mostPlayedMap?.name || 'Sem mapa'"
             [tone]="vm.mostPlayedMap ? 'success' : 'default'"
           />
-          <app-metric-card label="Partidas" [value]="vm.totalMatches" />
+          <app-metric-card label="Partidas" [value]="vm.totalMapAppearances" />
           <app-metric-card label="Rounds" [value]="vm.totalRounds" />
         </section>
 
-        @if (vm.maps.length > 0) {
-          <app-data-card eyebrow="Lista" title="Mapas jogados" meta="busca e ordenação local">
+        @if (vm.mostPlayedMap) {
+          <section class="maps-page__hero-map" aria-label="Destaque do mapa mais jogado">
+            <app-section-header
+              eyebrow="Destaque"
+              title="Mapa mais jogado"
+              description="Mapa com maior volume de presenças na rotação competitiva."
+            />
+            <app-map-stat-card [map]="vm.mostPlayedMap" [highlight]="true" />
+          </section>
+        }
+
+        <section class="maps-page__rotation-section" aria-label="Rotação de mapas">
+          <app-section-header
+            eyebrow="Lista"
+            title="Rotação de mapas"
+            description="Busca por nome e ordenação por critérios competitivos."
+          />
+
+          <app-ui-card variant="default">
             <div class="maps-page__controls">
               <label class="maps-page__field">
                 <span>Buscar mapa</span>
@@ -65,9 +98,11 @@
               <label class="maps-page__field">
                 <span>Ordenar por</span>
                 <select [value]="sortBy()" (change)="updateSort($event)">
-                  <option value="matches">Partidas desc</option>
-                  <option value="rounds">Rounds desc</option>
-                  <option value="lastPlayed">Último jogo desc</option>
+                  <option value="published">Ordem oficial (publicada)</option>
+                  <option value="matches">Mais partidas</option>
+                  <option value="rounds">Mais rounds</option>
+                  <option value="lastPlayed">Último jogo</option>
+                  <option value="name">Nome (A-Z)</option>
                 </select>
               </label>
             </div>
@@ -76,57 +111,19 @@
 
             @if (maps.length > 0) {
               <div class="maps-page__grid">
-                @for (mapSummary of maps; track mapSummary.map) {
-                  <article class="map-card">
-                    <header class="map-card__header">
-                      <div>
-                        <span>Mapa</span>
-                        <strong>{{ mapSummary.map }}</strong>
-                      </div>
-
-                      @if (vm.mostPlayedMap?.map === mapSummary.map) {
-                        <app-status-badge label="Mais jogado" tone="warning" />
-                      }
-                    </header>
-
-                    <dl class="map-card__stats">
-                      <div>
-                        <dt>Partidas</dt>
-                        <dd>{{ mapSummary.matches }}</dd>
-                      </div>
-                      <div>
-                        <dt>Rounds</dt>
-                        <dd>{{ mapSummary.rounds }}</dd>
-                      </div>
-                      <div>
-                        <dt>Média de rounds</dt>
-                        <dd>{{ formatNumber(mapSummary.avgRoundsPerMatch, 1) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Último jogo</dt>
-                        <dd>{{ formatDate(mapSummary.lastPlayed) }}</dd>
-                      </div>
-                    </dl>
-
-                    <a class="map-card__details-link" [routerLink]="['/maps', mapSummary.map]">
-                      Ver detalhe →
-                    </a>
-                  </article>
+                @for (mapSummary of maps; track mapSummary.name) {
+                  <app-map-stat-card [map]="mapSummary" />
                 }
               </div>
             } @else {
-              <app-empty-state
+              <app-page-state
+                type="empty"
                 title="Nenhum mapa encontrado"
-                description="A busca atual não encontrou mapas na rotação."
+                message="A busca atual não encontrou mapas na rotação."
               />
             }
-          </app-data-card>
-        } @else {
-          <app-empty-state
-            title="Nenhum mapa encontrado"
-            description="A sincronização atual não retornou mapas para a rotação."
-          />
-        }
+          </app-ui-card>
+        </section>
       }
     }
   }

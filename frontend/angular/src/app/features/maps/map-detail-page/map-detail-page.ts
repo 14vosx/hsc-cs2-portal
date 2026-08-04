@@ -1,48 +1,98 @@
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { Cs2ApiService } from '../../../core/api/cs2-api.service';
-import { MapDetailDto, MapDetailRecentMatchDto } from '../../../core/api/dto/map-detail.dto';
-import { DataCard } from '../../../shared/components/data-card/data-card';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import { UiCard } from '../../../shared/components/card/card';
 import { MetricCard } from '../../../shared/components/metric-card/metric-card';
+import { PageHeader } from '../../../shared/components/page-header/page-header';
+import { PageState } from '../../../shared/components/page-state/page-state';
 import { SectionHeader } from '../../../shared/components/section-header/section-header';
+import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
+import { MapsApiService } from '../data-access/maps-api.service';
+import type { MapDetail } from '../domain/map.model';
+import { MapRecentMatchTable } from '../map-recent-match-table/map-recent-match-table';
 
 interface MapDetailReadyVm {
   state: 'ready';
-  detail: MapDetailDto;
+  detail: MapDetail;
 }
 
-type MapDetailVm = MapDetailReadyVm | { state: 'loading' } | { state: 'error' };
+type MapDetailVm =
+  | MapDetailReadyVm
+  | { state: 'loading' }
+  | { state: 'not-found' }
+  | { state: 'error' };
 
 @Component({
   selector: 'app-map-detail-page',
-  imports: [AsyncPipe, RouterLink, DataCard, EmptyState, MetricCard, SectionHeader],
+  imports: [
+    AsyncPipe,
+    RouterLink,
+    MetricCard,
+    PageHeader,
+    PageState,
+    SectionHeader,
+    StatusBadge,
+    UiCard,
+    MapRecentMatchTable,
+  ],
   templateUrl: './map-detail-page.html',
   styleUrl: './map-detail-page.css',
 })
 export class MapDetailPage {
   private readonly route = inject(ActivatedRoute);
-  private readonly cs2Api = inject(Cs2ApiService);
+  private readonly router = inject(Router);
+  private readonly mapsApi = inject(MapsApiService);
+  private readonly reload$ = new Subject<void>();
 
-  protected readonly vm$: Observable<MapDetailVm> = this.route.paramMap.pipe(
-    map((params) => params.get('map') ?? ''),
-    switchMap((mapName) => {
-      if (!mapName) {
-        return of({ state: 'error' } satisfies MapDetailVm);
-      }
+  private readonly knownMapImages = new Set([
+    'de_ancient',
+    'de_anubis',
+    'de_dust2',
+    'de_inferno',
+    'de_mirage',
+    'de_nuke',
+    'de_overpass',
+    'de_train',
+  ]);
 
-      return this.cs2Api.getMap(mapName).pipe(
-        map((detail) => ({ state: 'ready', detail }) satisfies MapDetailVm),
-        startWith({ state: 'loading' } satisfies MapDetailVm),
-        catchError(() => of({ state: 'error' } satisfies MapDetailVm)),
-      );
-    }),
+  protected readonly vm$: Observable<MapDetailVm> = this.reload$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.route.paramMap.pipe(
+        map((params) => params.get('map') ?? ''),
+        switchMap((mapNameRaw) => {
+          const trimmed = mapNameRaw.trim();
+          if (!trimmed) {
+            return of({ state: 'not-found' } satisfies MapDetailVm);
+          }
+
+          return this.mapsApi.getMap(trimmed).pipe(
+            map((detail) => ({ state: 'ready', detail }) satisfies MapDetailVm),
+            startWith({ state: 'loading' } satisfies MapDetailVm),
+            catchError((err: unknown) => {
+              if (err instanceof HttpErrorResponse && err.status === 404) {
+                return of({ state: 'not-found' } satisfies MapDetailVm);
+              }
+              return of({ state: 'error' } satisfies MapDetailVm);
+            })
+          );
+        })
+      )
+    )
   );
 
-  protected formatDate(value?: string): string {
+  protected retry(): void {
+    this.reload$.next();
+  }
+
+  protected goBack(): void {
+    this.router.navigate(['/maps']);
+  }
+
+  protected formatDate(value?: string | null): string {
     if (!value) {
       return 'Sem data disponível';
     }
@@ -62,23 +112,21 @@ export class MapDetailPage {
     }).format(date);
   }
 
-  protected formatNumber(value: number, digits = 1): string {
-    return value.toFixed(digits);
+  protected formatAvg(val: number): string {
+    if (typeof val !== 'number' || !Number.isFinite(val)) {
+      return '0.0';
+    }
+    return val.toFixed(1);
   }
 
-  protected formatSeriesScore(match: MapDetailRecentMatchDto): string {
-    return `${match.team1.score} x ${match.team2.score}`;
+  protected encodedMapName(name: string): string {
+    return encodeURIComponent(name);
   }
 
-  protected formatMapScore(match: MapDetailRecentMatchDto): string {
-    return `${match.mapScore.team1}-${match.mapScore.team2}`;
-  }
-
-  protected winnerLabel(match: MapDetailRecentMatchDto): string {
-    return match.winner || 'Sem vencedor';
-  }
-
-  protected isWinner(match: MapDetailRecentMatchDto, teamName: string): boolean {
-    return match.winner === teamName;
+  protected mapBackgroundImage(name: string): string {
+    if (!name || !this.knownMapImages.has(name)) {
+      return 'none';
+    }
+    return `url("map-images/${name}.png")`;
   }
 }

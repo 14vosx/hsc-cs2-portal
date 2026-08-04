@@ -2,91 +2,145 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <p class="season-matches__loading">Carregando partidas da Season...</p>
-      }
-
-      @case ('error') {
-        <app-empty-state
-          title="Partidas da Season indisponíveis"
-          description="Não foi possível carregar este recorte da Season neste momento."
+        <app-page-header
+          eyebrow="Partidas da Season"
+          title="Partidas"
+          description="Carregando partidas computadas para o ranking da Season."
+        />
+        <app-page-state
+          type="loading"
+          title="Carregando partidas..."
+          message="Buscando histórico de partidas da Season."
         />
       }
 
-      @case ('ready') {
-        @if (vm.season) {
-          <header class="season-matches__hero" [style.--season-cover]="seasonCoverImage(vm.season)">
-            <span>Partidas da Season</span>
-            <h1>{{ vm.season.name || vm.season.slug || 'Temporada HSC' }}</h1>
-            <p>{{ vm.season.status || 'season' }} · {{ formatDate(vm.season.start_at, false) }} - {{ formatDate(vm.season.end_at, false) }}</p>
-            @if (vm.generatedAt) {
-              <small>Atualizado em {{ formatDate(vm.generatedAt) }}</small>
-            }
-          </header>
+      @case ('season-unavailable') {
+        <app-page-header
+          eyebrow="Partidas da Season"
+          title="Season indisponível"
+          description="A Season solicitada não foi encontrada ou não está disponível."
+        />
+        <app-page-state
+          type="empty"
+          title="Season não encontrada"
+          message="A Season solicitada não está disponível no histórico do Portal CS2."
+          actionLabel="Voltar para Seasons"
+          (actionClick)="goBack()"
+        />
+      }
 
-          <app-season-tabs
-            [seasonSlug]="vm.season.slug"
-            activeTab="matches"
+      @case ('error') {
+        <app-page-header
+          eyebrow="Partidas da Season"
+          title="Erro ao carregar partidas"
+          description="Não foi possível carregar as estatísticas da Season neste momento."
+        />
+        <app-page-state
+          type="error"
+          title="Partidas indisponíveis"
+          message="Não foi possível carregar as partidas da Season no momento."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
+        />
+        <div class="season-matches__back-wrap">
+          <a class="season-matches__back" routerLink="/seasons">← voltar para Seasons</a>
+        </div>
+      }
+
+      @case ('ready') {
+        <header class="season-matches__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
+          <app-page-header
+            eyebrow="Partidas da Season"
+            [title]="vm.data.season.name || vm.data.season.slug || 'Temporada HSC'"
+            [description]="(seasonStatusLabel(vm.data.season.status)) + ' · ' + formatDate(vm.data.season.startAt, false) + ' - ' + formatDate(vm.data.season.endAt, false)"
+          >
+            <div meta class="season-matches__header-status">
+              <app-status-badge
+                [label]="seasonStatusLabel(vm.data.season.status)"
+                [tone]="seasonStatusTone(vm.data.season.status)"
+              />
+              <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
+            </div>
+          </app-page-header>
+        </header>
+
+        <app-season-tabs
+          [seasonSlug]="vm.data.season.slug"
+          activeTab="matches"
+        />
+
+        <section class="season-matches__metrics" aria-label="Resumo das partidas da Season">
+          <app-metric-card label="Partidas" [value]="vm.data.summary.matches" tone="ranking" />
+          <app-metric-card label="Mapas" [value]="vm.data.summary.maps" tone="success" />
+          <app-metric-card label="Rounds" [value]="vm.data.summary.rounds" />
+          <app-metric-card label="Jogadores" [value]="vm.data.summary.players" />
+          <app-metric-card label="Último mapa" [value]="formatDate(vm.data.summary.lastMapEndedAt)" />
+        </section>
+
+        <section class="season-matches__list-section" aria-label="Partidas válidas da Season">
+          <app-section-header
+            eyebrow="Partidas"
+            title="Partidas válidas da Season"
+            description="Partidas computadas para o ranking desta Season."
           />
 
-          <section class="season-matches__metrics" aria-label="Resumo das partidas da Season">
-            <div><span>Partidas</span><strong>{{ vm.summary?.matches ?? 0 }}</strong></div>
-            <div><span>Mapas</span><strong>{{ vm.summary?.maps ?? 0 }}</strong></div>
-            <div><span>Rounds</span><strong>{{ vm.summary?.rounds ?? 0 }}</strong></div>
-            <div><span>Jogadores</span><strong>{{ vm.summary?.players ?? 0 }}</strong></div>
-            <div><span>Último mapa</span><strong>{{ formatDate(vm.summary?.lastMapEndedAt) }}</strong></div>
-          </section>
+          <div class="season-matches__grid">
+            @for (match of vm.data.matches; track match.id) {
+              <div class="season-matches__item-wrap">
+                <app-match-score-card [match]="match" />
+                <div class="season-matches__item-meta">
+                  <span>{{ match.seasonMapCount }} mapas na Season</span>
+                  <span>{{ match.seasonRounds }} rounds válidos</span>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
 
-          @if (vm.matches.length) {
-            <section class="season-matches__list" aria-label="Partidas válidas da Season">
-              @for (match of vm.matches; track match.matchid) {
-                <article class="season-match-card">
-                  <header class="season-match-card__meta">
-                    <span>#{{ match.matchid }}</span>
-                    <span>{{ match.series_type }}</span>
-                    <span>{{ formatDate(firstMapStartedAt(match)) }}</span>
-                    <span>{{ formatInteger(match.seasonMapCount) }} mapas da Season</span>
-                  </header>
+      @case ('empty') {
+        <header class="season-matches__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
+          <app-page-header
+            eyebrow="Partidas da Season"
+            [title]="vm.data.season.name || vm.data.season.slug || 'Temporada HSC'"
+            [description]="(seasonStatusLabel(vm.data.season.status)) + ' · ' + formatDate(vm.data.season.startAt, false) + ' - ' + formatDate(vm.data.season.endAt, false)"
+          >
+            <div meta class="season-matches__header-status">
+              <app-status-badge
+                [label]="seasonStatusLabel(vm.data.season.status)"
+                [tone]="seasonStatusTone(vm.data.season.status)"
+              />
+              <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
+            </div>
+          </app-page-header>
+        </header>
 
-                  <div class="season-match-card__main">
-                    <div class="season-match-card__team" [class.season-match-card__team--winner]="winnerSide(match) === 'team1'">
-                      <strong>{{ match.team1_name }}</strong>
-                    </div>
-                    <div class="season-match-card__score">
-                      <strong>{{ formatSeriesScore(match) }}</strong>
-                      <span>{{ formatInteger(match.seasonRounds) }} rounds válidos</span>
-                    </div>
-                    <div class="season-match-card__team" [class.season-match-card__team--winner]="winnerSide(match) === 'team2'">
-                      <strong>{{ match.team2_name }}</strong>
-                    </div>
-                  </div>
+        <app-season-tabs
+          [seasonSlug]="vm.data.season.slug"
+          activeTab="matches"
+        />
 
-                  <footer class="season-match-card__footer">
-                    <p>Vencedor: <strong>{{ winnerLabel(match) }}</strong></p>
-                    <p>Último mapa: {{ formatDate(matchEndedAt(match)) }}</p>
-                    <a [routerLink]="['/matches', match.matchid]">Abrir partida</a>
-                  </footer>
+        <section class="season-matches__metrics" aria-label="Resumo das partidas da Season">
+          <app-metric-card label="Partidas" [value]="vm.data.summary.matches" tone="ranking" />
+          <app-metric-card label="Mapas" [value]="vm.data.summary.maps" tone="success" />
+          <app-metric-card label="Rounds" [value]="vm.data.summary.rounds" />
+          <app-metric-card label="Jogadores" [value]="vm.data.summary.players" />
+          <app-metric-card label="Último mapa" [value]="formatDate(vm.data.summary.lastMapEndedAt)" />
+        </section>
 
-                  @if (match.maps.length) {
-                    <div class="season-match-card__maps" aria-label="Mapas válidos da Season">
-                      @for (mapSummary of match.maps; track mapSummary.mapnumber || mapSummary.mapname) {
-                        <a [routerLink]="['/maps', mapSummary.mapname]">
-                          {{ mapSummary.mapname || 'Mapa' }} · {{ mapScore(mapSummary) }} · {{ mapRounds(mapSummary) }} rounds
-                        </a>
-                      }
-                    </div>
-                  }
-                </article>
-              }
-            </section>
-          } @else {
-            <app-empty-state
-              title="Nenhuma partida na Season"
-              description="O recorte publicado não retornou partidas válidas para esta Season."
-            />
-          }
-        } @else {
-          <app-empty-state title="Season não encontrada" description="A Season solicitada não está disponível." />
-        }
+        <section class="season-matches__list-section" aria-label="Partidas válidas da Season">
+          <app-section-header
+            eyebrow="Partidas"
+            title="Partidas válidas da Season"
+            description="Partidas computadas para o ranking desta Season."
+          />
+
+          <app-page-state
+            type="empty"
+            title="Nenhuma partida na Season"
+            message="O recorte publicado não retornou partidas válidas para esta Season."
+          />
+        </section>
       }
     }
   }

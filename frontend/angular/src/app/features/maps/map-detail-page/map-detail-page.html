@@ -2,28 +2,49 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-section-header
+        <app-page-header
           eyebrow="Mapas"
           title="Detalhe do mapa"
           description="Carregando estatísticas do mapa."
         />
+        <app-page-state
+          type="loading"
+          title="Carregando mapa..."
+          message="Buscando detalhes do mapa."
+        />
+      }
 
-        <p class="map-detail-page__loading">Carregando mapa...</p>
+      @case ('not-found') {
+        <app-page-header
+          eyebrow="Mapas"
+          title="Mapa não encontrado"
+          description="O mapa solicitado não foi localizado no histórico."
+        />
+        <app-page-state
+          type="empty"
+          title="Mapa não encontrado"
+          message="Não encontramos o mapa solicitado na rotação competitiva."
+          actionLabel="Voltar para mapas"
+          (actionClick)="goBack()"
+        />
       }
 
       @case ('error') {
-        <app-section-header
+        <app-page-header
           eyebrow="Mapas"
           title="Mapa indisponível"
-          description="Não foi possível carregar o detalhe deste mapa."
+          description="Não foi possível carregar as estatísticas deste mapa."
         />
-
-        <app-empty-state
-          title="Mapa não encontrado"
-          description="Volte para a lista de mapas e tente abrir outro registro."
+        <app-page-state
+          type="error"
+          title="Erro ao carregar mapa"
+          message="Não foi possível carregar as informações deste mapa no momento."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
         />
-
-        <a class="map-detail-page__back" routerLink="/maps">← voltar para mapas</a>
+        <div class="map-detail-page__back-wrap">
+          <a class="map-detail-page__back" routerLink="/maps">← voltar para mapas</a>
+        </div>
       }
 
       @case ('ready') {
@@ -32,97 +53,86 @@
           <span>/</span>
           <a routerLink="/maps">Mapas</a>
           <span>/</span>
-          <strong>{{ vm.detail.map }}</strong>
+          <strong>{{ vm.detail.name }}</strong>
         </nav>
 
-        <section class="map-detail-page__hero">
-          <app-section-header
-            eyebrow="Detalhes do mapa"
-            [title]="vm.detail.map"
-            [description]="'Último jogo: ' + formatDate(vm.detail.lifetime.lastPlayed)"
-          />
-
-          <div class="map-detail-page__actions">
+        <app-page-header
+          eyebrow="Detalhes do mapa"
+          [title]="vm.detail.name"
+          [description]="'Último jogo: ' + formatDate(vm.detail.lifetime.lastPlayedAt)"
+        >
+          <div meta class="map-detail-page__actions">
             <a class="map-detail-page__back" routerLink="/maps">← voltar</a>
             <a
               class="map-detail-page__api"
-              [href]="'/api/cs2/v2/map/' + vm.detail.map + '.json'"
+              [href]="'/api/cs2/v2/map/' + encodedMapName(vm.detail.name) + '.json'"
               target="_blank"
+              rel="noopener noreferrer"
             >
-              /api/cs2/v2/map/{{ vm.detail.map }}.json
+              /api/cs2/v2/map/{{ vm.detail.name }}.json
             </a>
           </div>
+        </app-page-header>
+
+        <section class="map-detail-page__hero-card">
+          <app-ui-card variant="highlight">
+            <div
+              class="map-detail-page__hero-content"
+              [style.--map-hero-bg]="mapBackgroundImage(vm.detail.name)"
+            >
+              <div class="map-detail-page__hero-header">
+                <h2>{{ vm.detail.name }}</h2>
+                <app-status-badge label="Rotação oficial" tone="active" />
+              </div>
+              <p class="map-detail-page__hero-summary">
+                {{ vm.detail.lifetime.matches }} partidas registradas ·
+                {{ vm.detail.lifetime.rounds }} rounds acumulados ·
+                média {{ formatAvg(vm.detail.lifetime.averageRoundsPerMatch) }} rounds/partida
+              </p>
+            </div>
+          </app-ui-card>
         </section>
 
         <section class="map-detail-page__metrics" aria-label="Resumo do mapa">
-          <app-metric-card label="Partidas" [value]="vm.detail.lifetime.matches" tone="ranking" />
-          <app-metric-card label="Rounds" [value]="vm.detail.lifetime.rounds" tone="success" />
+          <app-metric-card
+            label="Partidas"
+            [value]="vm.detail.lifetime.matches"
+            tone="ranking"
+          />
+          <app-metric-card
+            label="Rounds"
+            [value]="vm.detail.lifetime.rounds"
+            tone="success"
+          />
           <app-metric-card
             label="Média de rounds"
-            [value]="formatNumber(vm.detail.lifetime.avgRoundsPerMatch, 1)"
+            [value]="formatAvg(vm.detail.lifetime.averageRoundsPerMatch)"
           />
           <app-metric-card
             label="Último jogo"
-            [value]="formatDate(vm.detail.lifetime.lastPlayed)"
+            [value]="formatDate(vm.detail.lifetime.lastPlayedAt)"
           />
         </section>
 
-        <app-data-card
-          eyebrow="Recentes"
-          title="Partidas neste mapa"
-          meta="linkadas ao detalhe da partida"
-        >
-          @if (vm.detail.recentMatches.length > 0) {
-            <div class="map-detail-page__table-wrap">
-              <table class="map-detail-page__table">
-                <thead>
-                  <tr>
-                    <th>Encerrado em</th>
-                    <th>Match</th>
-                    <th>Série</th>
-                    <th>Mapa</th>
-                    <th>Vencedor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (match of vm.detail.recentMatches; track match.matchid) {
-                    <tr>
-                      <td>{{ formatDate(match.endedAt) }}</td>
-                      <td>
-                        <a
-                          [routerLink]="['/matches', match.matchid]"
-                          class="map-detail-page__match-link"
-                        >
-                          #{{ match.matchid }}
-                        </a>
-                        <span
-                          class="map-detail-page__scoreline"
-                          [class.map-detail-page__scoreline--winner-left]="
-                            isWinner(match, match.team1.name)
-                          "
-                          [class.map-detail-page__scoreline--winner-right]="
-                            isWinner(match, match.team2.name)
-                          "
-                        >
-                          {{ match.team1.name }} {{ formatSeriesScore(match) }}
-                          {{ match.team2.name }}
-                        </span>
-                      </td>
-                      <td>{{ match.seriesType }}</td>
-                      <td>{{ formatMapScore(match) }}</td>
-                      <td>{{ winnerLabel(match) }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <app-empty-state
-              title="Nenhuma partida recente"
-              description="Este mapa ainda não possui partidas recentes no cache."
-            />
-          }
-        </app-data-card>
+        <section class="map-detail-page__recent-section">
+          <app-section-header
+            eyebrow="Recentes"
+            title="Partidas neste mapa"
+            description="Histórico recente de partidas disputadas neste mapa."
+          />
+
+          <app-ui-card variant="default">
+            @if (vm.detail.recentMatches.length > 0) {
+              <app-map-recent-match-table [recentMatches]="vm.detail.recentMatches" />
+            } @else {
+              <app-page-state
+                type="empty"
+                title="Nenhuma partida recente"
+                message="Este mapa ainda não possui partidas recentes no histórico."
+              />
+            }
+          </app-ui-card>
+        </section>
       }
     }
   }
