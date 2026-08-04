@@ -20,7 +20,7 @@ export class PrimaryNav {
 
   protected readonly navItems: readonly PrimaryNavItem[] = [
     { id: 'home', label: 'Home', path: '/' },
-    { id: 'seasons', label: 'Temporadas', path: '/seasons/current' },
+    { id: 'seasons', label: 'Temporadas', path: '/seasons' },
     { id: 'ranking', label: 'Ranking', path: '/ranking' },
     { id: 'matches', label: 'Partidas', path: '/matches' },
     { id: 'maps', label: 'Mapas', path: '/maps' },
