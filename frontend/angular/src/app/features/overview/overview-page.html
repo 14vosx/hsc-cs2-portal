@@ -38,17 +38,23 @@
           @if (vm.hero.kind === 'season') {
             <aside class="overview-page__hero-panel" aria-label="Resumo competitivo">
               @if (vm.leader) {
-                <span>Líder atual</span>
+                <span>{{ leaderEyebrow(vm.seasonMetrics) }}</span>
                 <strong>{{ vm.leader.name }}</strong>
                 <p>{{ vm.leader.score.toFixed(1) }} pts | {{ playerMeta(vm.leader) }}</p>
+              } @else if (vm.seasonMetrics) {
+                <span>Temporada</span>
+                <strong>Sem classificados</strong>
+                <p>Os primeiros nomes ainda não entraram na classificação.</p>
               } @else {
                 <span>Temporada</span>
-                <strong>Em aberto</strong>
-                <p>Os primeiros nomes ainda não entraram na classificação.</p>
+                <strong>Indisponível</strong>
+                <p>Não há uma temporada pública disponível no momento.</p>
               }
             </aside>
           }
         </section>
+
+        <span class="overview-page__eyebrow overview-page__season-badge">{{ seasonContextLabel(vm.seasonMetrics) }}</span>
 
         <section class="overview-page__stat-strip" aria-label="Resumo do clube">
           <div>
@@ -80,13 +86,17 @@
                 aria-hidden="true"
               />
               <span class="overview-page__eyebrow">Ranking</span>
-              <h3>Líder da temporada</h3>
+              <h3>{{ leaderCardTitle(vm.seasonMetrics) }}</h3>
               @if (vm.leader) {
                 <strong>{{ vm.leader.name }}</strong>
                 <p>{{ playerMeta(vm.leader) }}</p>
-                <a routerLink="/seasons/current/ranking">Explorar classificação</a>
-              } @else {
+                <a [routerLink]="['/seasons', vm.seasonMetrics?.seasonSlug, 'ranking']">Explorar classificação</a>
+              } @else if (vm.seasonMetrics) {
                 <p>Ranking ainda sem jogadores classificados.</p>
+                <a [routerLink]="['/seasons', vm.seasonMetrics.seasonSlug, 'ranking']">Explorar classificação</a>
+              } @else {
+                <p>Não há uma temporada pública disponível no momento.</p>
+                <a routerLink="/seasons">Ver temporadas</a>
               }
             </article>
 
@@ -120,7 +130,7 @@
                 } @else {
                   <span class="overview-page__eyebrow">Última partida</span>
                   <h3>Sem partidas</h3>
-                  <p>Nenhuma partida foi encontrada para a temporada atual.</p>
+                  <p>Nenhuma partida foi encontrada.</p>
                 }
               </article>
 
@@ -146,7 +156,7 @@
                   </div>
                 } @else {
                   <h3>Sem mapas</h3>
-                  <p>Nenhum mapa foi encontrado para a temporada atual.</p>
+                  <p>Nenhum mapa foi encontrado.</p>
                 }
               </article>
             </div>

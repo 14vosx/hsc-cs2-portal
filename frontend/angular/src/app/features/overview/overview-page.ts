@@ -7,8 +7,12 @@ import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import { MapSummaryDto } from '../../core/api/dto/maps.dto';
 import { MatchMapDto, MatchSummaryDto } from '../../core/api/dto/matches.dto';
 import { NewsIndexDto, NewsIndexItemDto } from '../../core/api/dto/news.dto';
-import { RankingPlayerDto } from '../../core/api/dto/ranking.dto';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
+import { OverviewSeasonMetricsService } from './data-access/overview-season-metrics.service';
+import {
+  OverviewSeasonLeader,
+  OverviewSeasonMetrics,
+} from './domain/overview-season-metrics.model';
 
 interface OverviewHero {
   kind: 'news' | 'season';
@@ -24,10 +28,11 @@ interface OverviewReadyVm {
   state: 'ready';
   hero: OverviewHero;
   newsItems: NewsIndexItemDto[];
-  playersCount: number;
-  matchesCount: number;
-  mapsCount: number;
-  leader?: RankingPlayerDto;
+  playersCount: number | '—';
+  matchesCount: number | '—';
+  mapsCount: number | '—';
+  seasonMetrics: OverviewSeasonMetrics | null;
+  leader?: OverviewSeasonLeader;
   latestMatch?: MatchSummaryDto;
   mostPlayedMaps: MapSummaryDto[];
 }
@@ -38,10 +43,15 @@ type OverviewVm = OverviewReadyVm | { state: 'loading' } | { state: 'error' };
   selector: 'app-overview-page',
   imports: [AsyncPipe, EmptyState, RouterLink],
   templateUrl: './overview-page.html',
-  styleUrls: ['./overview-page.css', './overview-page-content.css', './overview-page-responsive.css'],
+  styleUrls: [
+    './overview-page.css',
+    './overview-page-content.css',
+    './overview-page-responsive.css',
+  ],
 })
 export class OverviewPage {
   private readonly cs2Api = inject(Cs2ApiService);
+  private readonly overviewSeasonMetrics = inject(OverviewSeasonMetricsService);
   private readonly knownMapImages = new Set([
     'de_ancient',
     'de_anubis',
@@ -55,14 +65,14 @@ export class OverviewPage {
 
   protected readonly vm$: Observable<OverviewVm> = forkJoin({
     health: this.cs2Api.getHealth(),
-    ranking: this.cs2Api.getRanking(),
     matches: this.cs2Api.getMatches(),
     maps: this.cs2Api.getMaps(),
     news: this.cs2Api
       .getNewsIndex()
       .pipe(catchError(() => of({ items: [] } satisfies NewsIndexDto))),
+    seasonMetrics: this.overviewSeasonMetrics.getOverviewSeasonMetrics(),
   }).pipe(
-    map(({ health, ranking, matches, maps, news }): OverviewVm => {
+    map(({ matches, maps, news, seasonMetrics }): OverviewVm => {
       const latestMatch = [...matches.matches].sort((current, next) => {
         const nextTime = this.matchTimestamp(next);
         const currentTime = this.matchTimestamp(current);
@@ -73,23 +83,18 @@ export class OverviewPage {
 
         return next.matchid - current.matchid;
       })[0];
-      const leader = ranking.players[0];
+      const leader = seasonMetrics?.leader ?? undefined;
       const newsItems = this.sortedNewsItems(news.items);
       const mostPlayedMaps = this.mostPlayedMaps(maps.maps);
 
       return {
         state: 'ready',
-        hero: this.buildHero(
-          newsItems,
-          health.generatedAt || ranking.generatedAt,
-          leader,
-          latestMatch,
-          mostPlayedMaps[0],
-        ),
+        hero: this.buildHero(newsItems, seasonMetrics),
         newsItems: newsItems.slice(0, 4),
-        playersCount: ranking.players.length,
-        matchesCount: matches.matches.length,
-        mapsCount: maps.maps.length,
+        playersCount: seasonMetrics ? seasonMetrics.playersCount : '—',
+        matchesCount: seasonMetrics ? seasonMetrics.matchesCount : '—',
+        mapsCount: seasonMetrics ? seasonMetrics.mapsCount : '—',
+        seasonMetrics,
         leader,
         latestMatch,
         mostPlayedMaps,
@@ -99,9 +104,35 @@ export class OverviewPage {
     catchError(() => of({ state: 'error' } satisfies OverviewVm)),
   );
 
-  protected formatDate(value?: string): string {
+  protected seasonContextLabel(seasonMetrics: OverviewSeasonMetrics | null): string {
+    if (!seasonMetrics) {
+      return 'Sem temporada pública';
+    }
+
+    if (seasonMetrics.contextMode === 'active') {
+      return `Temporada ativa · ${seasonMetrics.seasonName}`;
+    }
+
+    return `Última temporada encerrada · ${seasonMetrics.seasonName}`;
+  }
+
+  protected leaderEyebrow(seasonMetrics: OverviewSeasonMetrics | null): string {
+    if (seasonMetrics?.contextMode === 'latest-closed') {
+      return 'Líder final';
+    }
+    return 'Líder atual';
+  }
+
+  protected leaderCardTitle(seasonMetrics: OverviewSeasonMetrics | null): string {
+    if (seasonMetrics?.contextMode === 'latest-closed') {
+      return 'Líder da temporada encerrada';
+    }
+    return 'Líder da temporada';
+  }
+
+  protected formatDate(value?: string | null): string {
     if (!value) {
-      return 'Sem data disponivel';
+      return 'Sem data disponível';
     }
 
     const date = new Date(value);
@@ -127,7 +158,7 @@ export class OverviewPage {
     return match.winner ? `Vencedor: ${match.winner}` : 'Resultado registrado';
   }
 
-  protected playerMeta(player: RankingPlayerDto): string {
+  protected playerMeta(player: OverviewSeasonLeader): string {
     return `${player.wins}V ${player.losses}D | K/D ${player.kdRatio.toFixed(2)}`;
   }
 
@@ -197,10 +228,7 @@ export class OverviewPage {
 
   private buildHero(
     newsItems: NewsIndexItemDto[],
-    generatedAt: string,
-    leader?: RankingPlayerDto,
-    latestMatch?: MatchSummaryDto,
-    mostPlayedMap?: MapSummaryDto,
+    seasonMetrics: OverviewSeasonMetrics | null,
   ): OverviewHero {
     const latestNews = newsItems[0];
 
@@ -209,7 +237,8 @@ export class OverviewPage {
         kind: 'news',
         eyebrow: 'Última mensagem',
         title: latestNews.title,
-        description: latestNews.excerpt?.trim() || 'Nova publicação da comunidade HSC.',
+        description:
+          latestNews.excerpt?.trim() || 'Nova publicação da comunidade HSC.',
         meta: latestNews.published_at
           ? `Publicado em ${this.formatDate(latestNews.published_at)}`
           : 'News HSC',
@@ -218,22 +247,44 @@ export class OverviewPage {
       };
     }
 
-    const details = [
-      leader ? `${leader.name} lidera a classificação` : undefined,
-      latestMatch ? `última partida #${latestMatch.matchid}` : undefined,
-      mostPlayedMap ? `${this.mapLabel(mostPlayedMap)} em rotação` : undefined,
-    ].filter(Boolean);
+    if (!seasonMetrics) {
+      return {
+        kind: 'season',
+        eyebrow: 'Competitivo HSC',
+        title: 'Temporada CS2 do clube',
+        description:
+          'Ranking, partidas e mapas do Counter-Strike HSC em uma entrada única para a comunidade.',
+        meta: 'Sem data disponível',
+        ctaLabel: 'Ver temporadas',
+        routerLink: '/seasons',
+      };
+    }
+
+    const isClosed = seasonMetrics.contextMode === 'latest-closed';
+    const eyebrow = isClosed ? 'Temporada encerrada' : 'Competitivo HSC';
+    const title = seasonMetrics.seasonName;
+    const metaDate = this.formatDate(seasonMetrics.generatedAt);
+    const meta =
+      metaDate !== 'Sem data disponível'
+        ? `Atualizado em ${metaDate}`
+        : 'Sem data disponível';
+    const ctaLabel = 'Ver ranking';
+    const routerLink = `/seasons/${seasonMetrics.seasonSlug}/ranking`;
+
+    const description = seasonMetrics.leader
+      ? `${seasonMetrics.leader.name} lidera a classificação do competitivo HSC.`
+      : isClosed
+        ? 'Classificação final da temporada encerrada no clube.'
+        : 'Classificação competitiva do clube em andamento.';
 
     return {
       kind: 'season',
-      eyebrow: 'Competitivo HSC',
-      title: 'Temporada CS2 do clube',
-      description:
-        details.join(', ') ||
-        'Ranking, partidas e mapas do Counter-Strike HSC em uma entrada única para a comunidade.',
-      meta: `Atualizado em ${this.formatDate(generatedAt)}`,
-      ctaLabel: 'Ver ranking',
-      routerLink: '/seasons/current/ranking',
+      eyebrow,
+      title,
+      description,
+      meta,
+      ctaLabel,
+      routerLink,
     };
   }
 
