@@ -1,16 +1,27 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
-export type StatusBadgeTone = 'neutral' | 'success' | 'danger' | 'warning';
+export type StatusBadgeVariant =
+  | 'active'
+  | 'closed'
+  | 'neutral'
+  | 'warning'
+  | 'info'
+  | 'success'
+  | 'danger';
 
 @Component({
   selector: 'app-status-badge',
   templateUrl: './status-badge.html',
   styleUrl: './status-badge.css',
   host: {
-    '[class]': '"status-badge status-badge--" + tone',
+    '[class]': 'hostClass()',
   },
 })
 export class StatusBadge {
-  @Input({ required: true }) label!: string;
-  @Input() tone: StatusBadgeTone = 'neutral';
+  readonly label = input.required<string>();
+  readonly status = input<StatusBadgeVariant>();
+  readonly tone = input<StatusBadgeVariant>();
+
+  readonly effectiveVariant = computed(() => this.tone() || this.status() || 'neutral');
+  readonly hostClass = computed(() => `status-badge status-badge--${this.effectiveVariant()}`);
 }

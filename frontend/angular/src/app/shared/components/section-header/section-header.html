@@ -1,11 +1,14 @@
 <div class="section-header">
-  @if (eyebrow) {
-    <p class="section-header__eyebrow">{{ eyebrow }}</p>
-  }
-
-  <h1>{{ title }}</h1>
-
-  @if (description) {
-    <p class="section-header__description">{{ description }}</p>
-  }
+  <div class="section-header__titles">
+    @if (eyebrow()) {
+      <p class="section-header__eyebrow">{{ eyebrow() }}</p>
+    }
+    <h2 class="section-header__title">{{ title() }}</h2>
+    @if (subtitle() || description()) {
+      <p class="section-header__subtitle">{{ subtitle() || description() }}</p>
+    }
+  </div>
+  <div class="section-header__action">
+    <ng-content select="[action]" />
+  </div>
 </div>

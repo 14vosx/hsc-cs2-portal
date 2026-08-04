@@ -1,0 +1,106 @@
+.app-footer {
+  margin-top: auto;
+  background: var(--color-bg-elevated);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.app-footer__container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5);
+}
+
+.app-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.app-footer__badge {
+  padding: var(--space-0-5) var(--space-2);
+  background: var(--color-accent-cyan-soft);
+  color: var(--color-accent-cyan);
+  border: 1px solid var(--color-accent-cyan-border);
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.app-footer__title {
+  color: var(--color-text-main);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.app-footer__tagline {
+  max-width: 420px;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.app-footer__nav-title {
+  margin: 0 0 var(--space-3) 0;
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.app-footer__links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-footer__link {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--color-text-brand);
+  }
+}
+
+.app-footer__bottom {
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-base);
+}
+
+.app-footer__bottom-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-5);
+}
+
+.app-footer__copyright,
+.app-footer__meta {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.825rem;
+}
+
+@media (max-width: 768px) {
+  .app-footer__container {
+    grid-template-columns: 1fr;
+  }
+
+  .app-footer__bottom-container {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+}

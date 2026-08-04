@@ -1,13 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 
-import { PortalShell } from './core/layout/portal-shell/portal-shell';
+import { AppShell } from './layout/app-shell/app-shell';
 
 @Component({
   selector: 'app-root',
-  imports: [PortalShell],
+  imports: [AppShell],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
-export class App {
-  protected readonly title = signal('hsc-cs2-portal-angular');
-}
+export class App {}
