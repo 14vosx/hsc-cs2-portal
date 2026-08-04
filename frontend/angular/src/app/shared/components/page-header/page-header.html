@@ -1,0 +1,18 @@
+<header class="page-header">
+  <div class="page-header__content">
+    @if (eyebrow()) {
+      <span class="page-header__eyebrow">{{ eyebrow() }}</span>
+    }
+    <h1 class="page-header__title">{{ title() }}</h1>
+    @if (description()) {
+      <p class="page-header__description">{{ description() }}</p>
+    }
+    <div class="page-header__meta">
+      <ng-content select="[meta]" />
+    </div>
+  </div>
+
+  <div class="page-header__actions">
+    <ng-content select="[actions]" />
+  </div>
+</header>

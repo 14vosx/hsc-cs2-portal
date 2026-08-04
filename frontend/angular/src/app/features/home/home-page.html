@@ -1,0 +1,217 @@
+<div class="home-page">
+  <!-- Hero / Page Header (Renders immediately) -->
+  <app-page-header
+    eyebrow="Plataforma Competitiva"
+    title="HSC CS2 Portal"
+    description="Acompanhe temporadas, classificações, estatísticas de partidas e desempenho dos jogadores no circuito oficial HSC Counter-Strike 2."
+  >
+    <div actions class="home-page__hero-actions">
+      <a routerLink="/seasons/current/ranking" class="home-page__btn home-page__btn--primary">
+        Ver Ranking
+      </a>
+      <a routerLink="/seasons/current" class="home-page__btn home-page__btn--secondary">
+        Ver Temporadas
+      </a>
+    </div>
+  </app-page-header>
+
+  <!-- Season Context Section -->
+  <section class="home-page__section">
+    <app-section-header title="Temporada em Destaque" subtitle="Contexto e liderança da temporada ativa ou mais recente" />
+
+    @if (seasonState$ | async; as state) {
+      @switch (state.status) {
+        @case ('loading') {
+          <app-ui-card>
+            <app-page-state type="loading" message="Carregando dados da temporada..." />
+          </app-ui-card>
+        }
+
+        @case ('ready') {
+          @let season = state.data;
+          <app-ui-card variant="highlight">
+            <div class="home-page__season-card">
+              <div class="home-page__season-header">
+                <div>
+                  <h3 class="home-page__season-title">{{ season.seasonName }}</h3>
+                  <span class="home-page__season-slug">#{{ season.seasonSlug }}</span>
+                </div>
+                <app-status-badge
+                  [status]="season.contextMode === 'active' ? 'active' : 'closed'"
+                  [label]="season.contextMode === 'active' ? 'Temporada Ativa' : 'Última Temporada Encerrada'"
+                />
+              </div>
+
+              <div class="home-page__metrics-grid">
+                <div class="home-page__metric-item">
+                  <span class="home-page__metric-value">{{ season.playersCount }}</span>
+                  <span class="home-page__metric-label">Jogadores na Temporada</span>
+                </div>
+                <div class="home-page__metric-item">
+                  <span class="home-page__metric-value">{{ season.matchesCount }}</span>
+                  <span class="home-page__metric-label">Partidas Disputadas</span>
+                </div>
+                <div class="home-page__metric-item">
+                  <span class="home-page__metric-value">{{ season.mapsCount }}</span>
+                  <span class="home-page__metric-label">Mapas Jogados</span>
+                </div>
+              </div>
+
+              <!-- Leader Highlight -->
+              @if (season.leader) {
+                <div class="home-page__leader-box">
+                  <div class="home-page__leader-info">
+                    <span class="home-page__leader-tag">
+                      {{ season.contextMode === 'active' ? 'Líder Atual' : 'Líder Final' }}
+                    </span>
+                    <h4 class="home-page__leader-name">{{ season.leader.name }}</h4>
+                    <span class="home-page__leader-stats">
+                      Pontos: <strong>{{ season.leader.score }}</strong> | Vitórias: <strong>{{ season.leader.wins }}</strong> | K/D: <strong>{{ season.leader.kdRatio }}</strong>
+                    </span>
+                  </div>
+                  <a [routerLink]="['/seasons', season.seasonSlug, 'ranking']" class="home-page__btn home-page__btn--small">
+                    Ver Tabela Completa
+                  </a>
+                </div>
+              } @else {
+                <p class="home-page__empty-leader">Nenhum jogador classificado nesta temporada até o momento.</p>
+              }
+            </div>
+          </app-ui-card>
+        }
+
+        @case ('empty') {
+          <app-ui-card>
+            <div class="home-page__empty-season">
+              <app-status-badge status="neutral" label="Sem Temporada Pública" />
+              <p class="home-page__empty-text">Nenhuma temporada pública ativa ou encerrada no momento.</p>
+            </div>
+          </app-ui-card>
+        }
+
+        @case ('seasons-error') {
+          <app-ui-card>
+            <app-page-state
+              type="error"
+              title="Indisponibilidade Sazonal"
+              [message]="state.error"
+            />
+          </app-ui-card>
+        }
+
+        @case ('ranking-error') {
+          <app-ui-card variant="highlight">
+            <div class="home-page__season-card">
+              <div class="home-page__season-header">
+                <div>
+                  <h3 class="home-page__season-title">{{ state.seasonName }}</h3>
+                  <span class="home-page__season-slug">#{{ state.seasonSlug }}</span>
+                </div>
+                <app-status-badge
+                  [status]="state.contextMode === 'active' ? 'active' : 'closed'"
+                  [label]="state.contextMode === 'active' ? 'Temporada Ativa' : 'Última Temporada Encerrada'"
+                />
+              </div>
+
+              <app-page-state
+                type="error"
+                title="Erro no Ranking"
+                [message]="state.error"
+              />
+
+              <div class="home-page__season-actions">
+                <a [routerLink]="['/seasons', state.seasonSlug]" class="home-page__btn home-page__btn--secondary">
+                  Ver Temporada
+                </a>
+              </div>
+            </div>
+          </app-ui-card>
+        }
+      }
+    }
+  </section>
+
+  <!-- Portal Shortcuts Grid (Renders immediately) -->
+  <section class="home-page__section">
+    <app-section-header title="Áreas do Portal" subtitle="Acesse os módulos principais da plataforma competitiva" />
+
+    <div class="home-page__shortcuts-grid">
+      <a routerLink="/seasons/current/ranking" class="home-page__card-link">
+        <app-ui-card variant="interactive">
+          <div class="home-page__shortcut">
+            <h3 class="home-page__shortcut-title">Ranking Geral</h3>
+            <p class="home-page__shortcut-desc">Classificação competitiva atualizada, líderes e pontuação dos jogadores.</p>
+            <span class="home-page__shortcut-link">Acessar Ranking →</span>
+          </div>
+        </app-ui-card>
+      </a>
+
+      <a routerLink="/seasons/current" class="home-page__card-link">
+        <app-ui-card variant="interactive">
+          <div class="home-page__shortcut">
+            <h3 class="home-page__shortcut-title">Temporadas</h3>
+            <p class="home-page__shortcut-desc">Histórico de edições, estatísticas consolidadas e campeões passados.</p>
+            <span class="home-page__shortcut-link">Ver Temporadas →</span>
+          </div>
+        </app-ui-card>
+      </a>
+
+      <a routerLink="/matches" class="home-page__card-link">
+        <app-ui-card variant="interactive">
+          <div class="home-page__shortcut">
+            <h3 class="home-page__shortcut-title">Partidas</h3>
+            <p class="home-page__shortcut-desc">Resultados, detalhes dos confrontos e estatísticas de cada mapa disputado.</p>
+            <span class="home-page__shortcut-link">Ver Partidas →</span>
+          </div>
+        </app-ui-card>
+      </a>
+
+      <a routerLink="/maps" class="home-page__card-link">
+        <app-ui-card variant="interactive">
+          <div class="home-page__shortcut">
+            <h3 class="home-page__shortcut-title">Mapas</h3>
+            <p class="home-page__shortcut-desc">Estatísticas do pool de mapas, taxa de vitórias e frequência no servidor.</p>
+            <span class="home-page__shortcut-link">Ver Mapas →</span>
+          </div>
+        </app-ui-card>
+      </a>
+
+      <a routerLink="/bunker" class="home-page__card-link">
+        <app-ui-card variant="interactive">
+          <div class="home-page__shortcut">
+            <h3 class="home-page__shortcut-title">Player Bunker</h3>
+            <p class="home-page__shortcut-desc">Área exclusiva do jogador autenticado via Steam com perfil e estatísticas.</p>
+            <span class="home-page__shortcut-link">Ir ao Bunker →</span>
+          </div>
+        </app-ui-card>
+      </a>
+
+      <a routerLink="/news" class="home-page__card-link">
+        <app-ui-card variant="interactive">
+          <div class="home-page__shortcut">
+            <h3 class="home-page__shortcut-title">News</h3>
+            <p class="home-page__shortcut-desc">Comunicados oficiais, atualizações de regras e notas da comunidade.</p>
+            <span class="home-page__shortcut-link">Ler Notícias →</span>
+          </div>
+        </app-ui-card>
+      </a>
+    </div>
+  </section>
+
+  <!-- Editorial Highlight Section (Optional) -->
+  @if (editorialHighlight$ | async; as highlight) {
+    <section class="home-page__section">
+      <app-section-header title="Comunicado Oficial" />
+      <app-ui-card>
+        <div class="home-page__editorial">
+          <span class="home-page__editorial-date">{{ highlight.date }}</span>
+          <h3 class="home-page__editorial-title">{{ highlight.title }}</h3>
+          <p class="home-page__editorial-summary">{{ highlight.summary }}</p>
+          <a [routerLink]="['/news', highlight.slug]" class="home-page__btn home-page__btn--small">
+            Ler Matéria Completa
+          </a>
+        </div>
+      </app-ui-card>
+    </section>
+  }
+</div>

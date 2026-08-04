@@ -1,13 +1,12 @@
 import { Component, input } from '@angular/core';
 
 @Component({
-  selector: 'app-section-header',
-  templateUrl: './section-header.html',
-  styleUrl: './section-header.css',
+  selector: 'app-page-header',
+  templateUrl: './page-header.html',
+  styleUrl: './page-header.css',
 })
-export class SectionHeader {
+export class PageHeader {
   readonly eyebrow = input<string>();
   readonly title = input.required<string>();
   readonly description = input<string>();
-  readonly subtitle = input<string>();
 }

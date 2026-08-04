@@ -1,0 +1,41 @@
+<div class="app-shell">
+  <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+
+  <app-header
+    [isDrawerOpen]="isDrawerOpen()"
+    (toggleDrawer)="toggleDrawer()"
+  />
+
+  <div class="app-shell__body">
+    <!-- Desktop Permanent Sidebar -->
+    <aside class="app-shell__sidebar-desktop" aria-label="Navegação Lateral">
+      <app-sidebar />
+    </aside>
+
+    <!-- Mobile Drawer Modal Overlay & Surface -->
+    @if (isDrawerOpen()) {
+      <div
+        class="app-shell__backdrop"
+        (click)="closeDrawer()"
+        aria-hidden="true"
+      ></div>
+      <div
+        id="mobile-drawer"
+        class="app-shell__drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu principal de navegação"
+        cdkTrapFocus
+        [cdkTrapFocusAutoCapture]="true"
+      >
+        <app-sidebar [isMobileDrawer]="true" (closeRequested)="closeDrawer()" />
+      </div>
+    }
+
+    <main id="main-content" class="app-shell__main" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+
+  <app-footer />
+</div>

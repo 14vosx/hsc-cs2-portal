@@ -1,0 +1,35 @@
+<div class="page-state" [class]="'page-state--' + type()">
+  @if (type() === 'loading') {
+    <div class="page-state__spinner" aria-hidden="true"></div>
+    <p class="page-state__loading-text">{{ message() || 'Carregando dados...' }}</p>
+  } @else if (type() === 'empty') {
+    <div class="page-state__icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+    <h3 class="page-state__title">{{ title() || 'Nenhum dado encontrado' }}</h3>
+    @if (message()) {
+      <p class="page-state__message">{{ message() }}</p>
+    }
+  } @else if (type() === 'error') {
+    <div class="page-state__icon page-state__icon--error" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+    <h3 class="page-state__title">{{ title() || 'Ocorreu um erro' }}</h3>
+    @if (message()) {
+      <p class="page-state__message">{{ message() }}</p>
+    }
+    @if (actionLabel()) {
+      <button type="button" class="page-state__btn" (click)="onAction()">
+        {{ actionLabel() }}
+      </button>
+    }
+  }
+</div>

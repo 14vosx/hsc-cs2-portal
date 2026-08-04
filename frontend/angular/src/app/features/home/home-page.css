@@ -1,0 +1,272 @@
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.home-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.home-page__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.home-page__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.home-page__btn--primary {
+  background: var(--color-accent-cyan);
+  color: var(--hsc-dark-04);
+
+  &:hover {
+    background: var(--hsc-cyan-70);
+  }
+}
+
+.home-page__btn--secondary {
+  background: var(--color-surface-strong);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-default);
+
+  &:hover {
+    background: var(--color-surface-subtle);
+    border-color: var(--color-border-strong);
+  }
+}
+
+.home-page__btn--small {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  background: var(--color-surface-strong);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-default);
+
+  &:hover {
+    background: var(--color-surface-subtle);
+    border-color: var(--color-accent-cyan-border);
+  }
+}
+
+/* Season Card Styles */
+.home-page__season-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.home-page__season-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.home-page__season-title {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.home-page__season-slug {
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+}
+
+.home-page__season-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-3);
+}
+
+.home-page__metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg-base);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.home-page__metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.home-page__metric-value {
+  color: var(--color-text-brand);
+  font-size: 1.8rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.home-page__metric-label {
+  color: var(--color-text-muted);
+  font-size: 0.825rem;
+  font-weight: 500;
+}
+
+/* Leader Box */
+.home-page__leader-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-accent-cyan-soft);
+  border: 1px solid var(--color-accent-cyan-border);
+  border-radius: var(--radius-md);
+}
+
+.home-page__leader-tag {
+  display: inline-block;
+  color: var(--color-accent-cyan);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.home-page__leader-name {
+  margin: 0 0 var(--space-1) 0;
+  color: var(--color-text-main);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.home-page__leader-stats {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.home-page__empty-season {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.home-page__empty-text {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Shortcuts Grid */
+.home-page__shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.home-page__card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-lg);
+  outline-offset: 4px;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent-cyan);
+  }
+}
+
+.home-page__shortcut {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.home-page__shortcut-title {
+  margin: 0 0 var(--space-2) 0;
+  color: var(--color-text-main);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.home-page__shortcut-desc {
+  flex: 1;
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.home-page__shortcut-link {
+  color: var(--color-accent-cyan);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Editorial */
+.home-page__editorial {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.home-page__editorial-date {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+}
+
+.home-page__editorial-title {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.home-page__editorial-summary {
+  margin: 0 0 var(--space-3) 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 991px) {
+  .home-page__shortcuts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .home-page__metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page__shortcuts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page__leader-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+}

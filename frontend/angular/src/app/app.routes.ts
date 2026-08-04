@@ -1,10 +1,10 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./features/overview/overview-page').then((component) => component.OverviewPage),
+      import('./features/home/home-page').then((component) => component.HomePage),
   },
   {
     path: 'ranking',

@@ -1,0 +1,17 @@
+<nav class="primary-nav" aria-label="Navegação Principal">
+  <ul class="primary-nav__list">
+    @for (item of navItems; track item.id) {
+      <li class="primary-nav__item">
+        <a
+          [routerLink]="item.path"
+          class="primary-nav__link"
+          [class.primary-nav__link--active]="isActive(item)"
+          [attr.aria-current]="isActive(item) ? 'page' : null"
+          (click)="onLinkClick()"
+        >
+          <span class="primary-nav__label">{{ item.label }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+</nav>
