@@ -1,5 +1,5 @@
 <section class="season-podium" aria-label="Top 3 premiável">
-  @for (player of podiumPlayers(); track player.steamid64 || player.name) {
+  @for (player of podiumPlayers(); track canonicalSteamId(player) || player.name || $index) {
     <article
       class="season-podium-card"
       [class.season-podium-card--rank-1]="player.prizeRank === 1"

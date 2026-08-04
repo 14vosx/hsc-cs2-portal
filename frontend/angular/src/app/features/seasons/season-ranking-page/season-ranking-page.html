@@ -2,120 +2,165 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <p class="season-ranking__loading">Carregando ranking da Season...</p>
+        <app-page-header
+          eyebrow="Season"
+          title="Ranking da Season"
+          description="Carregando a classificação competitiva da Season selecionada."
+        />
+        <app-page-state type="loading" title="Carregando ranking da Season..." message="Sincronizando a classificação da Season." />
       }
 
       @case ('error') {
-        <app-empty-state
+        <app-page-header
+          eyebrow="Season"
+          title="Ranking da Season"
+          description="Não foi possível carregar a classificação competitiva da Season selecionada."
+        />
+        <app-page-state
+          type="error"
           title="Ranking indisponível"
-          description="Não foi possível carregar o ranking da Season neste momento."
+          message="Não foi possível carregar o ranking da Season neste momento."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
+        />
+      }
+
+      @case ('season-unavailable') {
+        <app-page-header
+          eyebrow="Season"
+          title="Ranking da Season"
+          description="Ainda não existe uma Season disponível para exibir o ranking."
+        />
+        <app-page-state type="empty" title="Nenhuma Season disponível" message="Não existe uma Season disponível para exibir o ranking neste momento." />
+      }
+
+      @case ('empty') {
+        <app-page-header
+          eyebrow="Season"
+          [title]="vm.ranking.season.name || vm.ranking.season.slug || 'Ranking da Season'"
+          [description]="vm.ranking.season.description || 'A Season existe, mas ainda não possui jogadores no ranking.'"
+        />
+        <header class="season-ranking__hero" [style.--season-cover]="seasonCoverImage(vm.ranking.season)">
+          <span>Ranking da Season</span>
+          <h1>{{ vm.ranking.season.name || vm.ranking.season.slug || 'Temporada HSC' }}</h1>
+          <p>{{ vm.ranking.season.status || 'season' }} · {{ formatDate(vm.ranking.season.startAt) }} - {{ formatDate(vm.ranking.season.endAt) }}</p>
+          <small>Atualizado em {{ formatDate(vm.ranking.generatedAt, true) }}</small>
+        </header>
+
+        <app-season-tabs [seasonSlug]="vm.ranking.season.slug" activeTab="ranking" />
+
+        <app-page-state
+          type="empty"
+          title="Ainda não há jogadores no ranking"
+          [message]="'A Season ' + (vm.ranking.season.name || vm.ranking.season.slug || 'selecionada') + ' existe, mas ainda não possui jogadores no ranking.'"
         />
       }
 
       @case ('ready') {
-        @if (vm.season) {
-          <header class="season-ranking__hero" [style.--season-cover]="seasonCoverImage(vm.season)">
-            <span>Ranking da Season</span>
-            <h1>{{ vm.season.name || vm.season.slug || 'Temporada HSC' }}</h1>
-            <p>{{ vm.season.status || 'season' }} · {{ formatDate(vm.season.start_at) }} - {{ formatDate(vm.season.end_at) }}</p>
-            <small>Atualizado em {{ formatDate(vm.generatedAt, true) }}</small>
+        <app-page-header
+          eyebrow="Season"
+          [title]="vm.ranking.season.name || vm.ranking.season.slug || 'Ranking da Season'"
+          [description]="vm.ranking.season.description || 'Classificação competitiva da Season atual.'"
+        />
+
+        <header class="season-ranking__hero" [style.--season-cover]="seasonCoverImage(vm.ranking.season)">
+          <span>Ranking da Season</span>
+          <h1>{{ vm.ranking.season.name || vm.ranking.season.slug || 'Temporada HSC' }}</h1>
+          <p>{{ vm.ranking.season.status || 'season' }} · {{ formatDate(vm.ranking.season.startAt) }} - {{ formatDate(vm.ranking.season.endAt) }}</p>
+          <small>Atualizado em {{ formatDate(vm.ranking.generatedAt, true) }}</small>
+        </header>
+
+        <app-season-tabs [seasonSlug]="vm.ranking.season.slug" activeTab="ranking" />
+
+        <section class="season-ranking__prize">
+          <strong>Top 3 da Season serão premiados.</strong>
+          <span>Premiação será anunciada em breve.</span>
+          <small>{{ vm.ranking.rules.prizeEligibility.minMapsPlayed }} mapas · {{ vm.ranking.rules.prizeEligibility.minRoundsPlayed }} rounds mínimos</small>
+        </section>
+
+        @if (vm.ranking.topPrizeCandidates.length) {
+          <app-season-podium [players]="vm.ranking.topPrizeCandidates" />
+        }
+
+        <section class="season-ranking__metrics" aria-label="Resumo do ranking">
+          <div><span>Jogadores</span><strong>{{ vm.ranking.summary.players }}</strong></div>
+          <div><span>Elegíveis</span><strong>{{ vm.ranking.summary.eligiblePlayers }}</strong></div>
+          <div><span>Partidas</span><strong>{{ vm.ranking.summary.matches }}</strong></div>
+          <div><span>Mapas</span><strong>{{ vm.ranking.summary.maps }}</strong></div>
+          <div><span>Rounds</span><strong>{{ vm.ranking.summary.rounds }}</strong></div>
+        </section>
+
+        <section class="season-ranking__table-section">
+          <header>
+            <h2>Tabela completa</h2>
+            <input type="search" placeholder="Buscar jogador" (input)="updateSearch($event)" />
           </header>
 
-          <app-season-tabs
-            [seasonSlug]="vm.season.slug"
-            activeTab="ranking"
-          />
+          @let visiblePlayers = filteredPlayers(vm.ranking.players);
 
-          <section class="season-ranking__prize">
-            <strong>Top 3 da Season serão premiados.</strong>
-            <span>Premiação será anunciada em breve.</span>
-            <small>{{ vm.rules?.prizeEligibility?.minMapsPlayed ?? '-' }} mapas · {{ vm.rules?.prizeEligibility?.minRoundsPlayed ?? '-' }} rounds mínimos</small>
-          </section>
-
-          @if (vm.topPrizeCandidates?.length) {
-            <app-season-podium [players]="vm.topPrizeCandidates" />
-          }
-
-          <section class="season-ranking__metrics" aria-label="Resumo do ranking">
-            <div><span>Jogadores</span><strong>{{ vm.summary?.players ?? 0 }}</strong></div>
-            <div><span>Elegíveis</span><strong>{{ vm.summary?.eligiblePlayers ?? 0 }}</strong></div>
-            <div><span>Partidas</span><strong>{{ vm.summary?.matches ?? 0 }}</strong></div>
-            <div><span>Mapas</span><strong>{{ vm.summary?.maps ?? 0 }}</strong></div>
-            <div><span>Rounds</span><strong>{{ vm.summary?.rounds ?? 0 }}</strong></div>
-          </section>
-
-          <section class="season-ranking__table-section">
-            <header>
-              <h2>Tabela completa</h2>
-              <input type="search" placeholder="Buscar jogador" (input)="updateSearch($event)" />
-            </header>
-
-            @if (visiblePlayers(vm.players).length) {
-              <div class="season-ranking__table-wrap">
-                <table class="season-ranking__table">
-                  <thead>
+          @if (visiblePlayers.length) {
+            <div class="season-ranking__table-wrap">
+              <table class="season-ranking__table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Jogador</th>
+                    <th>Elegibilidade</th>
+                    <th>Score</th>
+                    <th>V</th>
+                    <th>D</th>
+                    <th>K/D</th>
+                    <th>HS%</th>
+                    <th>ADR</th>
+                    <th>Impact</th>
+                    <th>Mapas</th>
+                    <th>Rounds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (player of visiblePlayers; track player.steamId64 || player.name) {
                     <tr>
-                      <th>Rank</th>
-                      <th>Jogador</th>
-                      <th>Elegibilidade</th>
-                      <th>Score</th>
-                      <th>V</th>
-                      <th>D</th>
-                      <th>K/D</th>
-                      <th>HS%</th>
-                      <th>ADR</th>
-                      <th>Impact</th>
-                      <th>Mapas</th>
-                      <th>Rounds</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (player of visiblePlayers(vm.players); track player.steamid64 || player.name) {
-                      <tr>
-                        <td>#{{ player.rank ?? '-' }}</td>
-                        <td>
-                          <div class="season-ranking__player">
-                            <div class="season-ranking__avatar">
-                              @if (playerAvatar(player)) {
-                                <img [src]="playerAvatar(player)" alt="" />
-                              } @else {
-                                <span>{{ playerInitials(player) }}</span>
-                              }
-                            </div>
-                            <strong>{{ player.name || 'Jogador HSC' }}</strong>
+                      <td>#{{ player.rank }}</td>
+                      <td>
+                        <div class="season-ranking__player">
+                          <div class="season-ranking__avatar">
+                            @if (playerAvatar(player)) {
+                              <img [src]="playerAvatar(player)" alt="" />
+                            } @else {
+                              <span>{{ playerInitials(player) }}</span>
+                            }
                           </div>
-                        </td>
-                        <td>
-                          <span class="season-ranking__badge {{ badgeClass(player) }}">{{ eligibilityLabel(player) }}</span>
-                          <small>{{ eligibilityReason(player) }}</small>
-                        </td>
-                        <td>{{ formatStat(player.score) }}</td>
-                        <td>{{ formatInteger(player.wins) }}</td>
-                        <td>{{ formatInteger(player.losses) }}</td>
-                        <td>{{ formatStat(player.kdRatio) }}</td>
-                        <td>{{ formatPercent(player.headshotPct) }}</td>
-                        <td>{{ formatStat(player.adr, 1) }}</td>
-                        <td>{{ formatStat(player.impactRating, 3) }}</td>
-                        <td>{{ formatInteger(player.mapsPlayed) }}</td>
-                        <td>{{ formatInteger(player.roundsPlayed) }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            } @else {
-              <app-empty-state title="Nenhum jogador encontrado" description="Ajuste a busca para ver a tabela completa." />
-            }
-          </section>
+                          <strong>{{ player.name || 'Jogador HSC' }}</strong>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="season-ranking__badge {{ badgeClass(player) }}">{{ eligibilityLabel(player) }}</span>
+                        <small>{{ eligibilityReason(player) }}</small>
+                      </td>
+                      <td>{{ formatNumber(player.score) }}</td>
+                      <td>{{ formatNumber(player.wins, 0) }}</td>
+                      <td>{{ formatNumber(player.losses, 0) }}</td>
+                      <td>{{ formatNumber(player.kdRatio) }}</td>
+                      <td>{{ formatPercent(player.headshotPct) }}</td>
+                      <td>{{ formatNumber(player.adr, 1) }}</td>
+                      <td>{{ formatNumber(player.impactRating, 3) }}</td>
+                      <td>{{ formatNumber(player.mapsPlayed, 0) }}</td>
+                      <td>{{ formatNumber(player.roundsPlayed, 0) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <app-empty-state title="Nenhum jogador encontrado" description="Ajuste a busca para ver a tabela completa." />
+          }
+        </section>
 
-          <section class="season-ranking__rules">
-            <h2>Regras detalhadas</h2>
-            <p>Mapas válidos têm vencedor registrado, pelo menos {{ minRoundsPerMap(vm.rules) ?? '-' }} rounds e encerramento dentro da janela da Season.</p>
-            <p>Para concorrer ao Top 3 premiável, o jogador precisa de no mínimo {{ vm.rules?.prizeEligibility?.minMapsPlayed ?? '-' }} mapas e {{ vm.rules?.prizeEligibility?.minRoundsPlayed ?? '-' }} rounds jogados.</p>
-          </section>
-        } @else {
-          <app-empty-state title="Season não encontrada" description="O ranking solicitado não está disponível." />
-        }
+        <section class="season-ranking__rules">
+          <h2>Regras detalhadas</h2>
+          <p>Mapas válidos têm vencedor registrado, pelo menos {{ minRoundsPerMap(vm.ranking.rules) ?? '-' }} rounds e encerramento dentro da janela da Season.</p>
+          <p>Para concorrer ao Top 3 premiável, o jogador precisa de no mínimo {{ vm.ranking.rules.prizeEligibility.minMapsPlayed }} mapas e {{ vm.ranking.rules.prizeEligibility.minRoundsPlayed }} rounds jogados.</p>
+        </section>
       }
     }
   }
