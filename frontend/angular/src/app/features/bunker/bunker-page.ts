@@ -145,11 +145,22 @@ export class BunkerPage {
       return 'Sessão de jogador ativa. O resumo do Bunker não pôde ser carregado agora.';
     }
 
-    if (summary.status === 'ready' && summary.statsAvailable === false) {
-      return 'Sessão e identidade do jogador conectadas. Estatísticas reais ainda pendentes.';
+    const hasLifetime = this.hasCompetitiveLifetime(summary);
+    const hasSeason = summary.statsAvailable === true && Boolean(summary.seasonPlayer?.summary);
+
+    if (hasLifetime && !hasSeason) {
+      return 'Histórico competitivo geral carregado. Ainda não há estatísticas do jogador nesta Season.';
     }
 
-    if (summary.statsAvailable === true && summary.seasonPlayer?.summary) {
+    if (hasLifetime && hasSeason) {
+      return 'Histórico competitivo geral e estatísticas da temporada carregados.';
+    }
+
+    if (!hasLifetime && summary.statsAvailable === false) {
+      return 'Sessão e identidade do jogador conectadas. Perfil competitivo ainda pendente.';
+    }
+
+    if (hasSeason) {
       return 'Resumo competitivo da temporada carregado com dados do artifact do jogador.';
     }
 

@@ -190,9 +190,9 @@ describe('BunkerSectionNav', () => {
   it('4. todos os itens disponíveis são renderizados', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const links = Array.from(compiled.querySelectorAll('a'));
-    expect(links.length).toBe(5);
+    expect(links.length).toBe(4);
     const labels = links.map((l) => l.textContent?.trim());
-    expect(labels).toEqual(['Resumo', 'Mapas', 'Últimos mapas', 'Timeline', 'Lifetime']);
+    expect(labels).toEqual(['Resumo', 'Mapas', 'Últimos mapas', 'Timeline']);
   });
 
   it('5. byMap vazio remove somente Mapas', () => {
@@ -203,7 +203,7 @@ describe('BunkerSectionNav', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     const labels = Array.from(compiled.querySelectorAll('a')).map((l) => l.textContent?.trim());
-    expect(labels).toEqual(['Resumo', 'Últimos mapas', 'Timeline', 'Lifetime']);
+    expect(labels).toEqual(['Resumo', 'Últimos mapas', 'Timeline']);
   });
 
   it('6. recentMaps vazio remove somente Últimos mapas', () => {
@@ -214,7 +214,7 @@ describe('BunkerSectionNav', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     const labels = Array.from(compiled.querySelectorAll('a')).map((l) => l.textContent?.trim());
-    expect(labels).toEqual(['Resumo', 'Mapas', 'Timeline', 'Lifetime']);
+    expect(labels).toEqual(['Resumo', 'Mapas', 'Timeline']);
   });
 
   it('7. timeline vazia remove somente Timeline', () => {
@@ -225,21 +225,10 @@ describe('BunkerSectionNav', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     const labels = Array.from(compiled.querySelectorAll('a')).map((l) => l.textContent?.trim());
-    expect(labels).toEqual(['Resumo', 'Mapas', 'Últimos mapas', 'Lifetime']);
+    expect(labels).toEqual(['Resumo', 'Mapas', 'Últimos mapas']);
   });
 
-  it('8. lifetime null remove somente Lifetime', () => {
-    const summary = createFullBunkerSummary();
-    const competitiveProfile = summary.competitiveProfile ? { ...summary.competitiveProfile, lifetime: null } : null;
-    fixture.componentRef.setInput('summary', { ...summary, competitiveProfile });
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    const labels = Array.from(compiled.querySelectorAll('a')).map((l) => l.textContent?.trim());
-    expect(labels).toEqual(['Resumo', 'Mapas', 'Últimos mapas', 'Timeline']);
-  });
-
-  it('9. hrefs correspondem exatamente aos IDs', () => {
+  it('8. hrefs correspondem exatamente aos IDs', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const hrefs = Array.from(compiled.querySelectorAll('a')).map((l) => l.getAttribute('href'));
     expect(hrefs).toEqual([
@@ -247,18 +236,16 @@ describe('BunkerSectionNav', () => {
       '#bunker-maps',
       '#bunker-recent',
       '#bunker-timeline',
-      '#bunker-lifetime',
     ]);
   });
 
-  it('10. ordem dos links é estável', () => {
+  it('9. ordem dos links é estável', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const hrefs = Array.from(compiled.querySelectorAll('a')).map((l) => l.getAttribute('href'));
     expect(hrefs[0]).toBe('#bunker-summary');
     expect(hrefs[1]).toBe('#bunker-maps');
     expect(hrefs[2]).toBe('#bunker-recent');
     expect(hrefs[3]).toBe('#bunker-timeline');
-    expect(hrefs[4]).toBe('#bunker-lifetime');
   });
 
   it('11. links são elementos <a>', () => {

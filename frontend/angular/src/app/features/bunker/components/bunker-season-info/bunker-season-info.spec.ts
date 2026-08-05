@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BunkerSeasonInfo } from './bunker-season-info';
 import type { BunkerSummary } from '../../domain/bunker.model';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 function createBunkerSummary(overrides: Partial<BunkerSummary> = {}): BunkerSummary {
   return {
@@ -317,7 +318,21 @@ describe('BunkerSeasonInfo', () => {
     expect(component.generatedAtText()).toBe('—');
   });
 
-  it('18. não importa DTO ou data-access', () => {
+  it('18. ausência de seasonPlayer exibe mensagem informativa', () => {
+    fixture.componentRef.setInput(
+      'summary',
+      createBunkerSummary({
+        seasonPlayer: null,
+        statsAvailable: false,
+      })
+    );
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Ainda não há estatísticas do jogador nesta Season.');
+  });
+
+  it('19. não importa DTO ou data-access', () => {
     expect(BunkerSeasonInfo).toBeDefined();
   });
 });

@@ -20,4 +20,10 @@
       <span class="bunker-season-info__value">{{ generatedAtText() }}</span>
     </div>
   </div>
+
+  @if (!hasSeasonPlayer()) {
+    <div class="bunker-season-info__notice">
+      <p>Ainda não há estatísticas do jogador nesta Season.</p>
+    </div>
+  }
 </div>

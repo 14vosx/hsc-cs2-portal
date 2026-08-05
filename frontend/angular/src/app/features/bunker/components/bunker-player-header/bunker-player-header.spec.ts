@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BunkerPlayerHeader } from './bunker-player-header';
 import type { PlayerIdentity } from '../../../player/domain/player-identity.model';
 import type { BunkerSummary } from '../../domain/bunker.model';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 function createPlayerIdentity(overrides: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
@@ -55,7 +56,8 @@ describe('BunkerPlayerHeader', () => {
     expect(compiled.querySelector('.bunker-player-header__steam-id')?.textContent?.trim()).toBe('SteamID 111');
   });
 
-  it('3. seasonPlayer tem precedência para nome e SteamID', () => {
+  it('3. PlayerIdentity tem precedência para nome e SteamID', () => {
+    fixture.componentRef.setInput('player', createPlayerIdentity({ displayName: 'Player Identity Name', steamId64: '111' }));
     fixture.componentRef.setInput(
       'summary',
       createBunkerSummary({
@@ -81,16 +83,24 @@ describe('BunkerPlayerHeader', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.bunker-player-header__name')?.textContent?.trim()).toBe('Season Name');
-    expect(compiled.querySelector('.bunker-player-header__steam-id')?.textContent?.trim()).toBe('SteamID 999');
+    expect(compiled.querySelector('.bunker-player-header__name')?.textContent?.trim()).toBe('Player Identity Name');
+    expect(compiled.querySelector('.bunker-player-header__steam-id')?.textContent?.trim()).toBe('SteamID 111');
   });
 
-  it('4. competitiveProfile tem precedência sobre PlayerIdentity', () => {
-    fixture.componentRef.setInput('player', createPlayerIdentity({ displayName: 'Base Name', steamId64: '111' }));
+  it('4. competitiveProfile tem precedência sobre seasonPlayer quando PlayerIdentity for nulo', () => {
+    fixture.componentRef.setInput('player', createPlayerIdentity({ displayName: null, steamId64: '' }));
     fixture.componentRef.setInput(
       'summary',
       createBunkerSummary({
-        seasonPlayer: null,
+        seasonPlayer: {
+          name: 'Season Name',
+          steamId64: '999',
+          generatedAt: null,
+          summary: null,
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
+        },
         competitiveProfile: {
           name: 'Comp Name',
           steamId64: '888',
@@ -108,7 +118,8 @@ describe('BunkerPlayerHeader', () => {
     expect(compiled.querySelector('.bunker-player-header__steam-id')?.textContent?.trim()).toBe('SteamID 888');
   });
 
-  it('5. competitiveProfile não ultrapassa seasonPlayer para nome e SteamID', () => {
+  it('5. seasonPlayer é utilizado como fallback antes de Jogador HSC', () => {
+    fixture.componentRef.setInput('player', createPlayerIdentity({ displayName: null, steamId64: '' }));
     fixture.componentRef.setInput(
       'summary',
       createBunkerSummary({
@@ -121,14 +132,7 @@ describe('BunkerPlayerHeader', () => {
           recentMaps: [],
           timeline: [],
         },
-        competitiveProfile: {
-          name: 'Comp Lower',
-          steamId64: '666',
-          generatedAt: null,
-          avatarMedium: null,
-          steamProfileUrl: null,
-          lifetime: null,
-        },
+        competitiveProfile: null,
       })
     );
     fixture.detectChanges();
@@ -175,7 +179,7 @@ describe('BunkerPlayerHeader', () => {
     expect(component.playerName()).toBe('Jogador HSC');
   });
 
-  it('8. avatar competitivo tem precedência', () => {
+  it('8. avatar de PlayerIdentity tem precedência', () => {
     fixture.componentRef.setInput('player', createPlayerIdentity({ avatarMedium: 'https://example.com/base.jpg' }));
     fixture.componentRef.setInput(
       'summary',
@@ -192,15 +196,27 @@ describe('BunkerPlayerHeader', () => {
     );
     fixture.detectChanges();
 
-    expect(component.avatarUrl()).toBe('https://example.com/comp.jpg');
+    expect(component.avatarUrl()).toBe('https://example.com/base.jpg');
   });
 
-  it('9. avatar de PlayerIdentity é fallback', () => {
-    fixture.componentRef.setInput('player', createPlayerIdentity({ avatarMedium: 'https://example.com/base.jpg' }));
-    fixture.componentRef.setInput('summary', createBunkerSummary());
+  it('9. avatar de competitiveProfile é fallback quando PlayerIdentity for nulo', () => {
+    fixture.componentRef.setInput('player', createPlayerIdentity({ avatarMedium: null }));
+    fixture.componentRef.setInput(
+      'summary',
+      createBunkerSummary({
+        competitiveProfile: {
+          name: null,
+          steamId64: null,
+          generatedAt: null,
+          avatarMedium: 'https://example.com/comp.jpg',
+          steamProfileUrl: null,
+          lifetime: null,
+        },
+      })
+    );
     fixture.detectChanges();
 
-    expect(component.avatarUrl()).toBe('https://example.com/base.jpg');
+    expect(component.avatarUrl()).toBe('https://example.com/comp.jpg');
   });
 
   it('10. ausência de avatar renderiza monograma', () => {
@@ -276,30 +292,69 @@ describe('BunkerPlayerHeader', () => {
     expect(link).toBeNull();
   });
 
-  it('16. badges exibem true, false e null corretamente', () => {
+  it('16. badges exibem histórico disponível/pendente e primeira season', () => {
     fixture.componentRef.setInput(
       'summary',
       createBunkerSummary({
         seasonFirst: true,
-        statsAvailable: false,
+        competitiveProfile: {
+          generatedAt: null,
+          steamId64: null,
+          name: null,
+          avatarMedium: null,
+          steamProfileUrl: null,
+          lifetime: {
+            mapsPlayed: 10,
+            matchesPlayed: 10,
+            wins: 5,
+            losses: 5,
+            winRate: 50,
+            kdRatio: 1,
+            adr: 70,
+            impactRating: 1,
+            kills: 100,
+            deaths: 100,
+            assists: 20,
+            roundsPlayed: 150,
+            headshotPct: 40,
+            accuracy: 20,
+            utilityDmgPerRound: 10,
+            killsPerRound: 0.6,
+            assistsPerRound: 0.1,
+            deathsPerRound: 0.6,
+            entryWinRate: 50,
+            v1Count: 0,
+            v1Wins: 0,
+            v1WinRate: 0,
+            v2Count: 0,
+            v2Wins: 0,
+            v2WinRate: 0,
+            enemy2ks: 0,
+            enemy3ks: 0,
+            enemy4ks: 0,
+            enemy5ks: 0,
+            sampleWeight: 1,
+            score: 50,
+          },
+        },
       })
     );
     fixture.detectChanges();
 
     expect(component.seasonFirstLabel()).toBe('sim');
-    expect(component.statsAvailabilityLabel()).toBe('pendente');
+    expect(component.historyAvailabilityLabel()).toBe('Histórico disponível');
 
     fixture.componentRef.setInput(
       'summary',
       createBunkerSummary({
         seasonFirst: false,
-        statsAvailable: null,
+        competitiveProfile: null,
       })
     );
     fixture.detectChanges();
 
     expect(component.seasonFirstLabel()).toBe('não');
-    expect(component.statsAvailabilityLabel()).toBe('aguardando');
+    expect(component.historyAvailabilityLabel()).toBe('Histórico pendente');
   });
 
   it('17. botão normal exibe "Sair"', () => {

@@ -21,45 +21,45 @@ export class BunkerPlayerHeader {
   readonly failedAvatarUrl = signal<string | null>(null);
 
   readonly playerName = computed(() => {
-    const sName = this.summary().seasonPlayer?.name?.trim();
-    if (sName) {
-      return sName;
+    const pName = this.player().displayName?.trim();
+    if (pName) {
+      return pName;
     }
     const cName = this.summary().competitiveProfile?.name?.trim();
     if (cName) {
       return cName;
     }
-    const pName = this.player().displayName?.trim();
-    if (pName) {
-      return pName;
+    const sName = this.summary().seasonPlayer?.name?.trim();
+    if (sName) {
+      return sName;
     }
     return 'Jogador HSC';
   });
 
   readonly steamId64 = computed(() => {
-    const sSteamId = this.summary().seasonPlayer?.steamId64?.trim();
-    if (sSteamId) {
-      return sSteamId;
+    const pSteamId = this.player().steamId64?.trim();
+    if (pSteamId) {
+      return pSteamId;
     }
     const cSteamId = this.summary().competitiveProfile?.steamId64?.trim();
     if (cSteamId) {
       return cSteamId;
     }
-    const pSteamId = this.player().steamId64?.trim();
-    if (pSteamId) {
-      return pSteamId;
+    const sSteamId = this.summary().seasonPlayer?.steamId64?.trim();
+    if (sSteamId) {
+      return sSteamId;
     }
     return '';
   });
 
   readonly avatarUrl = computed(() => {
-    const cAvatar = this.summary().competitiveProfile?.avatarMedium?.trim();
-    if (cAvatar) {
-      return cAvatar;
-    }
     const pAvatar = this.player().avatarMedium?.trim();
     if (pAvatar) {
       return pAvatar;
+    }
+    const cAvatar = this.summary().competitiveProfile?.avatarMedium?.trim();
+    if (cAvatar) {
+      return cAvatar;
     }
     return null;
   });
@@ -70,13 +70,13 @@ export class BunkerPlayerHeader {
   });
 
   readonly steamProfileUrl = computed(() => {
-    const cUrl = this.summary().competitiveProfile?.steamProfileUrl?.trim();
-    if (cUrl) {
-      return cUrl;
-    }
     const pUrl = this.player().steamProfileUrl?.trim();
     if (pUrl) {
       return pUrl;
+    }
+    const cUrl = this.summary().competitiveProfile?.steamProfileUrl?.trim();
+    if (cUrl) {
+      return cUrl;
     }
     return null;
   });
@@ -116,26 +116,14 @@ export class BunkerPlayerHeader {
     return 'neutral';
   });
 
-  readonly statsAvailabilityLabel = computed(() => {
-    const val = this.summary().statsAvailable;
-    if (val === true) {
-      return 'sim';
-    }
-    if (val === false) {
-      return 'pendente';
-    }
-    return 'aguardando';
+  readonly hasLifetime = computed(() => this.summary().competitiveProfile?.lifetime != null);
+
+  readonly historyAvailabilityLabel = computed(() => {
+    return this.hasLifetime() ? 'Histórico disponível' : 'Histórico pendente';
   });
 
-  readonly statsAvailabilityTone = computed<StatusBadgeVariant>(() => {
-    const val = this.summary().statsAvailable;
-    if (val === true) {
-      return 'success';
-    }
-    if (val === false) {
-      return 'warning';
-    }
-    return 'neutral';
+  readonly historyAvailabilityTone = computed<StatusBadgeVariant>(() => {
+    return this.hasLifetime() ? 'success' : 'warning';
   });
 
   onAvatarError(): void {

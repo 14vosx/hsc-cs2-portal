@@ -103,6 +103,10 @@ export class BunkerSeasonInfo {
     return { label: rawStatus, tone: 'neutral' };
   });
 
+  readonly hasSeasonPlayer = computed(() => {
+    return this.summary().statsAvailable === true && Boolean(this.summary().seasonPlayer?.summary);
+  });
+
   readonly generatedAtText = computed(() => {
     const sGen = this.summary().seasonPlayer?.generatedAt;
     if (sGen && sGen.trim()) {
