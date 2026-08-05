@@ -46,8 +46,8 @@
   height: 100%;
   background:
     linear-gradient(135deg, var(--color-accent-purple-soft), transparent 42%),
-    radial-gradient(circle at 80% 20%, rgba(127, 226, 255, 0.16), transparent 34%),
-    var(--color-accent-cyan-soft);
+    radial-gradient(circle at 80% 20%, var(--color-accent-cyan-soft), transparent 34%),
+    var(--color-surface-subtle);
   color: var(--color-accent-purple-strong);
   font-size: 1.5rem;
   font-weight: 900;
