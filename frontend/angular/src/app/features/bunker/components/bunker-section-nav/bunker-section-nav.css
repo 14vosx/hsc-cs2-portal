@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+.bunker-section-nav {
+  padding: var(--space-2);
+  background-color: var(--color-surface-base);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.bunker-section-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bunker-section-nav__item {
+  display: inline-flex;
+}
+
+.bunker-section-nav__link {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.bunker-section-nav__link:hover {
+  color: var(--color-text-main);
+  background-color: var(--color-surface-subtle);
+}
+
+.bunker-section-nav__link:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}

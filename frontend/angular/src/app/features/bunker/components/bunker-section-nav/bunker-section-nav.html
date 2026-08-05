@@ -1,0 +1,27 @@
+<nav class="bunker-section-nav" aria-label="Navegação do Bunker">
+  <ul class="bunker-section-nav__list">
+    <li class="bunker-section-nav__item">
+      <a class="bunker-section-nav__link" href="#bunker-summary">Resumo</a>
+    </li>
+    @if (hasMaps()) {
+      <li class="bunker-section-nav__item">
+        <a class="bunker-section-nav__link" href="#bunker-maps">Mapas</a>
+      </li>
+    }
+    @if (hasRecentMaps()) {
+      <li class="bunker-section-nav__item">
+        <a class="bunker-section-nav__link" href="#bunker-recent">Últimos mapas</a>
+      </li>
+    }
+    @if (hasTimeline()) {
+      <li class="bunker-section-nav__item">
+        <a class="bunker-section-nav__link" href="#bunker-timeline">Timeline</a>
+      </li>
+    }
+    @if (hasLifetime()) {
+      <li class="bunker-section-nav__item">
+        <a class="bunker-section-nav__link" href="#bunker-lifetime">Lifetime</a>
+      </li>
+    }
+  </ul>
+</nav>
