@@ -48,20 +48,20 @@
                 <i class="bi bi--target" aria-hidden="true"></i>
                 Resumo
               </span>
-              <h2 id="bunker-overview-title">Visão geral da temporada</h2>
+              <h2 id="bunker-overview-title">Perfil competitivo geral</h2>
             </div>
-            <p>Leitura rápida das métricas centrais do jogador nesta season.</p>
+            <p>Histórico acumulado do jogador em partidas competitivas.</p>
           </div>
 
-          @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.summary; as playerSummary) {
-            <div class="brs" aria-label="Métricas principais da temporada">
+          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
+            <div class="brs" aria-label="Métricas principais do perfil competitivo geral">
               <article>
                 <div
                   class="brg"
-                  [style.--ring-value]="ringValue(playerSummary.kdRatio, 2)"
+                  [style.--ring-value]="ringValue(lifetime.kdRatio, 2)"
                   aria-hidden="true"
                 >
-                  <strong>{{ formatDecimal(playerSummary.kdRatio, 2) }}</strong>
+                  <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
                 </div>
                 <span>K/D</span>
                 <p>Eficiência em troca</p>
@@ -69,10 +69,10 @@
               <article>
                 <div
                   class="brg"
-                  [style.--ring-value]="ringValue(playerSummary.winRate)"
+                  [style.--ring-value]="ringValue(lifetime.winRate)"
                   aria-hidden="true"
                 >
-                  <strong>{{ formatRatePercent(playerSummary.winRate) }}</strong>
+                  <strong>{{ formatRatePercent(lifetime.winRate) }}</strong>
                 </div>
                 <span>Win rate</span>
                 <p>Conversão em vitórias</p>
@@ -80,75 +80,75 @@
               <article>
                 <div
                   class="brg"
-                  [style.--ring-value]="ringValue(playerSummary.impactRating, 2)"
+                  [style.--ring-value]="ringValue(lifetime.impactRating, 2)"
                   aria-hidden="true"
                 >
-                  <strong>{{ formatDecimal(playerSummary.impactRating, 2) }}</strong>
+                  <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
                 </div>
                 <span>Impact</span>
                 <p>Peso nos mapas</p>
               </article>
             </div>
 
-            <div class="grid-auto-rows-1" aria-label="Score da temporada">
+            <div class="grid-auto-rows-1" aria-label="Score do perfil competitivo">
               <article>
                 <span>Score</span>
-                <strong class="is-score">{{ formatDecimal(playerSummary.score, 1) }}</strong>
+                <strong class="is-score">{{ formatDecimal(lifetime.score, 1) }}</strong>
               </article>
             </div>
 
-            <div class="bsm" aria-label="Resumo numérico da temporada">
+            <div class="bsm" aria-label="Resumo numérico do perfil competitivo">
               <article>
                 <span>ADR</span>
-                <strong>{{ formatDecimal(playerSummary.adr, 1) }}</strong>
+                <strong>{{ formatDecimal(lifetime.adr, 1) }}</strong>
               </article>
               <article>
-                <span>{{ playedLabel(playerSummary) }}</span>
-                <strong>{{ playedValue(playerSummary) }}</strong>
+                <span>{{ playedLabel(lifetime) }}</span>
+                <strong>{{ playedValue(lifetime) }}</strong>
               </article>
               <article>
                 <span>Vitórias</span>
-                <strong>{{ formatInteger(playerSummary.wins) }}</strong>
+                <strong>{{ formatInteger(lifetime.wins) }}</strong>
               </article>
               <article>
                 <span>Derrotas</span>
-                <strong>{{ formatInteger(playerSummary.losses) }}</strong>
+                <strong>{{ formatInteger(lifetime.losses) }}</strong>
               </article>
               <article>
                 <span>Rounds</span>
-                <strong>{{ formatInteger(playerSummary.roundsPlayed) }}</strong>
+                <strong>{{ formatInteger(lifetime.roundsPlayed) }}</strong>
               </article>
               <article>
                 <span>Kills</span>
-                <strong>{{ formatInteger(playerSummary.kills) }}</strong>
+                <strong>{{ formatInteger(lifetime.kills) }}</strong>
               </article>
               <article>
                 <span>Deaths</span>
-                <strong>{{ formatInteger(playerSummary.deaths) }}</strong>
+                <strong>{{ formatInteger(lifetime.deaths) }}</strong>
               </article>
               <article>
                 <span>Assists</span>
-                <strong>{{ formatInteger(playerSummary.assists) }}</strong>
+                <strong>{{ formatInteger(lifetime.assists) }}</strong>
               </article>
               <article>
                 <span>HS%</span>
-                <strong>{{ formatRatePercent(playerSummary.headshotPct) }}</strong>
+                <strong>{{ formatRatePercent(lifetime.headshotPct) }}</strong>
               </article>
               <article>
                 <span>Accuracy</span>
-                <strong>{{ formatRatePercent(playerSummary.accuracy) }}</strong>
+                <strong>{{ formatRatePercent(lifetime.accuracy) }}</strong>
               </article>
               <article>
                 <span>Util/R</span>
-                <strong>{{ formatDecimal(playerSummary.utilityDmgPerRound, 1) }}</strong>
+                <strong>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</strong>
               </article>
               <article>
                 <span>Entry WR</span>
-                <strong>{{ formatRatePercent(playerSummary.entryWinRate) }}</strong>
+                <strong>{{ formatRatePercent(lifetime.entryWinRate) }}</strong>
               </article>
             </div>
 
-            <div class="bhl" aria-label="Highlights simples da temporada">
+            <div class="bhl" aria-label="Highlights simples do perfil competitivo">
               <article>
                 <span>Clutches</span>
                 <strong class="bline">
@@ -161,7 +161,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      @for (clutch of clutchItems(playerSummary); track clutch.label) {
+                      @for (clutch of clutchItems(lifetime); track clutch.label) {
                         <tr>
                           <td>{{ clutch.label }}</td>
                           <td>{{ clutch.value }}</td>
@@ -183,7 +183,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                       @for (multiKill of multiKillItems(playerSummary); track multiKill.label) {
+                       @for (multiKill of multiKillItems(lifetime); track multiKill.label) {
                         <tr>
                           <td>{{ multiKill.label }}</td>
                           <td>{{ multiKill.value }}</td>
@@ -195,18 +195,10 @@
               </article>
             </div>
           } @else {
-            <div class="bsm" aria-label="Resumo do Bunker">
+            <div class="bsm" aria-label="Aviso de perfil competitivo geral indisponível">
               <article>
-                <span>Status</span>
-                <strong>{{ vm.summaryState === 'error' ? 'indisponível' : (vm.summary.status || 'preparando') }}</strong>
-              </article>
-              <article>
-                <span>Primeira season</span>
-                <strong>{{ vm.summary.seasonFirst === true ? 'sim' : (vm.summary.seasonFirst === false ? 'não' : 'aguardando') }}</strong>
-              </article>
-              <article>
-                <span>Dados</span>
-                <strong>{{ vm.summary.statsAvailable === true ? 'sim' : (vm.summary.statsAvailable === false ? 'pendente' : 'aguardando') }}</strong>
+                <span>Histórico</span>
+                <strong>Histórico competitivo geral ainda indisponível.</strong>
               </article>
             </div>
           }
@@ -410,91 +402,6 @@
                   }
                 </div>
               }
-            </section>
-          }
-        }
-
-        @if (hasCompetitiveLifetime(vm.summary)) {
-          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
-            <section id="bunker-lifetime" class="bs bs--lifetime" aria-labelledby="bunker-lifetime-title">
-              <div class="bh">
-                <div>
-                  <span>
-                    <i class="bi bi--target" aria-hidden="true"></i>
-                    Lifetime geral, não Season
-                  </span>
-                  <h2 id="bunker-lifetime-title">Perfil competitivo lifetime</h2>
-                </div>
-                <p>Histórico competitivo geral vindo do profile estático do jogador.</p>
-              </div>
-
-              <div class="grid-auto-rows-1" aria-label="Score da temporada">
-                <article>
-                  <span>Score</span>
-                  <strong class="is-score">{{ formatDecimal(lifetime.score, 1) }}</strong>
-                </article>
-              </div>
-
-              <div class="bsm" aria-label="Métricas lifetime do perfil competitivo">
-                <article><span>Mapas</span><strong>{{ formatInteger(lifetime.mapsPlayed) }}</strong></article>
-                <article><span>Vitórias</span><strong>{{ formatInteger(lifetime.wins) }}</strong></article>
-                <article><span>Derrotas</span><strong>{{ formatInteger(lifetime.losses) }}</strong></article>
-                <article><span>Win rate</span><strong class="is-map">{{ formatRatePercent(lifetime.winRate) }}</strong></article>
-                <article><span>K/D</span><strong class="is-map">{{ formatDecimal(lifetime.kdRatio, 2) }}</strong></article>
-                <article><span>ADR</span><strong class="is-map">{{ formatDecimal(lifetime.adr, 1) }}</strong></article>
-                <article><span>HS%</span><strong>{{ formatRatePercent(lifetime.headshotPct) }}</strong></article>
-                <article><span>Accuracy</span><strong>{{ formatRatePercent(lifetime.accuracy) }}</strong></article>
-                <article><span>Util/R</span><strong>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</strong></article>
-                <article><span>Entry WR</span><strong>{{ formatRatePercent(lifetime.entryWinRate) }}</strong></article>
-                <article><span>Impact</span><strong class="is-purple">{{ formatDecimal(lifetime.impactRating, 2) }}</strong></article>
-              </div>
-
-              <div class="bhl" aria-label="Highlights lifetime">
-                <article>
-                  <span>Clutches</span>
-                  <strong class="bline">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Tipo</th>
-                          <th>Qtd</th>
-                          <th>Taxa</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        @for (clutch of clutchItems(lifetime); track clutch.label) {
-                          <tr>
-                            <td>{{ clutch.label }}</td>
-                            <td>{{ clutch.value }}</td>
-                            <td><em>{{ clutch.rate }}</em></td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </strong>
-                </article>
-                <article>
-                  <span>Multi-kills</span>
-                  <strong class="bline">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Tipo</th>
-                          <th>Qtd</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                         @for (multiKill of multiKillItems(lifetime); track multiKill.label) {
-                          <tr>
-                            <td>{{ multiKill.label }}</td>
-                            <td>{{ multiKill.value }}</td>
-                          </tr>
-                        }
-                      </tbody>
-                    </table>
-                  </strong>
-                </article>
-              </div>
             </section>
           }
         }

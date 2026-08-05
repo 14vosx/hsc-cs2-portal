@@ -43,7 +43,7 @@
 
   <div class="bunker-player-header__badges">
     <app-status-badge label="Sessão conectada" tone="success" />
-    <app-status-badge [label]="'Sincronizado: ' + statsAvailabilityLabel()" [tone]="statsAvailabilityTone()" />
+    <app-status-badge [label]="historyAvailabilityLabel()" [tone]="historyAvailabilityTone()" />
     <app-status-badge [label]="'Primeira season: ' + seasonFirstLabel()" [tone]="seasonFirstTone()" />
   </div>
 

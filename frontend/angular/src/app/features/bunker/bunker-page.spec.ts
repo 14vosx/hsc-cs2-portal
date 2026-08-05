@@ -560,4 +560,82 @@ describe('BunkerPage Canonical Integration', () => {
     expect(htmlContent).toContain('app-bunker-season-info');
     expect(htmlContent).toContain('app-bunker-section-nav');
   });
+
+  it('28. lifetime presente + statsAvailable false renderiza métricas lifetime sem mostrar Bunker pendente', () => {
+    const summary = createBunkerSummary({
+      statsAvailable: false,
+      seasonPlayer: null,
+      competitiveProfile: {
+        generatedAt: '2026-08-01',
+        steamId64: '76561198000000000',
+        name: 'Lifetime Player',
+        avatarMedium: null,
+        steamProfileUrl: null,
+        lifetime: {
+          mapsPlayed: 100,
+          matchesPlayed: 100,
+          wins: 60,
+          losses: 40,
+          winRate: 60,
+          kdRatio: 1.45,
+          adr: 95,
+          impactRating: 1.3,
+          kills: 1800,
+          deaths: 1200,
+          assists: 400,
+          roundsPlayed: 2400,
+          headshotPct: 50,
+          accuracy: 25,
+          utilityDmgPerRound: 20,
+          killsPerRound: 0.75,
+          assistsPerRound: 0.16,
+          deathsPerRound: 0.5,
+          entryWinRate: 60,
+          v1Count: 10,
+          v1Wins: 6,
+          v1WinRate: 60,
+          v2Count: 5,
+          v2Wins: 2,
+          v2WinRate: 40,
+          enemy2ks: 50,
+          enemy3ks: 20,
+          enemy4ks: 5,
+          enemy5ks: 1,
+          sampleWeight: 1,
+          score: 85,
+        },
+      },
+    });
+
+    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
+    bunkerApiMock.getSummary.mockReturnValue(of(summary));
+
+    fixture = TestBed.createComponent(BunkerPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Perfil competitivo geral');
+    expect(compiled.textContent).toContain('1,45');
+    expect(compiled.textContent).not.toContain('Bunker pendente');
+    expect(compiled.textContent).toContain(
+      'Histórico competitivo geral carregado. Ainda não há estatísticas do jogador nesta Season.',
+    );
+  });
+
+  it('29. lifetime ausente exibe aviso de indisponibilidade sem fabricar métricas', () => {
+    const summary = createBunkerSummary({
+      statsAvailable: false,
+      seasonPlayer: null,
+      competitiveProfile: null,
+    });
+
+    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
+    bunkerApiMock.getSummary.mockReturnValue(of(summary));
+
+    fixture = TestBed.createComponent(BunkerPage);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Histórico competitivo geral ainda indisponível.');
+  });
 });
