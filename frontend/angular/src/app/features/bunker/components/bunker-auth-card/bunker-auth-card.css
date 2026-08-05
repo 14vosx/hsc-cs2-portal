@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.bunker-auth-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.bunker-auth-card__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-brand);
+}
+
+.bunker-auth-card__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-main);
+}
+
+.bunker-auth-card__description {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.bunker-auth-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-accent-cyan-soft);
+  border: 1px solid var(--color-accent-cyan-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-cyan);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.bunker-auth-card__cta:hover {
+  background-color: var(--color-accent-cyan);
+  color: var(--color-bg-base);
+}
+
+.bunker-auth-card__cta:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}

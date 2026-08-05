@@ -6,7 +6,6 @@ import { cs2ApiPaths } from '../config/api-paths';
 import { HealthDto } from './dto/health.dto';
 import { MapsDto } from './dto/maps.dto';
 import { MatchesDto } from './dto/matches.dto';
-import { PlayerBunkerSummaryDto } from './dto/player-bunker.dto';
 import { RankingDto } from './dto/ranking.dto';
 import { MapDetailDto } from './dto/map-detail.dto';
 import { MatchDetailDto } from './dto/match-detail.dto';
@@ -20,7 +19,6 @@ import { SeasonRankingDto } from './dto/season-ranking.dto';
 })
 export class Cs2ApiService {
   private readonly http = inject(HttpClient);
-  readonly playerAuthSteamStartUrl = cs2ApiPaths.playerAuthSteamStart;
 
   getHealth(): Observable<HealthDto> {
     return this.http.get<HealthDto>(cs2ApiPaths.health);
@@ -64,21 +62,5 @@ export class Cs2ApiService {
 
   getMatch(id: number | string): Observable<MatchDetailDto> {
     return this.http.get<MatchDetailDto>(cs2ApiPaths.match(id));
-  }
-
-  getPlayerBunkerSummary(): Observable<PlayerBunkerSummaryDto> {
-    return this.http.get<PlayerBunkerSummaryDto>(cs2ApiPaths.playerBunkerSummary, {
-      withCredentials: true,
-    });
-  }
-
-  logoutPlayer(): Observable<unknown> {
-    return this.http.post(
-      cs2ApiPaths.playerAuthLogout,
-      {},
-      {
-        withCredentials: true,
-      },
-    );
   }
 }

@@ -18,123 +18,28 @@
       }
 
       @case ('unauthenticated') {
-        <section class="bpnl bunker-auth">
-          <div>
-            <span class="bpnl__eyebrow">Conta Steam</span>
-            <h2>Entre para acessar o Bunker</h2>
-            <p>Entre com Steam para validar sua sessão de jogador e carregar seu resumo competitivo quando disponível.</p>
-          </div>
-
-          <button class="bb bb--primary" type="button" (click)="loginWithSteam()">
-            Entrar com Steam
-          </button>
-        </section>
+        <app-bunker-auth-card
+          [steamLoginUrl]="steamLoginUrl"
+        />
       }
 
       @case ('authenticated') {
-        <header class="bp">
-          <div class="bp__identity">
-            @if (playerAvatarUrl(vm); as avatarUrl) {
-              <div class="bp__avatar">
-                <img [src]="avatarUrl" [alt]="'Avatar Steam de ' + playerName(vm)" />
-                <i aria-hidden="true"></i>
-              </div>
-            } @else {
-              <div class="bp__avatar" aria-label="Monograma do jogador">
-                {{ playerInitials(vm) }}
-                <i aria-hidden="true"></i>
-              </div>
-            }
+        <app-bunker-player-header
+          [player]="vm.player"
+          [summary]="vm.summary"
+          [logoutPending]="logoutPending()"
+          [logoutFailed]="logoutFailed()"
+          (logoutRequested)="logout()"
+        />
 
-            <div>
-              <span>Bunker HSC</span>
-              <h1>{{ playerName(vm) }}</h1>
-              <p>
-                SteamID {{ playerSteamId(vm) }}
-                @if (playerSteamProfileUrl(vm); as steamProfileUrl) {
-                  <a class="bp__link" [href]="steamProfileUrl" target="_blank" rel="noopener noreferrer">
-                    Ver perfil Steam
-                  </a>
-                }
-              </p>
-            </div>
-          </div>
+        <app-bunker-season-info
+          [summary]="vm.summary"
+          [summaryState]="vm.summaryState"
+        />
 
-          <div class="bp__actions">
-            <div class="bc-list" aria-label="Estado do Bunker">
-              <span class="bc bc--ok">
-                <i aria-hidden="true">✓</i>
-                Sessão conectada
-              </span>
-              <span class="bc">
-                <i aria-hidden="true">✓</i>
-                Sincronizado: {{ statsAvailabilityLabel(vm.summary.statsAvailable) }}
-              </span>
-              <span class="bc">
-                <i aria-hidden="true">✓</i>
-                Primeira season: {{ summaryLabel(vm.summary.seasonFirst) }}
-              </span>
-            </div>
-
-            <button
-              class="bb"
-              type="button"
-              [disabled]="logoutPending()"
-              (click)="logout()"
-            >
-              {{ logoutPending() ? 'Saindo...' : 'Sair' }}
-            </button>
-          </div>
-        </header>
-
-        @if (logoutFailed()) {
-          <p class="b-page__error">Não foi possível encerrar a sessão. Tente novamente.</p>
-        }
-
-        <section class="bsn" aria-labelledby="bsn-title">
-          <div class="bsn__top">
-            <div>
-              <span>A temporada atual</span>
-              <h2 id="bsn-title">{{ seasonSlugLabel(vm.summary) }}</h2>
-            </div>
-
-            <dl>
-              <div>
-                <dt>Período</dt>
-                <dd>{{ seasonScopeLabel(vm.summary) }}</dd>
-              </div>
-              <div>
-                <dt>Status</dt>
-                <dd>
-                  <span [class]="seasonStatusToneClass(vm.summary)">
-                    {{ vm.summaryState === 'error' ? 'indisponível' : seasonStatusLabel(vm.summary) }}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt>Atualizado</dt>
-                <dd>{{ dataUpdatedLabel(vm.summary) }}</dd>
-              </div>
-            </dl>
-          </div>
-
-        </section>
-
-        <nav class="bnav" aria-label="Navegação do Bunker">
-          <button type="button" [class]="navButtonClass('bunker-summary')" (click)="scrollToSection('bunker-summary')">Resumo</button>
-          @if (vm.summary.seasonPlayer?.byMap?.length) {
-            <button type="button" [class]="navButtonClass('bunker-maps')" (click)="scrollToSection('bunker-maps')">Mapas</button>
-          }
-          @if (vm.summary.seasonPlayer?.recentMaps?.length) {
-            <button type="button" [class]="navButtonClass('bunker-recent')" (click)="scrollToSection('bunker-recent')">Últimos mapas</button>
-          }
-          @if (vm.summary.seasonPlayer?.timeline?.length) {
-            <button type="button" [class]="navButtonClass('bunker-timeline')" (click)="scrollToSection('bunker-timeline')">Timeline</button>
-          }
-          @if (hasCompetitiveLifetime(vm.summary)) {
-            <button type="button" [class]="navButtonClass('bunker-lifetime')" (click)="scrollToSection('bunker-lifetime')">Lifetime</button>
-          }
-        </nav>
+        <app-bunker-section-nav
+          [summary]="vm.summary"
+        />
 
         <section id="bunker-summary" class="bs bs--overview" aria-labelledby="bunker-overview-title">
           <div class="bh">
@@ -293,15 +198,15 @@
             <div class="bsm" aria-label="Resumo do Bunker">
               <article>
                 <span>Status</span>
-                <strong>{{ vm.summaryState === 'error' ? 'indisponível' : statusLabel(vm.summary.status) }}</strong>
+                <strong>{{ vm.summaryState === 'error' ? 'indisponível' : (vm.summary.status || 'preparando') }}</strong>
               </article>
               <article>
                 <span>Primeira season</span>
-                <strong>{{ summaryLabel(vm.summary.seasonFirst) }}</strong>
+                <strong>{{ vm.summary.seasonFirst === true ? 'sim' : (vm.summary.seasonFirst === false ? 'não' : 'aguardando') }}</strong>
               </article>
               <article>
                 <span>Dados</span>
-                <strong>{{ statsAvailabilityLabel(vm.summary.statsAvailable) }}</strong>
+                <strong>{{ vm.summary.statsAvailable === true ? 'sim' : (vm.summary.statsAvailable === false ? 'pendente' : 'aguardando') }}</strong>
               </article>
             </div>
           }
@@ -405,7 +310,7 @@
                         <span class="brc__badge">{{ recentMapResultLabel(recentMap) }}</span>
                         <strong class="is-map">{{ recentMap.mapName || '—' }}</strong>
                       </div>
-                        <p><strong>{{ recentMapScoreLabel(recentMap) }}</strong> {{ formatDateLabel(recentMap.startedAt) }}</p>
+                      <p><strong>{{ recentMapScoreLabel(recentMap) }}</strong> {{ formatDateLabel(recentMap.startedAt) }}</p>
                     </div>
 
                     <dl>
@@ -433,10 +338,9 @@
                       </div>
                       <div>
                         <dt>Util</dt>
-                        <dd>{{ formatInteger(recentMap.utility_damage) }}</dd>
+                        <dd>{{ formatInteger(recentMap.utilityDamage) }}</dd>
                       </div>
                     </dl>
-
                   </article>
                 }
               </div>
