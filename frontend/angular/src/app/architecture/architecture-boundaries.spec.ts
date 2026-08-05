@@ -138,4 +138,54 @@ describe('Architecture Boundaries — Lego Angular', () => {
       expect(hasOverviewImport, `File ${file} should not import overview`).toBe(false);
     }
   });
+
+  it('F1. bunker feature should not import Cs2ApiService', () => {
+    const bunkerFiles = getAllTsFiles(path.join(appRoot, 'features', 'bunker')).filter(
+      (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts'),
+    );
+
+    for (const file of bunkerFiles) {
+      const content = fs.readFileSync(file, 'utf-8');
+      const hasCs2ApiImport = /from\s+['"].*\/cs2-api\.service['"]/.test(content);
+      expect(hasCs2ApiImport, `File ${file} should not import Cs2ApiService`).toBe(false);
+    }
+  });
+
+  it('F2. bunker feature should not import central DTOs', () => {
+    const bunkerFiles = getAllTsFiles(path.join(appRoot, 'features', 'bunker')).filter(
+      (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts'),
+    );
+
+    for (const file of bunkerFiles) {
+      const content = fs.readFileSync(file, 'utf-8');
+      const hasDtoImport = /from\s+['"].*\/api\/dto\//.test(content);
+      expect(hasDtoImport, `File ${file} should not import DTOs`).toBe(false);
+    }
+  });
+
+  it('F3. Cs2ApiService should not reintroduce legacy bunker members', () => {
+    const cs2ApiFile = path.join(appRoot, 'core', 'api', 'cs2-api.service.ts');
+    const content = fs.readFileSync(cs2ApiFile, 'utf-8');
+
+    expect(content.includes('playerAuthSteamStartUrl'), 'Cs2ApiService should not declare playerAuthSteamStartUrl').toBe(false);
+    expect(/getPlayerBunkerSummary\s*\(/.test(content), 'Cs2ApiService should not declare getPlayerBunkerSummary()').toBe(false);
+    expect(/logoutPlayer\s*\(/.test(content), 'Cs2ApiService should not declare logoutPlayer()').toBe(false);
+    expect(/PlayerBunkerSummaryDto/.test(content), 'Cs2ApiService should not reference PlayerBunkerSummaryDto').toBe(false);
+    expect(/player-bunker\.dto/.test(content), 'Cs2ApiService should not reference player-bunker.dto').toBe(false);
+  });
+
+  it('F4. legacy player-bunker.dto.ts should not exist or be imported in production code', () => {
+    const legacyDtoPath = path.join(appRoot, 'core', 'api', 'dto', 'player-bunker.dto.ts');
+    expect(fs.existsSync(legacyDtoPath), 'player-bunker.dto.ts must not exist').toBe(false);
+
+    const productionTsFiles = getAllTsFiles(appRoot).filter(
+      (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts'),
+    );
+
+    for (const file of productionTsFiles) {
+      const content = fs.readFileSync(file, 'utf-8');
+      const hasLegacyDtoImport = /from\s+['"].*player-bunker\.dto['"]/.test(content);
+      expect(hasLegacyDtoImport, `File ${file} should not import player-bunker.dto`).toBe(false);
+    }
+  });
 });
