@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 @Component({
   selector: 'app-testing-foundation',
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '<p>{{ message }}</p>',
 })
 class TestingFoundationComponent {

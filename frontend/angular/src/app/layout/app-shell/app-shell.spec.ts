@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { describe, expect, it, beforeEach } from 'vitest';
@@ -7,6 +7,7 @@ import { AppShell } from './app-shell';
 
 @Component({
   template: '<h1>Home Content</h1>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [],
 })
 class TestHomeComponent {}

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it, beforeEach } from 'vitest';
 
@@ -10,6 +10,7 @@ import { PageHeader } from './page-header';
       <div actions>Action</div>
     </app-page-header>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PageHeader],
 })
 class TestHostComponent {}

@@ -1,5 +1,5 @@
 ﻿import { AsyncPipe, JsonPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
@@ -12,6 +12,7 @@ import { StatusBadge } from '../../shared/components/status-badge/status-badge';
   selector: 'app-api-smoke',
   imports: [AsyncPipe, JsonPipe, DataCard, MetricCard, SectionHeader, StatusBadge],
   templateUrl: './api-smoke.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './api-smoke.css',
 })
 export class ApiSmoke {

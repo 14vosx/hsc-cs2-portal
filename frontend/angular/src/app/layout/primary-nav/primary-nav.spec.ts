@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -7,6 +7,7 @@ import { PrimaryNav } from './primary-nav';
 
 @Component({
   template: '<app-primary-nav (itemSelected)="onSelected()" />',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PrimaryNav],
 })
 class TestHostComponent {

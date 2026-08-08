@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type { MapRecentMatch } from '../domain/map.model';
@@ -7,6 +7,7 @@ import type { MapRecentMatch } from '../domain/map.model';
   selector: 'app-map-recent-match-table',
   imports: [RouterLink],
   templateUrl: './map-recent-match-table.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-recent-match-table.css',
 })
 export class MapRecentMatchTable {

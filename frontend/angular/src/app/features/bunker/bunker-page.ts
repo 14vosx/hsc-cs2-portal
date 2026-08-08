@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   BehaviorSubject,
   Observable,
@@ -66,6 +66,7 @@ const unavailableBunkerSummary: BunkerSummary = {
     BunkerSectionNav,
   ],
   templateUrl: './bunker-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bunker-page.css',
 })
 export class BunkerPage {

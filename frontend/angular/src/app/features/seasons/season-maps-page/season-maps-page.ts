@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
@@ -46,6 +46,7 @@ type SeasonMapsVm =
     UiCard,
   ],
   templateUrl: './season-maps-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './season-maps-page.css',
 })
 export class SeasonMapsPage {

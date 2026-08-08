@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ViewEncapsulation, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith } from 'rxjs';
 
@@ -21,6 +21,7 @@ type SeasonsVm = SeasonsReadyVm | { state: 'loading' } | { state: 'error' };
   imports: [AsyncPipe, EmptyState, RouterLink],
   templateUrl: './seasons-page.html',
   styleUrl: './seasons-page.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonsPage {

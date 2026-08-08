@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { describe, expect, it, beforeEach } from 'vitest';
@@ -7,6 +7,7 @@ import { AppHeader } from './app-header';
 
 @Component({
   template: '<app-header [isDrawerOpen]="isOpen" (toggleDrawer)="onToggle()" />',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppHeader],
 })
 class TestHostComponent {

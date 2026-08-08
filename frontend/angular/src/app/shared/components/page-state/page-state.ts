@@ -1,10 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 
 export type PageStateType = 'loading' | 'empty' | 'error';
 
 @Component({
   selector: 'app-page-state',
   templateUrl: './page-state.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './page-state.css',
 })
 export class PageState {

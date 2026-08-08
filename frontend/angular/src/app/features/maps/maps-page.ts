@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { UiCard } from '../../shared/components/card/card';
@@ -38,6 +38,7 @@ type MapsVm = MapsReadyVm | { state: 'loading' } | { state: 'error' } | { state:
     MapStatCard,
   ],
   templateUrl: './maps-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './maps-page.css',
 })
 export class MapsPage {

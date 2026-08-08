@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 export interface PodiumPlayer {
   rank?: number;
@@ -24,6 +24,7 @@ export interface PodiumPlayer {
 @Component({
   selector: 'app-season-podium',
   templateUrl: './season-podium.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './season-podium.css',
 })
 export class SeasonPodium {

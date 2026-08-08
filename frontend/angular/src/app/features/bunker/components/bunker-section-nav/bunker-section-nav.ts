@@ -1,10 +1,11 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 import type { BunkerSummary } from '../../domain/bunker.model';
 
 @Component({
   selector: 'app-bunker-section-nav',
   standalone: true,
   templateUrl: './bunker-section-nav.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bunker-section-nav.css',
 })
 export class BunkerSectionNav {

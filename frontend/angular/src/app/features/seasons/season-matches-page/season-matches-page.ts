@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
@@ -44,6 +44,7 @@ type SeasonMatchesVm =
     MatchScoreCard,
   ],
   templateUrl: './season-matches-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './season-matches-page.css',
 })
 export class SeasonMatchesPage {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 export type SeasonTab = 'overview' | 'ranking' | 'matches' | 'maps';
@@ -27,6 +27,7 @@ export function seasonTabLink(
   selector: 'app-season-tabs',
   imports: [RouterLink],
   templateUrl: './season-tabs.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './season-tabs.css',
 })
 export class SeasonTabs {

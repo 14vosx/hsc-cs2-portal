@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
@@ -44,6 +44,7 @@ interface SeasonRankingSummary {
   selector: 'app-season-ranking-page',
   imports: [AsyncPipe, EmptyState, MetricCard, PageHeader, PageState, SeasonPodium, SeasonTabs, SectionHeader, StatusBadge, UiCard],
   templateUrl: './season-ranking-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./season-ranking-page.css', './season-ranking-page-table.css'],
 })
 export class SeasonRankingPage {

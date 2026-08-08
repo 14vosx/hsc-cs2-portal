@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
 
@@ -47,6 +47,7 @@ const createMockPlayer = (overrides: Partial<MatchPlayer> = {}): MatchPlayer => 
 
 @Component({
   imports: [MatchPlayerTable],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<app-match-player-table [players]="testPlayers" [roundCount]="rounds" />`,
 })
 class TestHostComponent {

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type { MatchMapSummary, MatchSummary } from '../domain/match.model';
@@ -7,6 +7,7 @@ import type { MatchMapSummary, MatchSummary } from '../domain/match.model';
   selector: 'app-match-score-card',
   imports: [RouterLink],
   templateUrl: './match-score-card.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './match-score-card.css',
 })
 export class MatchScoreCard {

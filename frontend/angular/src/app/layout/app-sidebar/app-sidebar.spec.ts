@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { describe, expect, it, beforeEach } from 'vitest';
@@ -7,6 +7,7 @@ import { AppSidebar } from './app-sidebar';
 
 @Component({
   template: '<app-sidebar [isMobileDrawer]="isMobile" (closeRequested)="onClose()" />',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppSidebar],
 })
 class TestHostComponent {

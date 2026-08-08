@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type { MapSummary } from '../domain/map.model';
@@ -7,6 +7,7 @@ import type { MapSummary } from '../domain/map.model';
   selector: 'app-map-stat-card',
   imports: [RouterLink],
   templateUrl: './map-stat-card.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-stat-card.css',
 })
 export class MapStatCard {
