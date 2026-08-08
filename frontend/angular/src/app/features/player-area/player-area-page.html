@@ -42,6 +42,8 @@
       }
 
       @case ('ready') {
+        @let profile = updatedProfile() ?? vm.profile;
+
         <app-page-header
           eyebrow="HSC Membros"
           title="Área do Jogador"
@@ -77,6 +79,12 @@
           </p>
         }
 
+        @if (successNotice()) {
+          <p class="player-area-page__success" role="status">
+            {{ successNotice() }}
+          </p>
+        }
+
         <nav class="player-area-page__nav" aria-label="Seções da Área do Jogador">
           <a href="#perfil">Perfil</a>
           <a href="#conta-seguranca">Conta e segurança</a>
@@ -93,7 +101,7 @@
             <div class="player-area-page__summary-content">
               <div>
                 <span class="player-area-page__eyebrow">Identidade HSC</span>
-                <h2>{{ vm.profile.displayName }}</h2>
+                <h2>{{ profile.displayName }}</h2>
                 <p>
                   @if (vm.account.identities.steam.linked) {
                     SteamID {{ vm.account.identities.steam.steamId64 }}
@@ -106,7 +114,7 @@
               <dl class="player-area-page__summary-facts">
                 <div>
                   <dt>Perfil</dt>
-                  <dd>{{ profileVisibilityLabel(vm.profile.visibility) }}</dd>
+                  <dd>{{ profileVisibilityLabel(profile.visibility) }}</dd>
                 </div>
                 <div>
                   <dt>E-mail</dt>
@@ -123,49 +131,69 @@
 
         <div class="player-area-page__grid">
           <section id="perfil" class="player-area-page__section" aria-labelledby="player-profile-title">
-            <app-ui-card>
-              <div class="player-area-page__section-header">
-                <div>
-                  <span class="player-area-page__eyebrow">Perfil</span>
-                  <h2 id="player-profile-title">Seu perfil HSC</h2>
+            @if (isEditingProfile()) {
+              <app-player-profile-editor
+                [profile]="profile"
+                [savePending]="savePending()"
+                [serverError]="saveError()"
+                (save)="onSaveProfile($event)"
+                (cancel)="cancelEditProfile()"
+                (edited)="clearProfileSaveError()"
+              />
+            } @else {
+              <app-ui-card>
+                <div class="player-area-page__section-header">
+                  <div>
+                    <span class="player-area-page__eyebrow">Perfil</span>
+                    <h2 id="player-profile-title">Seu perfil HSC</h2>
+                  </div>
+                  <div class="player-area-page__profile-actions">
+                    <button
+                      type="button"
+                      class="player-area-page__button"
+                      (click)="startEditProfile()"
+                    >
+                      Editar perfil
+                    </button>
+                    <app-status-badge
+                      [label]="profileVisibilityLabel(profile.visibility)"
+                      [tone]="profile.visibility === 'public' ? 'info' : 'neutral'"
+                    />
+                  </div>
                 </div>
-                <app-status-badge
-                  [label]="profileVisibilityLabel(vm.profile.visibility)"
-                  [tone]="vm.profile.visibility === 'public' ? 'info' : 'neutral'"
-                />
-              </div>
 
-              <dl class="player-area-page__facts">
-                <div>
-                  <dt>Nome</dt>
-                  <dd>{{ vm.profile.displayName }}</dd>
-                </div>
-                <div>
-                  <dt>Slug</dt>
-                  <dd>{{ vm.profile.slug }}</dd>
-                </div>
-                <div>
-                  <dt>Discord</dt>
-                  <dd>{{ textOrFallback(vm.profile.discordHandle) }}</dd>
-                </div>
-                <div>
-                  <dt>Função preferida</dt>
-                  <dd>{{ textOrFallback(vm.profile.preferredRole) }}</dd>
-                </div>
-                <div>
-                  <dt>Mapa preferido</dt>
-                  <dd>{{ textOrFallback(vm.profile.preferredMap) }}</dd>
-                </div>
-                <div>
-                  <dt>No HSC desde</dt>
-                  <dd>{{ formatDate(vm.profile.joinedAt) }}</dd>
-                </div>
-              </dl>
+                <dl class="player-area-page__facts">
+                  <div>
+                    <dt>Nome</dt>
+                    <dd>{{ profile.displayName }}</dd>
+                  </div>
+                  <div>
+                    <dt>Slug</dt>
+                    <dd>{{ profile.slug }}</dd>
+                  </div>
+                  <div>
+                    <dt>Discord</dt>
+                    <dd>{{ textOrFallback(profile.discordHandle) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Função preferida</dt>
+                    <dd>{{ preferredRoleLabel(profile.preferredRole) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Mapa preferido</dt>
+                    <dd>{{ preferredMapLabel(profile.preferredMap) }}</dd>
+                  </div>
+                  <div>
+                    <dt>No HSC desde</dt>
+                    <dd>{{ formatDate(profile.joinedAt) }}</dd>
+                  </div>
+                </dl>
 
-              @if (vm.profile.bio) {
-                <p class="player-area-page__bio">{{ vm.profile.bio }}</p>
-              }
-            </app-ui-card>
+                @if (profile.bio) {
+                  <p class="player-area-page__bio">{{ profile.bio }}</p>
+                }
+              </app-ui-card>
+            }
           </section>
 
           <section
