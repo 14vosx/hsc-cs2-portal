@@ -13,9 +13,14 @@ import type {
   PlayerMembership,
   PlayerMembershipStatus,
 } from '../domain/player-membership.model';
-import type {
-  PlayerProfile,
-  PlayerProfileVisibility,
+import {
+  isPreferredMap,
+  isPreferredRole,
+  type PlayerProfile,
+  type PlayerProfilePatch,
+  type PlayerProfileVisibility,
+  type PreferredMap,
+  type PreferredRole,
 } from '../domain/player-profile.model';
 
 export class PlayerSelfContractError extends Error {
@@ -57,6 +62,22 @@ export class PlayerSelfApiService {
           const normalized = normalizePlayerProfile(payload);
           if (!normalized) {
             throw new PlayerSelfContractError('Invalid /player/profile/me payload received');
+          }
+          return normalized;
+        }),
+      );
+  }
+
+  updateProfile(patch: PlayerProfilePatch): Observable<PlayerProfile> {
+    return this.http
+      .patch<unknown>(cs2ApiPaths.playerProfileMe, patch, {
+        withCredentials: true,
+      })
+      .pipe(
+        map((payload) => {
+          const normalized = normalizePlayerProfile(payload);
+          if (!normalized) {
+            throw new PlayerSelfContractError('Invalid /player/profile/me PATCH response envelope');
           }
           return normalized;
         }),
@@ -167,6 +188,28 @@ function normalizePlayerAccount(input: unknown): PlayerAccountSummary | null {
   };
 }
 
+function normalizePreferredRole(value: unknown): PreferredRole | null | undefined {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const str = optionalTrimmedString(value);
+  if (!str) {
+    return null;
+  }
+  return isPreferredRole(str) ? str : undefined;
+}
+
+function normalizePreferredMap(value: unknown): PreferredMap | null | undefined {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const str = optionalTrimmedString(value);
+  if (!str) {
+    return null;
+  }
+  return isPreferredMap(str) ? str : undefined;
+}
+
 function normalizePlayerProfile(input: unknown): PlayerProfile | null {
   if (!isRecord(input)) {
     return null;
@@ -181,8 +224,10 @@ function normalizePlayerProfile(input: unknown): PlayerProfile | null {
   const displayName = requiredTrimmedString(ownDataProperty(profileInput, 'displayName'));
   const slug = requiredTrimmedString(ownDataProperty(profileInput, 'slug'));
   const visibility = normalizeProfileVisibility(ownDataProperty(profileInput, 'visibility'));
+  const preferredRole = normalizePreferredRole(ownDataProperty(profileInput, 'preferredRole'));
+  const preferredMap = normalizePreferredMap(ownDataProperty(profileInput, 'preferredMap'));
 
-  if (!displayName || !slug || !visibility) {
+  if (!displayName || !slug || !visibility || preferredRole === undefined || preferredMap === undefined) {
     return null;
   }
 
@@ -193,8 +238,8 @@ function normalizePlayerProfile(input: unknown): PlayerProfile | null {
     avatarUrl: optionalTrimmedString(ownDataProperty(profileInput, 'avatarUrl')),
     bannerUrl: optionalTrimmedString(ownDataProperty(profileInput, 'bannerUrl')),
     discordHandle: optionalTrimmedString(ownDataProperty(profileInput, 'discordHandle')),
-    preferredRole: optionalTrimmedString(ownDataProperty(profileInput, 'preferredRole')),
-    preferredMap: optionalTrimmedString(ownDataProperty(profileInput, 'preferredMap')),
+    preferredRole,
+    preferredMap,
     visibility,
     joinedAt: optionalDateString(ownDataProperty(profileInput, 'joinedAt')),
     createdAt: optionalDateString(ownDataProperty(profileInput, 'createdAt')),

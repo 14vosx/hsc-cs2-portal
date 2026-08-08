@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   BehaviorSubject,
@@ -20,16 +20,26 @@ import type { BunkerSummary } from '../bunker/domain/bunker.model';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
+import {
+  mapPlayerProfileServerError,
+  type MappedProfileError,
+} from './player-profile-update-error';
 import type { PlayerAccountSummary } from '../player/domain/player-account.model';
 import type { PlayerIdentity } from '../player/domain/player-identity.model';
 import type {
   PlayerMembership,
   PlayerMembershipStatus,
 } from '../player/domain/player-membership.model';
-import type {
-  PlayerProfile,
-  PlayerProfileVisibility,
+import {
+  PREFERRED_MAPS,
+  PREFERRED_ROLES,
+  type PlayerProfile,
+  type PlayerProfilePatch,
+  type PlayerProfileVisibility,
+  type PreferredMap,
+  type PreferredRole,
 } from '../player/domain/player-profile.model';
+import { PlayerProfileEditor } from './player-profile-editor/player-profile-editor';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
@@ -68,9 +78,9 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     PageHeader,
     UiCard,
     StatusBadge,
+    PlayerProfileEditor,
   ],
   templateUrl: './player-area-page.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './player-area-page.css',
 })
 export class PlayerAreaPage {
@@ -85,12 +95,80 @@ export class PlayerAreaPage {
   protected readonly logoutPending = signal(false);
   protected readonly logoutFailed = signal(false);
 
+  protected readonly isEditingProfile = signal(false);
+  protected readonly savePending = signal(false);
+  protected readonly saveError = signal<MappedProfileError | null>(null);
+  protected readonly successNotice = signal<string | null>(null);
+  protected readonly updatedProfile = signal<PlayerProfile | null>(null);
+
   private readonly reload$ = new BehaviorSubject<PlayerAreaReloadAction>('load');
 
   protected readonly vm$: Observable<PlayerAreaVm> = this.reload$.pipe(
     switchMap((action) => this.loadVm(action)),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
+
+  protected startEditProfile(): void {
+    this.saveError.set(null);
+    this.successNotice.set(null);
+    this.isEditingProfile.set(true);
+  }
+
+  protected cancelEditProfile(): void {
+    this.saveError.set(null);
+    this.isEditingProfile.set(false);
+  }
+
+  protected clearProfileSaveError(): void {
+    if (this.saveError()) {
+      this.saveError.set(null);
+    }
+  }
+
+  protected onSaveProfile(patch: PlayerProfilePatch): void {
+    if (this.savePending()) {
+      return;
+    }
+
+    this.savePending.set(true);
+    this.saveError.set(null);
+
+    this.selfApi.updateProfile(patch).subscribe({
+      next: (updated) => {
+        this.updatedProfile.set(updated);
+        this.isEditingProfile.set(false);
+        this.savePending.set(false);
+        this.successNotice.set('Perfil atualizado.');
+      },
+      error: (error: unknown) => {
+        this.savePending.set(false);
+        const mapped = mapPlayerProfileServerError(error);
+
+        if (mapped.code === 'unauthorized') {
+          this.isEditingProfile.set(false);
+          this.updatedProfile.set(null);
+          this.successNotice.set(null);
+          this.saveError.set(null);
+          this.reload$.next('signed-out');
+          return;
+        }
+
+        this.saveError.set(mapped);
+      },
+    });
+  }
+
+  protected preferredRoleLabel(role: PreferredRole | null): string {
+    if (!role) return '—';
+    const found = PREFERRED_ROLES.find((r) => r.key === role);
+    return found ? found.label : role;
+  }
+
+  protected preferredMapLabel(map: PreferredMap | null): string {
+    if (!map) return '—';
+    const found = PREFERRED_MAPS.find((m) => m.key === map);
+    return found ? found.label : map;
+  }
 
   protected async logout(): Promise<void> {
     if (this.logoutPending()) {

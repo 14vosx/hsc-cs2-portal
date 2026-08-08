@@ -167,11 +167,11 @@ describe('PlayerSelfApiService', () => {
     });
   });
 
-  it('falha fechado quando o contrato de profile Ã© invÃ¡lido', () => {
+  it('falha fechado quando o contrato de profile é inválido', () => {
     let receivedError: unknown;
 
     service.getProfile().subscribe({
-      next: () => expect.fail('Payload invÃ¡lido nÃ£o deveria ser aceito'),
+      next: () => expect.fail('Payload inválido não deveria ser aceito'),
       error: (error) => (receivedError = error),
     });
 
@@ -182,6 +182,89 @@ describe('PlayerSelfApiService', () => {
         displayName: 'Player',
         slug: '',
         visibility: 'public',
+      },
+    });
+
+    expect(receivedError).toBeInstanceOf(PlayerSelfContractError);
+  });
+
+  it('envia PATCH em updateProfile e normaliza envelope de resposta', () => {
+    let result: unknown;
+
+    service
+      .updateProfile({
+        displayName: 'New Name',
+        preferredRole: 'awper',
+      })
+      .subscribe((value) => (result = value));
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMe);
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.body).toEqual({
+      displayName: 'New Name',
+      preferredRole: 'awper',
+    });
+
+    request.flush({
+      ok: true,
+      profile: {
+        displayName: 'New Name',
+        slug: 'player-one',
+        bio: 'Heavy smoke.',
+        avatarUrl: null,
+        bannerUrl: null,
+        discordHandle: 'player.one',
+        preferredRole: 'awper',
+        preferredMap: 'de_mirage',
+        visibility: 'public',
+        joinedAt: '2026-08-07T10:00:00.000Z',
+        createdAt: '2026-08-07T10:00:00.000Z',
+        updatedAt: '2026-08-07T10:00:00.000Z',
+      },
+    });
+
+    expect(result).toMatchObject({
+      displayName: 'New Name',
+      preferredRole: 'awper',
+    });
+  });
+
+  it('rejeita payload sem envelope profile em updateProfile', () => {
+    let receivedError: unknown;
+
+    service.updateProfile({ displayName: 'New Name' }).subscribe({
+      next: () => expect.fail('Payload sem envelope profile não deve ser aceito'),
+      error: (err) => (receivedError = err),
+    });
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMe);
+    // Raw payload without profile key
+    request.flush({
+      displayName: 'New Name',
+      slug: 'player-one',
+      visibility: 'public',
+    });
+
+    expect(receivedError).toBeInstanceOf(PlayerSelfContractError);
+  });
+
+  it('rejeita perfil com preferredRole ou preferredMap desconhecidos', () => {
+    let receivedError: unknown;
+
+    service.getProfile().subscribe({
+      next: () => expect.fail('Role desconhecido não deve ser aceito'),
+      error: (err) => (receivedError = err),
+    });
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMe);
+    request.flush({
+      ok: true,
+      profile: {
+        displayName: 'Player One',
+        slug: 'player-one',
+        visibility: 'public',
+        preferredRole: 'invalid_role_string',
       },
     });
 
