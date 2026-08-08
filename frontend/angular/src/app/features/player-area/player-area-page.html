@@ -1,0 +1,329 @@
+<section class="player-area-page">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <app-page-header
+          eyebrow="HSC Membros"
+          title="Área do Jogador"
+          description="Carregando conta, perfil e associação HSC."
+        />
+        <app-ui-card>
+          <p class="player-area-page__state">Carregando sua Área do Jogador...</p>
+        </app-ui-card>
+      }
+
+      @case ('error') {
+        <app-empty-state
+          title="Área do Jogador indisponível"
+          description="Não foi possível carregar sua conta HSC agora. Tente novamente em alguns instantes."
+        />
+      }
+
+      @case ('unauthenticated') {
+        <app-page-header
+          eyebrow="HSC Membros"
+          title="Área do Jogador"
+          description="Sua conta HSC centraliza perfil, identidade CS2, estatísticas e associação."
+        />
+
+        <app-ui-card>
+          <div class="player-area-page__auth">
+            <span>Conta HSC</span>
+            <h2>Entre para acessar sua área</h2>
+            <p>
+              O Portal já utiliza a sessão player-facing do HSC. Entre com Steam para acessar
+              sua conta pelo fluxo disponível nesta versão do frontend.
+            </p>
+            <a class="player-area-page__button player-area-page__button--primary" [href]="steamLoginUrl">
+              Entrar com Steam
+            </a>
+          </div>
+        </app-ui-card>
+      }
+
+      @case ('ready') {
+        <app-page-header
+          eyebrow="HSC Membros"
+          title="Área do Jogador"
+          description="Conta, perfil, identidade CS2, estatísticas e associação HSC em um só lugar."
+        >
+          <div meta class="player-area-page__badges">
+            <app-status-badge label="Conta ativa" tone="success" />
+            <app-status-badge
+              [label]="vm.account.identities.steam.linked ? 'Steam vinculada' : 'Steam pendente'"
+              [tone]="vm.account.identities.steam.linked ? 'success' : 'warning'"
+            />
+            <app-status-badge
+              [label]="membershipLabel(vm.membership)"
+              [tone]="membershipTone(vm.membership)"
+            />
+          </div>
+
+          <div actions class="player-area-page__header-actions">
+            <button
+              type="button"
+              class="player-area-page__button"
+              [disabled]="logoutPending()"
+              (click)="logout()"
+            >
+              {{ logoutPending() ? 'Saindo...' : 'Sair' }}
+            </button>
+          </div>
+        </app-page-header>
+
+        @if (logoutFailed()) {
+          <p class="player-area-page__error" role="alert">
+            Não foi possível encerrar a sessão. Tente novamente.
+          </p>
+        }
+
+        <nav class="player-area-page__nav" aria-label="Seções da Área do Jogador">
+          <a href="#perfil">Perfil</a>
+          <a href="#conta-seguranca">Conta e segurança</a>
+          <a href="#membro">HSC Membro</a>
+          @if (vm.account.capabilities.personalizedStats.available) {
+            <a routerLink="/area-do-jogador/estatisticas">Estatísticas completas</a>
+          } @else {
+            <a href="#estatisticas">Estatísticas</a>
+          }
+        </nav>
+
+        <section class="player-area-page__summary" aria-label="Resumo da conta HSC">
+          <app-ui-card variant="highlight">
+            <div class="player-area-page__summary-content">
+              <div>
+                <span class="player-area-page__eyebrow">Identidade HSC</span>
+                <h2>{{ vm.profile.displayName }}</h2>
+                <p>
+                  @if (vm.account.identities.steam.linked) {
+                    SteamID {{ vm.account.identities.steam.steamId64 }}
+                  } @else {
+                    Conta ativa sem identidade Steam vinculada.
+                  }
+                </p>
+              </div>
+
+              <dl class="player-area-page__summary-facts">
+                <div>
+                  <dt>Perfil</dt>
+                  <dd>{{ profileVisibilityLabel(vm.profile.visibility) }}</dd>
+                </div>
+                <div>
+                  <dt>E-mail</dt>
+                  <dd>{{ emailIdentityLabel(vm.account) }}</dd>
+                </div>
+                <div>
+                  <dt>Estatísticas</dt>
+                  <dd>{{ statsCapabilityLabel(vm.account) }}</dd>
+                </div>
+              </dl>
+            </div>
+          </app-ui-card>
+        </section>
+
+        <div class="player-area-page__grid">
+          <section id="perfil" class="player-area-page__section" aria-labelledby="player-profile-title">
+            <app-ui-card>
+              <div class="player-area-page__section-header">
+                <div>
+                  <span class="player-area-page__eyebrow">Perfil</span>
+                  <h2 id="player-profile-title">Seu perfil HSC</h2>
+                </div>
+                <app-status-badge
+                  [label]="profileVisibilityLabel(vm.profile.visibility)"
+                  [tone]="vm.profile.visibility === 'public' ? 'info' : 'neutral'"
+                />
+              </div>
+
+              <dl class="player-area-page__facts">
+                <div>
+                  <dt>Nome</dt>
+                  <dd>{{ vm.profile.displayName }}</dd>
+                </div>
+                <div>
+                  <dt>Slug</dt>
+                  <dd>{{ vm.profile.slug }}</dd>
+                </div>
+                <div>
+                  <dt>Discord</dt>
+                  <dd>{{ textOrFallback(vm.profile.discordHandle) }}</dd>
+                </div>
+                <div>
+                  <dt>Função preferida</dt>
+                  <dd>{{ textOrFallback(vm.profile.preferredRole) }}</dd>
+                </div>
+                <div>
+                  <dt>Mapa preferido</dt>
+                  <dd>{{ textOrFallback(vm.profile.preferredMap) }}</dd>
+                </div>
+                <div>
+                  <dt>No HSC desde</dt>
+                  <dd>{{ formatDate(vm.profile.joinedAt) }}</dd>
+                </div>
+              </dl>
+
+              @if (vm.profile.bio) {
+                <p class="player-area-page__bio">{{ vm.profile.bio }}</p>
+              }
+            </app-ui-card>
+          </section>
+
+          <section
+            id="conta-seguranca"
+            class="player-area-page__section"
+            aria-labelledby="player-account-title"
+          >
+            <app-ui-card>
+              <div class="player-area-page__section-header">
+                <div>
+                  <span class="player-area-page__eyebrow">Conta e segurança</span>
+                  <h2 id="player-account-title">Identidades de acesso</h2>
+                </div>
+                <app-status-badge label="Conta ativa" tone="success" />
+              </div>
+
+              <dl class="player-area-page__facts">
+                <div>
+                  <dt>E-mail</dt>
+                  <dd>{{ textOrFallback(vm.account.identities.email.email) }}</dd>
+                </div>
+                <div>
+                  <dt>Estado do e-mail</dt>
+                  <dd>{{ emailIdentityLabel(vm.account) }}</dd>
+                </div>
+                <div>
+                  <dt>Steam</dt>
+                  <dd>{{ steamIdentityLabel(vm.account) }}</dd>
+                </div>
+                <div>
+                  <dt>Identidade CS2</dt>
+                  <dd>{{ vm.account.capabilities.cs2Identity.ready ? 'Pronta' : 'Vínculo Steam necessário' }}</dd>
+                </div>
+              </dl>
+
+              @if (!vm.account.identities.steam.linked) {
+                <a class="player-area-page__button player-area-page__button--primary" [href]="steamLinkUrl">
+                  Vincular Steam
+                </a>
+              }
+            </app-ui-card>
+          </section>
+
+          <section id="membro" class="player-area-page__section" aria-labelledby="player-membership-title">
+            <app-ui-card>
+              <div class="player-area-page__section-header">
+                <div>
+                  <span class="player-area-page__eyebrow">HSC Membros</span>
+                  <h2 id="player-membership-title">Sua associação</h2>
+                </div>
+                <app-status-badge
+                  [label]="membershipLabel(vm.membership)"
+                  [tone]="membershipTone(vm.membership)"
+                />
+              </div>
+
+              @if (vm.membership; as membership) {
+                <dl class="player-area-page__facts">
+                  <div>
+                    <dt>Plano</dt>
+                    <dd>{{ membership.planCode }}</dd>
+                  </div>
+                  <div>
+                    <dt>Início</dt>
+                    <dd>{{ formatDate(membership.startedAt) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Validade</dt>
+                    <dd>{{ formatDate(membership.expiresAt) }}</dd>
+                  </div>
+                </dl>
+              } @else {
+                <p class="player-area-page__muted">
+                  Sua conta HSC está ativa, mas não possui uma associação HSC cadastrada.
+                </p>
+              }
+            </app-ui-card>
+          </section>
+        </div>
+
+        <section
+          id="estatisticas"
+          class="player-area-page__section"
+          aria-labelledby="player-stats-title"
+        >
+          <app-ui-card>
+            <div class="player-area-page__section-header">
+              <div>
+                <span class="player-area-page__eyebrow">CS2</span>
+                <h2 id="player-stats-title">Estatísticas personalizadas</h2>
+              </div>
+
+              @if (vm.statsState === 'ready') {
+                <app-status-badge label="Fonte conectada" tone="success" />
+              } @else if (vm.statsState === 'error') {
+                <app-status-badge label="Temporariamente indisponível" tone="warning" />
+              } @else {
+                <app-status-badge label="Steam necessária" tone="neutral" />
+              }
+            </div>
+
+            @if (!vm.account.capabilities.personalizedStats.available) {
+              <div class="player-area-page__callout">
+                <p>
+                  Vincule sua Steam para habilitar identidade CS2 e estatísticas personalizadas.
+                </p>
+                <a class="player-area-page__button player-area-page__button--primary" [href]="steamLinkUrl">
+                  Vincular Steam
+                </a>
+              </div>
+            } @else if (vm.statsState === 'error') {
+              <p class="player-area-page__muted">
+                Sua conta e seu perfil foram carregados normalmente, mas o resumo competitivo está
+                indisponível agora.
+              </p>
+            } @else if (vm.statsSummary; as summary) {
+              @if (summary.competitiveProfile?.lifetime; as lifetime) {
+                <div class="player-area-page__metrics" aria-label="Resumo lifetime">
+                  <div>
+                    <span>K/D</span>
+                    <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
+                  </div>
+                  <div>
+                    <span>ADR</span>
+                    <strong>{{ formatDecimal(lifetime.adr, 1) }}</strong>
+                  </div>
+                  <div>
+                    <span>Win rate</span>
+                    <strong>{{ formatRate(lifetime.winRate) }}</strong>
+                  </div>
+                  <div>
+                    <span>Mapas</span>
+                    <strong>{{ formatInteger(lifetime.mapsPlayed ?? lifetime.matchesPlayed) }}</strong>
+                  </div>
+                </div>
+              } @else {
+                <p class="player-area-page__muted">
+                  A identidade CS2 está pronta, mas o histórico competitivo geral ainda não está disponível.
+                </p>
+              }
+
+              @if (summary.currentSeason; as season) {
+                <p class="player-area-page__season">
+                  Season atual:
+                  <strong>{{ textOrFallback(season.name ?? season.slug) }}</strong>
+                  @if (season.status) {
+                    · {{ season.status }}
+                  }
+                </p>
+              }
+
+              <a routerLink="/area-do-jogador/estatisticas" class="player-area-page__button">
+                Abrir relatório competitivo completo
+              </a>
+            }
+          </app-ui-card>
+        </section>
+      }
+    }
+  }
+</section>

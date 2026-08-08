@@ -12,11 +12,15 @@ export function normalizePlayerIdentity(input: unknown): PlayerIdentity | null {
     return null;
   }
 
+  const playerAccountId = optionalTrimmedString(
+    ownDataProperty(identityInput, 'playerAccountId'),
+  );
+
   const steamId64 =
     optionalTrimmedString(ownDataProperty(identityInput, 'steamid64')) ??
     optionalTrimmedString(ownDataProperty(identityInput, 'steamId64'));
 
-  if (!steamId64) {
+  if (!playerAccountId && !steamId64) {
     return null;
   }
 

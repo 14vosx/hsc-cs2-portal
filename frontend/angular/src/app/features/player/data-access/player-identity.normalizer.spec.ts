@@ -155,7 +155,25 @@ describe('normalizePlayerIdentity', () => {
     expect(normalizePlayerIdentity({ authenticated: false, steamid64: 'player-id' })).toBeNull();
   });
 
-  it('returns null when Steam ID is absent', () => {
+  it('accepts authenticated HSC account without Steam when playerAccountId is present', () => {
+    expect(
+      normalizePlayerIdentity({
+        authenticated: true,
+        player: {
+          playerAccountId: 'player-account-email-only',
+          displayName: 'Email Player',
+          steamid64: null,
+        },
+      }),
+    ).toEqual({
+      displayName: 'Email Player',
+      steamId64: null,
+      avatarMedium: null,
+      steamProfileUrl: null,
+    });
+  });
+
+  it('returns null when Steam ID and playerAccountId are absent', () => {
     expect(normalizePlayerIdentity({ displayName: 'Player Without Id' })).toBeNull();
   });
 

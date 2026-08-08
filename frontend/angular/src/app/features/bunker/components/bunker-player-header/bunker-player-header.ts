@@ -94,27 +94,6 @@ export class BunkerPlayerHeader {
     return initials || 'HSC';
   });
 
-  readonly seasonFirstLabel = computed(() => {
-    const val = this.summary().seasonFirst;
-    if (val === true) {
-      return 'sim';
-    }
-    if (val === false) {
-      return 'não';
-    }
-    return 'aguardando';
-  });
-
-  readonly seasonFirstTone = computed<StatusBadgeVariant>(() => {
-    const val = this.summary().seasonFirst;
-    if (val === true) {
-      return 'success';
-    }
-    if (val === false) {
-      return 'info';
-    }
-    return 'neutral';
-  });
 
   readonly hasLifetime = computed(() => this.summary().competitiveProfile?.lifetime != null);
 

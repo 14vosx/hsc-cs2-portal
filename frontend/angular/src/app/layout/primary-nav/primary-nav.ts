@@ -25,7 +25,7 @@ export class PrimaryNav {
     { id: 'matches', label: 'Partidas', path: '/matches' },
     { id: 'maps', label: 'Mapas', path: '/maps' },
     { id: 'news', label: 'News', path: '/news' },
-    { id: 'bunker', label: 'Bunker', path: '/bunker' },
+    { id: 'player-area', label: 'Área do Jogador', path: '/area-do-jogador' },
   ];
 
   protected isActive(item: PrimaryNavItem): boolean {

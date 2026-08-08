@@ -37,7 +37,8 @@ describe('PrimaryNav', () => {
           { path: 'matches', component: TestHostComponent },
           { path: 'maps', component: TestHostComponent },
           { path: 'news', component: TestHostComponent },
-          { path: 'bunker', component: TestHostComponent },
+          { path: 'area-do-jogador', component: TestHostComponent },
+          { path: 'area-do-jogador/estatisticas', component: TestHostComponent },
         ]),
       ],
     }).compileComponents();
@@ -126,6 +127,16 @@ describe('PrimaryNav', () => {
 
     const mapsLink = fixture.nativeElement.querySelector('a[href="/maps"]');
     expect(mapsLink.classList.contains('primary-nav__link--active')).toBe(true);
+  });
+
+  it('/area-do-jogador/estatisticas mantém Área do Jogador ativa', async () => {
+    await router.navigateByUrl('/area-do-jogador/estatisticas');
+    fixture.detectChanges();
+
+    const playerAreaLink = fixture.nativeElement.querySelector(
+      'a[href="/area-do-jogador"]',
+    );
+    expect(playerAreaLink.classList.contains('primary-nav__link--active')).toBe(true);
   });
 
   it('should emit itemSelected when a navigation link is clicked', () => {
