@@ -21,6 +21,8 @@ export const cs2ApiPaths = {
   playerMe: '/player/me',
   playerAccount: '/player/account',
   playerProfileMe: '/player/profile/me',
+  playerProfileMeAvatar: '/player/profile/me/avatar',
+  playerProfileMeBanner: '/player/profile/me/banner',
   playerMembership: '/player/membership',
   playerBunkerSummary: '/player/bunker/summary',
   playerAuthLogout: '/player/auth/logout',

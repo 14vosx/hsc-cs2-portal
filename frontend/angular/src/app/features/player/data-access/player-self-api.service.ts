@@ -84,6 +84,44 @@ export class PlayerSelfApiService {
       );
   }
 
+  uploadAvatar(file: File): Observable<PlayerProfile> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http
+      .post<unknown>(cs2ApiPaths.playerProfileMeAvatar, formData, {
+        withCredentials: true,
+      })
+      .pipe(map(normalizeMediaPlayerProfile));
+  }
+
+  removeAvatar(): Observable<PlayerProfile> {
+    return this.http
+      .delete<unknown>(cs2ApiPaths.playerProfileMeAvatar, {
+        withCredentials: true,
+      })
+      .pipe(map(normalizeMediaPlayerProfile));
+  }
+
+  uploadBanner(file: File): Observable<PlayerProfile> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http
+      .post<unknown>(cs2ApiPaths.playerProfileMeBanner, formData, {
+        withCredentials: true,
+      })
+      .pipe(map(normalizeMediaPlayerProfile));
+  }
+
+  removeBanner(): Observable<PlayerProfile> {
+    return this.http
+      .delete<unknown>(cs2ApiPaths.playerProfileMeBanner, {
+        withCredentials: true,
+      })
+      .pipe(map(normalizeMediaPlayerProfile));
+  }
+
   getMembership(): Observable<PlayerMembership | null> {
     return this.http
       .get<unknown>(cs2ApiPaths.playerMembership, {
@@ -99,6 +137,14 @@ export class PlayerSelfApiService {
         }),
       );
   }
+}
+
+function normalizeMediaPlayerProfile(payload: unknown): PlayerProfile {
+  const normalized = normalizePlayerProfile(payload);
+  if (!normalized) {
+    throw new PlayerSelfContractError('Invalid player profile media response envelope');
+  }
+  return normalized;
 }
 
 function normalizePlayerAccount(input: unknown): PlayerAccountSummary | null {
