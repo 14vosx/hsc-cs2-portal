@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it, beforeEach } from 'vitest';
 
@@ -10,6 +10,7 @@ import { SectionHeader } from './section-header';
       <button action type="button">Action</button>
     </app-section-header>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [SectionHeader],
 })
 class TestHostComponent {}

@@ -1,10 +1,11 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 
 import type { MatchPlayer } from '../domain/match.model';
 
 @Component({
   selector: 'app-match-player-table',
   templateUrl: './match-player-table.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './match-player-table.css',
 })
 export class MatchPlayerTable {

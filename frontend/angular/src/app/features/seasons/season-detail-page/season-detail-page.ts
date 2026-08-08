@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ViewEncapsulation, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
 
@@ -38,6 +38,7 @@ type SeasonDetailVm =
   imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium, SeasonTabs],
   templateUrl: './season-detail-page.html',
   styleUrls: ['./season-detail-page.css', './season-detail-page-table.css'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonDetailPage {

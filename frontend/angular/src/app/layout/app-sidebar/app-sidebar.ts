@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 
 import { PrimaryNav } from '../primary-nav/primary-nav';
 
@@ -6,6 +6,7 @@ import { PrimaryNav } from '../primary-nav/primary-nav';
   selector: 'app-sidebar',
   imports: [PrimaryNav],
   templateUrl: './app-sidebar.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app-sidebar.css',
 })
 export class AppSidebar {

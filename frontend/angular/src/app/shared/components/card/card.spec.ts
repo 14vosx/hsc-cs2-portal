@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it, beforeEach } from 'vitest';
 
@@ -6,6 +6,7 @@ import { UiCard } from './card';
 
 @Component({
   template: '<app-ui-card variant="highlight">Content</app-ui-card>',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [UiCard],
 })
 class TestHostComponent {}

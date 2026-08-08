@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { UiCard } from '../../../../shared/components/card/card';
 
 @Component({
@@ -6,6 +6,7 @@ import { UiCard } from '../../../../shared/components/card/card';
   standalone: true,
   imports: [UiCard],
   templateUrl: './bunker-auth-card.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bunker-auth-card.css',
 })
 export class BunkerAuthCard {

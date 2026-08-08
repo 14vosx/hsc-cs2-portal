@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable, shareReplay } from 'rxjs';
 
@@ -23,6 +23,7 @@ import { HomeEditorialItem, HomeSeasonContextMode, HomeSeasonState } from './dom
     PageState,
   ],
   templateUrl: './home-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home-page.css',
 })
 export class HomePage {

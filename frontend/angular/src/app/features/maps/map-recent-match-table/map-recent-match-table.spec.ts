@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { describe, expect, it, beforeEach } from 'vitest';
@@ -20,6 +20,7 @@ const createMockRecentMatch = (id = 101, overrides: Partial<MapRecentMatch> = {}
 
 @Component({
   imports: [MapRecentMatchTable],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<app-map-recent-match-table [recentMatches]="testMatches" />`,
 })
 class TestHostComponent {

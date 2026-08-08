@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 export interface PrimaryNavItem {
@@ -11,6 +11,7 @@ export interface PrimaryNavItem {
   selector: 'app-primary-nav',
   imports: [RouterLink],
   templateUrl: './primary-nav.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './primary-nav.css',
 })
 export class PrimaryNav {

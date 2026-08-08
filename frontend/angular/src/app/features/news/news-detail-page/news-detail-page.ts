@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
@@ -46,6 +46,7 @@ type NewsDetailVm =
     UiCard,
   ],
   templateUrl: './news-detail-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-detail-page.css',
 })
 export class NewsDetailPage implements OnDestroy {

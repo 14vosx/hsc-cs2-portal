@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 import type { BunkerSummary } from '../../domain/bunker.model';
 import { StatusBadge, type StatusBadgeVariant } from '../../../../shared/components/status-badge/status-badge';
 
@@ -45,6 +45,7 @@ function formatDateString(val: string | null | undefined): string {
   standalone: true,
   imports: [StatusBadge],
   templateUrl: './bunker-season-info.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bunker-season-info.css',
 })
 export class BunkerSeasonInfo {

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 export type MetricCardTone = 'default' | 'success' | 'danger' | 'ranking';
 
@@ -6,6 +6,7 @@ export type MetricCardTone = 'default' | 'success' | 'danger' | 'ranking';
   selector: 'app-metric-card',
   templateUrl: './metric-card.html',
   styleUrl: './metric-card.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: {
     '[class]': '"metric-card metric-card--" + tone',
   },

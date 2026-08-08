@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { UiCard } from '../../shared/components/card/card';
@@ -40,6 +40,7 @@ type MatchesVm =
     MatchScoreCard,
   ],
   templateUrl: './matches-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './matches-page.css',
 })
 export class MatchesPage {

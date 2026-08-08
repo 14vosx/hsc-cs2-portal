@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it, beforeEach } from 'vitest';
 
@@ -9,6 +9,7 @@ import { StatusBadge } from './status-badge';
     <app-status-badge status="active" label="Temporada Ativa" />
     <app-status-badge tone="success" label="Dados sincronizados" />
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [StatusBadge],
 })
 class TestHostComponent {}

@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { PageHeader } from '../../shared/components/page-header/page-header';
@@ -33,6 +33,7 @@ type NewsVm =
     NewsCard,
   ],
   templateUrl: './news-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-page.css',
 })
 export class NewsPage {

@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   BehaviorSubject,
@@ -70,6 +70,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     StatusBadge,
   ],
   templateUrl: './player-area-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './player-area-page.css',
 })
 export class PlayerAreaPage {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { describe, expect, it, beforeEach } from 'vitest';
 
@@ -6,6 +6,7 @@ import { PageState } from './page-state';
 
 @Component({
   template: '<app-page-state type="loading" message="Carregando..." />',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PageState],
 })
 class TestHostComponent {}

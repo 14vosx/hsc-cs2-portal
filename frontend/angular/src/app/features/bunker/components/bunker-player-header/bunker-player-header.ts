@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import type { PlayerIdentity } from '../../../player/domain/player-identity.model';
 import type { BunkerSummary } from '../../domain/bunker.model';
 import { StatusBadge, type StatusBadgeVariant } from '../../../../shared/components/status-badge/status-badge';
@@ -8,6 +8,7 @@ import { StatusBadge, type StatusBadgeVariant } from '../../../../shared/compone
   standalone: true,
   imports: [StatusBadge],
   templateUrl: './bunker-player-header.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bunker-player-header.css',
 })
 export class BunkerPlayerHeader {

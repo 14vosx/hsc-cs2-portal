@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
@@ -39,6 +39,7 @@ type MapDetailVm =
     MapRecentMatchTable,
   ],
   templateUrl: './map-detail-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-detail-page.css',
 })
 export class MapDetailPage {

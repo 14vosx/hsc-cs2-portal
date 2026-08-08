@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 
 export type StatusBadgeVariant =
   | 'active'
@@ -13,6 +13,7 @@ export type StatusBadgeVariant =
   selector: 'app-status-badge',
   templateUrl: './status-badge.html',
   styleUrl: './status-badge.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: {
     '[class]': 'hostClass()',
   },

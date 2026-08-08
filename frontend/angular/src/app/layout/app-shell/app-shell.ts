@@ -6,6 +6,7 @@ import {
   HostListener,
   inject,
   signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -25,6 +26,7 @@ import { AppSidebar } from '../app-sidebar/app-sidebar';
     CdkTrapFocus,
   ],
   templateUrl: './app-shell.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app-shell.css',
 })
 export class AppShell {
