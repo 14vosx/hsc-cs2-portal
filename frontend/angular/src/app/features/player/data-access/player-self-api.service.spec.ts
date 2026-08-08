@@ -270,4 +270,99 @@ describe('PlayerSelfApiService', () => {
 
     expect(receivedError).toBeInstanceOf(PlayerSelfContractError);
   });
+
+  it('envia avatar como multipart e normaliza o profile retornado', () => {
+    const file = new File(['avatar'], 'avatar.webp', { type: 'image/webp' });
+    let result: unknown;
+
+    service.uploadAvatar(file).subscribe((value) => (result = value));
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMeAvatar);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.body).toBeInstanceOf(FormData);
+    expect((request.request.body as FormData).get('file')).toBe(file);
+    expect(request.request.headers.has('Content-Type')).toBe(false);
+    request.flush({ ok: true, profile: mediaProfile });
+
+    expect(result).toMatchObject({
+      displayName: 'Player One',
+      avatarUrl: '/media/avatar.webp',
+    });
+  });
+
+  it('envia banner como multipart e normaliza o profile retornado', () => {
+    const file = new File(['banner'], 'banner.png', { type: 'image/png' });
+    let result: unknown;
+
+    service.uploadBanner(file).subscribe((value) => (result = value));
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMeBanner);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.body).toBeInstanceOf(FormData);
+    expect((request.request.body as FormData).get('file')).toBe(file);
+    expect(request.request.headers.has('Content-Type')).toBe(false);
+    request.flush({ ok: true, profile: mediaProfile });
+
+    expect(result).toMatchObject({
+      displayName: 'Player One',
+      bannerUrl: '/media/banner.webp',
+    });
+  });
+
+  it('remove avatar e normaliza o profile retornado', () => {
+    let result: unknown;
+
+    service.removeAvatar().subscribe((value) => (result = value));
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMeAvatar);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({ ok: true, profile: { ...mediaProfile, avatarUrl: null } });
+
+    expect(result).toMatchObject({ displayName: 'Player One', avatarUrl: null });
+  });
+
+  it('remove banner e normaliza o profile retornado', () => {
+    let result: unknown;
+
+    service.removeBanner().subscribe((value) => (result = value));
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMeBanner);
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({ ok: true, profile: { ...mediaProfile, bannerUrl: null } });
+
+    expect(result).toMatchObject({ displayName: 'Player One', bannerUrl: null });
+  });
+
+  it('rejeita resposta de mídia sem profile válido', () => {
+    let receivedError: unknown;
+
+    service.uploadAvatar(new File(['avatar'], 'avatar.webp')).subscribe({
+      next: () => expect.fail('Payload sem profile válido não deve ser aceito'),
+      error: (error) => (receivedError = error),
+    });
+
+    const request = httpTesting.expectOne(cs2ApiPaths.playerProfileMeAvatar);
+    request.flush({ ok: true });
+
+    expect(receivedError).toBeInstanceOf(PlayerSelfContractError);
+  });
 });
+
+const mediaProfile = {
+  displayName: 'Player One',
+  slug: 'player-one',
+  bio: 'Heavy smoke.',
+  avatarUrl: '/media/avatar.webp',
+  bannerUrl: '/media/banner.webp',
+  discordHandle: 'player.one',
+  preferredRole: 'rifler',
+  preferredMap: 'de_mirage',
+  visibility: 'public',
+  joinedAt: '2026-08-07T10:00:00.000Z',
+  createdAt: '2026-08-07T10:00:00.000Z',
+  updatedAt: '2026-08-08T10:00:00.000Z',
+};

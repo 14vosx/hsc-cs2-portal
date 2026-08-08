@@ -194,6 +194,21 @@
                 }
               </app-ui-card>
             }
+
+            <app-ui-card>
+              <app-player-profile-media-editor
+                [profile]="profile"
+                [avatarPending]="avatarPending()"
+                [bannerPending]="bannerPending()"
+                [avatarError]="avatarError()"
+                [bannerError]="bannerError()"
+                (avatarUpload)="onAvatarUpload($event)"
+                (avatarRemove)="onAvatarRemove()"
+                (bannerUpload)="onBannerUpload($event)"
+                (bannerRemove)="onBannerRemove()"
+                (mediaEdited)="clearMediaErrors()"
+              />
+            </app-ui-card>
           </section>
 
           <section

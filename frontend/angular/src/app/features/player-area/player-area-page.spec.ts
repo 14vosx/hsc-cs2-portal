@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BunkerApiService } from '../bunker/data-access/bunker-api.service';
@@ -10,6 +11,7 @@ import { PlayerIdentityApiService } from '../player/data-access/player-identity-
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
 import type { PlayerProfile } from '../player/domain/player-profile.model';
 import { PlayerAreaPage } from './player-area-page';
+import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-profile-media-editor';
 
 describe('PlayerAreaPage', () => {
   let fixture: ComponentFixture<PlayerAreaPage>;
@@ -23,6 +25,10 @@ describe('PlayerAreaPage', () => {
     getProfile: vi.fn(),
     getMembership: vi.fn(),
     updateProfile: vi.fn(),
+    uploadAvatar: vi.fn(),
+    removeAvatar: vi.fn(),
+    uploadBanner: vi.fn(),
+    removeBanner: vi.fn(),
   };
 
   const bunkerApi = {
@@ -492,4 +498,236 @@ describe('PlayerAreaPage', () => {
     );
   });
 
+  it('renderiza o editor de mídia quando a Área do Jogador está ready', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'app-player-profile-media-editor',
+      ),
+    ).not.toBeNull();
+  });
+
+  it('faz upload de avatar sem atualização otimista e adota exatamente o profile retornado', async () => {
+    const response = new Subject<PlayerProfile>();
+    const returnedProfile = profileWithMedia({ avatarUrl: '/media/new-avatar.webp' });
+    const file = new File(['avatar'], 'avatar.webp', { type: 'image/webp' });
+    selfApi.uploadAvatar.mockReturnValue(response);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component['onAvatarUpload'](file);
+
+    expect(selfApi.uploadAvatar).toHaveBeenCalledWith(file);
+    expect(component['avatarPending']()).toBe(true);
+    expect(component['bannerPending']()).toBe(false);
+    expect(component['updatedProfile']()).toBeNull();
+
+    response.next(returnedProfile);
+    fixture.detectChanges();
+
+    expect(component['updatedProfile']()).toBe(returnedProfile);
+    expect(component['avatarPending']()).toBe(false);
+    expect(component['successNotice']()).toBe('Avatar atualizado.');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="avatar-section"] img',
+      )?.getAttribute('src'),
+    ).toBe('/media/new-avatar.webp');
+  });
+
+  it('remove avatar somente depois de receber o profile canônico do backend', async () => {
+    const response = new Subject<PlayerProfile>();
+    const currentProfile = profileWithMedia({ avatarUrl: '/media/avatar.webp' });
+    const returnedProfile = profileWithMedia({ avatarUrl: null });
+    selfApi.removeAvatar.mockReturnValue(response);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance['updatedProfile'].set(currentProfile);
+    fixture.detectChanges();
+
+    fixture.componentInstance['onAvatarRemove']();
+
+    expect(selfApi.removeAvatar).toHaveBeenCalledOnce();
+    expect(fixture.componentInstance['updatedProfile']()).toBe(currentProfile);
+
+    response.next(returnedProfile);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['updatedProfile']()).toBe(returnedProfile);
+    expect(fixture.componentInstance['successNotice']()).toBe('Avatar removido.');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="avatar-section"] img',
+      ),
+    ).toBeNull();
+  });
+
+  it('faz upload e remoção de banner usando somente os profiles retornados', async () => {
+    const uploadedProfile = profileWithMedia({ bannerUrl: '/media/new-banner.webp' });
+    const removedProfile = profileWithMedia({ bannerUrl: null });
+    const file = new File(['banner'], 'banner.webp', { type: 'image/webp' });
+    selfApi.uploadBanner.mockReturnValue(of(uploadedProfile));
+    selfApi.removeBanner.mockReturnValue(of(removedProfile));
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    component['onBannerUpload'](file);
+    fixture.detectChanges();
+
+    expect(selfApi.uploadBanner).toHaveBeenCalledWith(file);
+    expect(component['updatedProfile']()).toBe(uploadedProfile);
+    expect(component['successNotice']()).toBe('Banner atualizado.');
+
+    component['onBannerRemove']();
+    fixture.detectChanges();
+
+    expect(selfApi.removeBanner).toHaveBeenCalledOnce();
+    expect(component['updatedProfile']()).toBe(removedProfile);
+    expect(component['successNotice']()).toBe('Banner removido.');
+  });
+
+  it('mantém pending de avatar e banner independentes', async () => {
+    const avatarResponse = new Subject<PlayerProfile>();
+    const bannerResponse = new Subject<PlayerProfile>();
+    selfApi.uploadAvatar.mockReturnValue(avatarResponse);
+    selfApi.uploadBanner.mockReturnValue(bannerResponse);
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const component = fixture.componentInstance;
+    component['onAvatarUpload'](new File(['avatar'], 'avatar.webp'));
+    expect(component['avatarPending']()).toBe(true);
+    expect(component['bannerPending']()).toBe(false);
+
+    component['onBannerUpload'](new File(['banner'], 'banner.webp'));
+    expect(component['avatarPending']()).toBe(true);
+    expect(component['bannerPending']()).toBe(true);
+
+    avatarResponse.next(profileWithMedia({ avatarUrl: '/media/avatar.webp' }));
+    expect(component['avatarPending']()).toBe(false);
+    expect(component['bannerPending']()).toBe(true);
+  });
+
+  it('mantém erros 400 e 403 de mídia locais e preserva o profile canônico', async () => {
+    const currentProfile = profileWithMedia({ avatarUrl: '/media/avatar.webp' });
+    selfApi.uploadAvatar.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            error: { error: 'invalid_file_type' },
+            status: 400,
+          }),
+      ),
+    );
+    selfApi.removeBanner.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            error: { error: 'player_account_disabled' },
+            status: 403,
+          }),
+      ),
+    );
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance['updatedProfile'].set(currentProfile);
+
+    fixture.componentInstance['onAvatarUpload'](new File(['bad'], 'bad.gif'));
+    fixture.componentInstance['onBannerRemove']();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['updatedProfile']()).toBe(currentProfile);
+    expect(fixture.componentInstance['avatarError']()).toBe(
+      'Formato de imagem não permitido. Use JPEG, PNG ou WebP.',
+    );
+    expect(fixture.componentInstance['bannerError']()).toBe(
+      'Sua conta HSC está desativada.',
+    );
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Conta e segurança',
+    );
+  });
+
+  it('encerra a sessão em erro 401 de mídia e finaliza o pending', async () => {
+    const avatarResponse = new Subject<PlayerProfile>();
+    selfApi.uploadAvatar.mockReturnValue(avatarResponse);
+    selfApi.uploadBanner.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            error: { error: 'invalid_session' },
+            status: 401,
+          }),
+      ),
+    );
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance['updatedProfile'].set(
+      profileWithMedia({ avatarUrl: '/media/avatar.webp' }),
+    );
+
+    fixture.componentInstance['onAvatarUpload'](new File(['avatar'], 'avatar.webp'));
+    expect(fixture.componentInstance['avatarPending']()).toBe(true);
+
+    fixture.componentInstance['onBannerUpload'](new File(['banner'], 'banner.webp'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['avatarPending']()).toBe(false);
+    expect(fixture.componentInstance['bannerPending']()).toBe(false);
+    expect(fixture.componentInstance['updatedProfile']()).toBeNull();
+    expect(fixture.componentInstance['avatarError']()).toBeNull();
+    expect(fixture.componentInstance['bannerError']()).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Entre para acessar sua área',
+    );
+  });
+
+  it('limpa erros de mídia quando o filho emite mediaEdited', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentInstance['avatarError'].set('Erro de avatar');
+    fixture.componentInstance['bannerError'].set('Erro de banner');
+    fixture.detectChanges();
+
+    const editorInstance = fixture.debugElement.query(
+      By.directive(PlayerProfileMediaEditor),
+    ).componentInstance as PlayerProfileMediaEditor;
+    editorInstance.mediaEdited.emit();
+
+    expect(fixture.componentInstance['avatarError']()).toBeNull();
+    expect(fixture.componentInstance['bannerError']()).toBeNull();
+  });
+
 });
+
+function profileWithMedia(
+  overrides: Partial<PlayerProfile> = {},
+): PlayerProfile {
+  return {
+    displayName: 'Player HSC',
+    slug: 'player-hsc',
+    bio: 'Perfil de teste.',
+    avatarUrl: null,
+    bannerUrl: null,
+    discordHandle: 'player.hsc',
+    preferredRole: 'rifler',
+    preferredMap: 'de_mirage',
+    visibility: 'public',
+    joinedAt: '2026-08-07T10:00:00.000Z',
+    createdAt: '2026-08-07T10:00:00.000Z',
+    updatedAt: '2026-08-08T10:00:00.000Z',
+    ...overrides,
+  };
+}

@@ -24,6 +24,7 @@ import {
   mapPlayerProfileServerError,
   type MappedProfileError,
 } from './player-profile-update-error';
+import { mapPlayerProfileMediaError } from './player-profile-media-error';
 import type { PlayerAccountSummary } from '../player/domain/player-account.model';
 import type { PlayerIdentity } from '../player/domain/player-identity.model';
 import type {
@@ -40,6 +41,7 @@ import {
   type PreferredRole,
 } from '../player/domain/player-profile.model';
 import { PlayerProfileEditor } from './player-profile-editor/player-profile-editor';
+import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-profile-media-editor';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
@@ -79,6 +81,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     UiCard,
     StatusBadge,
     PlayerProfileEditor,
+    PlayerProfileMediaEditor,
   ],
   templateUrl: './player-area-page.html',
   styleUrl: './player-area-page.css',
@@ -100,6 +103,10 @@ export class PlayerAreaPage {
   protected readonly saveError = signal<MappedProfileError | null>(null);
   protected readonly successNotice = signal<string | null>(null);
   protected readonly updatedProfile = signal<PlayerProfile | null>(null);
+  protected readonly avatarPending = signal(false);
+  protected readonly bannerPending = signal(false);
+  protected readonly avatarError = signal<string | null>(null);
+  protected readonly bannerError = signal<string | null>(null);
 
   private readonly reload$ = new BehaviorSubject<PlayerAreaReloadAction>('load');
 
@@ -156,6 +163,99 @@ export class PlayerAreaPage {
         this.saveError.set(mapped);
       },
     });
+  }
+
+  protected onAvatarUpload(file: File): void {
+    if (this.avatarPending()) {
+      return;
+    }
+
+    this.avatarPending.set(true);
+    this.avatarError.set(null);
+    this.successNotice.set(null);
+
+    this.selfApi.uploadAvatar(file).subscribe({
+      next: (profile) => {
+        this.updatedProfile.set(profile);
+        this.avatarPending.set(false);
+        this.successNotice.set('Avatar atualizado.');
+      },
+      error: (error: unknown) => {
+        this.avatarPending.set(false);
+        this.handleMediaError(error, this.avatarError);
+      },
+    });
+  }
+
+  protected onAvatarRemove(): void {
+    if (this.avatarPending()) {
+      return;
+    }
+
+    this.avatarPending.set(true);
+    this.avatarError.set(null);
+    this.successNotice.set(null);
+
+    this.selfApi.removeAvatar().subscribe({
+      next: (profile) => {
+        this.updatedProfile.set(profile);
+        this.avatarPending.set(false);
+        this.successNotice.set('Avatar removido.');
+      },
+      error: (error: unknown) => {
+        this.avatarPending.set(false);
+        this.handleMediaError(error, this.avatarError);
+      },
+    });
+  }
+
+  protected onBannerUpload(file: File): void {
+    if (this.bannerPending()) {
+      return;
+    }
+
+    this.bannerPending.set(true);
+    this.bannerError.set(null);
+    this.successNotice.set(null);
+
+    this.selfApi.uploadBanner(file).subscribe({
+      next: (profile) => {
+        this.updatedProfile.set(profile);
+        this.bannerPending.set(false);
+        this.successNotice.set('Banner atualizado.');
+      },
+      error: (error: unknown) => {
+        this.bannerPending.set(false);
+        this.handleMediaError(error, this.bannerError);
+      },
+    });
+  }
+
+  protected onBannerRemove(): void {
+    if (this.bannerPending()) {
+      return;
+    }
+
+    this.bannerPending.set(true);
+    this.bannerError.set(null);
+    this.successNotice.set(null);
+
+    this.selfApi.removeBanner().subscribe({
+      next: (profile) => {
+        this.updatedProfile.set(profile);
+        this.bannerPending.set(false);
+        this.successNotice.set('Banner removido.');
+      },
+      error: (error: unknown) => {
+        this.bannerPending.set(false);
+        this.handleMediaError(error, this.bannerError);
+      },
+    });
+  }
+
+  protected clearMediaErrors(): void {
+    this.avatarError.set(null);
+    this.bannerError.set(null);
   }
 
   protected preferredRoleLabel(role: PreferredRole | null): string {
@@ -301,6 +401,25 @@ export class PlayerAreaPage {
 
   protected textOrFallback(value: string | null | undefined): string {
     return value?.trim() || '—';
+  }
+
+  private handleMediaError(
+    error: unknown,
+    target: { set(value: string | null): void },
+  ): void {
+    const mapped = mapPlayerProfileMediaError(error);
+
+    if (mapped.unauthorized) {
+      this.avatarPending.set(false);
+      this.bannerPending.set(false);
+      this.clearMediaErrors();
+      this.updatedProfile.set(null);
+      this.successNotice.set(null);
+      this.reload$.next('signed-out');
+      return;
+    }
+
+    target.set(mapped.message);
   }
 
   private loadVm(action: PlayerAreaReloadAction): Observable<PlayerAreaVm> {
