@@ -12,6 +12,7 @@ export class PlayerAuthApiService {
   private readonly http = inject(HttpClient);
 
   readonly steamLoginUrl = cs2ApiPaths.playerAuthSteamStart;
+  readonly steamLinkUrl = cs2ApiPaths.playerAuthSteamLinkStart;
 
   logout(): Observable<void> {
     return this.http

@@ -292,69 +292,15 @@ describe('BunkerPlayerHeader', () => {
     expect(link).toBeNull();
   });
 
-  it('16. badges exibem histórico disponível/pendente e primeira season', () => {
-    fixture.componentRef.setInput(
-      'summary',
-      createBunkerSummary({
-        seasonFirst: true,
-        competitiveProfile: {
-          generatedAt: null,
-          steamId64: null,
-          name: null,
-          avatarMedium: null,
-          steamProfileUrl: null,
-          lifetime: {
-            mapsPlayed: 10,
-            matchesPlayed: 10,
-            wins: 5,
-            losses: 5,
-            winRate: 50,
-            kdRatio: 1,
-            adr: 70,
-            impactRating: 1,
-            kills: 100,
-            deaths: 100,
-            assists: 20,
-            roundsPlayed: 150,
-            headshotPct: 40,
-            accuracy: 20,
-            utilityDmgPerRound: 10,
-            killsPerRound: 0.6,
-            assistsPerRound: 0.1,
-            deathsPerRound: 0.6,
-            entryWinRate: 50,
-            v1Count: 0,
-            v1Wins: 0,
-            v1WinRate: 0,
-            v2Count: 0,
-            v2Wins: 0,
-            v2WinRate: 0,
-            enemy2ks: 0,
-            enemy3ks: 0,
-            enemy4ks: 0,
-            enemy5ks: 0,
-            sampleWeight: 1,
-            score: 50,
-          },
-        },
-      })
-    );
+  it('16. não interpreta seasonFirst como histórico de participação do jogador', () => {
+    fixture.componentRef.setInput('summary', createBunkerSummary({ seasonFirst: true }));
     fixture.detectChanges();
 
-    expect(component.seasonFirstLabel()).toBe('sim');
-    expect(component.historyAvailabilityLabel()).toBe('Histórico disponível');
+    const compiled = fixture.nativeElement as HTMLElement;
 
-    fixture.componentRef.setInput(
-      'summary',
-      createBunkerSummary({
-        seasonFirst: false,
-        competitiveProfile: null,
-      })
-    );
-    fixture.detectChanges();
-
-    expect(component.seasonFirstLabel()).toBe('não');
-    expect(component.historyAvailabilityLabel()).toBe('Histórico pendente');
+    expect(compiled.textContent).toContain('Sessão conectada');
+    expect(compiled.textContent).toContain('Histórico pendente');
+    expect(compiled.textContent).not.toContain('Primeira season');
   });
 
   it('17. botão normal exibe "Sair"', () => {

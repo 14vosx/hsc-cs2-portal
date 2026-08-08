@@ -108,9 +108,19 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'bunker',
+    path: 'area-do-jogador/estatisticas',
     loadComponent: () =>
       import('./features/bunker/bunker-page').then((component) => component.BunkerPage),
+  },
+  {
+    path: 'area-do-jogador',
+    loadComponent: () =>
+      import('./features/player-area/player-area-page').then((component) => component.PlayerAreaPage),
+  },
+  {
+    path: 'bunker',
+    redirectTo: 'area-do-jogador/estatisticas',
+    pathMatch: 'full',
   },
   {
     path: 'api-smoke',

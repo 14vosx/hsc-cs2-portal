@@ -1,4 +1,4 @@
-﻿export const CS2_API_BASE_PATH = '/api/cs2/v2';
+export const CS2_API_BASE_PATH = '/api/cs2/v2';
 
 export const cs2ApiPaths = {
   health: `${CS2_API_BASE_PATH}/health.json`,
@@ -19,9 +19,13 @@ export const cs2ApiPaths = {
   steamCache: (steamId64: string) =>
     `${CS2_API_BASE_PATH}/steam-cache/${encodeURIComponent(steamId64)}.json`,
   playerMe: '/player/me',
+  playerAccount: '/player/account',
+  playerProfileMe: '/player/profile/me',
+  playerMembership: '/player/membership',
   playerBunkerSummary: '/player/bunker/summary',
   playerAuthLogout: '/player/auth/logout',
   playerAuthSteamStart: '/player/auth/steam/start',
+  playerAuthSteamLinkStart: '/player/auth/steam/link/start',
   newsIndex: '/content/news/',
   newsItem: (slug: string) => `/content/news/${encodeURIComponent(slug)}/`,
 } as const;
