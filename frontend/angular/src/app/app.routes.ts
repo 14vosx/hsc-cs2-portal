@@ -108,6 +108,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'players/:slug',
+    loadComponent: () =>
+      import('./features/player-public-profile/player-public-profile-page').then(
+        (component) => component.PlayerPublicProfilePage,
+      ),
+  },
+  {
     path: 'area-do-jogador/estatisticas',
     loadComponent: () =>
       import('./features/bunker/bunker-page').then((component) => component.BunkerPage),

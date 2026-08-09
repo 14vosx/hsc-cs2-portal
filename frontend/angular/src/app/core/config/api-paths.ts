@@ -23,6 +23,7 @@ export const cs2ApiPaths = {
   playerProfileMe: '/player/profile/me',
   playerProfileMeAvatar: '/player/profile/me/avatar',
   playerProfileMeBanner: '/player/profile/me/banner',
+  playerPublicProfile: (slug: string) => `/player/profiles/${encodeURIComponent(slug)}`,
   playerMembership: '/player/membership',
   playerBunkerSummary: '/player/bunker/summary',
   playerAuthLogout: '/player/auth/logout',

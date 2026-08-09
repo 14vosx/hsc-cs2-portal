@@ -1,0 +1,121 @@
+<section class="player-public-profile-page">
+  @if (vm$ | async; as vm) {
+    @switch (vm.state) {
+      @case ('loading') {
+        <app-page-state
+          type="loading"
+          message="Carregando perfil do jogador..."
+        />
+      }
+
+      @case ('unauthenticated') {
+        <div class="player-public-profile-page__state">
+          <app-page-state
+            type="empty"
+            title="Autenticação necessária"
+            message="Entre com sua conta HSC para acessar perfis públicos de jogadores."
+          />
+          <a class="player-public-profile-page__action" [href]="steamLoginUrl">
+            Entrar com Steam
+          </a>
+        </div>
+      }
+
+      @case ('forbidden') {
+        <app-page-state
+          type="empty"
+          title="Acesso indisponível"
+          message="Este conteúdo não está disponível para sua conta."
+        />
+      }
+
+      @case ('unavailable') {
+        <app-page-state
+          type="empty"
+          title="Perfil indisponível"
+          message="Não foi possível encontrar um perfil público com este endereço."
+        />
+      }
+
+      @case ('failure') {
+        <app-page-state
+          type="error"
+          title="Não foi possível carregar o perfil"
+          message="Ocorreu uma falha temporária. Tente novamente."
+          actionLabel="Tentar novamente"
+          (actionClick)="retry()"
+        />
+      }
+
+      @case ('ready') {
+        <article class="player-public-profile-page__profile">
+          <div class="player-public-profile-page__banner">
+            @if (vm.profile.bannerUrl) {
+              <img [src]="vm.profile.bannerUrl" alt="" decoding="async" />
+            } @else {
+              <div class="player-public-profile-page__banner-fallback" aria-hidden="true"></div>
+            }
+          </div>
+
+          <header class="player-public-profile-page__header">
+            <div class="player-public-profile-page__avatar">
+              @if (vm.profile.avatarUrl) {
+                <img
+                  [src]="vm.profile.avatarUrl"
+                  [alt]="'Avatar de ' + vm.profile.displayName"
+                  decoding="async"
+                />
+              } @else {
+                <span aria-hidden="true">{{ vm.profile.displayName.charAt(0) }}</span>
+              }
+            </div>
+
+            <div class="player-public-profile-page__identity">
+              <p>Perfil HSC</p>
+              <h1>{{ vm.profile.displayName }}</h1>
+              <span class="player-public-profile-page__slug">&#64;{{ vm.profile.slug }}</span>
+            </div>
+          </header>
+
+          <div class="player-public-profile-page__content">
+            @if (vm.profile.bio) {
+              <section class="player-public-profile-page__bio" aria-labelledby="profile-bio-title">
+                <h2 id="profile-bio-title">Sobre</h2>
+                <p>{{ vm.profile.bio }}</p>
+              </section>
+            }
+
+            <dl class="player-public-profile-page__details">
+              @if (vm.profile.discordHandle) {
+                <div>
+                  <dt>Discord</dt>
+                  <dd>{{ vm.profile.discordHandle }}</dd>
+                </div>
+              }
+              @if (vm.profile.preferredRole) {
+                <div>
+                  <dt>Função preferida</dt>
+                  <dd>{{ preferredRoleLabel(vm.profile.preferredRole) }}</dd>
+                </div>
+              }
+              @if (vm.profile.preferredMap) {
+                <div>
+                  <dt>Mapa preferido</dt>
+                  <dd>{{ preferredMapLabel(vm.profile.preferredMap) }}</dd>
+                </div>
+              }
+              <div>
+                <dt>Na HSC desde</dt>
+                <dd>
+                  <time [attr.datetime]="vm.profile.joinedAt">
+                    {{ formatJoinedAt(vm.profile.joinedAt) }}
+                  </time>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+      }
+    }
+  }
+</section>
