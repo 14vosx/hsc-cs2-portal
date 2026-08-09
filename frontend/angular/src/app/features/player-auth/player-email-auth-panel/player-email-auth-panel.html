@@ -1,0 +1,68 @@
+<div class="player-auth-panel">
+  <div class="player-auth-panel__heading">
+    <span>Conta HSC</span>
+    <h2>
+      @switch (mode()) {
+        @case ('registration') { Crie sua conta }
+        @case ('reset-request') { Redefina sua senha }
+        @default { Entre para acessar sua área }
+      }
+    </h2>
+  </div>
+
+  @if (success()) {
+    <div class="player-auth-panel__notice" role="status">
+      <p>{{ success() }}</p>
+      <button type="button" (click)="setMode('login')">Voltar para entrar</button>
+    </div>
+  } @else {
+    <form novalidate (submit)="submit($event)">
+      <div class="player-auth-panel__field">
+        <label for="player-auth-email">E-mail</label>
+        <input id="player-auth-email" type="email" autocomplete="email" required
+          [disabled]="pending()" [value]="email()" (input)="updateEmail($event)" />
+      </div>
+
+      @if (mode() !== 'reset-request') {
+        <div class="player-auth-panel__field">
+          <label for="player-auth-password">Senha</label>
+          <input id="player-auth-password" type="password"
+            [autocomplete]="mode() === 'registration' ? 'new-password' : 'current-password'"
+            required [disabled]="pending()" [value]="password()" (input)="updatePassword($event)" />
+          @if (mode() === 'registration') {
+            <small>Use de 10 a 128 caracteres.</small>
+          }
+        </div>
+      }
+
+      @if (mode() === 'registration') {
+        <div class="player-auth-panel__field">
+          <label for="player-auth-display-name">Nome de exibição <small>(opcional)</small></label>
+          <input id="player-auth-display-name" type="text" autocomplete="nickname"
+            [disabled]="pending()" [value]="displayName()" (input)="updateDisplayName($event)" />
+        </div>
+      }
+
+      @if (error()) { <p class="player-auth-panel__error" role="alert">{{ error() }}</p> }
+
+      <button class="player-auth-panel__submit" type="submit" [disabled]="pending()">
+        @if (pending()) { Aguarde... } @else if (mode() === 'registration') { Criar conta }
+        @else if (mode() === 'reset-request') { Enviar instruções } @else { Entrar }
+      </button>
+    </form>
+
+    <div class="player-auth-panel__links">
+      @if (mode() === 'login') {
+        <button type="button" (click)="setMode('registration')">Criar conta</button>
+        <button type="button" (click)="setMode('reset-request')">Esqueci minha senha</button>
+      } @else {
+        <button type="button" (click)="setMode('login')">Voltar para entrar</button>
+      }
+    </div>
+  }
+
+  <div class="player-auth-panel__alternative">
+    <span>ou</span>
+    <a [href]="steamLoginUrl()">Entrar com Steam</a>
+  </div>
+</div>

@@ -27,17 +27,10 @@
         />
 
         <app-ui-card>
-          <div class="player-area-page__auth">
-            <span>Conta HSC</span>
-            <h2>Entre para acessar sua área</h2>
-            <p>
-              O Portal já utiliza a sessão player-facing do HSC. Entre com Steam para acessar
-              sua conta pelo fluxo disponível nesta versão do frontend.
-            </p>
-            <a class="player-area-page__button player-area-page__button--primary" [href]="steamLoginUrl">
-              Entrar com Steam
-            </a>
-          </div>
+          <app-player-email-auth-panel
+            [steamLoginUrl]="steamLoginUrl"
+            (authenticated)="onEmailAuthenticated()"
+          />
         </app-ui-card>
       }
 

@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BunkerApiService } from '../bunker/data-access/bunker-api.service';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
+import { PlayerEmailAuthApiService } from '../player/data-access/player-email-auth-api.service';
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
 import type { PlayerProfile } from '../player/domain/player-profile.model';
@@ -39,6 +40,12 @@ describe('PlayerAreaPage', () => {
     steamLoginUrl: '/player/auth/steam/start',
     steamLinkUrl: '/player/auth/steam/link/start',
     logout: vi.fn(() => of(undefined)),
+  };
+
+  const emailAuthApi = {
+    login: vi.fn(),
+    register: vi.fn(),
+    requestPasswordReset: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -171,6 +178,7 @@ describe('PlayerAreaPage', () => {
         { provide: PlayerSelfApiService, useValue: selfApi },
         { provide: BunkerApiService, useValue: bunkerApi },
         { provide: PlayerAuthApiService, useValue: authApi },
+        { provide: PlayerEmailAuthApiService, useValue: emailAuthApi },
       ],
     }).compileComponents();
 
@@ -192,6 +200,40 @@ describe('PlayerAreaPage', () => {
     expect(text).toContain('Estatísticas personalizadas');
     expect(text).toContain('Season 02');
     expect(text).toContain('1,12');
+  });
+
+  it('renderiza autenticação por e-mail e mantém Steam no estado não autenticado', async () => {
+    identityApi.getCurrentIdentity.mockReturnValue(of(null));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Entre para acessar sua área');
+    expect(element.textContent).toContain('Entrar com Steam');
+    expect(element.querySelector<HTMLAnchorElement>('a[href="/player/auth/steam/start"]')).toBeTruthy();
+  });
+
+  it('recarrega o fluxo autoritativo após autenticação por e-mail', async () => {
+    identityApi.getCurrentIdentity.mockReturnValueOnce(of(null));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    identityApi.getCurrentIdentity.mockReturnValue(of({
+      displayName: 'Email Player',
+      steamId64: null,
+      avatarMedium: null,
+      steamProfileUrl: null,
+    }));
+    const panel = fixture.debugElement.query(By.css('app-player-email-auth-panel'));
+    panel.triggerEventHandler('authenticated', undefined);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(identityApi.getCurrentIdentity).toHaveBeenCalledTimes(2);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Player HSC');
   });
 
   it('conta HSC autenticada sem Steam pode abrir e salvar o perfil', async () => {

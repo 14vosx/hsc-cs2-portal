@@ -42,6 +42,7 @@ import {
 } from '../player/domain/player-profile.model';
 import { PlayerProfileEditor } from './player-profile-editor/player-profile-editor';
 import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-profile-media-editor';
+import { PlayerEmailAuthPanel } from '../player-auth/player-email-auth-panel/player-email-auth-panel';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
@@ -82,6 +83,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     StatusBadge,
     PlayerProfileEditor,
     PlayerProfileMediaEditor,
+    PlayerEmailAuthPanel,
   ],
   templateUrl: './player-area-page.html',
   styleUrl: './player-area-page.css',
@@ -286,6 +288,10 @@ export class PlayerAreaPage {
     } finally {
       this.logoutPending.set(false);
     }
+  }
+
+  protected onEmailAuthenticated(): void {
+    this.reload$.next('load');
   }
 
   protected profileVisibilityLabel(visibility: PlayerProfileVisibility): string {

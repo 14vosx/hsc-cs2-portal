@@ -115,6 +115,20 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'verify-email',
+    loadComponent: () =>
+      import('./features/player-auth/verify-email-page/verify-email-page').then(
+        (component) => component.VerifyEmailPage,
+      ),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/player-auth/reset-password-page/reset-password-page').then(
+        (component) => component.ResetPasswordPage,
+      ),
+  },
+  {
     path: 'area-do-jogador/estatisticas',
     loadComponent: () =>
       import('./features/bunker/bunker-page').then((component) => component.BunkerPage),
