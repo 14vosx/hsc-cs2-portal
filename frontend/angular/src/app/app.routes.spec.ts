@@ -32,4 +32,16 @@ describe('App Routes — Ranking Marco 2', () => {
     const component = await route!.loadComponent!();
     expect(component).toBe(SeasonRankingPage);
   });
+
+  it('route /players/:slug lazy-loads PlayerPublicProfilePage', async () => {
+    const route = routes.find((candidate) => candidate.path === 'players/:slug');
+    expect(route).toBeDefined();
+    expect(route?.redirectTo).toBeUndefined();
+    expect(route?.loadComponent).toBeDefined();
+
+    const { PlayerPublicProfilePage } = await import(
+      './features/player-public-profile/player-public-profile-page'
+    );
+    expect(await route!.loadComponent!()).toBe(PlayerPublicProfilePage);
+  });
 });
