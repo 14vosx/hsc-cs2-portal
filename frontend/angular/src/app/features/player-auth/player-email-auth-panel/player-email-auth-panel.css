@@ -1,0 +1,20 @@
+.player-auth-panel { display: grid; max-width: 34rem; gap: var(--space-4); }
+.player-auth-panel__heading { display: grid; gap: var(--space-2); }
+.player-auth-panel__heading span { color: var(--color-text-brand); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.player-auth-panel h2, .player-auth-panel p { margin: 0; }
+.player-auth-panel form { display: grid; gap: var(--space-3); }
+.player-auth-panel__field { display: grid; gap: var(--space-1); }
+.player-auth-panel label { color: var(--color-text-main); font-weight: 700; }
+.player-auth-panel small { color: var(--color-text-subtle); font-weight: 400; }
+.player-auth-panel input { width: 100%; box-sizing: border-box; padding: .75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-base); color: var(--color-text-main); font: inherit; }
+.player-auth-panel input:focus { outline: 2px solid var(--color-accent-cyan-border); outline-offset: 2px; }
+.player-auth-panel button, .player-auth-panel a { padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); font: inherit; font-weight: 700; cursor: pointer; }
+.player-auth-panel__submit, .player-auth-panel__alternative a { border: 1px solid transparent; background: var(--color-accent-cyan); color: var(--hsc-dark-04); text-align: center; text-decoration: none; }
+.player-auth-panel button:disabled { opacity: .6; cursor: wait; }
+.player-auth-panel__links { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.player-auth-panel__links button, .player-auth-panel__notice button { padding: 0; border: 0; background: transparent; color: var(--color-text-brand); }
+.player-auth-panel__error { color: var(--color-status-error); }
+.player-auth-panel__notice { display: grid; gap: var(--space-3); color: var(--color-text-main); line-height: 1.6; }
+.player-auth-panel__alternative { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--space-3); align-items: center; color: var(--color-text-subtle); }
+.player-auth-panel__alternative::before, .player-auth-panel__alternative::after { content: ''; height: 1px; background: var(--color-border-subtle); }
+.player-auth-panel__alternative a { grid-column: 1 / -1; }

@@ -1,0 +1,22 @@
+<section class="player-auth-page">
+  <app-page-header eyebrow="Conta HSC" title="Verificação de e-mail"
+    description="Confirme seu endereço para acessar a Área do Jogador." />
+  <app-ui-card>
+    <div class="player-auth-page__content">
+      <h2>
+        @if (state() === 'success') { E-mail verificado }
+        @else if (state() === 'loading') { Verificando... }
+        @else { Não foi possível verificar }
+      </h2>
+      <p [attr.role]="state() === 'loading' || state() === 'success' ? 'status' : 'alert'">
+        {{ message() }}
+      </p>
+      @if (retryable()) {
+        <button type="button" (click)="retry()">Tentar novamente</button>
+      }
+      @if (state() === 'invalid') {
+        <a routerLink="/area-do-jogador">Voltar para entrar</a>
+      }
+    </div>
+  </app-ui-card>
+</section>
