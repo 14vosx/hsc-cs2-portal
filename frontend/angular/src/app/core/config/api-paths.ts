@@ -25,6 +25,7 @@ export const cs2ApiPaths = {
   playerProfileMeBanner: '/player/profile/me/banner',
   playerPublicProfile: (slug: string) => `/player/profiles/${encodeURIComponent(slug)}`,
   playerMembership: '/player/membership',
+  playerServerAccess: '/player/server-access',
   playerBunkerSummary: '/player/bunker/summary',
   playerAuthLogout: '/player/auth/logout',
   playerAuthEmailRegister: '/player/auth/email/register',

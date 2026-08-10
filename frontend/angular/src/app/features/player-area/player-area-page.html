@@ -81,6 +81,7 @@
         <nav class="player-area-page__nav" aria-label="Seções da Área do Jogador">
           <a href="#perfil">Perfil</a>
           <a href="#conta-seguranca">Conta e segurança</a>
+          <a href="#acesso-servidores">Acesso aos servidores</a>
           <a href="#membro">HSC Membro</a>
           @if (vm.account.capabilities.personalizedStats.available) {
             <a routerLink="/area-do-jogador/estatisticas">Estatísticas completas</a>
@@ -119,6 +120,19 @@
                 </div>
               </dl>
             </div>
+          </app-ui-card>
+        </section>
+
+        <section
+          id="acesso-servidores"
+          class="player-area-page__section"
+          aria-label="Acesso aos servidores HSC"
+        >
+          <app-ui-card variant="highlight">
+            <app-player-server-access-panel
+              [access]="vm.serverAccess"
+              [loadState]="vm.serverAccessState"
+            />
           </app-ui-card>
         </section>
 

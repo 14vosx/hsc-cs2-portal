@@ -13,6 +13,7 @@ import {
   shareReplay,
   startWith,
   switchMap,
+  throwError,
 } from 'rxjs';
 
 import { BunkerApiService } from '../bunker/data-access/bunker-api.service';
@@ -20,6 +21,8 @@ import type { BunkerSummary } from '../bunker/domain/bunker.model';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
+import { PlayerServerAccessApiService } from '../player/data-access/player-server-access-api.service';
+import type { PlayerServerAccess } from '../player/domain/player-server-access.model';
 import {
   mapPlayerProfileServerError,
   type MappedProfileError,
@@ -45,6 +48,10 @@ import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-p
 import { PlayerEmailAuthPanel } from '../player-auth/player-email-auth-panel/player-email-auth-panel';
 import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
 import { mapSteamLinkResult } from '../player-account-security/player-account-security-error';
+import {
+  PlayerServerAccessPanel,
+  type PlayerServerAccessLoadState,
+} from '../player-server-access/player-server-access-panel/player-server-access-panel';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
@@ -61,6 +68,8 @@ interface PlayerAreaReadyVm {
   readonly account: PlayerAccountSummary;
   readonly profile: PlayerProfile;
   readonly membership: PlayerMembership | null;
+  readonly serverAccessState: PlayerServerAccessLoadState;
+  readonly serverAccess: PlayerServerAccess | null;
   readonly statsState: PlayerAreaStatsState;
   readonly statsSummary: BunkerSummary | null;
 }
@@ -87,6 +96,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     PlayerProfileMediaEditor,
     PlayerEmailAuthPanel,
     PlayerAccountSecurityPanel,
+    PlayerServerAccessPanel,
   ],
   templateUrl: './player-area-page.html',
   styleUrl: './player-area-page.css',
@@ -96,6 +106,7 @@ export class PlayerAreaPage implements OnInit {
   private readonly selfApi = inject(PlayerSelfApiService);
   private readonly bunkerApi = inject(BunkerApiService);
   private readonly authApi = inject(PlayerAuthApiService);
+  private readonly serverAccessApi = inject(PlayerServerAccessApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
 
@@ -457,8 +468,9 @@ export class PlayerAreaPage implements OnInit {
           account: this.selfApi.getAccount(),
           profile: this.selfApi.getProfile(),
           membership: this.selfApi.getMembership(),
+          serverAccessResult: this.loadServerAccess(),
         }).pipe(
-          switchMap(({ account, profile, membership }) =>
+          switchMap(({ account, profile, membership, serverAccessResult }) =>
             this.loadStats(account).pipe(
               map(
                 ({ statsState, statsSummary }): PlayerAreaVm => ({
@@ -467,6 +479,8 @@ export class PlayerAreaPage implements OnInit {
                   account,
                   profile,
                   membership,
+                  serverAccessState: serverAccessResult.state,
+                  serverAccess: serverAccessResult.access,
                   statsState,
                   statsSummary,
                 }),
@@ -504,6 +518,24 @@ export class PlayerAreaPage implements OnInit {
           statsSummary: null,
         }),
       ),
+    );
+  }
+
+  private loadServerAccess(): Observable<{
+    state: PlayerServerAccessLoadState;
+    access: PlayerServerAccess | null;
+  }> {
+    return this.serverAccessApi.getServerAccess().pipe(
+      map((access) => ({ state: 'ready' as const, access })),
+      catchError((error: unknown) => {
+        if (
+          error instanceof HttpErrorResponse &&
+          (error.status === 401 || error.status === 403)
+        ) {
+          return throwError(() => error);
+        }
+        return of({ state: 'unavailable' as const, access: null });
+      }),
     );
   }
 
