@@ -1,0 +1,19 @@
+<section class="server-access" aria-labelledby="server-access-title">
+  <div class="server-access__heading">
+    <div>
+      <span>Acesso competitivo</span>
+      <h2 id="server-access-title">Acesso aos servidores HSC</h2>
+    </div>
+    <strong [class.server-access__status--authorized]="presentation().authorized">
+      {{ presentation().status }}
+    </strong>
+  </div>
+
+  <p [attr.role]="loadState() === 'unavailable' ? 'alert' : 'status'">
+    {{ presentation().description }}
+  </p>
+  <p class="server-access__rule">
+    Conta HSC, Steam vinculada e Membership efetivo determinam a elegibilidade. A verificação é
+    realizada de forma autoritativa pelos serviços HSC.
+  </p>
+</section>

@@ -1,0 +1,9 @@
+.server-access { display: grid; gap: var(--space-3); }
+.server-access__heading { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+.server-access__heading span { color: var(--color-text-brand); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.server-access h2, .server-access p { margin: 0; }
+.server-access strong { color: var(--color-text-subtle); text-align: right; }
+.server-access strong.server-access__status--authorized { color: var(--color-success-text, #86efac); }
+.server-access p { color: var(--color-text-subtle); line-height: 1.6; }
+.server-access__rule { padding: var(--space-3); border-left: 3px solid var(--color-accent-cyan); background: var(--color-bg-base); }
+@media (max-width: 600px) { .server-access__heading { flex-direction: column; } .server-access strong { text-align: left; } }

@@ -12,6 +12,7 @@ import { PlayerEmailAuthApiService } from '../player/data-access/player-email-au
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import { PlayerIdentityLinkApiService } from '../player/data-access/player-identity-link-api.service';
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
+import { PlayerServerAccessApiService } from '../player/data-access/player-server-access-api.service';
 import type { PlayerProfile } from '../player/domain/player-profile.model';
 import { PlayerAreaPage } from './player-area-page';
 import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-profile-media-editor';
@@ -51,6 +52,7 @@ describe('PlayerAreaPage', () => {
   };
 
   const identityLinkApi = { requestEmailLink: vi.fn() };
+  const serverAccessApi = { getServerAccess: vi.fn() };
 
   const activatedRoute = {
     snapshot: {
@@ -136,6 +138,10 @@ describe('PlayerAreaPage', () => {
       }),
     );
 
+    serverAccessApi.getServerAccess.mockReturnValue(
+      of({ ok: true, authorized: true, reason: 'membership_active' }),
+    );
+
     bunkerApi.getSummary.mockReturnValue(
       of({
         status: 'ready',
@@ -201,6 +207,7 @@ describe('PlayerAreaPage', () => {
         { provide: PlayerAuthApiService, useValue: authApi },
         { provide: PlayerEmailAuthApiService, useValue: emailAuthApi },
         { provide: PlayerIdentityLinkApiService, useValue: identityLinkApi },
+        { provide: PlayerServerAccessApiService, useValue: serverAccessApi },
         { provide: ActivatedRoute, useValue: activatedRoute },
       ],
     }).compileComponents();
@@ -220,6 +227,8 @@ describe('PlayerAreaPage', () => {
     expect(text).toContain('Conta e segurança');
     expect(text).toContain('Visível para membros HSC');
     expect(text).toContain('Associação ativa');
+    expect(text).toContain('Acesso aos servidores HSC');
+    expect(text).toContain('Acesso liberado');
     expect(text).toContain('Estatísticas personalizadas');
     expect(text).toContain('Season 02');
     expect(text).toContain('1,12');
@@ -397,8 +406,62 @@ describe('PlayerAreaPage', () => {
     expect(selfApi.getAccount).not.toHaveBeenCalled();
     expect(selfApi.getProfile).not.toHaveBeenCalled();
     expect(selfApi.getMembership).not.toHaveBeenCalled();
+    expect(serverAccessApi.getServerAccess).not.toHaveBeenCalled();
     expect(bunkerApi.getSummary).not.toHaveBeenCalled();
   });
+
+  it('renderiza a decisão negativa autoritativa sem inferir acesso pelos demais dados', async () => {
+    serverAccessApi.getServerAccess.mockReturnValue(
+      of({ ok: true, authorized: false, reason: 'membership_required' }),
+    );
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Membership HSC necessário');
+    expect(text).not.toContain('Acesso liberado');
+    expect(serverAccessApi.getServerAccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('mantém a Área do Jogador e falha fechada quando Server Access está indisponível', async () => {
+    serverAccessApi.getServerAccess.mockReturnValue(
+      throwError(() => new Error('invalid server access contract')),
+    );
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Player HSC');
+    expect(text).toContain('Não foi possível verificar o acesso aos servidores agora.');
+    expect(text).not.toContain('Acesso liberado');
+  });
+
+  it.each([401, 403])(
+    'preserva o comportamento não autenticado para Server Access HTTP %s',
+    async (status) => {
+      serverAccessApi.getServerAccess.mockReturnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status,
+              statusText: status === 401 ? 'Unauthorized' : 'Forbidden',
+            }),
+        ),
+      );
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('Entre para acessar sua área');
+      expect(text).not.toContain('Acesso liberado');
+    },
+  );
 
   it('falha das stats não derruba conta, perfil e membership', async () => {
     bunkerApi.getSummary.mockReturnValue(
