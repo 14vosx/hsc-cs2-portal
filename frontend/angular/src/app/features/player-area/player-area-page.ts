@@ -1,7 +1,7 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   BehaviorSubject,
   Observable,
@@ -43,6 +43,8 @@ import {
 import { PlayerProfileEditor } from './player-profile-editor/player-profile-editor';
 import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-profile-media-editor';
 import { PlayerEmailAuthPanel } from '../player-auth/player-email-auth-panel/player-email-auth-panel';
+import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
+import { mapSteamLinkResult } from '../player-account-security/player-account-security-error';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
@@ -84,15 +86,18 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     PlayerProfileEditor,
     PlayerProfileMediaEditor,
     PlayerEmailAuthPanel,
+    PlayerAccountSecurityPanel,
   ],
   templateUrl: './player-area-page.html',
   styleUrl: './player-area-page.css',
 })
-export class PlayerAreaPage {
+export class PlayerAreaPage implements OnInit {
   private readonly identityApi = inject(PlayerIdentityApiService);
   private readonly selfApi = inject(PlayerSelfApiService);
   private readonly bunkerApi = inject(BunkerApiService);
   private readonly authApi = inject(PlayerAuthApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
 
   protected readonly steamLoginUrl = this.authApi.steamLoginUrl;
   protected readonly steamLinkUrl = this.authApi.steamLinkUrl;
@@ -104,6 +109,7 @@ export class PlayerAreaPage {
   protected readonly savePending = signal(false);
   protected readonly saveError = signal<MappedProfileError | null>(null);
   protected readonly successNotice = signal<string | null>(null);
+  protected readonly steamLinkNotice = signal<string | null>(null);
   protected readonly updatedProfile = signal<PlayerProfile | null>(null);
   protected readonly avatarPending = signal(false);
   protected readonly bannerPending = signal(false);
@@ -116,6 +122,18 @@ export class PlayerAreaPage {
     switchMap((action) => this.loadVm(action)),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
+
+  ngOnInit(): void {
+    const result = this.route.snapshot.queryParamMap.get('steamLink');
+    if (result === null) return;
+    const notice = mapSteamLinkResult(result);
+    if (notice) this.steamLinkNotice.set(notice);
+    const queryParams = { ...this.route.snapshot.queryParams };
+    delete queryParams['steamLink'];
+    const query = new URLSearchParams(queryParams).toString();
+    this.location.replaceState('/area-do-jogador', query);
+    if (result === 'success') this.reload$.next('load');
+  }
 
   protected startEditProfile(): void {
     this.saveError.set(null);
@@ -340,10 +358,6 @@ export class PlayerAreaPage {
     }
 
     return 'Vinculado e verificado';
-  }
-
-  protected steamIdentityLabel(account: PlayerAccountSummary): string {
-    return account.identities.steam.linked ? 'Vinculada e verificada' : 'Não vinculada';
   }
 
   protected statsCapabilityLabel(account: PlayerAccountSummary): string {

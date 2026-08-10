@@ -63,4 +63,16 @@ describe('App Routes — Ranking Marco 2', () => {
     expect(routes.some((candidate) => candidate.path === 'area-do-jogador')).toBe(true);
     expect(routes.some((candidate) => candidate.path === 'area-do-jogador/estatisticas')).toBe(true);
   });
+
+  it('lazy-loads email linking and preserves existing identity routes', async () => {
+    const route = routes.find((candidate) => candidate.path === 'link-email');
+    const { LinkEmailPage } = await import(
+      './features/player-account-security/link-email-page/link-email-page'
+    );
+    expect(await route!.loadComponent!()).toBe(LinkEmailPage);
+    expect(routes.some((candidate) => candidate.path === 'verify-email')).toBe(true);
+    expect(routes.some((candidate) => candidate.path === 'reset-password')).toBe(true);
+    expect(routes.some((candidate) => candidate.path === 'players/:slug')).toBe(true);
+    expect(routes.some((candidate) => candidate.path === 'area-do-jogador')).toBe(true);
+  });
 });

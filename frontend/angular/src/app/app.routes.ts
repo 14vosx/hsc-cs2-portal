@@ -129,6 +129,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'link-email',
+    loadComponent: () =>
+      import('./features/player-account-security/link-email-page/link-email-page').then(
+        (component) => component.LinkEmailPage,
+      ),
+  },
+  {
     path: 'area-do-jogador/estatisticas',
     loadComponent: () =>
       import('./features/bunker/bunker-page').then((component) => component.BunkerPage),
