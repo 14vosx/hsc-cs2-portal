@@ -79,14 +79,14 @@
         }
 
         <nav class="player-area-page__nav" aria-label="Seções da Área do Jogador">
-          <a href="#perfil">Perfil</a>
-          <a href="#conta-seguranca">Conta e segurança</a>
-          <a href="#acesso-servidores">Acesso aos servidores</a>
-          <a href="#membro">HSC Membro</a>
+          <a routerLink="/area-do-jogador" fragment="perfil">Perfil</a>
+          <a routerLink="/area-do-jogador" fragment="conta-seguranca">Conta e segurança</a>
+          <a routerLink="/area-do-jogador" fragment="acesso-servidores">Acesso aos servidores</a>
+          <a routerLink="/area-do-jogador" fragment="membro">HSC Membro</a>
           @if (vm.account.capabilities.personalizedStats.available) {
             <a routerLink="/area-do-jogador/estatisticas">Estatísticas completas</a>
           } @else {
-            <a href="#estatisticas">Estatísticas</a>
+            <a routerLink="/area-do-jogador" fragment="estatisticas">Estatísticas</a>
           }
         </nav>
 
@@ -172,6 +172,14 @@
                     >
                       Editar perfil
                     </button>
+                    @if (profile.visibility === 'public') {
+                      <a
+                        class="player-area-page__button"
+                        [routerLink]="['/players', profile.slug]"
+                      >
+                        Ver perfil público
+                      </a>
+                    }
                     <app-status-badge
                       [label]="profileVisibilityLabel(profile.visibility)"
                       [tone]="profile.visibility === 'public' ? 'info' : 'neutral'"
@@ -212,20 +220,6 @@
               </app-ui-card>
             }
 
-            <app-ui-card>
-              <app-player-profile-media-editor
-                [profile]="profile"
-                [avatarPending]="avatarPending()"
-                [bannerPending]="bannerPending()"
-                [avatarError]="avatarError()"
-                [bannerError]="bannerError()"
-                (avatarUpload)="onAvatarUpload($event)"
-                (avatarRemove)="onAvatarRemove()"
-                (bannerUpload)="onBannerUpload($event)"
-                (bannerRemove)="onBannerRemove()"
-                (mediaEdited)="clearMediaErrors()"
-              />
-            </app-ui-card>
           </section>
 
           <section
@@ -278,6 +272,23 @@
             </app-ui-card>
           </section>
         </div>
+
+        <section class="player-area-page__media" aria-label="Mídia do perfil">
+          <app-ui-card>
+            <app-player-profile-media-editor
+              [profile]="profile"
+              [avatarPending]="avatarPending()"
+              [bannerPending]="bannerPending()"
+              [avatarError]="avatarError()"
+              [bannerError]="bannerError()"
+              (avatarUpload)="onAvatarUpload($event)"
+              (avatarRemove)="onAvatarRemove()"
+              (bannerUpload)="onBannerUpload($event)"
+              (bannerRemove)="onBannerRemove()"
+              (mediaEdited)="clearMediaErrors()"
+            />
+          </app-ui-card>
+        </section>
 
         <section
           id="estatisticas"

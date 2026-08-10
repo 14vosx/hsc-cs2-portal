@@ -9,8 +9,6 @@
   display: flex;
   flex: 1;
   width: 100%;
-  max-width: var(--page-max);
-  margin: 0 auto;
 }
 
 .app-shell__sidebar-desktop {
