@@ -229,6 +229,7 @@ describe('PlayerAreaPage', () => {
     expect(text).toContain('Associação ativa');
     expect(text).toContain('Acesso aos servidores HSC');
     expect(text).toContain('Acesso liberado');
+    expect(text).toContain('Readiness CS2');
     expect(text).toContain('Estatísticas personalizadas');
     expect(text).toContain('Season 02');
     expect(text).toContain('1,12');
@@ -362,6 +363,8 @@ describe('PlayerAreaPage', () => {
 
     expect(text).toContain('Área do Jogador');
     expect(text).toContain('Conta ativa sem identidade Steam vinculada');
+    expect(text).toContain('Readiness CS2');
+    expect(text).toContain('Não vinculada');
     expect(text).toContain('Vincular Steam');
     expect(text).toContain('Sem associação HSC');
     expect(bunkerApi.getSummary).not.toHaveBeenCalled();

@@ -49,6 +49,10 @@ import { PlayerEmailAuthPanel } from '../player-auth/player-email-auth-panel/pla
 import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
 import { mapSteamLinkResult } from '../player-account-security/player-account-security-error';
 import {
+  PlayerCs2ReadinessPanel,
+  type PlayerCs2StatsState,
+} from '../player-cs2-readiness/player-cs2-readiness-panel/player-cs2-readiness-panel';
+import {
   PlayerServerAccessPanel,
   type PlayerServerAccessLoadState,
 } from '../player-server-access/player-server-access-panel/player-server-access-panel';
@@ -60,8 +64,6 @@ import {
   type StatusBadgeVariant,
 } from '../../shared/components/status-badge/status-badge';
 
-type PlayerAreaStatsState = 'ready' | 'unavailable' | 'error';
-
 interface PlayerAreaReadyVm {
   readonly state: 'ready';
   readonly identity: PlayerIdentity;
@@ -70,7 +72,7 @@ interface PlayerAreaReadyVm {
   readonly membership: PlayerMembership | null;
   readonly serverAccessState: PlayerServerAccessLoadState;
   readonly serverAccess: PlayerServerAccess | null;
-  readonly statsState: PlayerAreaStatsState;
+  readonly statsState: PlayerCs2StatsState;
   readonly statsSummary: BunkerSummary | null;
 }
 
@@ -96,6 +98,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     PlayerProfileMediaEditor,
     PlayerEmailAuthPanel,
     PlayerAccountSecurityPanel,
+    PlayerCs2ReadinessPanel,
     PlayerServerAccessPanel,
   ],
   templateUrl: './player-area-page.html',
@@ -497,7 +500,7 @@ export class PlayerAreaPage implements OnInit {
   private loadStats(
     account: PlayerAccountSummary,
   ): Observable<{
-    statsState: PlayerAreaStatsState;
+    statsState: PlayerCs2StatsState;
     statsSummary: BunkerSummary | null;
   }> {
     if (!account.capabilities.personalizedStats.available) {
