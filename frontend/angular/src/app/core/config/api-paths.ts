@@ -32,6 +32,8 @@ export const cs2ApiPaths = {
   playerAuthEmailLogin: '/player/auth/email/login',
   playerAuthEmailPasswordResetRequest: '/player/auth/email/password-reset/request',
   playerAuthEmailPasswordResetConfirm: '/player/auth/email/password-reset/confirm',
+  playerAuthEmailLinkRequest: '/player/auth/email/link/request',
+  playerAuthEmailLinkConfirm: '/player/auth/email/link/confirm',
   playerAuthSteamStart: '/player/auth/steam/start',
   playerAuthSteamLinkStart: '/player/auth/steam/link/start',
   newsIndex: '/content/news/',

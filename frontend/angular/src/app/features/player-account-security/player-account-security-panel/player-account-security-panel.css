@@ -1,0 +1,18 @@
+.account-security { display: grid; gap: var(--space-4); }
+.account-security__header, .account-security__identity, .account-security__actions { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+.account-security__header span { color: var(--color-text-brand); font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.account-security h2, .account-security h3, .account-security p { margin: 0; }
+.account-security__header strong { color: var(--color-success-text, #86efac); }
+.account-security__identity { padding: var(--space-3); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); background: var(--color-bg-base); }
+.account-security__identity div, .account-security form, .account-security__field { display: grid; gap: var(--space-2); }
+.account-security small, .account-security__identity p { color: var(--color-text-subtle); overflow-wrap: anywhere; }
+.account-security label { font-weight: 700; }
+.account-security input { width: 100%; box-sizing: border-box; padding: .75rem; border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-bg-base); color: var(--color-text-main); font: inherit; }
+.account-security input:focus { outline: 2px solid var(--color-accent-cyan-border); outline-offset: 2px; }
+.account-security button, .account-security a { display: inline-flex; width: fit-content; justify-content: center; padding: var(--space-2) var(--space-4); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); background: var(--color-surface-strong); color: var(--color-text-main); font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.account-security button[type='submit'], .account-security__identity a { border-color: transparent; background: var(--color-accent-cyan); color: var(--hsc-dark-04); }
+.account-security button:disabled { opacity: .6; cursor: wait; }
+.account-security__notice, .account-security__success, .account-security__error { padding: var(--space-3); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); }
+.account-security__notice, .account-security__success { color: var(--color-success-text, #86efac); }
+.account-security__error, [role='alert'] { color: var(--color-status-error); }
+@media (max-width: 600px) { .account-security__header, .account-security__identity { flex-direction: column; } }

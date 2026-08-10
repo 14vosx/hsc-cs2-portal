@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { Location } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { By } from '@angular/platform-browser';
 import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +10,7 @@ import { BunkerApiService } from '../bunker/data-access/bunker-api.service';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import { PlayerEmailAuthApiService } from '../player/data-access/player-email-auth-api.service';
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
+import { PlayerIdentityLinkApiService } from '../player/data-access/player-identity-link-api.service';
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
 import type { PlayerProfile } from '../player/domain/player-profile.model';
 import { PlayerAreaPage } from './player-area-page';
@@ -47,6 +49,25 @@ describe('PlayerAreaPage', () => {
     register: vi.fn(),
     requestPasswordReset: vi.fn(),
   };
+
+  const identityLinkApi = { requestEmailLink: vi.fn() };
+
+  const activatedRoute = {
+    snapshot: {
+      queryParamMap: convertToParamMap({}),
+      queryParams: {} as Record<string, string>,
+    },
+  };
+
+  function createFixture(
+    queryParams: Record<string, string> = {},
+  ): ComponentFixture<PlayerAreaPage> {
+    activatedRoute.snapshot = {
+      queryParamMap: convertToParamMap(queryParams),
+      queryParams,
+    };
+    return TestBed.createComponent(PlayerAreaPage);
+  }
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -179,10 +200,12 @@ describe('PlayerAreaPage', () => {
         { provide: BunkerApiService, useValue: bunkerApi },
         { provide: PlayerAuthApiService, useValue: authApi },
         { provide: PlayerEmailAuthApiService, useValue: emailAuthApi },
+        { provide: PlayerIdentityLinkApiService, useValue: identityLinkApi },
+        { provide: ActivatedRoute, useValue: activatedRoute },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PlayerAreaPage);
+    fixture = createFixture();
   });
 
   it('renderiza Account, Profile, Membership e stats reais', async () => {
@@ -200,6 +223,36 @@ describe('PlayerAreaPage', () => {
     expect(text).toContain('Estatísticas personalizadas');
     expect(text).toContain('Season 02');
     expect(text).toContain('1,12');
+  });
+
+  it('consome sucesso Steam e executa a carga autoritativa', async () => {
+    fixture.destroy();
+    fixture = createFixture({ steamLink: 'success', keep: '1' });
+    const location = TestBed.inject(Location);
+    const replace = vi.spyOn(location, 'replaceState');
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(identityApi.getCurrentIdentity).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith('/area-do-jogador', 'keep=1');
+    expect(fixture.nativeElement.textContent).toContain('Steam vinculada com sucesso.');
+  });
+
+  it('exibe falha Steam conhecida sem recarregar uma segunda vez e remove o parâmetro', async () => {
+    fixture.destroy();
+    fixture = createFixture({ steamLink: 'identity_conflict' });
+    const replace = vi.spyOn(TestBed.inject(Location), 'replaceState');
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(identityApi.getCurrentIdentity).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith('/area-do-jogador', '');
+    expect(fixture.nativeElement.textContent).toContain('outra conta HSC');
+    expect(fixture.nativeElement.textContent).not.toContain('identity_conflict');
   });
 
   it('renderiza autenticação por e-mail e mantém Steam no estado não autenticado', async () => {

@@ -1,0 +1,14 @@
+<section class="link-email-page">
+  <app-page-header eyebrow="Conta HSC" title="Vínculo de e-mail" description="Confirme o e-mail associado à sua conta HSC." />
+  <app-ui-card>
+    <div class="link-email-page__content">
+      <h2>
+        @if (state() === 'success') { Vínculo concluído }
+        @else if (state() === 'loading') { Confirmando... }
+        @else { Não foi possível vincular }
+      </h2>
+      <p [attr.role]="state() === 'loading' || state() === 'success' ? 'status' : 'alert'">{{ message() }}</p>
+      <a routerLink="/area-do-jogador">Voltar para a Área do Jogador</a>
+    </div>
+  </app-ui-card>
+</section>

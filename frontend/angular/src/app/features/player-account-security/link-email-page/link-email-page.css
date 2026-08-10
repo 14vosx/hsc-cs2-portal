@@ -1,0 +1,5 @@
+.link-email-page { display: grid; gap: var(--space-5); }
+.link-email-page__content { display: grid; max-width: 34rem; gap: var(--space-3); }
+.link-email-page h2, .link-email-page p { margin: 0; }
+.link-email-page p { color: var(--color-text-subtle); line-height: 1.6; }
+.link-email-page a { display: inline-flex; width: fit-content; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md); background: var(--color-accent-cyan); color: var(--hsc-dark-04); font-weight: 700; text-decoration: none; }

@@ -210,38 +210,11 @@
             aria-labelledby="player-account-title"
           >
             <app-ui-card>
-              <div class="player-area-page__section-header">
-                <div>
-                  <span class="player-area-page__eyebrow">Conta e segurança</span>
-                  <h2 id="player-account-title">Identidades de acesso</h2>
-                </div>
-                <app-status-badge label="Conta ativa" tone="success" />
-              </div>
-
-              <dl class="player-area-page__facts">
-                <div>
-                  <dt>E-mail</dt>
-                  <dd>{{ textOrFallback(vm.account.identities.email.email) }}</dd>
-                </div>
-                <div>
-                  <dt>Estado do e-mail</dt>
-                  <dd>{{ emailIdentityLabel(vm.account) }}</dd>
-                </div>
-                <div>
-                  <dt>Steam</dt>
-                  <dd>{{ steamIdentityLabel(vm.account) }}</dd>
-                </div>
-                <div>
-                  <dt>Identidade CS2</dt>
-                  <dd>{{ vm.account.capabilities.cs2Identity.ready ? 'Pronta' : 'Vínculo Steam necessário' }}</dd>
-                </div>
-              </dl>
-
-              @if (!vm.account.identities.steam.linked) {
-                <a class="player-area-page__button player-area-page__button--primary" [href]="steamLinkUrl">
-                  Vincular Steam
-                </a>
-              }
+              <app-player-account-security-panel
+                [account]="vm.account"
+                [steamLinkUrl]="steamLinkUrl"
+                [steamNotice]="steamLinkNotice()"
+              />
             </app-ui-card>
           </section>
 
