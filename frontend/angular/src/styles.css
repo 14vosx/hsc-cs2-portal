@@ -95,7 +95,6 @@
   --shadow-drawer: -8px 0 32px rgba(0, 0, 0, 0.5);
 
   /* Layout Containers & Dimensions */
-  --page-max: 1200px;
   --sidebar-width: 260px;
   --header-height: 64px;
 
@@ -121,6 +120,7 @@
 html {
   min-height: 100%;
   background: var(--color-bg-base);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -171,4 +171,10 @@ select {
 
 .skip-link:focus {
   top: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

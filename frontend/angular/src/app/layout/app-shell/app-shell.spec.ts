@@ -34,9 +34,12 @@ describe('AppShell', () => {
 
   it('should render header, permanent sidebar, main landmark and footer', () => {
     const native = fixture.nativeElement;
+    const body = native.querySelector('.app-shell__body');
+    const main = native.querySelector('main#main-content');
     expect(native.querySelector('app-header')).toBeTruthy();
-    expect(native.querySelector('.app-shell__sidebar-desktop app-sidebar')).toBeTruthy();
-    expect(native.querySelector('main#main-content')).toBeTruthy();
+    expect(body?.querySelector(':scope > .app-shell__sidebar-desktop app-sidebar')).toBeTruthy();
+    expect(body?.querySelector(':scope > main#main-content')).toBe(main);
+    expect(main?.getAttribute('tabindex')).toBe('-1');
     expect(native.querySelector('app-footer')).toBeTruthy();
   });
 

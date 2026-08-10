@@ -26,9 +26,8 @@
 }
 
 .player-public-profile-page__banner {
-  aspect-ratio: 4 / 1;
-  min-height: 150px;
-  max-height: 320px;
+  width: 100%;
+  height: clamp(150px, 20vw, 320px);
   overflow: hidden;
   background: var(--color-bg-elevated);
 }
@@ -147,7 +146,7 @@
 
 @media (max-width: 640px) {
   .player-public-profile-page__banner {
-    min-height: 120px;
+    height: 120px;
   }
 
   .player-public-profile-page__header {

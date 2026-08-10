@@ -8,8 +8,6 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: var(--space-6);
-  max-width: var(--page-max);
-  margin: 0 auto;
   padding: var(--space-7) var(--space-5);
 }
 
@@ -81,8 +79,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: var(--page-max);
-  margin: 0 auto;
   padding: var(--space-4) var(--space-5);
 }
 

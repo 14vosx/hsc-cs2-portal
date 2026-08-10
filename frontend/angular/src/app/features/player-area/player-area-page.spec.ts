@@ -235,6 +235,54 @@ describe('PlayerAreaPage', () => {
     expect(text).toContain('1,12');
   });
 
+  it('mantém a rota da Área do Jogador nos links internos e usa os fragments corretos', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const nav = (fixture.nativeElement as HTMLElement).querySelector('.player-area-page__nav');
+    expect(nav?.querySelector('a[href="/area-do-jogador#perfil"]')).toBeTruthy();
+    expect(nav?.querySelector('a[href="/area-do-jogador#conta-seguranca"]')).toBeTruthy();
+    expect(nav?.querySelector('a[href="/area-do-jogador#acesso-servidores"]')).toBeTruthy();
+    expect(nav?.querySelector('a[href="/area-do-jogador#membro"]')).toBeTruthy();
+    expect(nav?.querySelector('a[href="/area-do-jogador/estatisticas"]')).toBeTruthy();
+  });
+
+  it('usa o fragment de estatísticas quando o relatório completo não está disponível', async () => {
+    selfApi.getAccount.mockReturnValue(of({
+      status: 'active',
+      identities: { email: { linked: true, email: 'player@example.test', verified: true }, steam: { linked: false, steamId64: null } },
+      capabilities: { cs2Identity: { ready: false, reason: 'steam_link_required' }, personalizedStats: { available: false, reason: 'steam_link_required' } },
+    }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const nav = (fixture.nativeElement as HTMLElement).querySelector('.player-area-page__nav');
+    expect(nav?.querySelector('a[href="/area-do-jogador#estatisticas"]')).toBeTruthy();
+    expect(nav?.querySelector('a[href="/area-do-jogador/estatisticas"]')).toBeNull();
+  });
+
+  it('mostra link para o próprio perfil quando ele é público', async () => {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const link = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('a')).find(
+      (candidate) => candidate.textContent?.trim() === 'Ver perfil público',
+    );
+    expect(link?.getAttribute('href')).toBe('/players/player-hsc');
+  });
+
+  it('não mostra link público quando o perfil é privado', async () => {
+    selfApi.getProfile.mockReturnValue(of(profileWithMedia({ visibility: 'private' })));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Ver perfil público');
+  });
+
   it('consome sucesso Steam e executa a carga autoritativa', async () => {
     fixture.destroy();
     fixture = createFixture({ steamLink: 'success', keep: '1' });
@@ -664,11 +712,11 @@ describe('PlayerAreaPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelector(
-        'app-player-profile-media-editor',
-      ),
-    ).not.toBeNull();
+    const element = fixture.nativeElement as HTMLElement;
+    const mediaEditor = element.querySelector('app-player-profile-media-editor');
+    expect(mediaEditor).not.toBeNull();
+    expect(mediaEditor?.closest('.player-area-page__media')).not.toBeNull();
+    expect(mediaEditor?.closest('.player-area-page__grid')).toBeNull();
   });
 
   it('faz upload de avatar sem atualização otimista e adota exatamente o profile retornado', async () => {
