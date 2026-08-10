@@ -123,6 +123,16 @@
           </app-ui-card>
         </section>
 
+        <app-ui-card>
+          <app-player-cs2-readiness-panel
+            [account]="vm.account"
+            [membership]="vm.membership"
+            [statsState]="vm.statsState"
+            [serverAccess]="vm.serverAccess"
+            [serverAccessState]="vm.serverAccessState"
+          />
+        </app-ui-card>
+
         <section
           id="acesso-servidores"
           class="player-area-page__section"

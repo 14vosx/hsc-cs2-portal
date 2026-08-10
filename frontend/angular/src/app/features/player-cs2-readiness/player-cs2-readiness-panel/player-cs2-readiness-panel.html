@@ -1,0 +1,22 @@
+<section class="cs2-readiness" aria-labelledby="cs2-readiness-title">
+  <header>
+    <span>Visão consolidada</span>
+    <h2 id="cs2-readiness-title">Readiness CS2</h2>
+    <p>
+      Acompanhe, em um só lugar, o estado das capacidades CS2 da sua conta. Cada item mantém sua
+      própria fonte de decisão.
+    </p>
+  </header>
+
+  <div class="cs2-readiness__items">
+    @for (item of items(); track item.label) {
+      <article class="cs2-readiness__item">
+        <span>{{ item.label }}</span>
+        <strong [class]="'cs2-readiness__status--' + item.tone">{{ item.status }}</strong>
+        @if (item.href) {
+          <a [href]="item.href">Ver detalhes</a>
+        }
+      </article>
+    }
+  </div>
+</section>
