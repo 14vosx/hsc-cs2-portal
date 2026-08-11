@@ -1,226 +1,178 @@
 <div class="home-page">
-  <!-- Hero / Page Header (Renders immediately) -->
-  <app-page-header
-    eyebrow="Plataforma Competitiva"
-    title="HSC CS2 Portal"
-    description="Acompanhe temporadas, classificações, estatísticas de partidas e desempenho dos jogadores no circuito oficial HSC Counter-Strike 2."
-  >
-    <div actions class="home-page__hero-actions">
-      <a routerLink="/ranking" class="home-page__btn home-page__btn--primary">
-        Ver Ranking
-      </a>
-      <a routerLink="/seasons" class="home-page__btn home-page__btn--secondary">
-        Ver Temporadas
-      </a>
-    </div>
-  </app-page-header>
-
-  <!-- Season Context Section -->
-  <section class="home-page__section">
-    <app-section-header title="Temporada em Destaque" subtitle="Contexto e liderança da temporada ativa ou mais recente" />
-
-    @if (seasonState$ | async; as state) {
-      @switch (state.status) {
-        @case ('loading') {
-          <app-ui-card>
-            <app-page-state type="loading" message="Carregando dados da temporada..." />
-          </app-ui-card>
-        }
-
+  @if (seasonState$ | async; as seasonState) {
+    <section class="home-hero hsc-tactical-grid" aria-labelledby="home-title">
+      @switch (seasonState.status) {
         @case ('ready') {
-          @let season = state.data;
-          <app-ui-card variant="highlight">
-            <div class="home-page__season-card">
-              <div class="home-page__season-header">
-                <div>
-                  <h3 class="home-page__season-title">{{ season.seasonName }}</h3>
-                  <span class="home-page__season-slug">#{{ season.seasonSlug }}</span>
-                </div>
-                <app-status-badge
-                  [status]="season.contextMode === 'active' ? 'active' : 'closed'"
-                  [label]="season.contextMode === 'active' ? 'Temporada Ativa' : 'Última Temporada Encerrada'"
-                />
-              </div>
-
-              <div class="home-page__metrics-grid">
-                <div class="home-page__metric-item">
-                  <span class="home-page__metric-value">{{ season.playersCount }}</span>
-                  <span class="home-page__metric-label">Jogadores na Temporada</span>
-                </div>
-                <div class="home-page__metric-item">
-                  <span class="home-page__metric-value">{{ season.matchesCount }}</span>
-                  <span class="home-page__metric-label">Partidas Disputadas</span>
-                </div>
-                <div class="home-page__metric-item">
-                  <span class="home-page__metric-value">{{ season.mapsCount }}</span>
-                  <span class="home-page__metric-label">Mapas Jogados</span>
-                </div>
-              </div>
-
-              <!-- Leader Highlight -->
-              @if (season.leader) {
-                <div class="home-page__leader-box">
-                  <div class="home-page__leader-info">
-                    <span class="home-page__leader-tag">
-                      {{ season.contextMode === 'active' ? 'Líder Atual' : 'Líder Final' }}
-                    </span>
-                    <h4 class="home-page__leader-name">{{ season.leader.name }}</h4>
-                    <span class="home-page__leader-stats">
-                      Pontos: <strong>{{ season.leader.score }}</strong> | Vitórias: <strong>{{ season.leader.wins }}</strong> | K/D: <strong>{{ season.leader.kdRatio }}</strong>
-                    </span>
-                  </div>
-                </div>
-              } @else {
-                <p class="home-page__empty-leader">Nenhum jogador classificado nesta temporada até o momento.</p>
-              }
-
-              <div class="home-page__season-actions">
-                <a [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)" class="home-page__btn home-page__btn--small">
-                  Ver temporada
-                </a>
-                <a [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)" class="home-page__btn home-page__btn--small">
-                  Ver ranking da Season
-                </a>
-              </div>
+          @let season = seasonState.data;
+          <div class="home-hero__content">
+            <span class="home-label home-label--cyan">
+              {{ season.contextMode === 'active' ? 'SEASON • TEMPORADA ATIVA' : 'ÚLTIMA TEMPORADA ENCERRADA' }}
+            </span>
+            <h1 id="home-title" class="home-hero__title">
+              <span>HSC Competitive</span>
+              <strong>{{ season.seasonName }}</strong>
+            </h1>
+            <div class="home-hero__metrics" aria-label="Métricas da temporada">
+              <div><strong>{{ season.playersCount }}</strong><span>Jogadores</span></div>
+              <div><strong>{{ season.matchesCount }}</strong><span>Partidas</span></div>
+              <div><strong>{{ season.mapsCount }}</strong><span>Mapas</span></div>
             </div>
-          </app-ui-card>
-        }
-
-        @case ('empty') {
-          <app-ui-card>
-            <div class="home-page__empty-season">
-              <app-status-badge status="neutral" label="Sem Temporada Pública" />
-              <p class="home-page__empty-text">Nenhuma temporada pública ativa ou encerrada no momento.</p>
+            <div class="home-hero__actions">
+              <a class="home-action home-action--primary" [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)">Ver ranking</a>
+              <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)">Ver temporada</a>
             </div>
-          </app-ui-card>
-        }
+          </div>
 
-        @case ('seasons-error') {
-          <app-ui-card>
-            <app-page-state
-              type="error"
-              title="Indisponibilidade Sazonal"
-              [message]="state.error"
-            />
-          </app-ui-card>
+          <aside class="home-leader" aria-label="Líder da temporada">
+            <span class="home-label home-label--orange">SEASON LEADER</span>
+            @if (season.leader; as leader) {
+              <div class="home-leader__identity">
+                <app-player-avatar [imageUrl]="leader.avatarUrl" [displayName]="leader.name" accent="orange" />
+                <div><span class="home-leader__rank">#{{ leader.position }}</span><h2>{{ leader.name }}</h2></div>
+              </div>
+              <dl class="home-leader__stats">
+                <div><dt>K/D</dt><dd>{{ leader.kdRatio | number:'1.2-2' }}</dd></div>
+                <div><dt>Vitórias</dt><dd>{{ leader.wins }}</dd></div>
+                <div><dt>Score</dt><dd>{{ leader.score | number:'1.0-2' }}</dd></div>
+              </dl>
+            } @else {
+              <p class="home-empty">Ainda não há jogadores classificados nesta temporada.</p>
+            }
+          </aside>
         }
-
         @case ('ranking-error') {
-          <app-ui-card variant="highlight">
-            <div class="home-page__season-card">
-              <div class="home-page__season-header">
-                <div>
-                  <h3 class="home-page__season-title">{{ state.seasonName }}</h3>
-                  <span class="home-page__season-slug">#{{ state.seasonSlug }}</span>
-                </div>
-                <app-status-badge
-                  [status]="state.contextMode === 'active' ? 'active' : 'closed'"
-                  [label]="state.contextMode === 'active' ? 'Temporada Ativa' : 'Última Temporada Encerrada'"
-                />
-              </div>
-
-              <app-page-state
-                type="error"
-                title="Erro no Ranking"
-                [message]="state.error"
-              />
-
-              <div class="home-page__season-actions">
-                <a [routerLink]="seasonOverviewLink(state.seasonSlug, state.contextMode)" class="home-page__btn home-page__btn--small">
-                  Ver temporada
-                </a>
-                <a routerLink="/seasons" class="home-page__btn home-page__btn--secondary">
-                  Ver todas as temporadas
-                </a>
-              </div>
-            </div>
-          </app-ui-card>
+          <div class="home-hero__content">
+            <span class="home-label home-label--cyan">{{ seasonState.contextMode === 'active' ? 'SEASON • TEMPORADA ATIVA' : 'ÚLTIMA TEMPORADA ENCERRADA' }}</span>
+            <h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ seasonState.seasonName }}</strong></h1>
+            <p class="home-source-state home-source-state--error">O ranking está temporariamente indisponível.</p>
+            <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(seasonState.seasonSlug, seasonState.contextMode)">Ver temporada</a>
+          </div>
         }
+        @case ('loading') {
+          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>Carregando contexto</span><strong>competitivo...</strong></h1></div>
+        }
+        @case ('empty') {
+          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>Temporadas</strong></h1><p class="home-source-state">Nenhuma temporada pública está disponível no momento.</p></div>
+        }
+        @case ('seasons-error') {
+          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>Temporadas</strong></h1><p class="home-source-state home-source-state--error">Não foi possível carregar o contexto sazonal.</p></div>
+        }
+      }
+    </section>
+  }
+
+  <section class="home-section" aria-labelledby="happening-title">
+    <div class="home-section__heading"><span class="home-label home-label--live">HAPPENING NOW</span><h2 id="happening-title">HSC AGORA</h2></div>
+    <div class="home-now-grid">
+      <article class="home-panel home-panel--match">
+        <span class="home-label home-label--cyan">ÚLTIMA PARTIDA</span>
+        @if (matchesState$ | async; as matchesState) {
+          @if (matchesState.status === 'ready') {
+            @let match = matchesState.data[0];
+            <div class="home-scoreline">
+              <span [class.home-scoreline__winner]="match.winnerName !== null && match.team1Name !== null && match.winnerName === match.team1Name">{{ match.team1Name ?? '—' }}</span>
+              <strong>{{ match.team1Score }} <small>×</small> {{ match.team2Score }}</strong>
+              <span [class.home-scoreline__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</span>
+            </div>
+            <div class="home-meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
+            <a class="home-inline-link" [routerLink]="['/matches', match.matchId]">Ver detalhes →</a>
+          } @else if (matchesState.status === 'loading') {
+            <p class="home-empty">Carregando partidas...</p>
+          } @else if (matchesState.status === 'error') {
+            <p class="home-empty">Partidas temporariamente indisponíveis.</p>
+          } @else {
+            <p class="home-empty">Nenhuma partida registrada nesta temporada.</p>
+          }
+        }
+      </article>
+
+      <article class="home-panel home-panel--ranking">
+        <span class="home-label home-label--orange">TOP 3</span>
+        @if (seasonState$ | async; as rankingState) {
+          @if (rankingState.status === 'ready' && rankingState.data.topPlayers.length > 0) {
+            <ol class="home-top-list">
+              @for (player of rankingState.data.topPlayers; track player.steamId64) {
+                <li><strong>#{{ player.position }}</strong><app-player-avatar [imageUrl]="player.avatarUrl" [displayName]="player.name" /><span>{{ player.name }}</span><small>{{ player.score | number:'1.0-2' }} pts</small></li>
+              }
+            </ol>
+          } @else if (rankingState.status === 'loading') {
+            <p class="home-empty">Carregando classificação...</p>
+          } @else if (rankingState.status === 'ranking-error') {
+            <p class="home-empty">Ranking temporariamente indisponível.</p>
+          } @else {
+            <p class="home-empty">Ainda não há jogadores classificados.</p>
+          }
+        }
+      </article>
+
+      <article class="home-panel home-panel--notice">
+        <span class="home-label home-label--cyan">HSC NEWS</span>
+        @if (newsState$ | async; as newsState) {
+          @if (newsState.status === 'ready') {
+            @let notice = newsState.data[0];
+            @if (formatDate(notice.publishedAt); as date) { <time class="home-notice__date">{{ date }}</time> }
+            <h3>{{ notice.title }}</h3>
+            @if (notice.excerpt) { <p>{{ notice.excerpt }}</p> }
+            <a class="home-inline-link" [routerLink]="['/news', notice.slug]">Ler notícia →</a>
+          } @else if (newsState.status === 'loading') {
+            <p class="home-empty">Carregando notícias...</p>
+          } @else if (newsState.status === 'error') {
+            <p class="home-empty">Notícias temporariamente indisponíveis.</p>
+          } @else {
+            <p class="home-empty">Nenhuma notícia publicada.</p>
+          }
+        }
+      </article>
+    </div>
+  </section>
+
+  <section class="home-section" aria-labelledby="recent-title">
+    <div class="home-section__heading"><span class="home-label home-label--cyan">MATCH CENTER</span><h2 id="recent-title">PARTIDAS RECENTES</h2></div>
+    @if (matchesState$ | async; as recentState) {
+      @if (recentState.status === 'ready') {
+        <div class="home-matches-list">
+          @for (match of recentState.data; track match.matchId) {
+            <a class="home-match-row" [routerLink]="['/matches', match.matchId]">
+              <div class="home-match-row__team home-match-row__team--left" [class.home-match-row__winner]="match.winnerName !== null && match.team1Name !== null && match.winnerName === match.team1Name">{{ match.team1Name ?? '—' }}</div>
+              <div class="home-match-row__score"><strong>{{ match.team1Score }}</strong><span>×</span><strong>{{ match.team2Score }}</strong></div>
+              <div class="home-match-row__team" [class.home-match-row__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</div>
+              <div class="home-match-row__meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
+            </a>
+          }
+        </div>
+      } @else if (recentState.status === 'loading') {
+        <div class="home-panel"><p class="home-empty">Carregando partidas recentes...</p></div>
+      } @else if (recentState.status === 'error') {
+        <div class="home-panel"><p class="home-empty">Não foi possível carregar as partidas recentes.</p></div>
+      } @else {
+        <div class="home-panel"><p class="home-empty">Nenhuma partida registrada nesta temporada.</p></div>
       }
     }
   </section>
 
-  <!-- Portal Shortcuts Grid (Renders immediately) -->
-  <section class="home-page__section">
-    <app-section-header title="Áreas do Portal" subtitle="Acesse os módulos principais da plataforma competitiva" />
-
-    <div class="home-page__shortcuts-grid">
-      <a routerLink="/ranking" class="home-page__card-link">
-        <app-ui-card variant="interactive">
-          <div class="home-page__shortcut">
-            <h3 class="home-page__shortcut-title">Ranking Geral</h3>
-            <p class="home-page__shortcut-desc">Classificação competitiva atualizada, líderes e pontuação dos jogadores.</p>
-            <span class="home-page__shortcut-link">Acessar Ranking →</span>
-          </div>
-        </app-ui-card>
-      </a>
-
-      <a routerLink="/seasons" class="home-page__card-link">
-        <app-ui-card variant="interactive">
-          <div class="home-page__shortcut">
-            <h3 class="home-page__shortcut-title">Temporadas</h3>
-            <p class="home-page__shortcut-desc">Histórico de edições, estatísticas consolidadas e campeões passados.</p>
-            <span class="home-page__shortcut-link">Ver Temporadas →</span>
-          </div>
-        </app-ui-card>
-      </a>
-
-      <a routerLink="/matches" class="home-page__card-link">
-        <app-ui-card variant="interactive">
-          <div class="home-page__shortcut">
-            <h3 class="home-page__shortcut-title">Partidas</h3>
-            <p class="home-page__shortcut-desc">Resultados, detalhes dos confrontos e estatísticas de cada mapa disputado.</p>
-            <span class="home-page__shortcut-link">Ver Partidas →</span>
-          </div>
-        </app-ui-card>
-      </a>
-
-      <a routerLink="/maps" class="home-page__card-link">
-        <app-ui-card variant="interactive">
-          <div class="home-page__shortcut">
-            <h3 class="home-page__shortcut-title">Mapas</h3>
-            <p class="home-page__shortcut-desc">Estatísticas do pool de mapas, taxa de vitórias e frequência no servidor.</p>
-            <span class="home-page__shortcut-link">Ver Mapas →</span>
-          </div>
-        </app-ui-card>
-      </a>
-
-      <a routerLink="/area-do-jogador" class="home-page__card-link">
-        <app-ui-card variant="interactive">
-          <div class="home-page__shortcut">
-            <h3 class="home-page__shortcut-title">Área do Jogador</h3>
-            <p class="home-page__shortcut-desc">Gestão de conta HSC, perfil de membro, vínculo Steam, associação e estatísticas.</p>
-            <span class="home-page__shortcut-link">Acessar Área do Jogador →</span>
-          </div>
-        </app-ui-card>
-      </a>
-
-      <a routerLink="/news" class="home-page__card-link">
-        <app-ui-card variant="interactive">
-          <div class="home-page__shortcut">
-            <h3 class="home-page__shortcut-title">News</h3>
-            <p class="home-page__shortcut-desc">Comunicados oficiais, atualizações de regras e notas da comunidade.</p>
-            <span class="home-page__shortcut-link">Ler Notícias →</span>
-          </div>
-        </app-ui-card>
-      </a>
-    </div>
+  <section class="home-player-cta" aria-labelledby="player-area-title">
+    <div><span class="home-label home-label--orange">PLAYER AREA</span><h2 id="player-area-title">Área do Jogador</h2><p>Seu perfil, identidade e histórico competitivo HSC.</p></div>
+    <a class="home-action home-action--orange" routerLink="/area-do-jogador">{{ playerAreaLabel() }}</a>
   </section>
 
-  <!-- Editorial Highlight Section (Optional) -->
-  @if (editorialHighlight$ | async; as highlight) {
-    <section class="home-page__section">
-      <app-section-header title="Comunicado Oficial" />
-      <app-ui-card>
-        <div class="home-page__editorial">
-          <span class="home-page__editorial-date">{{ highlight.date }}</span>
-          <h3 class="home-page__editorial-title">{{ highlight.title }}</h3>
-          <p class="home-page__editorial-summary">{{ highlight.summary }}</p>
-          <a [routerLink]="['/news', highlight.slug]" class="home-page__btn home-page__btn--small">
-            Ler Matéria Completa
-          </a>
+  @if (newsState$ | async; as newsSectionState) {
+    @if (newsSectionState.status === 'ready') {
+      <section class="home-section" aria-labelledby="news-title">
+        <div class="home-section__heading"><span class="home-label home-label--cyan">HSC WIRE</span><h2 id="news-title">NOTÍCIAS HSC</h2></div>
+        <div class="home-news-grid">
+          @for (item of newsSectionState.data; track item.slug) {
+            <a class="home-news-card" [routerLink]="['/news', item.slug]">
+              @if (item.imageUrl) { <img [src]="item.imageUrl" [alt]="item.title"> }
+              <div class="home-news-card__body">
+                @if (formatDate(item.publishedAt); as date) { <time>{{ date }}</time> }
+                <h3>{{ item.title }}</h3>
+                @if (item.excerpt) { <p>{{ item.excerpt }}</p> }
+                <span>Ler notícia →</span>
+              </div>
+            </a>
+          }
         </div>
-      </app-ui-card>
-    </section>
+      </section>
+    }
   }
 </div>

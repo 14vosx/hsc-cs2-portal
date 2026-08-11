@@ -1,330 +1,115 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { PlayerSessionService } from '../../core/session/player-session.service';
 import { HomeApiService } from './data-access/home-api.service';
+import type {
+  HomeNewsState,
+  HomeRecentMatchesState,
+  HomeSeasonState,
+} from './domain/home-season.model';
 import { HomePage } from './home-page';
 
 describe('HomePage', () => {
   let fixture: ComponentFixture<HomePage>;
-  let homeApiMock: {
-    getHomeSeasonMetrics: ReturnType<typeof vi.fn>;
-    getEditorialHighlight: ReturnType<typeof vi.fn>;
+  let homeApi: { getHomeSeasonMetrics: ReturnType<typeof vi.fn>; getRecentMatches: ReturnType<typeof vi.fn>; getHomeNews: ReturnType<typeof vi.fn> };
+
+  const seasonReady: HomeSeasonState = {
+    status: 'ready' as const,
+    data: {
+      seasonSlug: 'season-alpha', seasonName: 'Temporada Alpha', contextMode: 'active' as const,
+      generatedAt: '2026-08-04T12:00:00Z', playersCount: 50, matchesCount: 120,
+      mapsCount: 180, roundsCount: 1500, hasClassifiedPlayers: true,
+      leader: { position: 1, steamId64: '76561198000000001', name: 'Leader', avatarUrl: null, score: 2500, wins: 15, losses: 3, kdRatio: 1.8 },
+      topPlayers: [
+        { position: 1, steamId64: '76561198000000001', name: 'Leader', avatarUrl: null, score: 2500, wins: 15, losses: 3, kdRatio: 1.8 },
+        { position: 2, steamId64: '76561198000000002', name: 'Second', avatarUrl: null, score: 2200, wins: 12, losses: 5, kdRatio: 1.4 },
+      ],
+    },
   };
+  const matchesReady: HomeRecentMatchesState = { status: 'ready', data: [
+    { matchId: 42, seasonLastMapEndedAt: '2026-08-04T11:00:00Z', winnerName: 'HSC One', team1Name: 'HSC One', team1Score: 2, team2Name: 'HSC Two', team2Score: 1, maps: [{ name: 'de_nuke', team1Score: 13, team2Score: 8 }] },
+    { matchId: 41, seasonLastMapEndedAt: null, winnerName: null, team1Name: null, team1Score: 0, team2Name: 'HSC Three', team2Score: 1, maps: [] },
+  ] };
+  const newsReady: HomeNewsState = { status: 'ready', data: [{ slug: 'notice', title: 'Comunicado Real', excerpt: 'Conteúdo do índice.', imageUrl: null, publishedAt: '2026-08-04T12:00:00Z' }, { slug: 'update', title: 'Atualização Real', excerpt: null, imageUrl: 'news.jpg', publishedAt: null }] };
 
   beforeEach(async () => {
-    homeApiMock = {
-      getHomeSeasonMetrics: vi.fn(),
-      getEditorialHighlight: vi.fn(),
-    };
-
+    homeApi = { getHomeSeasonMetrics: vi.fn(), getRecentMatches: vi.fn(), getHomeNews: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [HomePage],
-      providers: [
-        provideRouter([]),
-        { provide: HomeApiService, useValue: homeApiMock },
-      ],
+      providers: [provideRouter([]), { provide: HomeApiService, useValue: homeApi }, { provide: PlayerSessionService, useValue: { state: () => ({ status: 'anonymous' }) } }],
     }).compileComponents();
   });
 
-  it('should render page identity header and shortcuts grid immediately on initial emission', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'loading' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
+  function render(
+    seasonState: HomeSeasonState = seasonReady,
+    matchesState: HomeRecentMatchesState = matchesReady,
+    newsState: HomeNewsState = newsReady,
+  ): HTMLElement {
+    homeApi.getHomeSeasonMetrics.mockReturnValue(of(seasonState));
+    homeApi.getRecentMatches.mockReturnValue(of(matchesState));
+    homeApi.getHomeNews.mockReturnValue(of(newsState));
     fixture = TestBed.createComponent(HomePage);
     fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
 
-    const native = fixture.nativeElement;
-    const title = native.querySelector('.page-header__title');
-    expect(title).toBeTruthy();
-    expect(title.textContent.trim()).toBe('HSC CS2 Portal');
-
-    const shortcuts = native.querySelectorAll('.home-page__card-link');
-    expect(shortcuts.length).toBe(6);
+  it('renders the real hero, metrics, leader and active contextual links', () => {
+    const native = render();
+    expect(native.querySelector('#home-title')?.textContent).toContain('Temporada Alpha');
+    expect(native.querySelector('.home-hero__metrics')?.textContent).toContain('50');
+    expect(native.querySelector('.home-leader')?.textContent).toContain('Leader');
+    const hrefs = Array.from(native.querySelectorAll('.home-hero__actions a')).map((link) => link.getAttribute('href'));
+    expect(hrefs).toEqual(['/seasons/current/ranking', '/seasons/current']);
   });
 
-  it('should wrap shortcut cards in semantic <a> elements without nested <a> tags', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'loading' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const native = fixture.nativeElement;
-    const cardLinks = native.querySelectorAll('.home-page__card-link');
-    expect(cardLinks.length).toBe(6);
-
-    for (const link of cardLinks) {
-      expect(link.tagName.toLowerCase()).toBe('a');
-      expect(link.getAttribute('href')).toBeTruthy();
-      expect(link.querySelector('app-ui-card')).toBeTruthy();
-      expect(link.querySelectorAll('a').length).toBe(0);
-    }
+  it('renders top players, latest match, recent matches, notice and news', () => {
+    const native = render();
+    expect(native.querySelector('.home-top-list')?.textContent).toContain('Second');
+    expect(native.querySelector('.home-panel--match')?.textContent).toContain('HSC One');
+    expect(native.querySelector('.home-panel--match')?.textContent).toContain('04/08/2026 · 11:00 UTC');
+    expect(native.querySelector('.home-match-row')?.getAttribute('href')).toBe('/matches/42');
+    expect(native.querySelector('.home-panel--notice')?.textContent).toContain('Comunicado Real');
+    expect(native.querySelectorAll('.home-news-card').length).toBe(2);
   });
 
-  it('should render active season and current leader when status is ready', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'ready',
-        data: {
-          seasonSlug: 'season-alpha',
-          seasonName: 'Temporada Alpha',
-          contextMode: 'active',
-          generatedAt: '2026-08-04T12:00:00Z',
-          playersCount: 50,
-          matchesCount: 120,
-          mapsCount: 180,
-          roundsCount: 1500,
-          hasClassifiedPlayers: true,
-          leader: {
-            position: 1,
-            steamId64: '76561198012345678',
-            name: 'ProPlayer',
-            score: 2500,
-            wins: 15,
-            losses: 3,
-            kdRatio: 1.8,
-          },
-        },
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const native = fixture.nativeElement;
-    expect(native.querySelector('.home-page__season-title').textContent.trim()).toBe('Temporada Alpha');
-    expect(native.querySelector('.home-page__leader-name').textContent.trim()).toBe('ProPlayer');
-    expect(native.querySelector('.home-page__leader-tag').textContent.trim()).toBe('Líder Atual');
+  it('renders matches in service order and uses a neutral mark for a null team name', () => {
+    const native = render();
+    const rows = Array.from(native.querySelectorAll('.home-match-row'));
+    expect(rows.map((row) => row.getAttribute('href'))).toEqual(['/matches/42', '/matches/41']);
+    expect(rows[1].textContent).toContain('—');
   });
 
-  it('should render seasons-error when list of seasons fails', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'seasons-error',
-        error: 'Não foi possível carregar a lista de temporadas.',
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const native = fixture.nativeElement;
-    const errorState = native.querySelector('.page-state--error');
-    expect(errorState).toBeTruthy();
-    expect(native.textContent).toContain('Indisponibilidade Sazonal');
+  it('links the Player Area CTA to the existing gateway', () => {
+    const native = render();
+    expect(native.querySelector('.home-player-cta a')?.getAttribute('href')).toBe('/area-do-jogador');
   });
 
-  it('should preserve season context and render season action in ranking-error state', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'ranking-error',
-        error: 'Não foi possível carregar o ranking da temporada.',
-        seasonSlug: 'season-1',
-        seasonName: 'Season 1',
-        contextMode: 'active',
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const native = fixture.nativeElement;
-    expect(native.querySelector('.home-page__season-title').textContent.trim()).toBe('Season 1');
-    expect(native.querySelector('.home-page__season-slug').textContent.trim()).toBe('#season-1');
-    expect(native.querySelector('app-status-badge')).toBeTruthy();
-
-    const actionLink = native.querySelector('.home-page__season-actions a');
-    expect(actionLink).toBeTruthy();
-    expect(actionLink.getAttribute('href')).toBe('/seasons/current');
+  it('uses latest-closed contextual links', () => {
+    const closed = { ...seasonReady, data: { ...seasonReady.data, contextMode: 'latest-closed' as const } };
+    const native = render(closed);
+    const hrefs = Array.from(native.querySelectorAll('.home-hero__actions a')).map((link) => link.getAttribute('href'));
+    expect(hrefs).toEqual(['/seasons/season-alpha/ranking', '/seasons/season-alpha']);
   });
 
-  it('should render editorial highlight when news is present without blocking rest of page', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'empty' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(
-      of({
-        id: 'news-1',
-        title: 'Atualização do Regulamento',
-        summary: 'Confira as regras da nova temporada.',
-        slug: 'atualizacao-regulamento',
-        date: '2026-08-04',
-      }),
-    );
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const native = fixture.nativeElement;
-    const editorialTitle = native.querySelector('.home-page__editorial-title');
-    expect(editorialTitle.textContent.trim()).toBe('Atualização do Regulamento');
+  it('keeps season content when matches and news fail', () => {
+    const native = render(seasonReady, { status: 'error' as const }, { status: 'error' as const });
+    expect(native.querySelector('#home-title')?.textContent).toContain('Temporada Alpha');
+    expect(native.textContent).toContain('Partidas temporariamente indisponíveis');
+    expect(native.querySelector('.home-player-cta')).toBeTruthy();
   });
 
-  it('should not call HomeApiService methods repeatedly on subscription', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'empty' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    expect(homeApiMock.getHomeSeasonMetrics).toHaveBeenCalledTimes(1);
-    expect(homeApiMock.getEditorialHighlight).toHaveBeenCalledTimes(1);
+  it('preserves season detail access on ranking error', () => {
+    const native = render({ status: 'ranking-error' as const, error: 'ranking', seasonSlug: 'closed-1', seasonName: 'Closed One', contextMode: 'latest-closed' as const });
+    expect(native.querySelector('.home-hero__content a')?.getAttribute('href')).toBe('/seasons/closed-1');
+    expect(native.querySelector('.home-player-cta')).toBeTruthy();
   });
 
-  it('botão Ver Ranking aponta para /ranking', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'loading' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const link = fixture.nativeElement.querySelector('.home-page__btn--primary');
-    expect(link.getAttribute('href')).toBe('/ranking');
-  });
-
-  it('botão Ver Temporadas aponta para /seasons', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'loading' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const link = fixture.nativeElement.querySelector('.home-page__btn--secondary');
-    expect(link.getAttribute('href')).toBe('/seasons');
-  });
-
-  it('shortcut Ranking Geral aponta para /ranking', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'loading' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const links = Array.from(fixture.nativeElement.querySelectorAll('.home-page__card-link')) as HTMLAnchorElement[];
-    const rankingCard = links.find((a) => a.textContent?.includes('Ranking Geral'));
-    expect(rankingCard?.getAttribute('href')).toBe('/ranking');
-  });
-
-  it('shortcut Temporadas aponta para /seasons', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(of({ status: 'loading' }));
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const links = Array.from(fixture.nativeElement.querySelectorAll('.home-page__card-link')) as HTMLAnchorElement[];
-    const seasonsCard = links.find((a) => a.textContent?.includes('Temporadas'));
-    expect(seasonsCard?.getAttribute('href')).toBe('/seasons');
-  });
-
-  it('Season ativa produz links /seasons/current e /seasons/current/ranking', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'ready',
-        data: {
-          seasonSlug: 'season-alpha',
-          seasonName: 'Temporada Alpha',
-          contextMode: 'active',
-          generatedAt: null,
-          playersCount: 10,
-          matchesCount: 5,
-          mapsCount: 8,
-          roundsCount: 100,
-          hasClassifiedPlayers: true,
-          leader: null,
-        },
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const actions = fixture.nativeElement.querySelectorAll('.home-page__season-actions a');
-    const hrefs = Array.from(actions).map((a: unknown) => (a as HTMLAnchorElement).getAttribute('href'));
-    expect(hrefs).toContain('/seasons/current');
-    expect(hrefs).toContain('/seasons/current/ranking');
-  });
-
-  it('última Season encerrada produz links /seasons/{slug} e /seasons/{slug}/ranking', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'ready',
-        data: {
-          seasonSlug: 'season-alpha',
-          seasonName: 'Temporada Alpha',
-          contextMode: 'latest-closed',
-          generatedAt: null,
-          playersCount: 10,
-          matchesCount: 5,
-          mapsCount: 8,
-          roundsCount: 100,
-          hasClassifiedPlayers: true,
-          leader: null,
-        },
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const actions = fixture.nativeElement.querySelectorAll('.home-page__season-actions a');
-    const hrefs = Array.from(actions).map((a: unknown) => (a as HTMLAnchorElement).getAttribute('href'));
-    expect(hrefs).toContain('/seasons/season-alpha');
-    expect(hrefs).toContain('/seasons/season-alpha/ranking');
-  });
-
-  it('Season ativa sem líder ainda mostra os dois CTAs contextuais', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'ready',
-        data: {
-          seasonSlug: 'season-alpha',
-          seasonName: 'Temporada Alpha',
-          contextMode: 'active',
-          generatedAt: null,
-          playersCount: 0,
-          matchesCount: 0,
-          mapsCount: 0,
-          roundsCount: 0,
-          hasClassifiedPlayers: false,
-          leader: null,
-        },
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const actions = fixture.nativeElement.querySelectorAll('.home-page__season-actions a');
-    expect(actions.length).toBe(2);
-  });
-
-  it('ranking-error mostra link para Season, link para /seasons e nenhum link de ranking sazonal', () => {
-    homeApiMock.getHomeSeasonMetrics.mockReturnValue(
-      of({
-        status: 'ranking-error',
-        error: 'Falha no ranking.',
-        seasonSlug: 'season-1',
-        seasonName: 'Season 1',
-        contextMode: 'active',
-      }),
-    );
-    homeApiMock.getEditorialHighlight.mockReturnValue(of(null));
-
-    fixture = TestBed.createComponent(HomePage);
-    fixture.detectChanges();
-
-    const actions = fixture.nativeElement.querySelectorAll('.home-page__season-actions a');
-    const hrefs = Array.from(actions).map((a: unknown) => (a as HTMLAnchorElement).getAttribute('href'));
-
-    expect(hrefs).toContain('/seasons/current');
-    expect(hrefs).toContain('/seasons');
-    expect(hrefs.some((h) => h?.includes('/ranking'))).toBe(false);
+  it('does not render the former portal shortcuts grid', () => {
+    const native = render();
+    expect(native.textContent).not.toContain('Áreas do Portal');
+    expect(native.querySelector('.home-page__shortcuts-grid')).toBeNull();
+    expect(native.textContent).not.toContain('COMUNICADO OFICIAL');
   });
 });
