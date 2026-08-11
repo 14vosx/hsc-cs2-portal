@@ -3,7 +3,9 @@
 
   <app-header
     [isDrawerOpen]="isDrawerOpen()"
+    [session]="playerSession.state()"
     (toggleDrawer)="toggleDrawer()"
+    (logoutRequested)="playerSession.logout()"
   />
 
   <div class="app-shell__body">

@@ -1,0 +1,7 @@
+<span class="player-avatar" [class.player-avatar--orange]="accent() === 'orange'">
+  @if (imageUrl(); as image) {
+    <img class="player-avatar__image" [src]="image" [alt]="'Avatar de ' + displayName()">
+  } @else {
+    <span class="player-avatar__fallback" aria-hidden="true">{{ initials() }}</span>
+  }
+</span>

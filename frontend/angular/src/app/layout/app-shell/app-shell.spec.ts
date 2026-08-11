@@ -4,6 +4,13 @@ import { provideRouter, Router } from '@angular/router';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import { AppShell } from './app-shell';
+import { PlayerSessionService } from '../../core/session/player-session.service';
+
+const sessionStub = {
+  state: () => ({ status: 'anonymous' as const }),
+  load: () => undefined,
+  logout: () => undefined,
+};
 
 @Component({
   template: '<h1>Home Content</h1>',
@@ -20,6 +27,7 @@ describe('AppShell', () => {
     await TestBed.configureTestingModule({
       imports: [AppShell, TestHomeComponent],
       providers: [
+        { provide: PlayerSessionService, useValue: sessionStub },
         provideRouter([
           { path: '', component: TestHomeComponent },
           { path: 'seasons', component: TestHomeComponent },

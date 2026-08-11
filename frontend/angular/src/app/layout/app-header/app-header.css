@@ -1,79 +1,19 @@
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
-  height: var(--header-height);
-  background: var(--color-bg-elevated);
-  border-bottom: 1px solid var(--color-border-subtle);
-  backdrop-filter: blur(12px);
-}
-
-.app-header__container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  padding: 0 var(--space-5);
-}
-
-.app-header__logo-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-
-  &:hover .app-header__title {
-    color: var(--color-accent-cyan);
-  }
-}
-
-.app-header__badge {
-  padding: var(--space-0-5) var(--space-2);
-  background: var(--color-accent-cyan-soft);
-  color: var(--color-accent-cyan);
-  border: 1px solid var(--color-accent-cyan-border);
-  border-radius: var(--radius-xs);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.app-header__title {
-  color: var(--color-text-main);
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  transition: color var(--transition-fast);
-}
-
-.app-header__toggle {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  background: transparent;
-  color: var(--color-text-main);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast);
-
-  &:hover {
-    background: var(--color-surface-subtle);
-    border-color: var(--color-border-strong);
-  }
-}
-
-.app-header__toggle-icon {
-  width: 22px;
-  height: 22px;
-}
-
-@media (max-width: 991px) {
-  .app-header__toggle {
-    display: flex;
-  }
-}
+.app-header { position: sticky; top: 0; z-index: var(--z-header); height: var(--header-height); background: var(--color-glass-surface); border-bottom: 1px solid var(--color-border-subtle); backdrop-filter: blur(10px); }
+.app-header__container { display: flex; align-items: center; justify-content: space-between; height: 100%; padding: 0 var(--space-5); }
+.app-header__logo-link, .app-header__actions, .app-header__account-trigger { display: flex; align-items: center; }
+.app-header__logo-link { gap: var(--space-3); font-family: var(--font-display); }
+.app-header__badge { display: grid; width: 34px; height: 34px; place-items: center; color: var(--color-bg-base); background: var(--color-accent-cyan); border: 1px solid var(--color-accent-cyan); border-radius: var(--radius-xs); font-size: .72rem; font-weight: 700; letter-spacing: .08em; }
+.app-header__brand-name { display: flex; gap: .32em; font-size: 1rem; font-weight: 600; letter-spacing: .075em; }
+.app-header__brand-name strong { color: var(--color-accent-cyan); text-shadow: 0 0 12px color-mix(in oklch, var(--color-accent-cyan) 35%, transparent); }
+.app-header__actions { gap: var(--space-3); }
+.app-header__sign-in { min-height: 36px; padding: 0 var(--space-4); font-size: .7rem; }
+.app-header__account { position: relative; }
+.app-header__account-trigger { gap: var(--space-2); padding: 3px var(--space-2) 3px 3px; color: var(--color-text-main); background: transparent; border: 1px solid var(--color-border-default); border-radius: var(--radius-full); cursor: pointer; }
+.app-header__display-name { max-width: 160px; overflow: hidden; font-family: var(--font-display); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.app-header__menu { position: absolute; top: calc(100% + var(--space-2)); right: 0; display: grid; width: 220px; padding: var(--space-2); background: var(--color-surface-base); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); box-shadow: var(--shadow-panel); }
+.app-header__menu a, .app-header__menu button { width: 100%; padding: var(--space-2) var(--space-3); color: var(--color-text-muted); text-align: left; background: transparent; border: 0; border-radius: var(--radius-xs); cursor: pointer; }
+.app-header__menu a:hover, .app-header__menu button:hover { color: var(--color-accent-cyan); background: var(--color-accent-cyan-soft); }
+.app-header__toggle { display: none; width: 40px; height: 40px; padding: 8px; color: var(--color-text-main); background: transparent; border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); cursor: pointer; }
+.app-header__toggle-icon { width: 22px; height: 22px; }
+@media (max-width: 991px) { .app-header__toggle { display: flex; } }
+@media (max-width: 620px) { .app-header__container { padding: 0 var(--space-3); } .app-header__brand-name > span:first-child { display: none; } .app-header__display-name { display: none; } .app-header__sign-in { padding: 0 var(--space-2); font-size: .62rem; } }
