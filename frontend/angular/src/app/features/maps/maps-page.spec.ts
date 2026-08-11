@@ -75,11 +75,11 @@ describe('MapsPage', () => {
     expect(el.textContent).toContain('Atualizado em');
     expect(el.textContent).toContain('de_mirage');
 
-    let vmResult: any;
-    component['vm$'].subscribe((res) => (vmResult = res));
-    expect(vmResult.totalMapAppearances).toBe(80);
-    expect(vmResult.totalRounds).toBe(1600);
-    expect(vmResult.mostPlayedMap.name).toBe('de_mirage');
+    const metrics = el.querySelector('.maps-page__metrics');
+    expect(metrics?.textContent).toContain('Mapa mais jogado');
+    expect(metrics?.textContent).toContain('de_mirage');
+    expect(metrics?.textContent).toContain('80');
+    expect(metrics?.textContent).toContain('1600');
   });
 
   it('preserva a ordem remota quando o sort selecionado é "published"', () => {
