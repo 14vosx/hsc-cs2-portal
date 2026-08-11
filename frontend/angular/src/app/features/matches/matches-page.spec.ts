@@ -107,11 +107,22 @@ describe('MatchesPage', () => {
     matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
     createComponent();
 
-    let vmResult: any;
-    component['vm$'].subscribe((res) => (vmResult = res));
-    expect(vmResult.state).toBe('ready');
-    expect(vmResult.matches.map((m: MatchSummary) => m.id)).toEqual([201, 202, 203]);
-    expect(vmResult.latestMatch.id).toBe(201);
+    const historyCards = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '.matches-page__list app-match-score-card',
+      ) as NodeListOf<HTMLElement>,
+    );
+
+    expect(historyCards).toHaveLength(3);
+    expect(historyCards[0].textContent).toContain('#201');
+    expect(historyCards[1].textContent).toContain('#202');
+    expect(historyCards[2].textContent).toContain('#203');
+
+    const latestMatchCard = fixture.nativeElement.querySelector(
+      '.matches-page__hero-match app-match-score-card',
+    ) as HTMLElement | null;
+
+    expect(latestMatchCard?.textContent).toContain('#201');
   });
 
   it('deriva o total de mapas jogados e deduplica mapOptions em ordem alfabética', () => {
@@ -132,10 +143,25 @@ describe('MatchesPage', () => {
     matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
     createComponent();
 
-    let vmResult: any;
-    component['vm$'].subscribe((res) => (vmResult = res));
-    expect(vmResult.totalMapsPlayed).toBe(4);
-    expect(vmResult.mapOptions).toEqual(['de_ancient', 'de_mirage', 'de_nuke']);
+    const metricCards = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '.matches-page__metrics app-metric-card',
+      ) as NodeListOf<HTMLElement>,
+    );
+
+    const mapsPlayedMetric = metricCards.find((card) =>
+      card.textContent?.includes('Mapas jogados'),
+    );
+
+    expect(mapsPlayedMetric?.textContent).toContain('4');
+
+    const mapOptions = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '.matches-page__controls select option',
+      ) as NodeListOf<HTMLOptionElement>,
+    ).map((option) => option.value);
+
+    expect(mapOptions).toEqual(['', 'de_ancient', 'de_mirage', 'de_nuke']);
   });
 
   it('exibe estado empty quando a API retorna array de partidas vazio', () => {

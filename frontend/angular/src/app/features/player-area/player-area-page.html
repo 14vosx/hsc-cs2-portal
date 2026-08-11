@@ -154,7 +154,7 @@
                 [savePending]="savePending()"
                 [serverError]="saveError()"
                 (save)="onSaveProfile($event)"
-                (cancel)="cancelEditProfile()"
+                (editCancelled)="cancelEditProfile()"
                 (edited)="clearProfileSaveError()"
               />
             } @else {

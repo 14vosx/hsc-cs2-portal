@@ -120,9 +120,9 @@ describe('PlayerProfileEditor', () => {
     });
   });
 
-  it('emite evento cancel ao cancelar', () => {
+  it('emite editCancelled cancel ao cancelar', () => {
     const cancelSpy = vi.fn();
-    component.cancel.subscribe(cancelSpy);
+    component.editCancelled.subscribe(cancelSpy);
 
     component['onCancel']();
     expect(cancelSpy).toHaveBeenCalled();

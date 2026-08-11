@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, type ParamMap } from '@angular/router';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -45,7 +45,7 @@ describe('MapDetailPage', () => {
   let component: MapDetailPage;
   let fixture: ComponentFixture<MapDetailPage>;
   let mapsApiMock: { getMap: ReturnType<typeof vi.fn> };
-  let paramMapSubject: BehaviorSubject<any>;
+  let paramMapSubject: BehaviorSubject<ParamMap>;
 
   beforeEach(() => {
     mapsApiMock = {

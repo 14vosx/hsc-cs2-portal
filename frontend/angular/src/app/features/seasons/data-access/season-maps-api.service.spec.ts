@@ -1,6 +1,6 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SeasonMapsApiService, SeasonMapsContractError } from './season-maps-api.service';
@@ -26,42 +26,45 @@ describe('SeasonMapsApiService', () => {
     TestBed.configureTestingModule({
       providers: [
         SeasonMapsApiService,
-        { provide: 'HttpClient', useValue: httpMock },
+        { provide: HttpClient, useValue: httpMock },
       ],
     });
 
     service = TestBed.inject(SeasonMapsApiService);
-    (service as any).http = httpMock;
   });
 
-  it('slug explícito faz requisição direta para a URL do recorte sazonal de mapas', () => {
+  it('slug explícito faz requisição direta para a URL do recorte sazonal de mapas', async () => {
     httpMock.get.mockReturnValue(of(createValidMapsPayload('season-1')));
 
-    let result: any;
-    service.getMaps('season-1').subscribe((res) => (result = res));
+    const result = await firstValueFrom(service.getMaps('season-1'));
 
     expect(httpMock.get).toHaveBeenCalledWith('/api/cs2/v2/season/season-1/maps.json');
-    expect(result.kind).toBe('available');
-    expect(result.maps.season.slug).toBe('season-1');
+    expect(result).toMatchObject({
+      kind: 'available',
+      maps: {
+        season: {
+          slug: 'season-1',
+        },
+      },
+    });
   });
 
-  it('retorna season-unavailable para erro HTTP 404', () => {
-    httpMock.get.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 
-    let result: any;
-    service.getMaps('season-invalida').subscribe((res) => (result = res));
+  it('retorna season-unavailable para erro HTTP 404', async () => {
+    httpMock.get.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 404 })),
+    );
 
-    expect(result.kind).toBe('season-unavailable');
+    const result = await firstValueFrom(service.getMaps('season-invalida'));
+
+    expect(result).toEqual({ kind: 'season-unavailable' });
   });
 
-  it('lança SeasonMapsContractError se o payload for malformado', () => {
+  it('lança SeasonMapsContractError se o payload for malformado', async () => {
     httpMock.get.mockReturnValue(of({ payload: 'invalido' }));
 
-    let error: any;
-    service.getMaps('season-1').subscribe({
-      error: (e) => (error = e),
-    });
-
-    expect(error).toBeInstanceOf(SeasonMapsContractError);
+    await expect(
+      firstValueFrom(service.getMaps('season-1')),
+    ).rejects.toBeInstanceOf(SeasonMapsContractError);
   });
 });

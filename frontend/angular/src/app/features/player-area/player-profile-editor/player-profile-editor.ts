@@ -39,7 +39,7 @@ export class PlayerProfileEditor {
   readonly serverError = input<MappedProfileError | null>(null);
 
   readonly save = output<PlayerProfilePatch>();
-  readonly cancel = output<void>();
+  readonly editCancelled = output<void>();
   readonly edited = output<void>();
 
   protected readonly roleOptions = PREFERRED_ROLES;
@@ -121,7 +121,7 @@ export class PlayerProfileEditor {
 
   protected onCancel(): void {
     if (!this.savePending()) {
-      this.cancel.emit();
+      this.editCancelled.emit();
     }
   }
 }

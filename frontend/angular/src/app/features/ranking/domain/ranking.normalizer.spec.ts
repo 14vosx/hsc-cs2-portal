@@ -158,7 +158,7 @@ describe('normalizeRanking', () => {
   });
 
   it('rejects unsafe numeric SteamID (20)', () => {
-    const unsafeNumber = 9007199254740993; // Number.MAX_SAFE_INTEGER + 2
+    const unsafeNumber = Number.MAX_SAFE_INTEGER + 1;
     const result = normalizeRanking({
       players: [{ steamid64: unsafeNumber, name: 'Unsafe Player' }],
     });

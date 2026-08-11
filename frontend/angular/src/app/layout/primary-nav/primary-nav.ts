@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 export interface PrimaryNavItem {
@@ -17,7 +17,7 @@ export interface PrimaryNavItem {
 export class PrimaryNav {
   @Output() readonly itemSelected = new EventEmitter<void>();
 
-  constructor(private readonly router: Router) {}
+  private readonly router = inject(Router);
 
   protected readonly navItems: readonly PrimaryNavItem[] = [
     { id: 'home', label: 'Home', path: '/' },
