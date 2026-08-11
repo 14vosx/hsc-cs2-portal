@@ -25,7 +25,7 @@ describe('BunkerAuthCard', () => {
   it('2. renderiza eyebrow, título e descrição', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.bunker-auth-card__eyebrow')?.textContent?.trim()).toBe('Conta Steam');
-    expect(compiled.querySelector('.bunker-auth-card__title')?.textContent?.trim()).toBe('Entre para acessar o Bunker');
+    expect(compiled.querySelector('.bunker-auth-card__title')?.textContent?.trim()).toBe('Entre para acessar o Competitive Analytics');
     expect(compiled.querySelector('.bunker-auth-card__description')?.textContent?.trim()).toContain('Entre com Steam para validar sua sessão');
   });
 
