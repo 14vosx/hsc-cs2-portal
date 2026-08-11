@@ -1,15 +1,17 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 
 import { AppShell } from './app-shell';
 import { PlayerSessionService } from '../../core/session/player-session.service';
+import type { PlayerSession } from '../../core/session/player-session.model';
 
+const sessionState = signal<PlayerSession>({ status: 'anonymous' });
 const sessionStub = {
-  state: () => ({ status: 'anonymous' as const }),
-  load: () => undefined,
-  logout: () => undefined,
+  state: sessionState,
+  load: vi.fn(() => undefined),
+  logout: vi.fn<(onSuccess?: () => void, onError?: () => void) => void>(() => undefined),
 };
 
 @Component({
@@ -24,6 +26,12 @@ describe('AppShell', () => {
   let router: Router;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+    sessionState.set({ status: 'anonymous' });
+    sessionStub.logout.mockImplementation((onSuccess?: () => void) => {
+      sessionState.set({ status: 'anonymous' });
+      onSuccess?.();
+    });
     await TestBed.configureTestingModule({
       imports: [AppShell, TestHomeComponent],
       providers: [
@@ -31,6 +39,7 @@ describe('AppShell', () => {
         provideRouter([
           { path: '', component: TestHomeComponent },
           { path: 'seasons', component: TestHomeComponent },
+          { path: 'area-do-jogador', component: TestHomeComponent },
         ]),
       ],
     }).compileComponents();
@@ -114,5 +123,55 @@ describe('AppShell', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('#mobile-drawer')).toBeNull();
+  });
+
+  it('navigates to Player Area and renders the guest header after logout succeeds', async () => {
+    sessionState.set({
+      status: 'authenticated',
+      displayName: 'Player HSC',
+      steamId64: '76561198000000001',
+      avatarMedium: null,
+    });
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.app-header__account-trigger') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const logoutButton = fixture.nativeElement.querySelector(
+      '.app-header__menu button',
+    ) as HTMLButtonElement;
+    expect(logoutButton.textContent?.trim()).toBe('Sair');
+    logoutButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(sessionStub.logout).toHaveBeenCalledTimes(1);
+    expect(router.url).toBe('/area-do-jogador');
+    expect(fixture.nativeElement.querySelector('.app-header__sign-in')).toBeTruthy();
+  });
+
+  it('preserves the authenticated header and route when logout fails', async () => {
+    await router.navigateByUrl('/seasons');
+    sessionState.set({
+      status: 'authenticated',
+      displayName: 'Player HSC',
+      steamId64: '76561198000000001',
+      avatarMedium: null,
+    });
+    sessionStub.logout.mockImplementation((...callbacks) => callbacks[1]?.());
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.app-header__account-trigger') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const logoutButton = fixture.nativeElement.querySelector(
+      '.app-header__menu button',
+    ) as HTMLButtonElement;
+    logoutButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(sessionStub.logout).toHaveBeenCalledTimes(1);
+    expect(router.url).toBe('/seasons');
+    expect(fixture.nativeElement.textContent).toContain('Player HSC');
+    expect(fixture.nativeElement.querySelector('.app-header__sign-in')).toBeNull();
   });
 });

@@ -25,6 +25,18 @@ describe('PlayerSessionService', () => {
     expect(service.state()).toEqual({ status: 'authenticated', displayName: 'Player One', steamId64: '765', avatarMedium: 'avatar.jpg' });
   });
 
+  it('notifies completion after refreshing the session state', () => {
+    let stateAtCompletion: string | undefined;
+    service.load(() => {
+      stateAtCompletion = service.state().status;
+    });
+    http.expectOne(cs2ApiPaths.playerMe).flush({
+      authenticated: true,
+      player: { displayName: 'Player One', steamid64: '765' },
+    });
+    expect(stateAtCompletion).toBe('authenticated');
+  });
+
   it('maps anonymous and invalid identities to anonymous', () => {
     service.load();
     http.expectOne(cs2ApiPaths.playerMe).flush({ authenticated: false });
@@ -47,13 +59,22 @@ describe('PlayerSessionService', () => {
   });
 
   it('logs out with credentials and becomes anonymous', () => {
-    service.logout();
+    let completed = false;
+    let stateWhenSignedOut: string | undefined;
+    service.signedOut$.subscribe(() => {
+      stateWhenSignedOut = service.state().status;
+    });
+    service.logout(() => {
+      completed = true;
+    });
     const request = http.expectOne(cs2ApiPaths.playerAuthLogout);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({});
     expect(request.request.withCredentials).toBe(true);
     request.flush({ ok: true });
     expect(service.state().status).toBe('anonymous');
+    expect(stateWhenSignedOut).toBe('anonymous');
+    expect(completed).toBe(true);
   });
 
   it('keeps an authenticated session when logout fails', () => {
@@ -63,12 +84,21 @@ describe('PlayerSessionService', () => {
       player: { displayName: 'Player One', steamid64: '765' },
     });
 
-    service.logout();
+    let failed = false;
+    let signedOut = false;
+    service.signedOut$.subscribe(() => {
+      signedOut = true;
+    });
+    service.logout(undefined, () => {
+      failed = true;
+    });
     http.expectOne(cs2ApiPaths.playerAuthLogout).flush('Failure', {
       status: 500,
       statusText: 'Failure',
     });
 
     expect(service.state().status).toBe('authenticated');
+    expect(signedOut).toBe(false);
+    expect(failed).toBe(true);
   });
 });

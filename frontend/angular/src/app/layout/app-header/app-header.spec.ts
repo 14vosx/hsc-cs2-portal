@@ -79,7 +79,7 @@ describe('AppHeader', () => {
     expect(signIn.getAttribute('href')).toBe('/area-do-jogador');
   });
 
-  it('shows identity, real menu items and fallback avatar when authenticated', () => {
+  it('shows identity, the player-area action and fallback avatar when authenticated', () => {
     fixture.componentInstance.session = { status: 'authenticated', displayName: 'Player One', steamId64: '1', avatarMedium: null };
     fixture.detectChanges();
     (fixture.nativeElement.querySelector('.app-header__account-trigger') as HTMLButtonElement).click();
@@ -87,8 +87,8 @@ describe('AppHeader', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Player One');
     expect(text).toContain('Área do Jogador');
-    expect(text).toContain('Meu Perfil');
-    expect(text).toContain('Conta e Segurança');
+    expect(text).not.toContain('Meu Perfil');
+    expect(text).not.toContain('Conta e Segurança');
     expect(fixture.nativeElement.querySelector('.player-avatar__fallback')).toBeTruthy();
   });
 
@@ -117,7 +117,7 @@ describe('AppHeader', () => {
     expect(fixture.nativeElement.querySelector('#player-account-menu')).toBeNull();
   });
 
-  it('exposes links to the real player-area destinations', () => {
+  it('exposes only the player-area link in the authenticated menu', () => {
     fixture.componentInstance.session = { status: 'authenticated', displayName: 'Player One', steamId64: '1', avatarMedium: null };
     fixture.detectChanges();
     (fixture.nativeElement.querySelector('.app-header__account-trigger') as HTMLButtonElement).click();
@@ -125,11 +125,8 @@ describe('AppHeader', () => {
 
     const hrefs = Array.from(fixture.nativeElement.querySelectorAll('#player-account-menu a'))
       .map((link) => (link as HTMLAnchorElement).getAttribute('href'));
-    expect(hrefs).toEqual([
-      '/area-do-jogador',
-      '/area-do-jogador#perfil',
-      '/area-do-jogador#conta-seguranca',
-    ]);
+    expect(hrefs).toEqual(['/area-do-jogador']);
+    expect(fixture.nativeElement.querySelector('#player-account-menu')?.textContent).toContain('Sair');
   });
 
   it('emits logout through its public output', () => {

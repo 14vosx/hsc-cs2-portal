@@ -2,371 +2,138 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-header
-          eyebrow="HSC Membros"
-          title="Área do Jogador"
-          description="Carregando conta, perfil e associação HSC."
-        />
-        <app-ui-card>
-          <p class="player-area-page__state">Carregando sua Área do Jogador...</p>
-        </app-ui-card>
+        <app-page-header eyebrow="HSC Membros" title="Área do Jogador" description="Carregando conta, perfil e associação HSC." />
+        <app-ui-card><p class="player-area-page__state">Carregando sua Área do Jogador...</p></app-ui-card>
       }
-
       @case ('error') {
-        <app-empty-state
-          title="Área do Jogador indisponível"
-          description="Não foi possível carregar sua conta HSC agora. Tente novamente em alguns instantes."
-        />
+        <app-empty-state title="Área do Jogador indisponível" description="Não foi possível carregar sua conta HSC agora. Tente novamente em alguns instantes." />
       }
-
       @case ('unauthenticated') {
-        <app-page-header
-          eyebrow="HSC Membros"
-          title="Área do Jogador"
-          description="Sua conta HSC centraliza perfil, identidade CS2, estatísticas e associação."
-        />
-
-        <app-ui-card>
-          <app-player-email-auth-panel
-            [steamLoginUrl]="steamLoginUrl"
-            (authenticated)="onEmailAuthenticated()"
-          />
-        </app-ui-card>
+        <app-page-header eyebrow="HSC Membros" title="Área do Jogador" description="Sua conta HSC centraliza perfil, identidade CS2, estatísticas e associação." />
+        <app-ui-card><app-player-email-auth-panel [steamLoginUrl]="steamLoginUrl" (authenticated)="onEmailAuthenticated()" /></app-ui-card>
       }
-
       @case ('ready') {
         @let profile = updatedProfile() ?? vm.profile;
 
-        <app-page-header
-          eyebrow="HSC Membros"
-          title="Área do Jogador"
-          description="Conta, perfil, identidade CS2, estatísticas e associação HSC em um só lugar."
-        >
-          <div meta class="player-area-page__badges">
-            <app-status-badge label="Conta ativa" tone="success" />
-            <app-status-badge
-              [label]="vm.account.identities.steam.linked ? 'Steam vinculada' : 'Steam pendente'"
-              [tone]="vm.account.identities.steam.linked ? 'success' : 'warning'"
-            />
-            <app-status-badge
-              [label]="membershipLabel(vm.membership)"
-              [tone]="membershipTone(vm.membership)"
-            />
-          </div>
-
-          <div actions class="player-area-page__header-actions">
-            <button
-              type="button"
-              class="player-area-page__button"
-              [disabled]="logoutPending()"
-              (click)="logout()"
-            >
-              {{ logoutPending() ? 'Saindo...' : 'Sair' }}
+        <header class="athlete-hero hsc-tactical-grid">
+          @if (profile.bannerUrl) { <img class="athlete-hero__banner" [src]="profile.bannerUrl" alt=""> }
+          <div class="athlete-hero__overlay" aria-hidden="true"></div>
+          <div class="athlete-hero__content">
+            <app-player-avatar class="athlete-hero__avatar" style="--player-avatar-size: 112px" [imageUrl]="profile.avatarUrl" [displayName]="profile.displayName" accent="orange" />
+            <div class="athlete-hero__identity">
+              <h1>{{ profile.displayName }}</h1>
+              @if (vm.account.identities.steam.linked && vm.account.identities.steam.steamId64) {
+                <span class="athlete-hero__steam">STEAMID {{ vm.account.identities.steam.steamId64 }}</span>
+              }
+              <div class="athlete-hero__preferences">
+                <span class="athlete-chip athlete-chip--orange">{{ preferredRoleLabel(profile.preferredRole) }}</span>
+                <span class="athlete-chip athlete-chip--cyan">Mapa preferido · {{ preferredMapLabel(profile.preferredMap) }}</span>
+              </div>
+              <div class="athlete-hero__statuses">
+                <span class="athlete-status athlete-status--positive">Sessão conectada</span>
+                <span class="athlete-status" [class.athlete-status--positive]="serverAccessAuthorized(vm.serverAccess, vm.serverAccessState)">{{ serverAccessLabel(vm.serverAccess, vm.serverAccessState) }}</span>
+                <span class="athlete-status" [class.athlete-status--positive]="vm.membership?.status === 'active'">{{ membershipLabel(vm.membership) }}</span>
+              </div>
+            </div>
+            <button type="button" class="player-area-page__button athlete-hero__settings" [attr.aria-expanded]="settingsOpen()" aria-controls="player-settings" (click)="toggleSettings()">
+              {{ settingsOpen() ? 'Fechar configurações' : 'Editar perfil / configurações' }}
             </button>
           </div>
-        </app-page-header>
+        </header>
 
-        @if (logoutFailed()) {
-          <p class="player-area-page__error" role="alert">
-            Não foi possível encerrar a sessão. Tente novamente.
-          </p>
-        }
+        @if (logoutFailed()) { <p class="player-area-page__error" role="alert">Não foi possível encerrar a sessão. Tente novamente.</p> }
+        @if (successNotice()) { <p class="player-area-page__success" role="status">{{ successNotice() }}</p> }
 
-        @if (successNotice()) {
-          <p class="player-area-page__success" role="status">
-            {{ successNotice() }}
-          </p>
-        }
-
-        <nav class="player-area-page__nav" aria-label="Seções da Área do Jogador">
-          <a routerLink="/area-do-jogador" fragment="perfil">Perfil</a>
-          <a routerLink="/area-do-jogador" fragment="conta-seguranca">Conta e segurança</a>
-          <a routerLink="/area-do-jogador" fragment="acesso-servidores">Acesso aos servidores</a>
-          <a routerLink="/area-do-jogador" fragment="membro">HSC Membro</a>
-          @if (vm.account.capabilities.personalizedStats.available) {
-            <a routerLink="/area-do-jogador/estatisticas">Estatísticas completas</a>
-          } @else {
-            <a routerLink="/area-do-jogador" fragment="estatisticas">Estatísticas</a>
-          }
-        </nav>
-
-        <section class="player-area-page__summary" aria-label="Resumo da conta HSC">
-          <app-ui-card variant="highlight">
-            <div class="player-area-page__summary-content">
-              <div>
-                <span class="player-area-page__eyebrow">Identidade HSC</span>
-                <h2>{{ profile.displayName }}</h2>
-                <p>
-                  @if (vm.account.identities.steam.linked) {
-                    SteamID {{ vm.account.identities.steam.steamId64 }}
-                  } @else {
-                    Conta ativa sem identidade Steam vinculada.
-                  }
-                </p>
-              </div>
-
-              <dl class="player-area-page__summary-facts">
-                <div>
-                  <dt>Perfil</dt>
-                  <dd>{{ profileVisibilityLabel(profile.visibility) }}</dd>
-                </div>
-                <div>
-                  <dt>E-mail</dt>
-                  <dd>{{ emailIdentityLabel(vm.account) }}</dd>
-                </div>
-                <div>
-                  <dt>Estatísticas</dt>
-                  <dd>{{ statsCapabilityLabel(vm.account) }}</dd>
-                </div>
-              </dl>
-            </div>
-          </app-ui-card>
-        </section>
-
-        <app-ui-card>
-          <app-player-cs2-readiness-panel
-            [account]="vm.account"
-            [membership]="vm.membership"
-            [statsState]="vm.statsState"
-            [serverAccess]="vm.serverAccess"
-            [serverAccessState]="vm.serverAccessState"
-          />
-        </app-ui-card>
-
-        <section
-          id="acesso-servidores"
-          class="player-area-page__section"
-          aria-label="Acesso aos servidores HSC"
-        >
-          <app-ui-card variant="highlight">
-            <app-player-server-access-panel
-              [access]="vm.serverAccess"
-              [loadState]="vm.serverAccessState"
-            />
-          </app-ui-card>
-        </section>
-
-        <div class="player-area-page__grid">
-          <section id="perfil" class="player-area-page__section" aria-labelledby="player-profile-title">
-            @if (isEditingProfile()) {
-              <app-player-profile-editor
-                [profile]="profile"
-                [savePending]="savePending()"
-                [serverError]="saveError()"
-                (save)="onSaveProfile($event)"
-                (editCancelled)="cancelEditProfile()"
-                (edited)="clearProfileSaveError()"
-              />
-            } @else {
-              <app-ui-card>
-                <div class="player-area-page__section-header">
-                  <div>
-                    <span class="player-area-page__eyebrow">Perfil</span>
-                    <h2 id="player-profile-title">Seu perfil HSC</h2>
-                  </div>
-                  <div class="player-area-page__profile-actions">
-                    <button
-                      type="button"
-                      class="player-area-page__button"
-                      (click)="startEditProfile()"
-                    >
-                      Editar perfil
-                    </button>
-                    @if (profile.visibility === 'public') {
-                      <a
-                        class="player-area-page__button"
-                        [routerLink]="['/players', profile.slug]"
-                      >
-                        Ver perfil público
-                      </a>
-                    }
-                    <app-status-badge
-                      [label]="profileVisibilityLabel(profile.visibility)"
-                      [tone]="profile.visibility === 'public' ? 'info' : 'neutral'"
-                    />
-                  </div>
-                </div>
-
-                <dl class="player-area-page__facts">
-                  <div>
-                    <dt>Nome</dt>
-                    <dd>{{ profile.displayName }}</dd>
-                  </div>
-                  <div>
-                    <dt>Slug</dt>
-                    <dd>{{ profile.slug }}</dd>
-                  </div>
-                  <div>
-                    <dt>Discord</dt>
-                    <dd>{{ textOrFallback(profile.discordHandle) }}</dd>
-                  </div>
-                  <div>
-                    <dt>Função preferida</dt>
-                    <dd>{{ preferredRoleLabel(profile.preferredRole) }}</dd>
-                  </div>
-                  <div>
-                    <dt>Mapa preferido</dt>
-                    <dd>{{ preferredMapLabel(profile.preferredMap) }}</dd>
-                  </div>
-                  <div>
-                    <dt>No HSC desde</dt>
-                    <dd>{{ formatDate(profile.joinedAt) }}</dd>
-                  </div>
-                </dl>
-
-                @if (profile.bio) {
-                  <p class="player-area-page__bio">{{ profile.bio }}</p>
+        @if (settingsOpen()) {
+          <section id="player-settings" class="player-settings" aria-labelledby="player-settings-title">
+            <div class="player-settings__heading"><span class="player-area-page__eyebrow">Configurações</span><h2 id="player-settings-title">Perfil e conta</h2></div>
+            <div class="player-settings__grid">
+              <section id="perfil" class="player-settings__panel">
+                @if (isEditingProfile()) {
+                  <app-player-profile-editor [profile]="profile" [savePending]="savePending()" [serverError]="saveError()" (save)="onSaveProfile($event)" (editCancelled)="cancelEditProfile()" (edited)="clearProfileSaveError()" />
+                } @else {
+                  <app-ui-card>
+                    <div class="player-area-page__section-header"><div><span class="player-area-page__eyebrow">Perfil</span><h3>Seu perfil HSC</h3></div><button type="button" class="player-area-page__button" (click)="startEditProfile()">Editar perfil</button></div>
+                    <dl class="player-area-page__facts"><div><dt>Nome</dt><dd>{{ profile.displayName }}</dd></div><div><dt>Visibilidade</dt><dd>{{ profileVisibilityLabel(profile.visibility) }}</dd></div><div><dt>Discord</dt><dd>{{ textOrFallback(profile.discordHandle) }}</dd></div><div><dt>No HSC desde</dt><dd>{{ formatDate(profile.joinedAt) }}</dd></div></dl>
+                    @if (profile.visibility === 'public') { <a class="player-area-page__button player-settings__inline-action" [routerLink]="['/players', profile.slug]">Ver perfil público</a> }
+                  </app-ui-card>
                 }
-              </app-ui-card>
-            }
-
+              </section>
+              <section class="player-settings__panel"><app-ui-card><app-player-profile-media-editor [profile]="profile" [avatarPending]="avatarPending()" [bannerPending]="bannerPending()" [avatarError]="avatarError()" [bannerError]="bannerError()" (avatarUpload)="onAvatarUpload($event)" (avatarRemove)="onAvatarRemove()" (bannerUpload)="onBannerUpload($event)" (bannerRemove)="onBannerRemove()" (mediaEdited)="clearMediaErrors()" /></app-ui-card></section>
+              <section id="conta-seguranca" class="player-settings__panel"><app-ui-card><app-player-account-security-panel [account]="vm.account" [steamLinkUrl]="steamLinkUrl" [steamNotice]="steamLinkNotice()" /></app-ui-card></section>
+              <section class="player-settings__panel"><app-ui-card><div class="player-area-page__section-header"><div><span class="player-area-page__eyebrow">HSC Membros</span><h3>Sua associação</h3></div><app-status-badge [label]="membershipLabel(vm.membership)" [tone]="membershipTone(vm.membership)" /></div>@if (vm.membership; as membership) { <dl class="player-area-page__facts"><div><dt>Plano</dt><dd>{{ membership.planCode }}</dd></div><div><dt>Início</dt><dd>{{ formatDate(membership.startedAt) }}</dd></div><div><dt>Validade</dt><dd>{{ formatDate(membership.expiresAt) }}</dd></div></dl> } @else { <p class="player-area-page__muted">Sem associação HSC cadastrada.</p> }</app-ui-card></section>
+            </div>
+            <button type="button" class="player-area-page__button" [disabled]="logoutPending()" (click)="logout()">{{ logoutPending() ? 'Saindo...' : 'Sair' }}</button>
           </section>
+        }
 
-          <section
-            id="conta-seguranca"
-            class="player-area-page__section"
-            aria-labelledby="player-account-title"
-          >
-            <app-ui-card>
-              <app-player-account-security-panel
-                [account]="vm.account"
-                [steamLinkUrl]="steamLinkUrl"
-                [steamNotice]="steamLinkNotice()"
-              />
-            </app-ui-card>
-          </section>
-
-          <section id="membro" class="player-area-page__section" aria-labelledby="player-membership-title">
-            <app-ui-card>
-              <div class="player-area-page__section-header">
-                <div>
-                  <span class="player-area-page__eyebrow">HSC Membros</span>
-                  <h2 id="player-membership-title">Sua associação</h2>
-                </div>
-                <app-status-badge
-                  [label]="membershipLabel(vm.membership)"
-                  [tone]="membershipTone(vm.membership)"
-                />
-              </div>
-
-              @if (vm.membership; as membership) {
-                <dl class="player-area-page__facts">
-                  <div>
-                    <dt>Plano</dt>
-                    <dd>{{ membership.planCode }}</dd>
-                  </div>
-                  <div>
-                    <dt>Início</dt>
-                    <dd>{{ formatDate(membership.startedAt) }}</dd>
-                  </div>
-                  <div>
-                    <dt>Validade</dt>
-                    <dd>{{ formatDate(membership.expiresAt) }}</dd>
-                  </div>
-                </dl>
-              } @else {
-                <p class="player-area-page__muted">
-                  Sua conta HSC está ativa, mas não possui uma associação HSC cadastrada.
-                </p>
-              }
-            </app-ui-card>
-          </section>
-        </div>
-
-        <section class="player-area-page__media" aria-label="Mídia do perfil">
-          <app-ui-card>
-            <app-player-profile-media-editor
-              [profile]="profile"
-              [avatarPending]="avatarPending()"
-              [bannerPending]="bannerPending()"
-              [avatarError]="avatarError()"
-              [bannerError]="bannerError()"
-              (avatarUpload)="onAvatarUpload($event)"
-              (avatarRemove)="onAvatarRemove()"
-              (bannerUpload)="onBannerUpload($event)"
-              (bannerRemove)="onBannerRemove()"
-              (mediaEdited)="clearMediaErrors()"
-            />
-          </app-ui-card>
+        <section class="readiness-strip" aria-label="HSC Server Readiness">
+          <span class="player-area-page__eyebrow">HSC Server Readiness</span>
+          <strong [class.readiness-strip__positive]="serverAccessAuthorized(vm.serverAccess, vm.serverAccessState)">{{ serverAccessLabel(vm.serverAccess, vm.serverAccessState) }}</strong>
         </section>
 
-        <section
-          id="estatisticas"
-          class="player-area-page__section"
-          aria-labelledby="player-stats-title"
-        >
-          <app-ui-card>
-            <div class="player-area-page__section-header">
-              <div>
-                <span class="player-area-page__eyebrow">CS2</span>
-                <h2 id="player-stats-title">Estatísticas personalizadas</h2>
-              </div>
-
-              @if (vm.statsState === 'ready') {
-                <app-status-badge label="Fonte conectada" tone="success" />
-              } @else if (vm.statsState === 'error') {
-                <app-status-badge label="Temporariamente indisponível" tone="warning" />
-              } @else {
-                <app-status-badge label="Steam necessária" tone="neutral" />
-              }
+        @if (vm.statsState === 'error') {
+          <div class="dashboard-empty">O resumo competitivo está temporariamente indisponível. Seu perfil e sua conta continuam acessíveis.</div>
+        } @else {
+          @if (vm.statsSummary?.currentSeason || vm.statsSummary?.seasonPlayer?.summary) {
+          <section class="season-dashboard" aria-labelledby="season-performance-title">
+            <div class="season-dashboard__heading">
+              <div><span class="player-area-page__eyebrow">Season performance</span><h2 id="season-performance-title">{{ textOrFallback(vm.statsSummary?.currentSeason?.name ?? vm.statsSummary?.currentSeason?.slug) }}</h2>@if (vm.statsSummary?.currentSeason?.status) { <span class="season-dashboard__status">{{ vm.statsSummary?.currentSeason?.status }}</span> }</div>
+              <div class="season-dashboard__dates">@if (vm.statsSummary?.currentSeason?.scope; as scope) { <span>{{ formatDate(scope.startAt) }} — {{ formatDate(scope.endAt) }}</span> } @if (vm.statsSummary?.seasonPlayer?.generatedAt) { <span>Atualizado em {{ formatDateTime(vm.statsSummary?.seasonPlayer?.generatedAt) }}</span> }</div>
             </div>
 
-            @if (!vm.account.capabilities.personalizedStats.available) {
-              <div class="player-area-page__callout">
-                <p>
-                  Vincule sua Steam para habilitar identidade CS2 e estatísticas personalizadas.
-                </p>
-                <a class="player-area-page__button player-area-page__button--primary" [href]="steamLinkUrl">
-                  Vincular Steam
-                </a>
-              </div>
-            } @else if (vm.statsState === 'error') {
-              <p class="player-area-page__muted">
-                Sua conta e seu perfil foram carregados normalmente, mas o resumo competitivo está
-                indisponível agora.
-              </p>
-            } @else if (vm.statsSummary; as summary) {
-              @if (summary.competitiveProfile?.lifetime; as lifetime) {
-                <div class="player-area-page__metrics" aria-label="Resumo lifetime">
-                  <div>
-                    <span>K/D</span>
-                    <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
-                  </div>
-                  <div>
-                    <span>ADR</span>
-                    <strong>{{ formatDecimal(lifetime.adr, 1) }}</strong>
-                  </div>
-                  <div>
-                    <span>Win rate</span>
-                    <strong>{{ formatRate(lifetime.winRate) }}</strong>
-                  </div>
-                  <div>
-                    <span>Mapas</span>
-                    <strong>{{ formatInteger(lifetime.mapsPlayed ?? lifetime.matchesPlayed) }}</strong>
-                  </div>
-                </div>
-              } @else {
-                <p class="player-area-page__muted">
-                  A identidade CS2 está pronta, mas o histórico competitivo geral ainda não está disponível.
-                </p>
-              }
+            @if (vm.statsSummary?.seasonPlayer?.summary; as stats) {
+            <div class="performance-primary">
+              <article class="performance-ring performance-ring--cyan"><span>K/D Ratio</span><div class="performance-ring__visual" aria-hidden="true"></div><strong>{{ formatDecimal(stats.kdRatio, 2) }}</strong></article>
+              <article class="performance-ring performance-ring--orange"><span>Win Rate</span><div class="performance-ring__visual" aria-hidden="true"></div><strong>{{ formatRate(stats.winRate) }}</strong></article>
+              <article class="performance-ring performance-ring--cyan"><span>Impact Rating</span><div class="performance-ring__visual" aria-hidden="true"></div><strong>{{ formatDecimal(stats.impactRating, 2) }}</strong></article>
+            </div>
+            <dl class="performance-matrix performance-matrix--primary">
+              <div><dt>Score</dt><dd>{{ formatDecimal(stats.score, 1) }}</dd></div><div><dt>ADR</dt><dd>{{ formatDecimal(stats.adr, 1) }}</dd></div><div><dt>Maps Played</dt><dd>{{ formatInteger(stats.mapsPlayed) }}</dd></div><div><dt>Wins</dt><dd>{{ formatInteger(stats.wins) }}</dd></div><div><dt>Losses</dt><dd>{{ formatInteger(stats.losses) }}</dd></div><div><dt>Rounds</dt><dd>{{ formatInteger(stats.roundsPlayed) }}</dd></div>
+            </dl>
+            <dl class="performance-matrix performance-matrix--secondary">
+              <div><dt>Kills</dt><dd>{{ formatInteger(stats.kills) }}</dd></div><div><dt>Deaths</dt><dd>{{ formatInteger(stats.deaths) }}</dd></div><div><dt>Assists</dt><dd>{{ formatInteger(stats.assists) }}</dd></div><div><dt>HS%</dt><dd>{{ formatRate(stats.headshotPct) }}</dd></div><div><dt>Accuracy</dt><dd>{{ formatRate(stats.accuracy) }}</dd></div><div><dt>Util / R</dt><dd>{{ formatDecimal(stats.utilityDmgPerRound, 1) }}</dd></div><div><dt>Entry WR</dt><dd>{{ formatRate(stats.entryWinRate) }}</dd></div>
+            </dl>
 
-              @if (summary.currentSeason; as season) {
-                <p class="player-area-page__season">
-                  Season atual:
-                  <strong>{{ textOrFallback(season.name ?? season.slug) }}</strong>
-                  @if (season.status) {
-                    · {{ season.status }}
-                  }
-                </p>
-              }
-
-              <a routerLink="/area-do-jogador/estatisticas" class="player-area-page__button">
-                Abrir relatório competitivo completo
-              </a>
+            <section class="combat" aria-labelledby="combat-title"><h2 id="combat-title">Combat Breakdown</h2><div class="combat__grid">
+              <article class="combat-card"><span class="player-area-page__eyebrow">Clutch Performance</span><div class="clutch-row clutch-row--header"><span>Clutch</span><span>Success</span><span>Conversion</span></div><div class="clutch-row"><strong>1v1</strong><span>{{ formatInteger(stats.v1Wins) }}/{{ formatInteger(stats.v1Count) }}</span><span>{{ formatRate(stats.v1WinRate) }}</span></div><div class="clutch-row"><strong>1v2</strong><span>{{ formatInteger(stats.v2Wins) }}/{{ formatInteger(stats.v2Count) }}</span><span>{{ formatRate(stats.v2WinRate) }}</span></div></article>
+              <article class="combat-card combat-card--orange"><span class="player-area-page__eyebrow">Multi-kill Counters</span><dl class="multikill"><div><dd>{{ formatInteger(stats.enemy2ks) }}</dd><dt>2K</dt></div><div><dd>{{ formatInteger(stats.enemy3ks) }}</dd><dt>3K</dt></div><div><dd>{{ formatInteger(stats.enemy4ks) }}</dd><dt>4K</dt></div><div><dd>{{ formatInteger(stats.enemy5ks) }}</dd><dt>5K</dt></div></dl></article>
+            </div></section>
+            @if (stats.mapsPlayed !== null) { <p class="season-sample-context">{{ registeredMapsLabel(stats.mapsPlayed) }}</p> }
+            } @else {
+              <div class="season-no-stats"><strong>Esta temporada ainda não possui estatísticas competitivas para você.</strong><span>Assim que houver dados competitivos nesta temporada, eles aparecerão aqui.</span></div>
             }
-          </app-ui-card>
+          </section>
+          }
+
+          @if (!vm.statsSummary?.seasonPlayer?.summary) {
+            @if (vm.statsSummary?.competitiveProfile?.lifetime; as lifetime) {
+              <section class="season-dashboard lifetime-dashboard" aria-labelledby="lifetime-performance-title">
+                <div class="season-dashboard__heading"><div><span class="player-area-page__eyebrow">Histórico HSC</span><h2 id="lifetime-performance-title">Perfil Competitivo Geral</h2><p>Seu histórico competitivo no HSC.</p></div></div>
+                <div class="performance-primary">
+                  <article class="performance-ring performance-ring--cyan"><span>K/D Ratio</span><div class="performance-ring__visual" aria-hidden="true"></div><strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong></article>
+                  <article class="performance-ring performance-ring--orange"><span>Win Rate</span><div class="performance-ring__visual" aria-hidden="true"></div><strong>{{ formatRate(lifetime.winRate) }}</strong></article>
+                  <article class="performance-ring performance-ring--cyan"><span>Impact Rating</span><div class="performance-ring__visual" aria-hidden="true"></div><strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong></article>
+                </div>
+                <dl class="performance-matrix performance-matrix--primary"><div><dt>Score</dt><dd>{{ formatDecimal(lifetime.score, 1) }}</dd></div><div><dt>ADR</dt><dd>{{ formatDecimal(lifetime.adr, 1) }}</dd></div><div><dt>Maps Played</dt><dd>{{ formatInteger(lifetime.mapsPlayed) }}</dd></div><div><dt>Wins</dt><dd>{{ formatInteger(lifetime.wins) }}</dd></div><div><dt>Losses</dt><dd>{{ formatInteger(lifetime.losses) }}</dd></div><div><dt>Rounds</dt><dd>{{ formatInteger(lifetime.roundsPlayed) }}</dd></div></dl>
+                <dl class="performance-matrix performance-matrix--secondary"><div><dt>Kills</dt><dd>{{ formatInteger(lifetime.kills) }}</dd></div><div><dt>Deaths</dt><dd>{{ formatInteger(lifetime.deaths) }}</dd></div><div><dt>Assists</dt><dd>{{ formatInteger(lifetime.assists) }}</dd></div><div><dt>HS%</dt><dd>{{ formatRate(lifetime.headshotPct) }}</dd></div><div><dt>Accuracy</dt><dd>{{ formatRate(lifetime.accuracy) }}</dd></div><div><dt>Util / R</dt><dd>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</dd></div><div><dt>Entry WR</dt><dd>{{ formatRate(lifetime.entryWinRate) }}</dd></div></dl>
+                <section class="combat" aria-labelledby="lifetime-combat-title"><h2 id="lifetime-combat-title">Combat Breakdown</h2><div class="combat__grid">
+                  <article class="combat-card"><span class="player-area-page__eyebrow">Clutch Performance</span><div class="clutch-row clutch-row--header"><span>Clutch</span><span>Success</span><span>Conversion</span></div><div class="clutch-row"><strong>1v1</strong><span>{{ formatInteger(lifetime.v1Wins) }}/{{ formatInteger(lifetime.v1Count) }}</span><span>{{ formatRate(lifetime.v1WinRate) }}</span></div><div class="clutch-row"><strong>1v2</strong><span>{{ formatInteger(lifetime.v2Wins) }}/{{ formatInteger(lifetime.v2Count) }}</span><span>{{ formatRate(lifetime.v2WinRate) }}</span></div></article>
+                  <article class="combat-card combat-card--orange"><span class="player-area-page__eyebrow">Multi-kill Counters</span><dl class="multikill"><div><dd>{{ formatInteger(lifetime.enemy2ks) }}</dd><dt>2K</dt></div><div><dd>{{ formatInteger(lifetime.enemy3ks) }}</dd><dt>3K</dt></div><div><dd>{{ formatInteger(lifetime.enemy4ks) }}</dd><dt>4K</dt></div><div><dd>{{ formatInteger(lifetime.enemy5ks) }}</dd><dt>5K</dt></div></dl></article>
+                </div></section>
+              </section>
+            } @else {
+              <div class="dashboard-empty">Seu perfil competitivo ainda não possui histórico disponível.</div>
+            }
+          }
+        }
+
+        <section class="account-strip" aria-label="Identidades e associação">
+          <dl><div><dt>E-mail</dt><dd>{{ vm.account.identities.email.email ?? emailIdentityLabel(vm.account) }}</dd><small>{{ emailIdentityLabel(vm.account) }}</small></div><div><dt>Steam</dt><dd>{{ vm.account.identities.steam.linked ? 'Vinculada' : 'Não vinculada' }}</dd>@if (vm.account.identities.steam.steamId64) { <small>{{ vm.account.identities.steam.steamId64 }}</small> }</div><div><dt>Membership</dt><dd>{{ membershipLabel(vm.membership) }}</dd>@if (vm.membership) { <small>{{ vm.membership.planCode }} · {{ formatDate(vm.membership.expiresAt) }}</small> }</div></dl>
+          <button type="button" class="player-area-page__button" (click)="toggleSettings()">Gerenciar conta</button>
         </section>
+
+        <a routerLink="/area-do-jogador/estatisticas" class="competitive-report-link">Ver análise competitiva completa →</a>
       }
     }
   }

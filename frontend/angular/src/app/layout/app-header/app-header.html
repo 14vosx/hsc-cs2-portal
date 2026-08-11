@@ -23,8 +23,6 @@
             @if (isAccountMenuOpen()) {
               <nav id="player-account-menu" class="app-header__menu" aria-label="Conta do jogador">
                 <a routerLink="/area-do-jogador" (click)="closeAccountMenu()">Área do Jogador</a>
-                <a routerLink="/area-do-jogador" fragment="perfil" (click)="closeAccountMenu()">Meu Perfil</a>
-                <a routerLink="/area-do-jogador" fragment="conta-seguranca" (click)="closeAccountMenu()">Conta e Segurança</a>
                 <button type="button" (click)="logout()">Sair</button>
               </nav>
             }

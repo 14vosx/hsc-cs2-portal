@@ -74,6 +74,12 @@ export class AppShell {
     }
   }
 
+  protected logout(): void {
+    this.playerSession.logout(() => {
+      void this.router.navigateByUrl('/area-do-jogador', { replaceUrl: true });
+    });
+  }
+
   protected openDrawer(): void {
     this.previousActiveElement = document.activeElement as HTMLElement | null;
     if (typeof document !== 'undefined') {

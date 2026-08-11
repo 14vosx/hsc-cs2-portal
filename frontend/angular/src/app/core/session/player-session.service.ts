@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { catchError, map, of, tap } from 'rxjs';
+import { catchError, map, of, Subject } from 'rxjs';
 
 import { cs2ApiPaths } from '../config/api-paths';
 import type { PlayerSession } from './player-session.model';
@@ -8,20 +8,31 @@ import type { PlayerSession } from './player-session.model';
 @Injectable({ providedIn: 'root' })
 export class PlayerSessionService {
   private readonly http = inject(HttpClient);
+  private readonly signedOut = new Subject<void>();
+
   readonly state = signal<PlayerSession>({ status: 'loading' });
-  load(): void {
+  readonly signedOut$ = this.signedOut.asObservable();
+
+  load(onComplete?: () => void): void {
     this.state.set({ status: 'loading' });
     this.http.get<unknown>(cs2ApiPaths.playerMe, { withCredentials: true }).pipe(
       map(normalizeSession),
       catchError((error: unknown) => of(sessionFromError(error))),
-    ).subscribe((session) => this.state.set(session));
+    ).subscribe((session) => {
+      this.state.set(session);
+      onComplete?.();
+    });
   }
 
-  logout(): void {
-    this.http.post<unknown>(cs2ApiPaths.playerAuthLogout, {}, { withCredentials: true }).pipe(
-      tap(() => this.state.set({ status: 'anonymous' })),
-      catchError(() => of(null)),
-    ).subscribe();
+  logout(onSuccess?: () => void, onError?: () => void): void {
+    this.http.post<unknown>(cs2ApiPaths.playerAuthLogout, {}, { withCredentials: true }).subscribe({
+      next: () => {
+        this.state.set({ status: 'anonymous' });
+        this.signedOut.next();
+        onSuccess?.();
+      },
+      error: () => onError?.(),
+    });
   }
 }
 
