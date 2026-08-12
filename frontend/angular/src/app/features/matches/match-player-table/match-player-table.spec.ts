@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { MatchPlayer } from '../domain/match.model';
 import { MatchPlayerTable } from './match-player-table';
@@ -88,7 +88,6 @@ describe('MatchPlayerTable', () => {
       'Entry',
       'UD',
       'Flash',
-      'SteamID64',
     ]);
   });
 
@@ -118,7 +117,7 @@ describe('MatchPlayerTable', () => {
     ];
     fixture.detectChanges();
 
-    const ids = fixture.nativeElement.querySelectorAll('.cell-steamid');
+    const ids = fixture.nativeElement.querySelectorAll('.cell-player span');
     expect(ids[0].textContent.trim()).toBe('76561198000000099');
     expect(ids[1].textContent.trim()).toBe('—');
   });
@@ -190,5 +189,13 @@ describe('MatchPlayerTable', () => {
 
     const rows = fixture.nativeElement.querySelectorAll('tbody tr');
     expect(rows.length).toBe(0);
+  });
+
+  it('mantém uma única representação semântica de cada jogador para desktop e mobile', () => {
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    const playerNames = fixture.nativeElement.querySelectorAll('.cell-player strong');
+
+    expect(rows.length).toBe(host.testPlayers.length);
+    expect(playerNames.length).toBe(host.testPlayers.length);
   });
 });
