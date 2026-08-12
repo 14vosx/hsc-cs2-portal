@@ -1,9 +1,12 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { Observable } from 'rxjs';
 import { of, Subject, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { PlayerSession } from '../../core/session/player-session.model';
+import { PlayerSessionService } from '../../core/session/player-session.service';
 import { RankingApiService } from './data-access/ranking-api.service';
 import type { Ranking, RankingPlayer } from './domain/ranking.model';
 import { RankingPage } from './ranking-page';
@@ -27,6 +30,14 @@ class TestableRankingPage extends RankingPage {
 
   callFilteredPlayers(players: readonly RankingPlayer[]): readonly RankingPlayer[] {
     return this.filteredPlayers(players);
+  }
+
+  callIsCurrentPlayer(player: RankingPlayer): boolean {
+    return this.isCurrentPlayer(player);
+  }
+
+  callFormatRateAsPct(value: number): string {
+    return this.formatRateAsPct(value);
   }
 }
 
@@ -83,6 +94,7 @@ function createInputEvent(value: string): Event {
 
 describe('RankingPage', () => {
   let mockRankingApi: RankingApiServiceMock;
+  const mockSessionState = signal<PlayerSession>({ status: 'anonymous' });
 
   const mockPlayer1: RankingPlayer = {
     position: 1,
@@ -201,6 +213,7 @@ describe('RankingPage', () => {
   };
 
   beforeEach(() => {
+    mockSessionState.set({ status: 'anonymous' });
     mockRankingApi = {
       getRanking: vi.fn<RankingApiService['getRanking']>().mockReturnValue(of(mockRanking)),
     };
@@ -210,6 +223,7 @@ describe('RankingPage', () => {
       providers: [
         TestableRankingPage,
         { provide: RankingApiService, useValue: mockRankingApi },
+        { provide: PlayerSessionService, useValue: { state: mockSessionState } },
       ],
     });
   });
@@ -279,15 +293,19 @@ describe('RankingPage', () => {
   });
 
   it('8. pódio preserva a ordem dos três primeiros jogadores', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
+    const publishedRanking = {
+      ...mockRanking,
+      players: [mockPlayer3, mockPlayer1, mockPlayer2, mockPlayer4],
+    } satisfies Ranking;
+    mockRankingApi.getRanking.mockReturnValue(of(publishedRanking));
 
     const page = TestBed.inject(TestableRankingPage);
     const vm = requireReadyVm(captureLatest(page.publicVm$));
 
     expect(vm.podium).toHaveLength(3);
-    expect(vm.podium[0]).toEqual(mockPlayer1);
-    expect(vm.podium[1]).toEqual(mockPlayer2);
-    expect(vm.podium[2]).toEqual(mockPlayer3);
+    expect(vm.podium[0]).toEqual(mockPlayer3);
+    expect(vm.podium[1]).toEqual(mockPlayer1);
+    expect(vm.podium[2]).toEqual(mockPlayer2);
   });
 
   it('9. tabela preserva a ordem recebida do domínio sem reordenar', () => {
@@ -443,14 +461,112 @@ describe('RankingPage', () => {
     sub.unsubscribe();
   });
 
-  it('23. template no estado empty renderiza app-page-header e app-page-state', () => {
+  it('23. template no estado empty preserva header e page-state', () => {
     mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
 
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
 
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('app-page-header')).not.toBeNull();
+    expect(element.querySelector('h1')?.textContent).toContain('Ranking Geral HSC');
     expect(element.querySelector('app-page-state')).not.toBeNull();
+  });
+
+  it('24. sessão autenticada identifica somente o SteamID64 correspondente', () => {
+    mockSessionState.set({
+      status: 'authenticated',
+      displayName: 'fer',
+      steamId64: mockPlayer2.steamId64,
+      avatarMedium: null,
+    });
+
+    const page = TestBed.inject(TestableRankingPage);
+
+    expect(page.callIsCurrentPlayer(mockPlayer1)).toBe(false);
+    expect(page.callIsCurrentPlayer(mockPlayer2)).toBe(true);
+    expect(page.callIsCurrentPlayer(mockPlayer3)).toBe(false);
+  });
+
+  it('25. tabela destaca visualmente somente a row do jogador autenticado', () => {
+    mockSessionState.set({
+      status: 'authenticated',
+      displayName: 'fer',
+      steamId64: mockPlayer2.steamId64,
+      avatarMedium: null,
+    });
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const highlightedRows = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      'tbody tr[data-current-player="true"]',
+    );
+
+    expect(highlightedRows).toHaveLength(1);
+    expect(highlightedRows[0].textContent).toContain('fer');
+    expect(highlightedRows[0].textContent).toContain('Você');
+  });
+
+  it('26. sessão anonymous não destaca nenhum jogador', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const highlightedRows = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      'tbody tr[data-current-player="true"]',
+    );
+
+    expect(highlightedRows).toHaveLength(0);
+  });
+
+  it('27. destaque da sessão não altera posição nem ordem canônica', () => {
+    mockSessionState.set({
+      status: 'authenticated',
+      displayName: 'coldzera',
+      steamId64: mockPlayer3.steamId64,
+      avatarMedium: null,
+    });
+
+    const page = TestBed.inject(TestableRankingPage);
+    const vm = requireReadyVm(captureLatest(page.publicVm$));
+
+    expect(vm.players.map((player) => player.steamId64)).toEqual(
+      mockRanking.players.map((player) => player.steamId64),
+    );
+    expect(vm.players.map((player) => player.position)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('28. usuário autenticado no Top 3 recebe badge Você também no pódio', () => {
+    mockSessionState.set({
+      status: 'authenticated',
+      displayName: 'Fallen',
+      steamId64: mockPlayer1.steamId64,
+      avatarMedium: null,
+    });
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const highlightedPodium = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.ranking-page__podium-item[data-current-player="true"]',
+    );
+
+    expect(highlightedPodium).toHaveLength(1);
+    expect(highlightedPodium[0].textContent).toContain('Fallen');
+    expect(highlightedPodium[0].textContent).toContain('Você');
+  });
+
+  it('29. winRate zero permanece zero na apresentação', () => {
+    const page = TestBed.inject(TestableRankingPage);
+
+    expect(page.callFormatRateAsPct(0)).toBe('0.0%');
+  });
+
+  it('30. apresentação usa somente conceitos fornecidos pelo ranking', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(content).not.toContain('Season 02');
+    expect(content).not.toContain('128 tick');
   });
 });
