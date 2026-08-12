@@ -1,7 +1,8 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
-import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 
 import { AppShell } from './app-shell';
@@ -25,6 +26,7 @@ class TestHomeComponent {}
 describe('AppShell', () => {
   let fixture: ComponentFixture<AppShell>;
   let router: Router;
+  let translate: TranslateService;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -46,6 +48,21 @@ describe('AppShell', () => {
       ],
     }).compileComponents();
 
+    translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', {
+      shell: { skipToMainContent: 'Pular para o conteúdo principal', sidebarAriaLabel: 'Navegação lateral', drawerAriaLabel: 'Menu principal de navegação' },
+      header: { homeAriaLabel: 'HSC CS2 Portal - Página inicial', playerAccountAriaLabel: 'Conta do jogador', playerArea: 'Área do Jogador', signOut: 'Sair', signIn: 'ENTRAR', openNavigation: 'Abrir menu de navegação', closeNavigation: 'Fechar menu de navegação' },
+      sidebar: { title: 'Navegação', closeNavigation: 'Fechar menu de navegação' },
+      nav: {}, locale: {},
+    });
+    translate.setTranslation('en-US', {
+      shell: { skipToMainContent: 'Skip to main content', sidebarAriaLabel: 'Sidebar navigation', drawerAriaLabel: 'Main navigation menu' },
+      header: { homeAriaLabel: 'HSC CS2 Portal - Home', playerAccountAriaLabel: 'Player account', playerArea: 'Player Area', signOut: 'Sign out', signIn: 'SIGN IN', openNavigation: 'Open navigation menu', closeNavigation: 'Close navigation menu' },
+      sidebar: { title: 'Navigation', closeNavigation: 'Close navigation menu' },
+      nav: {}, locale: {},
+    });
+    await firstValueFrom(translate.use('pt-BR'));
+
     fixture = TestBed.createComponent(AppShell);
     router = TestBed.inject(Router);
     fixture.detectChanges();
@@ -66,6 +83,19 @@ describe('AppShell', () => {
     const skipLink = fixture.nativeElement.querySelector('.skip-link');
     expect(skipLink).toBeTruthy();
     expect(skipLink.getAttribute('href')).toBe('#main-content');
+    expect(skipLink.textContent?.trim()).toBe('Pular para o conteúdo principal');
+    expect(fixture.nativeElement.querySelector('.app-shell__sidebar-desktop').getAttribute('aria-label')).toBe('Navegação lateral');
+  });
+
+  it('translates the skip link and shell labels to en-US', async () => {
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.skip-link').textContent.trim()).toBe('Skip to main content');
+    expect(fixture.nativeElement.querySelector('.app-shell__sidebar-desktop').getAttribute('aria-label')).toBe('Sidebar navigation');
+
+    (fixture.nativeElement.querySelector('.app-header__toggle') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#mobile-drawer').getAttribute('aria-label')).toBe('Main navigation menu');
   });
 
   it('should open mobile drawer and lock scroll preserving previous overflow', () => {
@@ -79,6 +109,7 @@ describe('AppShell', () => {
     expect(drawer).toBeTruthy();
     expect(drawer.getAttribute('role')).toBe('dialog');
     expect(drawer.getAttribute('aria-modal')).toBe('true');
+    expect(drawer.getAttribute('aria-label')).toBe('Menu principal de navegação');
     expect(drawer.getAttribute('cdktrapfocus')).toBeDefined();
     expect(document.body.style.overflow).toBe('hidden');
     expect(toggleBtn.getAttribute('aria-expanded')).toBe('true');

@@ -1,5 +1,5 @@
 <div class="app-shell">
-  <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+  <a href="#main-content" class="skip-link">{{ 'shell.skipToMainContent' | translate }}</a>
 
   <app-header
     [isDrawerOpen]="isDrawerOpen()"
@@ -10,7 +10,7 @@
 
   <div class="app-shell__body">
     <!-- Desktop Permanent Sidebar -->
-    <aside class="app-shell__sidebar-desktop" aria-label="Navegação Lateral">
+    <aside class="app-shell__sidebar-desktop" [attr.aria-label]="'shell.sidebarAriaLabel' | translate">
       <app-sidebar />
     </aside>
 
@@ -26,7 +26,7 @@
         class="app-shell__drawer"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu principal de navegação"
+        [attr.aria-label]="'shell.drawerAriaLabel' | translate"
         cdkTrapFocus
         [cdkTrapFocusAutoCapture]="true"
       >

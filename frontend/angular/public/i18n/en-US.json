@@ -13,5 +13,23 @@
     "ariaLabel": "Portal language",
     "portuguese": "Portuguese (Brazil)",
     "english": "English (United States)"
+  },
+  "shell": {
+    "skipToMainContent": "Skip to main content",
+    "sidebarAriaLabel": "Sidebar navigation",
+    "drawerAriaLabel": "Main navigation menu"
+  },
+  "header": {
+    "homeAriaLabel": "HSC CS2 Portal - Home",
+    "playerAccountAriaLabel": "Player account",
+    "playerArea": "Player Area",
+    "signOut": "Sign out",
+    "signIn": "SIGN IN",
+    "openNavigation": "Open navigation menu",
+    "closeNavigation": "Close navigation menu"
+  },
+  "sidebar": {
+    "title": "Navigation",
+    "closeNavigation": "Close navigation menu"
   }
 }
