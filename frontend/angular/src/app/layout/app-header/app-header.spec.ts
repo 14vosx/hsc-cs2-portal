@@ -1,10 +1,12 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import { AppHeader } from './app-header';
 import type { PlayerSession } from '../../core/session/player-session.model';
+import { LocaleService } from '../../core/i18n/locale.service';
 
 @Component({
   template: '<app-header [isDrawerOpen]="isOpen" [session]="session" (toggleDrawer)="onToggle()" (logoutRequested)="onLogout()" />',
@@ -32,7 +34,14 @@ describe('AppHeader', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, AppHeader],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideTranslateService(),
+        {
+          provide: LocaleService,
+          useValue: { currentLocale: signal('pt-BR'), setLocale: () => Promise.resolve() },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);

@@ -1,0 +1,6 @@
+.locale-switcher { display: flex; padding: 2px; border: 1px solid var(--color-border-default); border-radius: var(--radius-xs); }
+.locale-switcher__choice { min-width: 30px; min-height: 28px; padding: 0 var(--space-2); color: var(--color-text-muted); font-family: var(--font-display); font-size: .66rem; font-weight: 700; letter-spacing: .06em; background: transparent; border: 0; border-radius: calc(var(--radius-xs) - 2px); cursor: pointer; }
+.locale-switcher__choice:hover { color: var(--color-text-main); }
+.locale-switcher__choice:focus-visible { outline: 2px solid var(--color-accent-cyan); outline-offset: 1px; }
+.locale-switcher__choice--active { color: var(--color-bg-base); background: var(--color-accent-cyan); }
+@media (max-width: 620px) { .locale-switcher__choice { min-width: 27px; padding: 0 var(--space-1); } }

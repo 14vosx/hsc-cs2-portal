@@ -1,0 +1,22 @@
+<div class="locale-switcher" role="group" [attr.aria-label]="'locale.ariaLabel' | translate">
+  <button
+    type="button"
+    class="locale-switcher__choice"
+    [class.locale-switcher__choice--active]="localeService.currentLocale() === 'pt-BR'"
+    [attr.aria-label]="'locale.portuguese' | translate"
+    [attr.aria-pressed]="localeService.currentLocale() === 'pt-BR'"
+    (click)="selectLocale('pt-BR')"
+  >
+    PT
+  </button>
+  <button
+    type="button"
+    class="locale-switcher__choice"
+    [class.locale-switcher__choice--active]="localeService.currentLocale() === 'en-US'"
+    [attr.aria-label]="'locale.english' | translate"
+    [attr.aria-pressed]="localeService.currentLocale() === 'en-US'"
+    (click)="selectLocale('en-US')"
+  >
+    EN
+  </button>
+</div>

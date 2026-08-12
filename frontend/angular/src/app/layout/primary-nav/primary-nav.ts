@@ -1,15 +1,16 @@
 import { Component, EventEmitter, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface PrimaryNavItem {
   readonly id: string;
-  readonly label: string;
+  readonly labelKey: string;
   readonly path: string;
 }
 
 @Component({
   selector: 'app-primary-nav',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './primary-nav.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './primary-nav.css',
@@ -20,13 +21,13 @@ export class PrimaryNav {
   private readonly router = inject(Router);
 
   protected readonly navItems: readonly PrimaryNavItem[] = [
-    { id: 'home', label: 'Home', path: '/' },
-    { id: 'seasons', label: 'Temporadas', path: '/seasons' },
-    { id: 'ranking', label: 'Ranking', path: '/ranking' },
-    { id: 'matches', label: 'Partidas', path: '/matches' },
-    { id: 'maps', label: 'Mapas', path: '/maps' },
-    { id: 'news', label: 'News', path: '/news' },
-    { id: 'player-area', label: 'Área do Jogador', path: '/area-do-jogador' },
+    { id: 'home', labelKey: 'nav.home', path: '/' },
+    { id: 'seasons', labelKey: 'nav.seasons', path: '/seasons' },
+    { id: 'ranking', labelKey: 'nav.ranking', path: '/ranking' },
+    { id: 'matches', labelKey: 'nav.matches', path: '/matches' },
+    { id: 'maps', labelKey: 'nav.maps', path: '/maps' },
+    { id: 'news', labelKey: 'nav.news', path: '/news' },
+    { id: 'player-area', labelKey: 'nav.playerArea', path: '/area-do-jogador' },
   ];
 
   protected isActive(item: PrimaryNavItem): boolean {

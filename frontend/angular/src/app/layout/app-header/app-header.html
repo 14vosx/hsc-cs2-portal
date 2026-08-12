@@ -6,6 +6,7 @@
     </a>
 
     <div class="app-header__actions">
+      <app-locale-switcher />
       @if (session(); as currentSession) {
         @if (currentSession.status === 'authenticated') {
           <div class="app-header__account">

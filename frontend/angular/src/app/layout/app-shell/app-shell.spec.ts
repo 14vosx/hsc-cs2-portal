@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 
 import { AppShell } from './app-shell';
@@ -41,6 +42,7 @@ describe('AppShell', () => {
           { path: 'seasons', component: TestHomeComponent },
           { path: 'area-do-jogador', component: TestHomeComponent },
         ]),
+        provideTranslateService({ fallbackLang: 'pt-BR' }),
       ],
     }).compileComponents();
 

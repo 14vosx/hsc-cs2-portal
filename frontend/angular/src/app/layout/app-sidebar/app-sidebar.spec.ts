@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService } from '@ngx-translate/core';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import { AppSidebar } from './app-sidebar';
@@ -25,7 +26,7 @@ describe('AppSidebar', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, AppSidebar],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideTranslateService({ fallbackLang: 'pt-BR' })],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);

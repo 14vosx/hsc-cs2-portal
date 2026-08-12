@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { PrimaryNav } from './primary-nav';
@@ -41,8 +42,18 @@ describe('PrimaryNav', () => {
           { path: 'area-do-jogador', component: TestHostComponent },
           { path: 'area-do-jogador/estatisticas', component: TestHostComponent },
         ]),
+        provideTranslateService(),
       ],
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', {
+      nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
+    });
+    translate.setTranslation('en-US', {
+      nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
+    });
+    translate.use('pt-BR');
 
     fixture = TestBed.createComponent(TestHostComponent);
     router = TestBed.inject(Router);
@@ -52,6 +63,24 @@ describe('PrimaryNav', () => {
   it('should render all primary navigation items', () => {
     const links = fixture.nativeElement.querySelectorAll('.primary-nav__link');
     expect(links.length).toBe(7);
+  });
+
+  it('renders the pt-BR navigation labels', () => {
+    expect(fixture.nativeElement.textContent).toContain('Temporadas');
+    expect(fixture.nativeElement.textContent).toContain('Partidas');
+    expect(fixture.nativeElement.textContent).toContain('Mapas');
+    expect(fixture.nativeElement.textContent).toContain('Área do Jogador');
+  });
+
+  it('updates labels in en-US without changing the router URL', () => {
+    const url = router.url;
+    TestBed.inject(TranslateService).use('en-US');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Seasons');
+    expect(fixture.nativeElement.textContent).toContain('Matches');
+    expect(fixture.nativeElement.textContent).toContain('Maps');
+    expect(fixture.nativeElement.textContent).toContain('Player Area');
+    expect(router.url).toBe(url);
   });
 
   it('o link Ranking possui href /ranking', () => {

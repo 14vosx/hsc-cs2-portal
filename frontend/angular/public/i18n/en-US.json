@@ -1,0 +1,17 @@
+{
+  "nav": {
+    "ariaLabel": "Primary navigation",
+    "home": "Home",
+    "seasons": "Seasons",
+    "ranking": "Ranking",
+    "matches": "Matches",
+    "maps": "Maps",
+    "news": "News",
+    "playerArea": "Player Area"
+  },
+  "locale": {
+    "ariaLabel": "Portal language",
+    "portuguese": "Portuguese (Brazil)",
+    "english": "English (United States)"
+  }
+}
