@@ -2,7 +2,9 @@ import { Component, inject, input, signal } from '@angular/core';
 import { disabled, form, FormField, required, submit, validateTree } from '@angular/forms/signals';
 
 import type { PlayerAccountSummary } from '../../player/domain/player-account.model';
+import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
 import { PlayerIdentityLinkApiService } from '../../player/data-access/player-identity-link-api.service';
+import { mapPlayerEmailAuthError } from '../../player-auth/player-email-auth-error';
 import { mapEmailLinkRequestError } from '../player-account-security-error';
 
 interface EmailLinkFormModel {
@@ -20,6 +22,7 @@ interface EmailLinkFormModel {
 })
 export class PlayerAccountSecurityPanel {
   private readonly identityLinkApi = inject(PlayerIdentityLinkApiService);
+  private readonly emailAuthApi = inject(PlayerEmailAuthApiService);
 
   readonly account = input.required<PlayerAccountSummary>();
   readonly steamLinkUrl = input.required<string>();
@@ -29,6 +32,9 @@ export class PlayerAccountSecurityPanel {
   protected readonly pending = signal(false);
   protected readonly serverError = signal<string | null>(null);
   protected readonly success = signal<string | null>(null);
+  protected readonly passwordResetPending = signal(false);
+  protected readonly passwordResetSuccess = signal<string | null>(null);
+  protected readonly passwordResetError = signal<string | null>(null);
   protected readonly emailLinkModel = signal<EmailLinkFormModel>({
     email: '',
     password: '',
@@ -113,6 +119,33 @@ export class PlayerAccountSecurityPanel {
             this.serverError.set(mapEmailLinkRequestError(error));
           },
         });
+    });
+  }
+
+  protected canRequestPasswordReset(): boolean {
+    const emailIdentity = this.account().identities.email;
+    return emailIdentity.linked && emailIdentity.verified && Boolean(emailIdentity.email?.trim());
+  }
+
+  protected requestPasswordReset(): void {
+    if (this.passwordResetPending() || !this.canRequestPasswordReset()) return;
+    const email = this.account().identities.email.email;
+    if (!email) return;
+
+    this.passwordResetPending.set(true);
+    this.passwordResetSuccess.set(null);
+    this.passwordResetError.set(null);
+    this.emailAuthApi.requestPasswordReset({ email }).subscribe({
+      next: () => {
+        this.passwordResetPending.set(false);
+        this.passwordResetSuccess.set(
+          'Solicitação recebida. Se a conta estiver elegível, enviaremos instruções para o e-mail vinculado.',
+        );
+      },
+      error: (error: unknown) => {
+        this.passwordResetPending.set(false);
+        this.passwordResetError.set(mapPlayerEmailAuthError(error, 'reset-request'));
+      },
     });
   }
 }

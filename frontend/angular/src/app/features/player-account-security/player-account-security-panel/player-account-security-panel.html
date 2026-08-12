@@ -19,12 +19,28 @@
         <small>{{ account().identities.email.verified ? 'Vinculado e verificado' : 'Vinculado · verificação pendente' }}</small>
       } @else { <p>Nenhum e-mail vinculado.</p> }
     </div>
-    @if (!account().identities.email.linked && !formVisible() && !success()) {
-      <button type="button" (click)="showEmailLinkForm()">Vincular e-mail</button>
-    }
+    <div class="account-security__identity-actions">
+      @if (!account().identities.email.linked && !formVisible() && !success()) {
+        <button type="button" (click)="showEmailLinkForm()">Vincular e-mail</button>
+      }
+      @if (canRequestPasswordReset()) {
+        <button
+          class="account-security__secondary-action"
+          type="button"
+          [disabled]="passwordResetPending()"
+          (click)="requestPasswordReset()"
+        >{{ passwordResetPending() ? 'Enviando...' : 'Redefinir senha' }}</button>
+      }
+    </div>
   </section>
 
   @if (success()) { <p class="account-security__success" role="status">{{ success() }}</p> }
+  @if (passwordResetSuccess()) {
+    <p class="account-security__success" role="status">{{ passwordResetSuccess() }}</p>
+  }
+  @if (passwordResetError()) {
+    <p class="account-security__error" role="alert">{{ passwordResetError() }}</p>
+  }
 
   @if (!account().identities.email.linked && formVisible()) {
     <form novalidate (input)="onMeaningfulEdit()" (submit)="onSubmit($event)">
