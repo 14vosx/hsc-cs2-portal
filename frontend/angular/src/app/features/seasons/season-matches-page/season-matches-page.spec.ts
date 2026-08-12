@@ -119,6 +119,40 @@ describe('SeasonMatchesPage', () => {
     expect(seasonMatchesApiMock.getMatches).toHaveBeenCalledWith(null);
   });
 
+  it('preserva a ordem publicada, placares, vencedor, metadata sazonal e CTA dos matches', () => {
+    const data = createMockSeasonMatches('season-1');
+    const originalMatch = data.matches[0]!;
+    const publishedFirst = {
+      ...originalMatch,
+      id: 202,
+      winner: 'Team D',
+      seriesType: 'BO1',
+      team1: { name: 'Team C', score: 0 },
+      team2: { name: 'Team D', score: 1 },
+      seasonMapCount: 1,
+      seasonRounds: 22,
+    };
+    seasonMatchesApiMock.getMatches.mockReturnValue(
+      of({ kind: 'available', matches: { ...data, matches: [publishedFirst, originalMatch] } })
+    );
+    createComponent();
+
+    const entries = fixture.nativeElement.querySelectorAll('.season-matches__match') as NodeListOf<HTMLElement>;
+    expect(entries).toHaveLength(2);
+    expect(entries[0].textContent).toContain('#202');
+    expect(entries[1].textContent).toContain('#101');
+    expect(entries[0].textContent).toContain('Team C');
+    expect(entries[0].textContent).toContain('Team D');
+    expect(entries[0].textContent).toContain('Vencedor Team D');
+    expect(entries[0].textContent).toContain('BO1');
+    expect(entries[0].textContent).toContain('1 mapas na Season');
+    expect(entries[0].textContent).toContain('22 rounds válidos');
+    expect(entries[0].querySelector('.season-matches__team--one b')?.textContent).toContain('0');
+    expect(entries[0].querySelector('.season-matches__team--two b')?.textContent).toContain('1');
+    expect(entries[0].querySelector<HTMLAnchorElement>('.season-matches__cta')?.getAttribute('href')).toBe('/matches/202');
+    expect(entries[0].textContent).not.toContain('10.0.0.1');
+  });
+
   it('exibe estado season-unavailable quando a Season não for encontrada', () => {
     seasonMatchesApiMock.getMatches.mockReturnValue(of({ kind: 'season-unavailable' }));
     createComponent();

@@ -92,9 +92,15 @@
 }
 
 .season-podium-card__portrait img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: min(52%, 150px);
+  max-height: min(82%, 150px);
+  aspect-ratio: 1;
   object-fit: cover;
+  border: 2px solid color-mix(in srgb, var(--podium-accent), transparent 22%);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .32);
 }
 
 .season-podium-card__nameplate {

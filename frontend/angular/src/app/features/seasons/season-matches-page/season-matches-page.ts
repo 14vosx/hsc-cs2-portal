@@ -3,13 +3,10 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { MatchScoreCard } from '../../matches/match-score-card/match-score-card';
-import { MetricCard } from '../../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../../shared/components/section-header/section-header';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 import { StatusBadge, type StatusBadgeVariant } from '../../../shared/components/status-badge/status-badge';
+import { formatSeasonBoundaryDate } from '../season-ui';
 import { SeasonMatchesApiService } from '../data-access/season-matches-api.service';
 import type { SeasonMatches } from '../domain/season-matches.model';
 
@@ -35,13 +32,9 @@ type SeasonMatchesVm =
   imports: [
     AsyncPipe,
     RouterLink,
-    MetricCard,
-    PageHeader,
     PageState,
-    SectionHeader,
     SeasonTabs,
     StatusBadge,
-    MatchScoreCard,
   ],
   templateUrl: './season-matches-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -52,6 +45,7 @@ export class SeasonMatchesPage {
   private readonly router = inject(Router);
   private readonly seasonMatchesApi = inject(SeasonMatchesApiService);
   private readonly reload$ = new Subject<void>();
+  protected readonly formatSeasonBoundaryDate = formatSeasonBoundaryDate;
 
   protected readonly vm$: Observable<SeasonMatchesVm> = this.reload$.pipe(
     startWith(undefined),

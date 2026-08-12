@@ -1,98 +1,93 @@
 <section class="season-matches">
+  <a class="season-matches__back" routerLink="/seasons">← Todas as temporadas</a>
+
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-header
-          eyebrow="Partidas da Season"
-          title="Partidas"
-          description="Carregando partidas computadas para o ranking da Season."
-        />
-        <app-page-state
-          type="loading"
-          title="Carregando partidas..."
-          message="Buscando histórico de partidas da Season."
-        />
+        <app-page-state type="loading" title="Carregando partidas..." message="Buscando histórico de partidas da Season." />
       }
 
       @case ('season-unavailable') {
-        <app-page-header
-          eyebrow="Partidas da Season"
-          title="Season indisponível"
-          description="A Season solicitada não foi encontrada ou não está disponível."
-        />
-        <app-page-state
-          type="empty"
-          title="Season não encontrada"
-          message="A Season solicitada não está disponível no histórico do Portal CS2."
-          actionLabel="Voltar para Seasons"
-          (actionClick)="goBack()"
-        />
+        <app-page-state type="empty" title="Season não encontrada" message="A Season solicitada não está disponível no histórico do Portal CS2." actionLabel="Voltar para Seasons" (actionClick)="goBack()" />
       }
 
       @case ('error') {
-        <app-page-header
-          eyebrow="Partidas da Season"
-          title="Erro ao carregar partidas"
-          description="Não foi possível carregar as estatísticas da Season neste momento."
-        />
-        <app-page-state
-          type="error"
-          title="Partidas indisponíveis"
-          message="Não foi possível carregar as partidas da Season no momento."
-          actionLabel="Tentar novamente"
-          (actionClick)="retry()"
-        />
-        <div class="season-matches__back-wrap">
-          <a class="season-matches__back" routerLink="/seasons">← voltar para Seasons</a>
-        </div>
+        <app-page-state type="error" title="Partidas indisponíveis" message="Não foi possível carregar as partidas da Season no momento." actionLabel="Tentar novamente" (actionClick)="retry()" />
       }
 
       @case ('ready') {
         <header class="season-matches__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
-          <app-page-header
-            eyebrow="Partidas da Season"
-            [title]="vm.data.season.name || vm.data.season.slug || 'Temporada HSC'"
-            [description]="(seasonStatusLabel(vm.data.season.status)) + ' · ' + formatDate(vm.data.season.startAt, false) + ' - ' + formatDate(vm.data.season.endAt, false)"
-          >
-            <div meta class="season-matches__header-status">
-              <app-status-badge
-                [label]="seasonStatusLabel(vm.data.season.status)"
-                [tone]="seasonStatusTone(vm.data.season.status)"
-              />
+          <div class="season-matches__hero-copy">
+            <span class="season-matches__eyebrow">Season match log</span>
+            <h1>{{ vm.data.season.name || vm.data.season.slug || 'Temporada HSC' }}</h1>
+            <p>{{ vm.data.season.description || 'Histórico competitivo oficial desta Season.' }}</p>
+            <div class="season-matches__hero-meta">
+              <app-status-badge [label]="seasonStatusLabel(vm.data.season.status)" [tone]="seasonStatusTone(vm.data.season.status)" />
+              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) }}</span>
               <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
             </div>
-          </app-page-header>
+          </div>
+          <span class="season-matches__hero-mark" aria-hidden="true">HSC</span>
         </header>
 
-        <app-season-tabs
-          [seasonSlug]="vm.data.season.slug"
-          activeTab="matches"
-        />
+        <app-season-tabs [seasonSlug]="vm.data.season.slug" activeTab="matches" />
 
-        <section class="season-matches__metrics" aria-label="Resumo das partidas da Season">
-          <app-metric-card label="Partidas" [value]="vm.data.summary.matches" tone="ranking" />
-          <app-metric-card label="Mapas" [value]="vm.data.summary.maps" tone="success" />
-          <app-metric-card label="Rounds" [value]="vm.data.summary.rounds" />
-          <app-metric-card label="Jogadores" [value]="vm.data.summary.players" />
-          <app-metric-card label="Último mapa" [value]="formatDate(vm.data.summary.lastMapEndedAt)" />
+        <section class="season-matches__snapshot" aria-label="Resumo das partidas da Season">
+          <article><span>Partidas</span><strong>{{ vm.data.summary.matches }}</strong></article>
+          <article><span>Mapas</span><strong>{{ vm.data.summary.maps }}</strong></article>
+          <article><span>Rounds</span><strong>{{ vm.data.summary.rounds }}</strong></article>
+          <article><span>Jogadores</span><strong>{{ vm.data.summary.players }}</strong></article>
+          <article class="season-matches__snapshot-date"><span>Último mapa</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) }}</strong></article>
         </section>
 
-        <section class="season-matches__list-section" aria-label="Partidas válidas da Season">
-          <app-section-header
-            eyebrow="Partidas"
-            title="Partidas válidas da Season"
-            description="Partidas computadas para o ranking desta Season."
-          />
+        <section class="season-matches__history" aria-labelledby="season-match-history-title">
+          <header class="season-matches__section-heading">
+            <div><span>Partidas</span><h2 id="season-match-history-title">Histórico da Season</h2></div>
+            <p>Confrontos publicados nesta temporada, na ordem oficial.</p>
+          </header>
 
-          <div class="season-matches__grid">
+          <div class="season-matches__feed" aria-label="Feed de partidas da Season">
             @for (match of vm.data.matches; track match.id) {
-              <div class="season-matches__item-wrap">
-                <app-match-score-card [match]="match" />
-                <div class="season-matches__item-meta">
-                  <span>{{ match.seasonMapCount }} mapas na Season</span>
-                  <span>{{ match.seasonRounds }} rounds válidos</span>
+              <article class="season-matches__match">
+                <header class="season-matches__match-header">
+                  <div class="season-matches__match-id">
+                    <span>Match</span>
+                    <strong>#{{ match.id }}</strong>
+                  </div>
+                  <div class="season-matches__match-meta">
+                    <time>{{ formatDate(match.endedAt || match.startedAt) }}</time>
+                    @if (match.seriesType) { <span>{{ match.seriesType }}</span> }
+                  </div>
+                </header>
+
+                <div class="season-matches__scoreboard">
+                  <div class="season-matches__team season-matches__team--one" [class.is-winner]="match.winner !== null && match.winner === match.team1.name">
+                    <div><strong>{{ match.team1.name || 'Time não informado' }}</strong>@if (match.winner !== null && match.winner === match.team1.name) { <small>Vencedor</small> }</div>
+                    <b>{{ match.team1.score }}</b>
+                  </div>
+                  <span class="season-matches__versus">VS</span>
+                  <div class="season-matches__team season-matches__team--two" [class.is-winner]="match.winner !== null && match.winner === match.team2.name">
+                    <b>{{ match.team2.score }}</b>
+                    <div><strong>{{ match.team2.name || 'Time não informado' }}</strong>@if (match.winner !== null && match.winner === match.team2.name) { <small>Vencedor</small> }</div>
+                  </div>
                 </div>
-              </div>
+
+                <div class="season-matches__match-context">
+                  @if (match.winner) { <span>Vencedor <strong>{{ match.winner }}</strong></span> }
+                  <span><strong>{{ match.seasonMapCount }}</strong> mapas na Season</span>
+                  <span><strong>{{ match.seasonRounds }}</strong> rounds válidos</span>
+                </div>
+
+                @if (match.maps.length) {
+                  <div class="season-matches__maps" aria-label="Mapas do confronto">
+                    @for (map of match.maps; track map.mapNumber) {
+                      <span>{{ map.name || 'Mapa não informado' }} · {{ map.team1Score }} × {{ map.team2Score }}</span>
+                    }
+                  </div>
+                }
+
+                <a class="season-matches__cta" [routerLink]="['/matches', match.id]">Ver relatório <span aria-hidden="true">→</span></a>
+              </article>
             }
           </div>
         </section>
@@ -100,46 +95,35 @@
 
       @case ('empty') {
         <header class="season-matches__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
-          <app-page-header
-            eyebrow="Partidas da Season"
-            [title]="vm.data.season.name || vm.data.season.slug || 'Temporada HSC'"
-            [description]="(seasonStatusLabel(vm.data.season.status)) + ' · ' + formatDate(vm.data.season.startAt, false) + ' - ' + formatDate(vm.data.season.endAt, false)"
-          >
-            <div meta class="season-matches__header-status">
-              <app-status-badge
-                [label]="seasonStatusLabel(vm.data.season.status)"
-                [tone]="seasonStatusTone(vm.data.season.status)"
-              />
+          <div class="season-matches__hero-copy">
+            <span class="season-matches__eyebrow">Season match log</span>
+            <h1>{{ vm.data.season.name || vm.data.season.slug || 'Temporada HSC' }}</h1>
+            <p>{{ vm.data.season.description || 'Histórico competitivo oficial desta Season.' }}</p>
+            <div class="season-matches__hero-meta">
+              <app-status-badge [label]="seasonStatusLabel(vm.data.season.status)" [tone]="seasonStatusTone(vm.data.season.status)" />
+              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) }}</span>
               <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
             </div>
-          </app-page-header>
+          </div>
+          <span class="season-matches__hero-mark" aria-hidden="true">HSC</span>
         </header>
 
-        <app-season-tabs
-          [seasonSlug]="vm.data.season.slug"
-          activeTab="matches"
-        />
+        <app-season-tabs [seasonSlug]="vm.data.season.slug" activeTab="matches" />
 
-        <section class="season-matches__metrics" aria-label="Resumo das partidas da Season">
-          <app-metric-card label="Partidas" [value]="vm.data.summary.matches" tone="ranking" />
-          <app-metric-card label="Mapas" [value]="vm.data.summary.maps" tone="success" />
-          <app-metric-card label="Rounds" [value]="vm.data.summary.rounds" />
-          <app-metric-card label="Jogadores" [value]="vm.data.summary.players" />
-          <app-metric-card label="Último mapa" [value]="formatDate(vm.data.summary.lastMapEndedAt)" />
+        <section class="season-matches__snapshot" aria-label="Resumo das partidas da Season">
+          <article><span>Partidas</span><strong>{{ vm.data.summary.matches }}</strong></article>
+          <article><span>Mapas</span><strong>{{ vm.data.summary.maps }}</strong></article>
+          <article><span>Rounds</span><strong>{{ vm.data.summary.rounds }}</strong></article>
+          <article><span>Jogadores</span><strong>{{ vm.data.summary.players }}</strong></article>
+          <article class="season-matches__snapshot-date"><span>Último mapa</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) }}</strong></article>
         </section>
 
-        <section class="season-matches__list-section" aria-label="Partidas válidas da Season">
-          <app-section-header
-            eyebrow="Partidas"
-            title="Partidas válidas da Season"
-            description="Partidas computadas para o ranking desta Season."
-          />
-
-          <app-page-state
-            type="empty"
-            title="Nenhuma partida na Season"
-            message="O recorte publicado não retornou partidas válidas para esta Season."
-          />
+        <section class="season-matches__history" aria-labelledby="season-match-history-title">
+          <header class="season-matches__section-heading">
+            <div><span>Partidas</span><h2 id="season-match-history-title">Histórico da Season</h2></div>
+            <p>Confrontos publicados nesta temporada, na ordem oficial.</p>
+          </header>
+          <app-page-state type="empty" title="Nenhuma partida na Season" message="O recorte publicado não retornou partidas válidas para esta Season." />
         </section>
       }
     }

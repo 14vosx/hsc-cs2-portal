@@ -1,6 +1,31 @@
 import { SeasonDto } from '../../core/api/dto/season.dto';
 import { SeasonRankingPlayerDto } from '../../core/api/dto/season-ranking.dto';
 
+export function formatSeasonBoundaryDate(value?: string | null, fallback = 'Sem data'): string {
+  if (!value) {
+    return fallback;
+  }
+
+  const boundary = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.000)?Z)?$/.exec(value);
+
+  if (!boundary) {
+    return value;
+  }
+
+  const [, year, month, day] = boundary;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+  if (
+    date.getUTCFullYear() !== Number(year) ||
+    date.getUTCMonth() !== Number(month) - 1 ||
+    date.getUTCDate() !== Number(day)
+  ) {
+    return value;
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
 export function seasonCoverImage(season?: SeasonDto | null): string {
   const imageUrl =
     season?.cover_image_url ||

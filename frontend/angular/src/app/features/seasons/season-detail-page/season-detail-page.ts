@@ -13,6 +13,7 @@ import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import {
   eligibilityLabel,
   eligibilityReason,
+  formatSeasonBoundaryDate,
   formatInteger,
   formatPercent,
   formatStat,
@@ -29,7 +30,7 @@ import {
 } from '../../../shared/components/season-tabs/season-tabs';
 
 type SeasonDetailVm =
-  | ({ state: 'ready' } & SeasonRankingDto)
+  | ({ state: 'ready'; isCurrentRoute: boolean } & SeasonRankingDto)
   | { state: 'loading' }
   | { state: 'error' };
 
@@ -47,12 +48,14 @@ export class SeasonDetailPage {
 
   protected readonly vm$: Observable<SeasonDetailVm> = this.route.paramMap.pipe(
     map((params) => params.get('slug')?.trim() ?? ''),
-    switchMap((slug) => this.loadSeasonHub(slug)),
+    switchMap((slug) => this.loadSeasonHub(slug, !slug)),
     startWith({ state: 'loading' } satisfies SeasonDetailVm),
     catchError(() => of({ state: 'error' } satisfies SeasonDetailVm)),
   );
 
   protected readonly playerAvatar = playerAvatar;
+  protected readonly formatSeasonBoundaryDate = (value?: string | null) =>
+    formatSeasonBoundaryDate(value, 'Data em aberto');
   protected readonly playerInitials = playerInitials;
   protected readonly eligibilityLabel = eligibilityLabel;
   protected readonly eligibilityReason = eligibilityReason;
@@ -83,23 +86,24 @@ export class SeasonDetailPage {
   }
 
   protected formatNumber(value?: number | null, digits = 2): string {
-    return typeof value === 'number' ? value.toFixed(digits) : '-';
+    return typeof value === 'number' ? value.toFixed(digits) : '—';
   }
 
   protected rankingPreview(players?: SeasonRankingPlayerDto[]): SeasonRankingPlayerDto[] {
-    return (players ?? []).slice(0, 12);
+    return (players ?? []).slice(0, 5);
   }
 
   protected minRoundsPerMap(rules?: SeasonRankingRulesDto | null): number | undefined {
     return rules?.minRoundsPerMap;
   }
 
-  private loadSeasonHub(slug: string): Observable<SeasonDetailVm> {
+  private loadSeasonHub(slug: string, isCurrentRoute: boolean): Observable<SeasonDetailVm> {
     if (slug) {
       return this.cs2Api.getSeasonRanking(slug).pipe(
         map((payload): SeasonDetailVm => ({
           ...payload,
           state: 'ready',
+          isCurrentRoute,
         })),
       );
     }
@@ -116,6 +120,7 @@ export class SeasonDetailPage {
           map((payload): SeasonDetailVm => ({
             ...payload,
             state: 'ready',
+            isCurrentRoute,
           })),
         );
       }),
