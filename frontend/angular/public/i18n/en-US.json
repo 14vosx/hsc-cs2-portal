@@ -31,5 +31,24 @@
   "sidebar": {
     "title": "Navigation",
     "closeNavigation": "Close navigation menu"
+  },
+  "home": {
+    "hero": { "active": "SEASON • ACTIVE", "latestClosed": "LATEST COMPLETED SEASON", "metricsAriaLabel": "Season metrics", "players": "Players", "matches": "Matches", "maps": "Maps", "viewRanking": "View ranking", "viewSeason": "View season", "leaderAriaLabel": "Season leader", "leaderLabel": "SEASON LEADER", "wins": "Wins", "noLeader": "There are no ranked players in this season yet.", "rankingError": "The ranking is temporarily unavailable.", "loadingTitle": "Loading competitive", "loadingEmphasis": "context...", "seasons": "Seasons", "empty": "No public season is available right now.", "seasonsError": "The seasonal context could not be loaded." },
+    "now": { "eyebrow": "HAPPENING NOW", "title": "HSC NOW", "latestMatch": "LATEST MATCH", "details": "View details →", "matchesLoading": "Loading matches...", "matchesError": "Matches are temporarily unavailable.", "matchesEmpty": "No matches have been recorded in this season.", "topThree": "TOP 3", "rankingLoading": "Loading ranking...", "rankingError": "The ranking is temporarily unavailable.", "rankingEmpty": "There are no ranked players yet.", "newsLabel": "HSC NEWS", "readNews": "Read news →", "newsLoading": "Loading news...", "newsError": "News is temporarily unavailable.", "newsEmpty": "No news has been published." },
+    "recent": { "eyebrow": "MATCH CENTER", "title": "RECENT MATCHES", "loading": "Loading recent matches...", "error": "Recent matches could not be loaded.", "empty": "No matches have been recorded in this season." },
+    "playerArea": { "eyebrow": "PLAYER AREA", "title": "Player Area", "description": "Your HSC profile, identity, and competitive history.", "actions": { "open": "Open Player Area", "signIn": "Sign in / Access", "fallback": "Player Area" } },
+    "news": { "eyebrow": "HSC WIRE", "title": "HSC NEWS", "readMore": "Read news →" },
+    "points": "pts"
+  },
+  "ranking": {
+    "hero": { "eyebrow": "Overall Ranking", "title": "HSC Overall Ranking", "description": "The accumulated overall ranking of players based on competitive Score, Impact, consistency, and round volume across all eligible matches.", "synced": "Data synced", "lastUpdated": "Last updated" },
+    "states": { "loading": { "title": "Loading overall ranking...", "message": "Syncing the player ranking." }, "error": { "title": "Ranking unavailable", "message": "The overall ranking could not be loaded right now. Check the API connection and try again.", "retry": "Try again" }, "empty": { "title": "No ranked players", "message": "No overall ranking data is available right now." } },
+    "summary": { "ariaLabel": "Overall ranking summary", "players": "Players", "completedMaps": "Completed maps", "currentLeader": "Current leader", "noLeader": "No leader" },
+    "podium": { "ariaLabel": "Top 3 podium", "eyebrow": "Podium", "title": "Community Top 3", "description": "Players with the highest accumulated Score in the overall ranking.", "gold": "Gold · Champion", "silver": "Silver", "bronze": "Bronze", "player": "Player", "wins": "Wins", "losses": "Losses" },
+    "players": { "unnamedAccessible": "Unnamed player", "unnamed": "Unnamed", "you": "You" },
+    "table": { "ariaLabel": "Full ranking table", "mobileAriaLabel": "Full ranking", "eyebrow": "Ranking", "title": "Full Ranking", "description": "An ordered list of all qualified players with quick local search.", "searchLabel": "Search player", "searchPlaceholder": "Name or SteamID64", "position": "Pos", "player": "Player", "record": "W/L", "win": "W", "loss": "L", "winPct": "Win%", "winMobile": "Win" },
+    "searchEmpty": { "title": "No players found", "description": "The current search did not find a matching name or SteamID64." },
+    "guide": { "eyebrow": "How to read", "title": "Score and Impact", "score": "Summarizes the player's overall ranking by combining performance and consistency across all recorded matches.", "impact": "Highlights direct influence in rounds: eliminations, participation, and the weight of decisive actions within matches." },
+    "date": { "unavailable": "No date available" }
   }
 }

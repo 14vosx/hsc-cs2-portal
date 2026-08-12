@@ -1,6 +1,7 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, shareReplay } from 'rxjs';
 
 import { PlayerSessionService } from '../../core/session/player-session.service';
@@ -16,7 +17,7 @@ import type {
 
 @Component({
   selector: 'app-home-page',
-  imports: [AsyncPipe, DecimalPipe, RouterLink, PlayerAvatar],
+  imports: [AsyncPipe, DecimalPipe, RouterLink, TranslatePipe, PlayerAvatar],
   templateUrl: './home-page.html',
   styleUrl: './home-page.css',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -72,15 +73,15 @@ export class HomePage {
     return maps.length > 0 ? maps.join(' · ') : null;
   }
 
-  protected playerAreaLabel(): string {
+  protected playerAreaLabelKey(): string {
     switch (this.playerSession.state().status) {
       case 'authenticated':
-        return 'Abrir Área do Jogador';
+        return 'home.playerArea.actions.open';
       case 'anonymous':
       case 'unavailable':
-        return 'Entrar / Acessar';
+        return 'home.playerArea.actions.signIn';
       default:
-        return 'Área do Jogador';
+        return 'home.playerArea.actions.fallback';
     }
   }
 }

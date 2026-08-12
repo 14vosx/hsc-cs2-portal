@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { PlayerSessionService } from '../../core/session/player-session.service';
@@ -34,6 +35,7 @@ type RankingVm =
     PageState,
     PlayerAvatar,
     StatusBadge,
+    TranslatePipe,
   ],
   templateUrl: './ranking-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -117,9 +119,9 @@ export class RankingPage {
     );
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data disponível';
+      return null;
     }
 
     const date = new Date(value);

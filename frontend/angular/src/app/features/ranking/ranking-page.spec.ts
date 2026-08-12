@@ -1,7 +1,8 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import type { Observable } from 'rxjs';
-import { of, Subject, throwError } from 'rxjs';
+import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -94,6 +95,7 @@ function createInputEvent(value: string): Event {
 
 describe('RankingPage', () => {
   let mockRankingApi: RankingApiServiceMock;
+  let translate: TranslateService;
   const mockSessionState = signal<PlayerSession>({ status: 'anonymous' });
 
   const mockPlayer1: RankingPlayer = {
@@ -221,11 +223,16 @@ describe('RankingPage', () => {
     TestBed.configureTestingModule({
       imports: [RankingPage],
       providers: [
+        provideTranslateService(),
         TestableRankingPage,
         { provide: RankingApiService, useValue: mockRankingApi },
         { provide: PlayerSessionService, useValue: { state: mockSessionState } },
       ],
     });
+    translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { ranking: { hero: { eyebrow: 'Ranking Geral', title: 'Ranking Geral HSC', description: 'Classificação geral acumulada.', synced: 'Dados sincronizados', lastUpdated: 'Última atualização' }, states: { loading: { title: 'Carregando ranking geral...', message: 'Sincronizando a classificação dos jogadores.' }, error: { title: 'Ranking indisponível', message: 'Não foi possível carregar.', retry: 'Tentar novamente' }, empty: { title: 'Nenhum jogador classificado', message: 'Não há dados de ranking geral disponíveis no momento.' } }, summary: { ariaLabel: 'Resumo do ranking geral', players: 'Jogadores', completedMaps: 'Mapas finalizados', currentLeader: 'Líder atual', noLeader: 'Sem líder' }, podium: { ariaLabel: 'Pódio top 3', eyebrow: 'Pódio', title: 'Top 3 da Comunidade', description: 'Jogadores com maior pontuação.', gold: 'Ouro · Campeão', silver: 'Prata', bronze: 'Bronze', player: 'Jogador', wins: 'Vitórias', losses: 'Derrotas' }, players: { unnamedAccessible: 'Jogador sem nome', unnamed: 'Sem nome', you: 'Você' }, table: { ariaLabel: 'Tabela de classificação completa', mobileAriaLabel: 'Classificação completa', eyebrow: 'Classificação', title: 'Classificação Completa', description: 'Lista ordinal.', searchLabel: 'Buscar jogador', searchPlaceholder: 'Nome ou SteamID64', position: 'Pos', player: 'Jogador', record: 'V/D', win: 'V', loss: 'D', winPct: 'Vit%', winMobile: 'Vit' }, searchEmpty: { title: 'Nenhum jogador encontrado', description: 'A busca atual não encontrou nome ou SteamID64 correspondente.' }, guide: { eyebrow: 'Como ler', title: 'Score e Impact', score: 'Resumo do Score.', impact: 'Descrição do Impact.' }, date: { unavailable: 'Sem data disponível' } } });
+    translate.setTranslation('en-US', { ranking: { hero: { eyebrow: 'Overall Ranking', title: 'HSC Overall Ranking', description: 'Overall player ranking.', synced: 'Data synced', lastUpdated: 'Last updated' }, states: { loading: { title: 'Loading overall ranking...', message: 'Syncing the player ranking.' }, error: { title: 'Ranking unavailable', message: 'Could not load.', retry: 'Try again' }, empty: { title: 'No ranked players', message: 'No ranking data is available.' } }, summary: { ariaLabel: 'Overall ranking summary', players: 'Players', completedMaps: 'Completed maps', currentLeader: 'Current leader', noLeader: 'No leader' }, podium: { ariaLabel: 'Top 3 podium', eyebrow: 'Podium', title: 'Community Top 3', description: 'Highest scoring players.', gold: 'Gold · Champion', silver: 'Silver', bronze: 'Bronze', player: 'Player', wins: 'Wins', losses: 'Losses' }, players: { unnamedAccessible: 'Unnamed player', unnamed: 'Unnamed', you: 'You' }, table: { ariaLabel: 'Full ranking table', mobileAriaLabel: 'Full ranking', eyebrow: 'Ranking', title: 'Full Ranking', description: 'Ordered list.', searchLabel: 'Search player', searchPlaceholder: 'Name or SteamID64', position: 'Pos', player: 'Player', record: 'W/L', win: 'W', loss: 'L', winPct: 'Win%', winMobile: 'Win' }, searchEmpty: { title: 'No players found', description: 'No matching name or SteamID64.' }, guide: { eyebrow: 'How to read', title: 'Score and Impact', score: 'Score summary.', impact: 'Impact description.' }, date: { unavailable: 'No date available' } } });
+    void translate.use('pt-BR');
   });
 
   it('1. o componente pode ser criado', () => {
@@ -568,5 +575,37 @@ describe('RankingPage', () => {
     const content = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(content).not.toContain('Season 02');
     expect(content).not.toContain('128 tick');
+  });
+
+  it('31. troca copy, labels compactos e busca para en-US preservando dados e terminologia', async () => {
+    mockSessionState.set({ status: 'authenticated', displayName: 'fer', steamId64: mockPlayer2.steamId64, avatarMedium: null });
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('V/D');
+
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('h1')?.textContent).toContain('HSC Overall Ranking');
+    expect(element.textContent).toContain('W/L');
+    expect(element.textContent).toContain('You');
+    expect(element.textContent).toContain('fer');
+    expect(element.textContent).toContain(mockPlayer2.steamId64);
+    expect(element.querySelector('label[for="ranking-search-input"]')?.textContent).toContain('Search player');
+    expect(element.querySelector('#ranking-search-input')?.getAttribute('placeholder')).toBe('Name or SteamID64');
+    for (const term of ['Score', 'Impact', 'K/D', 'ADR', 'HS%']) expect(element.textContent).toContain(term);
+  });
+
+  it('32. localiza fallbacks de jogador sem nome e data ausente', async () => {
+    mockRankingApi.getRanking.mockReturnValue(of({ ...mockRanking, generatedAt: null }));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Sem data disponível');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Sem nome');
+
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('No date available');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Unnamed');
   });
 });
