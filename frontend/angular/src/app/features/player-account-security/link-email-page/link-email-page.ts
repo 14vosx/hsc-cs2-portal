@@ -2,8 +2,6 @@ import { Location } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { PageHeader } from '../../../shared/components/page-header/page-header';
-import { UiCard } from '../../../shared/components/card/card';
 import { PlayerIdentityLinkApiService } from '../../player/data-access/player-identity-link-api.service';
 import { mapEmailLinkConfirmationError } from '../player-account-security-error';
 
@@ -13,7 +11,7 @@ const EMAIL_LINK_TOKEN = /^[0-9a-f]{64}$/;
 @Component({
   selector: 'app-link-email-page',
   standalone: true,
-  imports: [PageHeader, RouterLink, UiCard],
+  imports: [RouterLink],
   templateUrl: './link-email-page.html',
   styleUrl: './link-email-page.css',
 })
