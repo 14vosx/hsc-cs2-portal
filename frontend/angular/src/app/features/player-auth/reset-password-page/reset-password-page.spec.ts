@@ -25,7 +25,7 @@ describe('ResetPasswordPage', () => {
     token = null;
     await create();
     expect(api.confirmPasswordReset).not.toHaveBeenCalled();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Link de redefinição inválido');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('O link de redefinição é inválido, expirou ou já foi utilizado.');
   });
 
   it('does not automatically submit a valid token', async () => {
@@ -43,9 +43,9 @@ describe('ResetPasswordPage', () => {
       token: 'b'.repeat(64),
       password: '😀'.repeat(10),
     });
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Senha redefinida com sucesso.');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('ainda não está conectado');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Entrar');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Sua senha HSC foi atualizada com sucesso.');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('As sessões anteriores foram encerradas.');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Entrar na Área do Jogador');
   });
 
   it('rejects code-point bounds and mismatched confirmation locally', async () => {
@@ -72,7 +72,7 @@ describe('ResetPasswordPage', () => {
   });
 
   it.each([
-    [400, 'invalid_or_expired_password_reset', 'Link de redefinição inválido ou expirado.'],
+    [400, 'invalid_or_expired_password_reset', 'O link de redefinição é inválido, expirou ou já foi utilizado.'],
     [400, 'invalid_password', 'A senha deve ter entre 10 e 128 caracteres.'],
     [503, 'db_not_ready', 'Não foi possível concluir a operação agora.'],
   ])('maps reset errors without exposing raw codes', async (status, code, message) => {
