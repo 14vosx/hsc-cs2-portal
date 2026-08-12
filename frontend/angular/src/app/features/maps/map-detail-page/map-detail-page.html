@@ -2,45 +2,45 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-header eyebrow="Mapas" title="Detalhe do mapa" description="Carregando estatísticas do mapa." />
-        <app-page-state type="loading" title="Carregando mapa..." message="Buscando detalhes do mapa." />
+        <app-page-header [eyebrow]="'mapDetail.states.loading.eyebrow' | translate" [title]="'mapDetail.states.loading.title' | translate" [description]="'mapDetail.states.loading.description' | translate" />
+        <app-page-state type="loading" [title]="'mapDetail.states.loading.pageTitle' | translate" [message]="'mapDetail.states.loading.pageMessage' | translate" />
       }
       @case ('not-found') {
-        <app-page-header eyebrow="Mapas" title="Mapa não encontrado" description="O mapa solicitado não foi localizado no histórico." />
-        <app-page-state type="empty" title="Mapa não encontrado" message="Não encontramos o mapa solicitado na rotação competitiva." actionLabel="Voltar para mapas" (actionClick)="goBack()" />
+        <app-page-header [eyebrow]="'mapDetail.states.notFound.eyebrow' | translate" [title]="'mapDetail.states.notFound.title' | translate" [description]="'mapDetail.states.notFound.description' | translate" />
+        <app-page-state type="empty" [title]="'mapDetail.states.notFound.title' | translate" [message]="'mapDetail.states.notFound.pageMessage' | translate" [actionLabel]="'mapDetail.states.notFound.action' | translate" (actionClick)="goBack()" />
       }
       @case ('error') {
-        <app-page-header eyebrow="Mapas" title="Mapa indisponível" description="Não foi possível carregar as estatísticas deste mapa." />
-        <app-page-state type="error" title="Erro ao carregar mapa" message="Não foi possível carregar as informações deste mapa no momento." actionLabel="Tentar novamente" (actionClick)="retry()" />
-        <a class="map-detail-page__back" routerLink="/maps">← Voltar para mapas</a>
+        <app-page-header [eyebrow]="'mapDetail.states.error.eyebrow' | translate" [title]="'mapDetail.states.error.title' | translate" [description]="'mapDetail.states.error.description' | translate" />
+        <app-page-state type="error" [title]="'mapDetail.states.error.pageTitle' | translate" [message]="'mapDetail.states.error.pageMessage' | translate" [actionLabel]="'mapDetail.states.error.retry' | translate" (actionClick)="retry()" />
+        <a class="map-detail-page__back" routerLink="/maps">{{ 'mapDetail.backToMaps' | translate }}</a>
       }
       @case ('ready') {
         <article class="map-detail-page__hero" [class.map-detail-page__hero--fallback]="mapBackgroundImage(vm.detail.name) === 'none'" [style.--map-hero-bg]="mapBackgroundImage(vm.detail.name)">
-          <a class="map-detail-page__back" routerLink="/maps">← Voltar para mapas</a>
+          <a class="map-detail-page__back" routerLink="/maps">{{ 'mapDetail.backToMaps' | translate }}</a>
           <div class="map-detail-page__hero-copy">
-            <span class="map-detail-page__eyebrow">Mapa</span>
+            <span class="map-detail-page__eyebrow">{{ 'mapDetail.hero.mapLabel' | translate }}</span>
             <h1 title="{{ vm.detail.name }}">{{ vm.detail.name }}</h1>
-            <p><strong>{{ vm.detail.lifetime.matches }}</strong> aparições registradas <i aria-hidden="true">·</i> <strong>{{ vm.detail.lifetime.rounds }}</strong> rounds</p>
+            <p>{{ (vm.detail.lifetime.matches === 1 ? 'mapDetail.counts.appearances.one' : 'mapDetail.counts.appearances.other') | translate: { count: vm.detail.lifetime.matches } }} <i aria-hidden="true">·</i> {{ (vm.detail.lifetime.rounds === 1 ? 'mapDetail.counts.rounds.one' : 'mapDetail.counts.rounds.other') | translate: { count: vm.detail.lifetime.rounds } }}</p>
           </div>
           <div class="map-detail-page__hero-meta">
-            <div><span>Último jogo</span><strong>{{ relativeDate(vm.detail.lifetime.lastPlayedAt, vm.detail.generatedAt) }}</strong><time [attr.datetime]="vm.detail.lifetime.lastPlayedAt">{{ formatDate(vm.detail.lifetime.lastPlayedAt) }}</time></div>
-            <div><span>Dados atualizados</span><time [attr.datetime]="vm.detail.generatedAt">{{ formatDate(vm.detail.generatedAt) }}</time></div>
+            @let heroRecency = relativeDate(vm.detail.lifetime.lastPlayedAt, vm.detail.generatedAt); <div><span>{{ 'mapDetail.hero.lastPlayed' | translate }}</span><strong>{{ heroRecency.key | translate: heroRecency.params }}</strong><time [attr.datetime]="vm.detail.lifetime.lastPlayedAt">{{ formatDate(vm.detail.lifetime.lastPlayedAt) || ('mapDetail.fallbacks.date' | translate) }}</time></div>
+            <div><span>{{ 'mapDetail.hero.updated' | translate }}</span><time [attr.datetime]="vm.detail.generatedAt">{{ formatDate(vm.detail.generatedAt) || ('mapDetail.fallbacks.date' | translate) }}</time></div>
           </div>
         </article>
 
-        <section class="map-detail-page__snapshot" aria-label="Resumo histórico do mapa">
-          <div><span>Aparições</span><strong>{{ vm.detail.lifetime.matches }}</strong><small>registros do mapa</small></div>
-          <div><span>Rounds</span><strong>{{ vm.detail.lifetime.rounds }}</strong><small>volume acumulado</small></div>
-          <div><span>Média de rounds</span><strong>{{ formatAvg(vm.detail.lifetime.averageRoundsPerMatch) }}</strong><small>por aparição</small></div>
-          <div><span>Último jogo</span><strong>{{ relativeDate(vm.detail.lifetime.lastPlayedAt, vm.detail.generatedAt) }}</strong><small>{{ formatDate(vm.detail.lifetime.lastPlayedAt) }}</small></div>
+        <section class="map-detail-page__snapshot" [attr.aria-label]="'mapDetail.snapshot.ariaLabel' | translate">
+          <div><span>{{ 'mapDetail.snapshot.appearances' | translate }}</span><strong>{{ vm.detail.lifetime.matches }}</strong><small>{{ 'mapDetail.snapshot.records' | translate }}</small></div>
+          <div><span>{{ 'mapDetail.snapshot.rounds' | translate }}</span><strong>{{ vm.detail.lifetime.rounds }}</strong><small>{{ 'mapDetail.snapshot.totalVolume' | translate }}</small></div>
+          <div><span>{{ 'mapDetail.snapshot.averageRounds' | translate }}</span><strong>{{ formatAvg(vm.detail.lifetime.averageRoundsPerMatch) }}</strong><small>{{ 'mapDetail.snapshot.perAppearance' | translate }}</small></div>
+          @let snapshotRecency = relativeDate(vm.detail.lifetime.lastPlayedAt, vm.detail.generatedAt); <div><span>{{ 'mapDetail.snapshot.lastPlayed' | translate }}</span><strong>{{ snapshotRecency.key | translate: snapshotRecency.params }}</strong><small>{{ formatDate(vm.detail.lifetime.lastPlayedAt) || ('mapDetail.fallbacks.date' | translate) }}</small></div>
         </section>
 
         <section class="map-detail-page__history" aria-labelledby="map-history-title">
-          <div class="map-detail-page__section-heading"><div><span>Histórico recente</span><h2 id="map-history-title">Confrontos neste mapa</h2></div><p>Placar do mapa, contexto da série e vencedor conforme publicados.</p></div>
+          <div class="map-detail-page__section-heading"><div><span>{{ 'mapDetail.history.eyebrow' | translate }}</span><h2 id="map-history-title">{{ 'mapDetail.history.title' | translate }}</h2></div><p>{{ 'mapDetail.history.description' | translate }}</p></div>
           @if (vm.detail.recentMatches.length > 0) {
             <app-map-recent-match-table [recentMatches]="vm.detail.recentMatches" />
           } @else {
-            <app-page-state type="empty" title="Nenhuma partida recente" message="Este mapa ainda não possui partidas recentes no histórico." />
+            <app-page-state type="empty" [title]="'mapDetail.history.emptyTitle' | translate" [message]="'mapDetail.history.emptyMessage' | translate" />
           }
         </section>
       }

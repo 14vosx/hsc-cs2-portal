@@ -1,13 +1,13 @@
 <article class="map-stat-card" [class.map-stat-card--highlight]="highlight()" [class.map-stat-card--fallback]="mapBackgroundImage() === 'none'" [style.--map-bg]="mapBackgroundImage()">
-  <div class="map-stat-card__visual"><span>Mapa</span><h3 title="{{ map().name }}">{{ map().name }}</h3></div>
+  <div class="map-stat-card__visual"><span>{{ 'mapStatCard.mapLabel' | translate }}</span><h3 title="{{ map().name }}">{{ map().name }}</h3></div>
   <div class="map-stat-card__body">
-    <div class="map-stat-card__share"><div><span>Participação na rotação</span><strong>{{ formatPercent() }}</strong></div><div class="map-stat-card__track" role="img" [attr.aria-label]="map().name + ': ' + formatPercent() + ' de participação na rotação'"><span [style.width.%]="rotationShare()"></span></div></div>
+    <div class="map-stat-card__share"><div><span>{{ 'mapStatCard.rotationShare' | translate }}</span><strong>{{ formatPercent() }}</strong></div><div class="map-stat-card__track" role="img" [attr.aria-label]="'mapStatCard.progressAriaLabel' | translate: { map: map().name, percent: formatPercent() }"><span [style.width.%]="rotationShare()"></span></div></div>
     <dl class="map-stat-card__stats">
-      <div><dt>Aparições</dt><dd>{{ map().matches }}</dd></div>
-      <div><dt>Rounds</dt><dd>{{ map().rounds }}</dd></div>
-      <div><dt>Média de rounds</dt><dd>{{ formatAvg(map().averageRoundsPerMatch) }}</dd></div>
+      <div><dt>{{ 'mapStatCard.stats.appearances' | translate }}</dt><dd>{{ map().matches }}</dd></div>
+      <div><dt>{{ 'mapStatCard.stats.rounds' | translate }}</dt><dd>{{ map().rounds }}</dd></div>
+      <div><dt>{{ 'mapStatCard.stats.averageRounds' | translate }}</dt><dd>{{ formatAvg(map().averageRoundsPerMatch) }}</dd></div>
     </dl>
-    <div class="map-stat-card__recent"><span>Último jogo</span><time [attr.datetime]="map().lastPlayedAt">{{ formatDate(map().lastPlayedAt) }}</time></div>
-    <a class="map-stat-card__details-link" [routerLink]="['/maps', map().name]">Ver detalhe <span aria-hidden="true">→</span></a>
+    <div class="map-stat-card__recent"><span>{{ 'mapStatCard.lastPlayed' | translate }}</span><time [attr.datetime]="map().lastPlayedAt">{{ formatDate(map().lastPlayedAt) || ('mapStatCard.fallbacks.date' | translate) }}</time></div>
+    <a class="map-stat-card__details-link" [routerLink]="['/maps', map().name]">{{ 'mapStatCard.viewDetails' | translate }} <span aria-hidden="true">→</span></a>
   </div>
 </article>

@@ -2,76 +2,76 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <header class="maps-page__state-header"><span>Mapas</span><h1>Rotação de mapas</h1><p>Volume, distribuição, rounds e atividade dos mapas publicados.</p></header>
-        <app-page-state type="loading" title="Carregando mapas..." message="Sincronizando a rotação de mapas." />
+        <header class="maps-page__state-header"><span>{{ 'maps.states.header.eyebrow' | translate }}</span><h1>{{ 'maps.states.header.title' | translate }}</h1><p>{{ 'maps.states.header.description' | translate }}</p></header>
+        <app-page-state type="loading" [title]="'maps.states.loading.title' | translate" [message]="'maps.states.loading.message' | translate" />
       }
       @case ('error') {
-        <header class="maps-page__state-header"><span>Mapas</span><h1>Rotação de mapas</h1><p>Volume, distribuição, rounds e atividade dos mapas publicados.</p></header>
-        <app-page-state type="error" title="Mapas indisponíveis" message="Não foi possível carregar a rotação de mapas no momento. Verifique a conexão com a API e tente novamente." actionLabel="Tentar novamente" (actionClick)="retry()" />
+        <header class="maps-page__state-header"><span>{{ 'maps.states.header.eyebrow' | translate }}</span><h1>{{ 'maps.states.header.title' | translate }}</h1><p>{{ 'maps.states.header.description' | translate }}</p></header>
+        <app-page-state type="error" [title]="'maps.states.error.title' | translate" [message]="'maps.states.error.message' | translate" [actionLabel]="'maps.states.error.retry' | translate" (actionClick)="retry()" />
       }
       @case ('empty') {
-        <header class="maps-page__state-header"><span>Mapas</span><h1>Rotação de mapas</h1><p>Volume, distribuição, rounds e atividade dos mapas publicados.</p></header>
-        <app-page-state type="empty" title="Nenhum mapa encontrado" message="Nenhum mapa foi publicado." />
+        <header class="maps-page__state-header"><span>{{ 'maps.states.header.eyebrow' | translate }}</span><h1>{{ 'maps.states.header.title' | translate }}</h1><p>{{ 'maps.states.header.description' | translate }}</p></header>
+        <app-page-state type="empty" [title]="'maps.states.empty.title' | translate" [message]="'maps.states.empty.message' | translate" />
       }
       @case ('ready') {
         <header class="maps-page__intro">
-          <div><span class="maps-page__eyebrow">Mapas</span><h1>Rotação de <em>mapas</em></h1><p>Uma leitura tática do volume, distribuição, rounds e atividade dos mapas publicados no HSC.</p></div>
-          <div class="maps-page__snapshot"><span>Dados atualizados</span><time [attr.datetime]="vm.generatedAt">{{ formatDate(vm.generatedAt) }}</time></div>
+          <div><span class="maps-page__eyebrow">{{ 'maps.hero.eyebrow' | translate }}</span><h1>{{ 'maps.hero.title' | translate }}</h1><p>{{ 'maps.hero.description' | translate }}</p></div>
+          <div class="maps-page__snapshot"><span>{{ 'maps.hero.updated' | translate }}</span><time [attr.datetime]="vm.generatedAt">{{ formatDate(vm.generatedAt) || ('maps.fallbacks.date' | translate) }}</time></div>
         </header>
 
-        <section class="maps-page__overview" aria-label="Resumo dos mapas">
-          <div><span>Mapas</span><strong>{{ vm.maps.length }}</strong><small>publicados</small></div>
-          <div><span>Aparições</span><strong>{{ vm.totalMapAppearances }}</strong><small>no conjunto publicado</small></div>
-          <div><span>Rounds</span><strong>{{ vm.totalRounds }}</strong><small>volume total</small></div>
-          <div><span>Média de rounds</span><strong>{{ formatNumber(vm.averageRounds) }}</strong><small>por aparição</small></div>
+        <section class="maps-page__overview" [attr.aria-label]="'maps.overview.ariaLabel' | translate">
+          <div><span>{{ 'maps.overview.maps' | translate }}</span><strong>{{ vm.maps.length }}</strong><small>{{ 'maps.overview.published' | translate }}</small></div>
+          <div><span>{{ 'maps.overview.appearances' | translate }}</span><strong>{{ vm.totalMapAppearances }}</strong><small>{{ 'maps.overview.publishedSet' | translate }}</small></div>
+          <div><span>{{ 'maps.overview.rounds' | translate }}</span><strong>{{ vm.totalRounds }}</strong><small>{{ 'maps.overview.totalVolume' | translate }}</small></div>
+          <div><span>{{ 'maps.overview.averageRounds' | translate }}</span><strong>{{ formatNumber(vm.averageRounds) }}</strong><small>{{ 'maps.overview.perAppearance' | translate }}</small></div>
         </section>
 
         @if (vm.mostPlayedMap; as hero) {
           @let heroShare = rotationShare(hero.matches, vm.totalMapAppearances);
           <article class="maps-page__hero" [style.--map-bg]="mapBackgroundImage(hero.name)">
             <div class="maps-page__hero-main">
-              <span class="maps-page__eyebrow maps-page__eyebrow--orange">Maior presença</span>
+              <span class="maps-page__eyebrow maps-page__eyebrow--orange">{{ 'maps.featured.eyebrow' | translate }}</span>
               <h2 title="{{ hero.name }}">{{ hero.name }}</h2>
-              <div class="maps-page__hero-share"><strong>{{ formatPercent(heroShare) }}</strong><span>Participação na rotação</span></div>
-              <div class="maps-page__progress" role="img" [attr.aria-label]="hero.name + ': ' + formatPercent(heroShare) + ' de participação na rotação'">
+              <div class="maps-page__hero-share"><strong>{{ formatPercent(heroShare) }}</strong><span>{{ 'maps.featured.rotationShare' | translate }}</span></div>
+              <div class="maps-page__progress" role="img" [attr.aria-label]="'maps.featured.progressAriaLabel' | translate: { map: hero.name, percent: formatPercent(heroShare) }">
                 <span [style.width.%]="heroShare"></span>
               </div>
-              <a [routerLink]="['/maps', hero.name]">Ver detalhe do mapa <span aria-hidden="true">→</span></a>
+              <a [routerLink]="['/maps', hero.name]">{{ 'maps.featured.viewDetails' | translate }} <span aria-hidden="true">→</span></a>
             </div>
             <dl class="maps-page__hero-stats">
-              <div><dt>Aparições</dt><dd>{{ hero.matches }}</dd></div>
-              <div><dt>Rounds</dt><dd>{{ hero.rounds }}</dd></div>
-              <div><dt>Média de rounds</dt><dd>{{ formatNumber(hero.averageRoundsPerMatch) }}</dd></div>
-              <div><dt>Último jogo</dt><dd>{{ relativeDate(hero.lastPlayedAt, vm.generatedAt) }}</dd><small>{{ formatDate(hero.lastPlayedAt) }}</small></div>
+              <div><dt>{{ 'maps.featured.appearances' | translate }}</dt><dd>{{ hero.matches }}</dd></div>
+              <div><dt>{{ 'maps.featured.rounds' | translate }}</dt><dd>{{ hero.rounds }}</dd></div>
+              <div><dt>{{ 'maps.featured.averageRounds' | translate }}</dt><dd>{{ formatNumber(hero.averageRoundsPerMatch) }}</dd></div>
+              @let recency = relativeDate(hero.lastPlayedAt, vm.generatedAt); <div><dt>{{ 'maps.featured.lastPlayed' | translate }}</dt><dd>{{ recency.key | translate: recency.params }}</dd><small>{{ formatDate(hero.lastPlayedAt) || ('maps.fallbacks.date' | translate) }}</small></div>
             </dl>
           </article>
         }
 
         <section class="maps-page__distribution" aria-labelledby="distribution-title">
-          <div class="maps-page__section-heading"><div><span>Mapa pool intelligence</span><h2 id="distribution-title">Distribuição da rotação</h2></div><p>Participação de cada mapa no total de aparições publicadas.</p></div>
+          <div class="maps-page__section-heading"><div><span>{{ 'maps.distribution.eyebrow' | translate }}</span><h2 id="distribution-title">{{ 'maps.distribution.title' | translate }}</h2></div><p>{{ 'maps.distribution.description' | translate }}</p></div>
           <div class="maps-page__distribution-list">
             @for (mapSummary of vm.maps; track mapSummary.name) {
               @let share = rotationShare(mapSummary.matches, vm.totalMapAppearances);
               <div class="maps-page__distribution-row">
                 <strong title="{{ mapSummary.name }}">{{ mapSummary.name }}</strong>
-                <div class="maps-page__distribution-track" role="img" [attr.aria-label]="mapSummary.name + ': ' + formatPercent(share) + ' de participação na rotação'"><span [style.width.%]="share"></span></div>
-                <b>{{ formatPercent(share) }}</b><small>{{ mapSummary.matches }} aparições</small>
+                <div class="maps-page__distribution-track" role="img" [attr.aria-label]="'maps.distribution.progressAriaLabel' | translate: { map: mapSummary.name, percent: formatPercent(share) }"><span [style.width.%]="share"></span></div>
+                <b>{{ formatPercent(share) }}</b><small>{{ (mapSummary.matches === 1 ? 'maps.counts.appearances.one' : 'maps.counts.appearances.other') | translate: { count: mapSummary.matches } }}</small>
               </div>
             }
           </div>
         </section>
 
         <section class="maps-page__catalog" aria-labelledby="catalog-title">
-          <div class="maps-page__section-heading"><div><span>Fichas competitivas</span><h2 id="catalog-title">Todos os mapas</h2></div><p>Explore as métricas ou encontre um mapa específico.</p></div>
+          <div class="maps-page__section-heading"><div><span>{{ 'maps.catalog.eyebrow' | translate }}</span><h2 id="catalog-title">{{ 'maps.catalog.title' | translate }}</h2></div><p>{{ 'maps.catalog.description' | translate }}</p></div>
           <div class="maps-page__controls">
-            <label class="maps-page__field"><span>Buscar mapa</span><input type="search" placeholder="Ex.: de_mirage" [value]="searchTerm()" (input)="updateSearch($event)" /></label>
-            <label class="maps-page__field"><span>Ordenar por</span><select [value]="sortBy()" (change)="updateSort($event)"><option value="published">Ordem oficial (publicada)</option><option value="matches">Mais aparições</option><option value="rounds">Mais rounds</option><option value="lastPlayed">Último jogo</option><option value="name">Nome (A–Z)</option></select></label>
+            <label class="maps-page__field"><span>{{ 'maps.catalog.searchLabel' | translate }}</span><input type="search" [placeholder]="'maps.catalog.searchPlaceholder' | translate" [value]="searchTerm()" (input)="updateSearch($event)" /></label>
+            <label class="maps-page__field"><span>{{ 'maps.catalog.sortLabel' | translate }}</span><select [value]="sortBy()" (change)="updateSort($event)"><option value="published">{{ 'maps.catalog.sort.published' | translate }}</option><option value="matches">{{ 'maps.catalog.sort.matches' | translate }}</option><option value="rounds">{{ 'maps.catalog.sort.rounds' | translate }}</option><option value="lastPlayed">{{ 'maps.catalog.sort.lastPlayed' | translate }}</option><option value="name">{{ 'maps.catalog.sort.name' | translate }}</option></select></label>
           </div>
           @let maps = visibleMaps(vm.maps);
           @if (maps.length > 0) {
             <div class="maps-page__grid">@for (mapSummary of maps; track mapSummary.name) { <app-map-stat-card [map]="mapSummary" [totalMapAppearances]="vm.totalMapAppearances" /> }</div>
           } @else {
-            <app-page-state type="empty" title="Nenhum mapa encontrado" message="A busca atual não encontrou mapas na rotação." />
+            <app-page-state type="empty" [title]="'maps.states.filteredEmpty.title' | translate" [message]="'maps.states.filteredEmpty.message' | translate" />
           }
         </section>
       }

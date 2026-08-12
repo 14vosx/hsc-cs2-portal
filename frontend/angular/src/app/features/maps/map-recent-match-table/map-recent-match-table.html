@@ -1,30 +1,30 @@
-<div class="match-feed" role="list" aria-label="Partidas recentes do mapa">
+<div class="match-feed" role="list" [attr.aria-label]="'mapRecentMatches.ariaLabel' | translate">
   @for (match of recentMatches(); track match.matchId) {
     <article class="match-feed__item" role="listitem">
       <header class="match-feed__header">
-        <div><span class="match-feed__id">Match #{{ match.matchId }}</span><time [attr.datetime]="match.endedAt">{{ formatDate(match.endedAt) }}</time></div>
-        <strong>{{ seriesTypeLabel(match.seriesType) }}</strong>
+        <div><span class="match-feed__id">{{ 'mapRecentMatches.match' | translate: { id: match.matchId } }}</span><time [attr.datetime]="match.endedAt">{{ formatDate(match.endedAt) || ('mapRecentMatches.fallbacks.date' | translate) }}</time></div>
+        <strong>{{ seriesTypeLabel(match.seriesType) || ('mapRecentMatches.fallbacks.series' | translate) }}</strong>
       </header>
 
-      <div class="match-feed__scoreboard" aria-label="Placar do mapa: {{ mapScoreLabel(match) }}">
+      <div class="match-feed__scoreboard" [attr.aria-label]="'mapRecentMatches.scoreAriaLabel' | translate: { score: mapScoreLabel(match) }">
         <div class="match-feed__team match-feed__team--one" [class.is-winner]="isTeam1Winner(match)">
-          <span [title]="team1Name(match)">{{ team1Name(match) }}</span>
-          @if (isTeam1Winner(match)) { <small>Vencedor</small> }
+          <span [title]="team1Name(match) || ('mapRecentMatches.fallbacks.team' | translate)">{{ team1Name(match) || ('mapRecentMatches.fallbacks.team' | translate) }}</span>
+          @if (isTeam1Winner(match)) { <small>{{ 'mapRecentMatches.winner' | translate }}</small> }
         </div>
         <b class="match-feed__map-score match-feed__map-score--one" [class.is-winner]="isTeam1Winner(match)">{{ scoreLabel(match.mapScore.team1) }}</b>
         <span class="match-feed__versus">VS</span>
         <b class="match-feed__map-score match-feed__map-score--two" [class.is-winner]="isTeam2Winner(match)">{{ scoreLabel(match.mapScore.team2) }}</b>
         <div class="match-feed__team match-feed__team--two" [class.is-winner]="isTeam2Winner(match)">
-          <span [title]="team2Name(match)">{{ team2Name(match) }}</span>
-          @if (isTeam2Winner(match)) { <small>Vencedor</small> }
+          <span [title]="team2Name(match) || ('mapRecentMatches.fallbacks.team' | translate)">{{ team2Name(match) || ('mapRecentMatches.fallbacks.team' | translate) }}</span>
+          @if (isTeam2Winner(match)) { <small>{{ 'mapRecentMatches.winner' | translate }}</small> }
         </div>
       </div>
       <footer class="match-feed__footer">
         <dl>
-          <div><dt>Vencedor</dt><dd>{{ winnerLabel(match.winner) }}</dd></div>
-          <div><dt>Série</dt><dd>{{ seriesScoreLabel(match) }}</dd></div>
+          <div><dt>{{ 'mapRecentMatches.winner' | translate }}</dt><dd>{{ winnerLabel(match.winner) || ('mapRecentMatches.fallbacks.winner' | translate) }}</dd></div>
+          <div><dt>{{ 'mapRecentMatches.series' | translate }}</dt><dd>{{ seriesScoreLabel(match) }}</dd></div>
         </dl>
-        <a class="match-feed__link" [routerLink]="['/matches', match.matchId]">Ver partida <span aria-hidden="true">→</span></a>
+        <a class="match-feed__link" [routerLink]="['/matches', match.matchId]">{{ 'mapRecentMatches.viewMatch' | translate }} <span aria-hidden="true">→</span></a>
       </footer>
     </article>
   }

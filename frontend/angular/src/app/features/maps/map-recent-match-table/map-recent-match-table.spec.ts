@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import type { MapRecentMatch } from '../domain/map.model';
@@ -37,8 +38,12 @@ describe('MapRecentMatchTable', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TestHostComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideTranslateService()],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { mapRecentMatches: { ariaLabel: 'Partidas recentes do mapa', match: 'Partida #{{ id }}', scoreAriaLabel: 'Placar do mapa: {{ score }}', winner: 'Vencedor', series: 'Série', viewMatch: 'Ver partida', fallbacks: { date: 'Sem data', series: 'Série não informada', team: 'Time não informado', winner: 'Sem vencedor' } } });
+    translate.setTranslation('en-US', { mapRecentMatches: { ariaLabel: 'Recent matches on this map', match: 'Match #{{ id }}', scoreAriaLabel: 'Map score: {{ score }}', winner: 'Winner', series: 'Series', viewMatch: 'View match', fallbacks: { date: 'No date', series: 'Series unavailable', team: 'Team unavailable', winner: 'No winner' } } });
+    void translate.use('pt-BR');
 
     fixture = TestBed.createComponent(TestHostComponent);
     host = fixture.componentInstance;
@@ -58,8 +63,8 @@ describe('MapRecentMatchTable', () => {
     const matchLink1 = rows[0].querySelector('.match-feed__id').textContent.trim();
     const matchLink2 = rows[1].querySelector('.match-feed__id').textContent.trim();
 
-    expect(matchLink1).toBe('Match #101');
-    expect(matchLink2).toBe('Match #102');
+    expect(matchLink1).toBe('Partida #101');
+    expect(matchLink2).toBe('Partida #102');
   });
 
   it('renderiza link correto para a rota de detalhe da partida /matches/:matchId', () => {

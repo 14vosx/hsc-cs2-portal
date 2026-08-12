@@ -1,11 +1,12 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { MapRecentMatch } from '../domain/map.model';
 
 @Component({
   selector: 'app-map-recent-match-table',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './map-recent-match-table.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-recent-match-table.css',
@@ -13,9 +14,9 @@ import type { MapRecentMatch } from '../domain/map.model';
 export class MapRecentMatchTable {
   readonly recentMatches = input.required<readonly MapRecentMatch[]>();
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
@@ -30,16 +31,16 @@ export class MapRecentMatchTable {
     }).format(date);
   }
 
-  protected seriesTypeLabel(seriesType?: string | null): string {
-    return seriesType || 'Série não informada';
+  protected seriesTypeLabel(seriesType?: string | null): string | null {
+    return seriesType || null;
   }
 
-  protected team1Name(match: MapRecentMatch): string {
-    return match.team1.name || 'Time não informado';
+  protected team1Name(match: MapRecentMatch): string | null {
+    return match.team1.name || null;
   }
 
-  protected team2Name(match: MapRecentMatch): string {
-    return match.team2.name || 'Time não informado';
+  protected team2Name(match: MapRecentMatch): string | null {
+    return match.team2.name || null;
   }
 
   protected seriesScoreLabel(match: MapRecentMatch): string {
@@ -64,8 +65,8 @@ export class MapRecentMatchTable {
     return typeof value === 'number' && Number.isFinite(value) ? String(value) : '—';
   }
 
-  protected winnerLabel(winner?: string | null): string {
-    return winner || 'Sem vencedor';
+  protected winnerLabel(winner?: string | null): string | null {
+    return winner || null;
   }
 
   protected isTeam1Winner(match: MapRecentMatch): boolean {

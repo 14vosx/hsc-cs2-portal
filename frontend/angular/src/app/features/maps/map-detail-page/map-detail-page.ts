@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { PageHeader } from '../../../shared/components/page-header/page-header';
@@ -20,6 +21,7 @@ type MapDetailVm =
   | { state: 'loading' }
   | { state: 'not-found' }
   | { state: 'error' };
+interface RelativeDateDescriptor { readonly key: string; readonly params: { readonly days?: number }; }
 
 @Component({
   selector: 'app-map-detail-page',
@@ -29,6 +31,7 @@ type MapDetailVm =
     PageHeader,
     PageState,
     MapRecentMatchTable,
+    TranslatePipe,
   ],
   templateUrl: './map-detail-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -85,9 +88,9 @@ export class MapDetailPage {
     this.router.navigate(['/maps']);
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data disponível';
+      return null;
     }
 
     const date = new Date(value);
@@ -119,15 +122,15 @@ export class MapDetailPage {
     return `url("map-images/${name}.png")`;
   }
 
-  protected relativeDate(value: string | null | undefined, generatedAt: string): string {
+  protected relativeDate(value: string | null | undefined, generatedAt: string): RelativeDateDescriptor {
     const played = value ? new Date(value).getTime() : Number.NaN;
     const snapshot = new Date(generatedAt).getTime();
     if (Number.isNaN(played) || Number.isNaN(snapshot)) {
-      return 'Sem recência disponível';
+      return { key: 'mapDetail.relativeDate.unavailable', params: {} };
     }
     const days = Math.max(0, Math.floor((snapshot - played) / 86_400_000));
-    if (days === 0) return 'no dia da atualização';
-    if (days === 1) return 'há 1 dia';
-    return `há ${days} dias`;
+    if (days === 0) return { key: 'mapDetail.relativeDate.sameDay', params: {} };
+    if (days === 1) return { key: 'mapDetail.relativeDate.oneDay', params: {} };
+    return { key: 'mapDetail.relativeDate.otherDays', params: { days } };
   }
 }

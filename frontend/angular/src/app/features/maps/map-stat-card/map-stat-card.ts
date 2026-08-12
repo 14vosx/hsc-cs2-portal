@@ -1,11 +1,12 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { MapSummary } from '../domain/map.model';
 
 @Component({
   selector: 'app-map-stat-card',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './map-stat-card.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-stat-card.css',
@@ -34,9 +35,9 @@ export class MapStatCard {
     return `url("map-images/${name}.png")`;
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {

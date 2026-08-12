@@ -78,5 +78,25 @@
     "ariaLabel": "Player statistics",
     "columns": { "player": "Player" },
     "fallbacks": { "unnamed": "Unnamed player" }
-  }
+  },
+  "maps": {
+    "states": { "header": { "eyebrow": "Maps", "title": "Map rotation", "description": "Volume, distribution, rounds and activity of published maps." }, "loading": { "title": "Loading maps...", "message": "Syncing map rotation." }, "error": { "title": "Maps unavailable", "message": "Map rotation could not be loaded right now. Check the API connection and try again.", "retry": "Try again" }, "empty": { "title": "No maps found", "message": "No maps have been published." }, "filteredEmpty": { "title": "No maps found", "message": "The current search found no maps in the rotation." } },
+    "hero": { "eyebrow": "Maps", "title": "Map rotation", "description": "A tactical view of the volume, distribution, rounds, and activity of maps published on HSC.", "updated": "Data updated" },
+    "overview": { "ariaLabel": "Maps summary", "maps": "Maps", "published": "published", "appearances": "Appearances", "publishedSet": "in the published set", "rounds": "Rounds", "totalVolume": "total volume", "averageRounds": "Average rounds", "perAppearance": "per appearance" },
+    "featured": { "eyebrow": "Highest presence", "rotationShare": "Rotation share", "progressAriaLabel": "{{ map }}: {{ percent }} rotation share", "viewDetails": "View map details", "appearances": "Appearances", "rounds": "Rounds", "averageRounds": "Average rounds", "lastPlayed": "Last played" },
+    "distribution": { "eyebrow": "Map pool intelligence", "title": "Rotation distribution", "description": "Each map's share of all published appearances.", "progressAriaLabel": "{{ map }}: {{ percent }} rotation share" },
+    "catalog": { "eyebrow": "Competitive profiles", "title": "All maps", "description": "Explore metrics or find a specific map.", "searchLabel": "Search map", "searchPlaceholder": "E.g.: de_mirage", "sortLabel": "Sort by", "sort": { "published": "Official order (published)", "matches": "Most appearances", "rounds": "Most rounds", "lastPlayed": "Last played", "name": "Name (A–Z)" } },
+    "counts": { "appearances": { "one": "{{ count }} appearance", "other": "{{ count }} appearances" } },
+    "fallbacks": { "date": "No date available" }, "relativeDate": { "unavailable": "No recency available", "sameDay": "on update day", "oneDay": "1 day ago", "otherDays": "{{ days }} days ago" }
+  },
+  "mapStatCard": { "mapLabel": "Map", "rotationShare": "Rotation share", "progressAriaLabel": "{{ map }}: {{ percent }} rotation share", "stats": { "appearances": "Appearances", "rounds": "Rounds", "averageRounds": "Average rounds" }, "lastPlayed": "Last played", "viewDetails": "View details", "fallbacks": { "date": "No date" } },
+  "mapDetail": {
+    "states": { "loading": { "eyebrow": "Maps", "title": "Map detail", "description": "Loading map statistics.", "pageTitle": "Loading map...", "pageMessage": "Fetching map details." }, "notFound": { "eyebrow": "Maps", "title": "Map not found", "description": "The requested map was not found in the history.", "pageMessage": "We could not find the requested map in the competitive rotation.", "action": "Back to maps" }, "error": { "eyebrow": "Maps", "title": "Map unavailable", "description": "This map's statistics could not be loaded.", "pageTitle": "Error loading map", "pageMessage": "This map's information could not be loaded right now.", "retry": "Try again" } },
+    "backToMaps": "← Back to maps", "hero": { "mapLabel": "Map", "lastPlayed": "Last played", "updated": "Data updated" },
+    "snapshot": { "ariaLabel": "Historical map summary", "appearances": "Appearances", "records": "map records", "rounds": "Rounds", "totalVolume": "accumulated volume", "averageRounds": "Average rounds", "perAppearance": "per appearance", "lastPlayed": "Last played" },
+    "history": { "eyebrow": "Recent history", "title": "Matches on this map", "description": "Map score, series context, and winner as published.", "emptyTitle": "No recent matches", "emptyMessage": "This map has no recent matches in its history yet." },
+    "counts": { "appearances": { "one": "{{ count }} recorded appearance", "other": "{{ count }} recorded appearances" }, "rounds": { "one": "{{ count }} round", "other": "{{ count }} rounds" } },
+    "fallbacks": { "date": "No date available" }, "relativeDate": { "unavailable": "No recency available", "sameDay": "on update day", "oneDay": "1 day ago", "otherDays": "{{ days }} days ago" }
+  },
+  "mapRecentMatches": { "ariaLabel": "Recent matches on this map", "match": "Match #{{ id }}", "scoreAriaLabel": "Map score: {{ score }}", "winner": "Winner", "series": "Series", "viewMatch": "View match", "fallbacks": { "date": "No date", "series": "Series unavailable", "team": "Team unavailable", "winner": "No winner" } }
 }

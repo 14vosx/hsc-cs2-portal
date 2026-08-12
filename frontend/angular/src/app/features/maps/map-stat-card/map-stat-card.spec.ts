@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import type { MapSummary } from '../domain/map.model';
@@ -29,8 +30,12 @@ describe('MapStatCard', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TestHostComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideTranslateService()],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { mapStatCard: { mapLabel: 'Mapa', rotationShare: 'Participação na rotação', progressAriaLabel: '{{ map }}: {{ percent }} de participação na rotação', stats: { appearances: 'Aparições', rounds: 'Rounds', averageRounds: 'Média de rounds' }, lastPlayed: 'Último jogo', viewDetails: 'Ver detalhe', fallbacks: { date: 'Sem data' } } });
+    translate.setTranslation('en-US', { mapStatCard: { mapLabel: 'Map', rotationShare: 'Rotation share', progressAriaLabel: '{{ map }}: {{ percent }} rotation share', stats: { appearances: 'Appearances', rounds: 'Rounds', averageRounds: 'Average rounds' }, lastPlayed: 'Last played', viewDetails: 'View details', fallbacks: { date: 'No date' } } });
+    void translate.use('pt-BR');
 
     fixture = TestBed.createComponent(TestHostComponent);
     host = fixture.componentInstance;

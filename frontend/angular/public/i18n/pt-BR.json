@@ -78,5 +78,26 @@
     "ariaLabel": "Estatísticas dos jogadores",
     "columns": { "player": "Jogador" },
     "fallbacks": { "unnamed": "Sem nome" }
-  }
+  },
+  "maps": {
+    "states": { "header": { "eyebrow": "Mapas", "title": "Rotação de mapas", "description": "Volume, distribuição, rounds e atividade dos mapas publicados." }, "loading": { "title": "Carregando mapas...", "message": "Sincronizando a rotação de mapas." }, "error": { "title": "Mapas indisponíveis", "message": "Não foi possível carregar a rotação de mapas no momento. Verifique a conexão com a API e tente novamente.", "retry": "Tentar novamente" }, "empty": { "title": "Nenhum mapa encontrado", "message": "Nenhum mapa foi publicado." }, "filteredEmpty": { "title": "Nenhum mapa encontrado", "message": "A busca atual não encontrou mapas na rotação." } },
+    "hero": { "eyebrow": "Mapas", "title": "Rotação de mapas", "description": "Uma leitura tática do volume, distribuição, rounds e atividade dos mapas publicados no HSC.", "updated": "Dados atualizados" },
+    "overview": { "ariaLabel": "Resumo dos mapas", "maps": "Mapas", "published": "publicados", "appearances": "Aparições", "publishedSet": "no conjunto publicado", "rounds": "Rounds", "totalVolume": "volume total", "averageRounds": "Média de rounds", "perAppearance": "por aparição" },
+    "featured": { "eyebrow": "Maior presença", "rotationShare": "Participação na rotação", "progressAriaLabel": "{{ map }}: {{ percent }} de participação na rotação", "viewDetails": "Ver detalhe do mapa", "appearances": "Aparições", "rounds": "Rounds", "averageRounds": "Média de rounds", "lastPlayed": "Último jogo" },
+    "distribution": { "eyebrow": "Inteligência do map pool", "title": "Distribuição da rotação", "description": "Participação de cada mapa no total de aparições publicadas.", "progressAriaLabel": "{{ map }}: {{ percent }} de participação na rotação" },
+    "catalog": { "eyebrow": "Fichas competitivas", "title": "Todos os mapas", "description": "Explore as métricas ou encontre um mapa específico.", "searchLabel": "Buscar mapa", "searchPlaceholder": "Ex.: de_mirage", "sortLabel": "Ordenar por", "sort": { "published": "Ordem oficial (publicada)", "matches": "Mais aparições", "rounds": "Mais rounds", "lastPlayed": "Último jogo", "name": "Nome (A–Z)" } },
+    "counts": { "appearances": { "one": "{{ count }} aparição", "other": "{{ count }} aparições" } },
+    "fallbacks": { "date": "Sem data disponível" },
+    "relativeDate": { "unavailable": "Sem recência disponível", "sameDay": "no dia da atualização", "oneDay": "há 1 dia", "otherDays": "há {{ days }} dias" }
+  },
+  "mapStatCard": { "mapLabel": "Mapa", "rotationShare": "Participação na rotação", "progressAriaLabel": "{{ map }}: {{ percent }} de participação na rotação", "stats": { "appearances": "Aparições", "rounds": "Rounds", "averageRounds": "Média de rounds" }, "lastPlayed": "Último jogo", "viewDetails": "Ver detalhe", "fallbacks": { "date": "Sem data" } },
+  "mapDetail": {
+    "states": { "loading": { "eyebrow": "Mapas", "title": "Detalhe do mapa", "description": "Carregando estatísticas do mapa.", "pageTitle": "Carregando mapa...", "pageMessage": "Buscando detalhes do mapa." }, "notFound": { "eyebrow": "Mapas", "title": "Mapa não encontrado", "description": "O mapa solicitado não foi localizado no histórico.", "pageMessage": "Não encontramos o mapa solicitado na rotação competitiva.", "action": "Voltar para mapas" }, "error": { "eyebrow": "Mapas", "title": "Mapa indisponível", "description": "Não foi possível carregar as estatísticas deste mapa.", "pageTitle": "Erro ao carregar mapa", "pageMessage": "Não foi possível carregar as informações deste mapa no momento.", "retry": "Tentar novamente" } },
+    "backToMaps": "← Voltar para mapas", "hero": { "mapLabel": "Mapa", "lastPlayed": "Último jogo", "updated": "Dados atualizados" },
+    "snapshot": { "ariaLabel": "Resumo histórico do mapa", "appearances": "Aparições", "records": "registros do mapa", "rounds": "Rounds", "totalVolume": "volume acumulado", "averageRounds": "Média de rounds", "perAppearance": "por aparição", "lastPlayed": "Último jogo" },
+    "history": { "eyebrow": "Histórico recente", "title": "Confrontos neste mapa", "description": "Placar do mapa, contexto da série e vencedor conforme publicados.", "emptyTitle": "Nenhuma partida recente", "emptyMessage": "Este mapa ainda não possui partidas recentes no histórico." },
+    "counts": { "appearances": { "one": "{{ count }} aparição registrada", "other": "{{ count }} aparições registradas" }, "rounds": { "one": "{{ count }} round", "other": "{{ count }} rounds" } },
+    "fallbacks": { "date": "Sem data disponível" }, "relativeDate": { "unavailable": "Sem recência disponível", "sameDay": "no dia da atualização", "oneDay": "há 1 dia", "otherDays": "há {{ days }} dias" }
+  },
+  "mapRecentMatches": { "ariaLabel": "Partidas recentes do mapa", "match": "Partida #{{ id }}", "scoreAriaLabel": "Placar do mapa: {{ score }}", "winner": "Vencedor", "series": "Série", "viewMatch": "Ver partida", "fallbacks": { "date": "Sem data", "series": "Série não informada", "team": "Time não informado", "winner": "Sem vencedor" } }
 }

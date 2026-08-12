@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -30,9 +31,14 @@ describe('MapsPage', () => {
       imports: [MapsPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: MapsApiService, useValue: mapsApiMock },
       ],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { maps: { states: { header: { title: 'Rotação de mapas' }, loading: { message: 'Sincronizando a rotação de mapas.' }, error: { title: 'Mapas indisponíveis' }, empty: { message: 'Nenhum mapa foi publicado.' }, filteredEmpty: { message: 'A busca atual não encontrou mapas na rotação.' } }, hero: { title: 'Rotação de mapas', updated: 'Dados atualizados' }, overview: { maps: 'Mapas', appearances: 'Aparições' }, featured: { progressAriaLabel: '{{ map }}: {{ percent }} de participação na rotação' }, distribution: { progressAriaLabel: '{{ map }}: {{ percent }} de participação na rotação' }, counts: { appearances: { one: '{{ count }} aparição', other: '{{ count }} aparições' } }, relativeDate: { otherDays: 'há {{ days }} dias' }, catalog: {}, fallbacks: {} }, mapStatCard: {} });
+    translate.setTranslation('en-US', { maps: { hero: { title: 'Map rotation' }, overview: { maps: 'Maps' }, catalog: { searchLabel: 'Search map', sortLabel: 'Sort by' } }, mapStatCard: {} });
+    void translate.use('pt-BR');
   });
 
   const createComponent = () => {
