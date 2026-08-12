@@ -2,13 +2,13 @@
   @if (vm$ | async; as vm) {
     <header class="matches-page__hero">
       <div class="matches-page__hero-copy">
-        <span class="matches-page__eyebrow">Partidas</span>
-        <h1>Histórico <span>competitivo</span></h1>
-        <p>Resultados recentes do HSC CS2 com placar do mapa, vencedor e contexto da série.</p>
+        <span class="matches-page__eyebrow">{{ 'matches.hero.eyebrow' | translate }}</span>
+        <h1>{{ 'matches.hero.title' | translate }}</h1>
+        <p>{{ 'matches.hero.description' | translate }}</p>
         @if (vm.state === 'ready') {
           <div class="matches-page__header-status">
-            <app-status-badge label="Sincronização ativa" tone="success" />
-            <span>Atualizado em {{ formatDate(vm.generatedAt) }}</span>
+            <app-status-badge [label]="'matches.hero.syncActive' | translate" tone="success" />
+            <span>{{ 'matches.hero.updatedAt' | translate }} @if (formatDate(vm.generatedAt); as date) { {{ date }} } @else { {{ 'matches.fallbacks.date' | translate }} }</span>
           </div>
         }
       </div>
@@ -19,17 +19,17 @@
       @case ('loading') {
         <app-page-state
           type="loading"
-          title="Carregando partidas..."
-          message="Sincronizando o histórico de partidas."
+          [title]="'matches.states.loading.title' | translate"
+          [message]="'matches.states.loading.message' | translate"
         />
       }
 
       @case ('error') {
         <app-page-state
           type="error"
-          title="Partidas indisponíveis"
-          message="Não foi possível carregar as partidas no momento. Verifique a conexão com a API e tente novamente."
-          actionLabel="Tentar novamente"
+          [title]="'matches.states.error.title' | translate"
+          [message]="'matches.states.error.message' | translate"
+          [actionLabel]="'matches.states.error.retry' | translate"
           (actionClick)="retry()"
         />
       }
@@ -37,23 +37,23 @@
       @case ('empty') {
         <app-page-state
           type="empty"
-          title="Nenhuma partida encontrada"
-          message="Nenhuma partida finalizada foi publicada."
+          [title]="'matches.states.empty.title' | translate"
+          [message]="'matches.states.empty.message' | translate"
         />
       }
 
       @case ('ready') {
-        <section class="matches-page__metrics" aria-label="Resumo das partidas">
+        <section class="matches-page__metrics" [attr.aria-label]="'matches.summary.ariaLabel' | translate">
           <article class="matches-page__summary-card">
-            <span>Partidas</span>
+            <span>{{ 'matches.summary.matches' | translate }}</span>
             <strong>{{ vm.matches.length }}</strong>
           </article>
           <article class="matches-page__summary-card matches-page__summary-card--orange">
-            <span>Mapas jogados</span>
+            <span>{{ 'matches.summary.mapsPlayed' | translate }}</span>
             <strong>{{ vm.totalMapsPlayed }}</strong>
           </article>
           <article class="matches-page__summary-card">
-            <span>Última partida</span>
+            <span>{{ 'matches.summary.latestMatch' | translate }}</span>
             <strong>#{{ vm.latestMatch.id }}</strong>
           </article>
         </section>
@@ -61,17 +61,17 @@
         <section class="matches-page__history" aria-labelledby="matches-history-title">
           <div class="matches-page__section-heading">
             <div>
-              <span>Histórico</span>
-              <h2 id="matches-history-title">Partidas recentes</h2>
+              <span>{{ 'matches.history.eyebrow' | translate }}</span>
+              <h2 id="matches-history-title">{{ 'matches.history.title' | translate }}</h2>
             </div>
-            <p>Consulte confrontos publicados por mapa, time, ID, vencedor ou tipo de série.</p>
+            <p>{{ 'matches.history.description' | translate }}</p>
           </div>
 
           <div class="matches-page__controls">
             <label class="matches-page__field">
-              <span>Filtro de mapa</span>
+              <span>{{ 'matches.filters.mapLabel' | translate }}</span>
               <select [value]="selectedMap()" (change)="updateMapFilter($event)">
-                <option value="">Todos os mapas</option>
+                <option value="">{{ 'matches.filters.allMaps' | translate }}</option>
                 @for (mapName of vm.mapOptions; track mapName) {
                   <option [value]="mapName">{{ mapName }}</option>
                 }
@@ -79,10 +79,10 @@
             </label>
 
             <label class="matches-page__field matches-page__field--search">
-              <span>Buscar partida</span>
+              <span>{{ 'matches.filters.searchLabel' | translate }}</span>
               <input
                 type="search"
-                placeholder="Match ID, time, vencedor, série ou mapa"
+                [placeholder]="'matches.filters.searchPlaceholder' | translate"
                 [value]="searchTerm()"
                 (input)="updateSearch($event)"
               />
@@ -92,12 +92,12 @@
           <article
             class="matches-page__latest"
             [style.--match-map-bg]="mapBackgroundImage(vm.latestMatch)"
-            aria-label="Última partida"
+            [attr.aria-label]="'matches.latest.ariaLabel' | translate"
           >
             <div class="matches-page__latest-heading">
               <div>
-                <span>Latest match</span>
-                <h3>Última partida</h3>
+                <span>{{ 'matches.latest.eyebrow' | translate }}</span>
+                <h3>{{ 'matches.latest.title' | translate }}</h3>
               </div>
               <div class="matches-page__latest-meta">
                 <strong>#{{ vm.latestMatch.id }}</strong>
@@ -112,17 +112,17 @@
                 class="matches-page__latest-team matches-page__latest-team--one"
                 [class.is-winner]="winnerSide(vm.latestMatch) === 'team1'"
               >
-                <div class="matches-page__team-name" [title]="teamName(vm.latestMatch.team1.name)">
-                  <strong>{{ teamName(vm.latestMatch.team1.name) }}</strong>
-                  @if (winnerSide(vm.latestMatch) === 'team1') { <span>Vencedor</span> }
+                <div class="matches-page__team-name" [title]="teamName(vm.latestMatch.team1.name) || ('matches.fallbacks.team' | translate)">
+                  <strong>{{ teamName(vm.latestMatch.team1.name) || ('matches.fallbacks.team' | translate) }}</strong>
+                  @if (winnerSide(vm.latestMatch) === 'team1') { <span>{{ 'matches.latest.winner' | translate }}</span> }
                 </div>
                 <b>{{ scoreLabel(primaryMap(vm.latestMatch)?.team1Score ?? null) }}</b>
               </div>
 
               <div class="matches-page__latest-context">
                 <strong>VS</strong>
-                <span>{{ primaryMapName(vm.latestMatch) }}</span>
-                <time>{{ matchDate(vm.latestMatch) }}</time>
+                <span>{{ primaryMapName(vm.latestMatch) || ('matches.fallbacks.map' | translate) }}</span>
+                <time>{{ matchDate(vm.latestMatch) || ('matches.fallbacks.date' | translate) }}</time>
                 @if (durationLabel(vm.latestMatch); as duration) {
                   <small>{{ duration }}</small>
                 }
@@ -133,24 +133,24 @@
                 [class.is-winner]="winnerSide(vm.latestMatch) === 'team2'"
               >
                 <b>{{ scoreLabel(primaryMap(vm.latestMatch)?.team2Score ?? null) }}</b>
-                <div class="matches-page__team-name" [title]="teamName(vm.latestMatch.team2.name)">
-                  <strong>{{ teamName(vm.latestMatch.team2.name) }}</strong>
-                  @if (winnerSide(vm.latestMatch) === 'team2') { <span>Vencedor</span> }
+                <div class="matches-page__team-name" [title]="teamName(vm.latestMatch.team2.name) || ('matches.fallbacks.team' | translate)">
+                  <strong>{{ teamName(vm.latestMatch.team2.name) || ('matches.fallbacks.team' | translate) }}</strong>
+                  @if (winnerSide(vm.latestMatch) === 'team2') { <span>{{ 'matches.latest.winner' | translate }}</span> }
                 </div>
               </div>
             </div>
 
             <div class="matches-page__latest-footer">
               @if (vm.latestMatch.maps.length > 1) {
-                <div class="matches-page__map-list" aria-label="Mapas da série">
-                  <span>{{ vm.latestMatch.maps.length }} mapas</span>
+                <div class="matches-page__map-list" [attr.aria-label]="'matches.latest.seriesMapsAriaLabel' | translate">
+                  <span>{{ (vm.latestMatch.maps.length === 1 ? 'matches.counts.maps.one' : 'matches.counts.maps.other') | translate: { count: vm.latestMatch.maps.length } }}</span>
                   @for (mapItem of vm.latestMatch.maps; track $index) {
                     @if (mapItem.name) { <small>{{ mapItem.name }}</small> }
                   }
                 </div>
               }
               <a [routerLink]="['/matches', vm.latestMatch.id]">
-                Ver relatório e destaques <span aria-hidden="true">→</span>
+                {{ 'matches.latest.reportCta' | translate }} <span aria-hidden="true">→</span>
               </a>
             </div>
           </article>
@@ -158,16 +158,16 @@
           @let filtered = filteredMatches(vm.matches);
 
           @if (filtered.length > 0) {
-            <div class="matches-page__feed" aria-label="Feed de partidas">
+            <div class="matches-page__feed" [attr.aria-label]="'matches.feed.ariaLabel' | translate">
               @for (match of paginatedMatches(filtered); track match.id) {
                 <article class="matches-page__match-row">
                   <div class="matches-page__match-identity">
-                    <span class="matches-page__map-badge">{{ primaryMapName(match) }}</span>
+                    <span class="matches-page__map-badge">{{ primaryMapName(match) || ('matches.fallbacks.map' | translate) }}</span>
                     <div>
                       <strong>#{{ match.id }}</strong>
                       <span>
                         @if (match.seriesType) { {{ match.seriesType }} · }
-                        {{ matchDate(match) }}
+                        {{ matchDate(match) || ('matches.fallbacks.date' | translate) }}
                       </span>
                     </div>
                   </div>
@@ -177,8 +177,8 @@
                       class="matches-page__row-team matches-page__row-team--one"
                       [class.is-winner]="winnerSide(match) === 'team1'"
                     >
-                      <span [title]="teamName(match.team1.name)">{{ teamName(match.team1.name) }}</span>
-                      @if (winnerSide(match) === 'team1') { <small>Vencedor</small> }
+                      <span [title]="teamName(match.team1.name) || ('matches.fallbacks.team' | translate)">{{ teamName(match.team1.name) || ('matches.fallbacks.team' | translate) }}</span>
+                      @if (winnerSide(match) === 'team1') { <small>{{ 'matches.feed.winner' | translate }}</small> }
                       <strong>{{ scoreLabel(primaryMap(match)?.team1Score ?? null) }}</strong>
                     </div>
                     <b class="matches-page__versus">VS</b>
@@ -187,25 +187,25 @@
                       [class.is-winner]="winnerSide(match) === 'team2'"
                     >
                       <strong>{{ scoreLabel(primaryMap(match)?.team2Score ?? null) }}</strong>
-                      <span [title]="teamName(match.team2.name)">{{ teamName(match.team2.name) }}</span>
-                      @if (winnerSide(match) === 'team2') { <small>Vencedor</small> }
+                      <span [title]="teamName(match.team2.name) || ('matches.fallbacks.team' | translate)">{{ teamName(match.team2.name) || ('matches.fallbacks.team' | translate) }}</span>
+                      @if (winnerSide(match) === 'team2') { <small>{{ 'matches.feed.winner' | translate }}</small> }
                     </div>
                   </div>
 
                   <div class="matches-page__row-context">
                     @if (durationLabel(match); as duration) { <span>{{ duration }}</span> }
                     @if (match.maps.length > 1) {
-                      <span>{{ match.maps.length }} mapas</span>
+                      <span>{{ (match.maps.length === 1 ? 'matches.counts.maps.one' : 'matches.counts.maps.other') | translate: { count: match.maps.length } }}</span>
                     }
                   </div>
 
                   <a class="matches-page__row-cta" [routerLink]="['/matches', match.id]">
-                    <span class="matches-page__row-cta-label">Ver detalhes</span>
+                    <span class="matches-page__row-cta-label">{{ 'matches.feed.detailsCta' | translate }}</span>
                     <span aria-hidden="true">→</span>
                   </a>
 
                   @if (match.maps.length > 1) {
-                    <div class="matches-page__row-maps" aria-label="Mapas da série">
+                    <div class="matches-page__row-maps" [attr.aria-label]="'matches.feed.seriesMapsAriaLabel' | translate">
                       @for (mapItem of match.maps; track $index) {
                         @if (mapItem.name) {
                           <span>{{ mapItem.name }} · {{ scoreLabel(mapItem.team1Score) }} × {{ scoreLabel(mapItem.team2Score) }}</span>
@@ -218,16 +218,16 @@
             </div>
 
             <div class="matches-page__results-summary">
-              Exibindo {{ rangeStart(filtered.length) }}–{{ rangeEnd(filtered.length) }} de {{ filtered.length }} partidas
+              {{ (filtered.length === 1 ? 'matches.results.summary.one' : 'matches.results.summary.other') | translate: { start: rangeStart(filtered.length), end: rangeEnd(filtered.length), total: filtered.length } }}
             </div>
 
             @if (filtered.length > pageSize) {
-              <nav class="matches-page__pagination" aria-label="Paginação de partidas">
+              <nav class="matches-page__pagination" [attr.aria-label]="'matches.pagination.ariaLabel' | translate">
                 <button
                   type="button"
                   [disabled]="currentPage() === 1"
                   (click)="goToPage(currentPage() - 1, filtered.length)"
-                >Anterior</button>
+                >{{ 'matches.pagination.previous' | translate }}</button>
                 @for (page of pageNumbers(filtered.length); track page) {
                   <button
                     type="button"
@@ -241,14 +241,14 @@
                   type="button"
                   [disabled]="currentPage() === pageCount(filtered.length)"
                   (click)="goToPage(currentPage() + 1, filtered.length)"
-                >Próxima</button>
+                >{{ 'matches.pagination.next' | translate }}</button>
               </nav>
             }
           } @else {
             <app-page-state
               type="empty"
-              title="Nenhuma partida encontrada"
-              message="A busca ou o filtro por mapa não retornou confrontos."
+              [title]="'matches.states.filteredEmpty.title' | translate"
+              [message]="'matches.states.filteredEmpty.message' | translate"
             />
           }
         </section>

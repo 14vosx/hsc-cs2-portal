@@ -1,9 +1,11 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { MatchPlayer } from '../domain/match.model';
 
 @Component({
   selector: 'app-match-player-table',
+  imports: [TranslatePipe],
   templateUrl: './match-player-table.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './match-player-table.css',
@@ -58,7 +60,7 @@ export class MatchPlayerTable {
     return steamId64 ?? '—';
   }
 
-  protected nameLabel(name: string | null): string {
-    return name || 'Sem nome';
+  protected nameLabel(name: string | null): string | null {
+    return name || null;
   }
 }

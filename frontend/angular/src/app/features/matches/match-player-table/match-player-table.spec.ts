@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { MatchPlayer } from '../domain/match.model';
@@ -66,7 +68,12 @@ describe('MatchPlayerTable', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TestHostComponent],
+      providers: [provideTranslateService()],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { matchPlayerTable: { ariaLabel: 'Estatísticas dos jogadores', columns: { player: 'Jogador' }, fallbacks: { unnamed: 'Sem nome' } } });
+    translate.setTranslation('en-US', { matchPlayerTable: { ariaLabel: 'Player statistics', columns: { player: 'Player' }, fallbacks: { unnamed: 'Unnamed player' } } });
+    void translate.use('pt-BR');
 
     fixture = TestBed.createComponent(TestHostComponent);
     host = fixture.componentInstance;
@@ -77,7 +84,7 @@ describe('MatchPlayerTable', () => {
     const headers = fixture.nativeElement.querySelectorAll('th');
     const texts = Array.from(headers).map((h) => (h as HTMLElement).textContent?.trim());
     expect(texts).toEqual([
-      'Player',
+      'Jogador',
       'K',
       'D',
       'A',
@@ -197,5 +204,19 @@ describe('MatchPlayerTable', () => {
 
     expect(rows.length).toBe(host.testPlayers.length);
     expect(playerNames.length).toBe(host.testPlayers.length);
+  });
+
+  it('localiza região, Player e fallback sem alterar termos técnicos, ordem ou stats', async () => {
+    host.testPlayers = [createMockPlayer({ name: null, steamId64: '76561198000000099' })];
+    const translate = TestBed.inject(TranslateService);
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[role="region"]').getAttribute('aria-label')).toBe('Player statistics');
+    expect(fixture.nativeElement.querySelector('th').textContent.trim()).toBe('Player');
+    expect(fixture.nativeElement.querySelector('.cell-player').getAttribute('data-label')).toBe('Player');
+    expect(fixture.nativeElement.querySelector('.cell-player strong').textContent.trim()).toBe('Unnamed player');
+    expect(fixture.nativeElement.textContent).toContain('76561198000000099');
+    expect(Array.from(fixture.nativeElement.querySelectorAll('th')).map((header) => (header as HTMLElement).textContent?.trim()).slice(1)).toEqual(['K', 'D', 'A', 'K/D', 'ADR', 'DMG', 'HS%', 'Entry', 'UD', 'Flash']);
   });
 });

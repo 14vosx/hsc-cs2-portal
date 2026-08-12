@@ -3,56 +3,56 @@
     @switch (vm.state) {
       @case ('loading') {
         <header class="match-report__state-header">
-          <span>Relatório competitivo</span>
-          <h1>Detalhe da partida</h1>
-          <p>Carregando relatório competitivo.</p>
+          <span>{{ 'matchDetail.states.loading.eyebrow' | translate }}</span>
+          <h1>{{ 'matchDetail.states.loading.title' | translate }}</h1>
+          <p>{{ 'matchDetail.states.loading.description' | translate }}</p>
         </header>
-        <app-page-state type="loading" title="Carregando partida..." message="Buscando detalhes do confronto." />
+        <app-page-state type="loading" [title]="'matchDetail.states.loading.pageTitle' | translate" [message]="'matchDetail.states.loading.pageMessage' | translate" />
       }
 
       @case ('not-found') {
         <header class="match-report__state-header">
-          <span>Partidas</span>
-          <h1>Partida não encontrada</h1>
-          <p>O registro solicitado não foi localizado.</p>
+          <span>{{ 'matchDetail.states.notFound.eyebrow' | translate }}</span>
+          <h1>{{ 'matchDetail.states.notFound.title' | translate }}</h1>
+          <p>{{ 'matchDetail.states.notFound.description' | translate }}</p>
         </header>
         <app-page-state
           type="empty"
-          title="Partida não encontrada"
-          message="Não encontramos a partida solicitada no histórico competitivo."
-          actionLabel="Voltar para partidas"
+          [title]="'matchDetail.states.notFound.title' | translate"
+          [message]="'matchDetail.states.notFound.pageMessage' | translate"
+          [actionLabel]="'matchDetail.states.notFound.action' | translate"
           (actionClick)="goBack()"
         />
       }
 
       @case ('error') {
         <header class="match-report__state-header">
-          <span>Partidas</span>
-          <h1>Partida indisponível</h1>
-          <p>Não foi possível carregar o detalhe desta partida.</p>
+          <span>{{ 'matchDetail.states.error.eyebrow' | translate }}</span>
+          <h1>{{ 'matchDetail.states.error.title' | translate }}</h1>
+          <p>{{ 'matchDetail.states.error.description' | translate }}</p>
         </header>
         <app-page-state
           type="error"
-          title="Erro ao carregar partida"
-          message="Não foi possível carregar as informações desta partida no momento."
-          actionLabel="Tentar novamente"
+          [title]="'matchDetail.states.error.pageTitle' | translate"
+          [message]="'matchDetail.states.error.pageMessage' | translate"
+          [actionLabel]="'matchDetail.states.error.retry' | translate"
           (actionClick)="retry()"
         />
-        <a class="match-report__back" routerLink="/matches">← Voltar para partidas</a>
+        <a class="match-report__back" routerLink="/matches">{{ 'matchDetail.backToMatches' | translate }}</a>
       }
 
       @case ('ready') {
-        <a class="match-report__back" routerLink="/matches">← Voltar para partidas</a>
+        <a class="match-report__back" routerLink="/matches">{{ 'matchDetail.backToMatches' | translate }}</a>
 
         <header
           class="match-report__hero"
           [style.--match-map-bg]="mapBackgroundImage(vm.detail.maps[0])"
         >
           <div class="match-report__hero-meta">
-            <span>Partida #{{ vm.detail.id }}</span>
+            <span>{{ 'matchDetail.hero.match' | translate: { id: vm.detail.id } }}</span>
             <strong>
-              {{ vm.detail.match.seriesType || 'Série não informada' }} ·
-              {{ formatDate(vm.detail.match.endedAt || vm.detail.match.startedAt) }}
+              {{ vm.detail.match.seriesType || ('matchDetail.hero.seriesUnavailable' | translate) }} ·
+              {{ formatDate(vm.detail.match.endedAt || vm.detail.match.startedAt) || ('matchDetail.fallbacks.date' | translate) }}
             </strong>
           </div>
 
@@ -61,10 +61,10 @@
               class="match-report__team match-report__team--one"
               [class.is-winner]="isWinner(vm.detail.match.winner, vm.detail.match.team1.name)"
             >
-              <div class="match-report__team-copy" [title]="teamName(vm.detail.match.team1.name)">
-                <strong>{{ teamName(vm.detail.match.team1.name) }}</strong>
+              <div class="match-report__team-copy" [title]="teamName(vm.detail.match.team1.name) || ('matchDetail.fallbacks.team' | translate)">
+                <strong>{{ teamName(vm.detail.match.team1.name) || ('matchDetail.fallbacks.team' | translate) }}</strong>
                 @if (isWinner(vm.detail.match.winner, vm.detail.match.team1.name)) {
-                  <span>Vencedor</span>
+                  <span>{{ 'matchDetail.hero.winner' | translate }}</span>
                 }
               </div>
               <b>{{ scoreLabel(vm.detail.match.team1.score) }}</b>
@@ -77,40 +77,40 @@
               [class.is-winner]="isWinner(vm.detail.match.winner, vm.detail.match.team2.name)"
             >
               <b>{{ scoreLabel(vm.detail.match.team2.score) }}</b>
-              <div class="match-report__team-copy" [title]="teamName(vm.detail.match.team2.name)">
-                <strong>{{ teamName(vm.detail.match.team2.name) }}</strong>
+              <div class="match-report__team-copy" [title]="teamName(vm.detail.match.team2.name) || ('matchDetail.fallbacks.team' | translate)">
+                <strong>{{ teamName(vm.detail.match.team2.name) || ('matchDetail.fallbacks.team' | translate) }}</strong>
                 @if (isWinner(vm.detail.match.winner, vm.detail.match.team2.name)) {
-                  <span>Vencedor</span>
+                  <span>{{ 'matchDetail.hero.winner' | translate }}</span>
                 }
               </div>
             </div>
           </div>
 
           <div class="match-report__winner-line">
-            <span>Vencedor do confronto</span>
-            <strong>{{ winnerLabel(vm.detail.match.winner) }}</strong>
+            <span>{{ 'matchDetail.hero.matchWinner' | translate }}</span>
+            <strong>{{ winnerLabel(vm.detail.match.winner) || ('matchDetail.fallbacks.winner' | translate) }}</strong>
           </div>
         </header>
 
-        <section class="match-report__summary" aria-label="Resumo da partida">
-          <div><span>Série</span><strong>{{ vm.detail.match.seriesType || 'Não informada' }}</strong></div>
-          <div><span>Placar</span><strong>{{ formatSeriesScore(vm.detail.match) }}</strong></div>
-          <div><span>Mapas</span><strong>{{ vm.detail.computed.mapsPlayed }}</strong></div>
-          <div><span>Best of</span><strong>{{ vm.detail.computed.bestOf }}</strong></div>
+        <section class="match-report__summary" [attr.aria-label]="'matchDetail.summary.ariaLabel' | translate">
+          <div><span>{{ 'matchDetail.summary.series' | translate }}</span><strong>{{ vm.detail.match.seriesType || ('matchDetail.summary.seriesUnavailable' | translate) }}</strong></div>
+          <div><span>{{ 'matchDetail.summary.score' | translate }}</span><strong>{{ formatSeriesScore(vm.detail.match) }}</strong></div>
+          <div><span>{{ 'matchDetail.summary.maps' | translate }}</span><strong>{{ vm.detail.computed.mapsPlayed }}</strong></div>
+          <div><span>{{ 'matchDetail.summary.bestOf' | translate }}</span><strong>{{ vm.detail.computed.bestOf }}</strong></div>
           @if (vm.detail.computed.partialSeries) {
-            <span class="match-report__partial">Série parcial</span>
+            <span class="match-report__partial">{{ 'matchDetail.summary.partialSeries' | translate }}</span>
           }
         </section>
 
         @if (vm.detail.maps.length > 0) {
           <section class="match-report__maps" aria-labelledby="match-maps-heading">
             <div class="match-report__section-heading">
-              <span>Mapas</span>
-              <h2 id="match-maps-heading">Navegação da série</h2>
-              <p>Selecione um mapa para consultar o placar e a performance dos times.</p>
+              <span>{{ 'matchDetail.maps.eyebrow' | translate }}</span>
+              <h2 id="match-maps-heading">{{ 'matchDetail.maps.title' | translate }}</h2>
+              <p>{{ 'matchDetail.maps.description' | translate }}</p>
             </div>
 
-            <div class="match-report__map-tabs" aria-label="Selecionar mapa">
+            <div class="match-report__map-tabs" [attr.aria-label]="'matchDetail.maps.selectAriaLabel' | translate">
               @for (mapDetail of vm.detail.maps; track $index) {
                 <button
                   type="button"
@@ -118,9 +118,9 @@
                   [attr.aria-pressed]="$index === selectedMapIndex()"
                   (click)="selectMap($index)"
                 >
-                  <span>{{ mapName(mapDetail) }}</span>
+                  <span>{{ mapName(mapDetail) || ('matchDetail.fallbacks.map' | translate) }}</span>
                   <strong>{{ formatMapScore(mapDetail) }}</strong>
-                  @if (mapDetail.winner) { <small>Vencedor: {{ mapDetail.winner }}</small> }
+                  @if (mapDetail.winner) { <small>{{ 'matchDetail.maps.winnerPrefix' | translate }} {{ mapDetail.winner }}</small> }
                 </button>
               }
             </div>
@@ -131,18 +131,18 @@
                 [style.--active-map-bg]="mapBackgroundImage(mapDetail)"
               >
                 <div class="match-report__map-context">
-                  <span>Mapa #{{ mapDetail.mapNumber ?? '—' }}</span>
-                  <h2>{{ mapName(mapDetail) }}</h2>
-                  <time>{{ formatDate(mapDetail.endedAt || mapDetail.startedAt) }}</time>
+                  <span>{{ 'matchDetail.maps.mapNumber' | translate: { number: mapDetail.mapNumber ?? '—' } }}</span>
+                  <h2>{{ mapName(mapDetail) || ('matchDetail.fallbacks.map' | translate) }}</h2>
+                  <time>{{ formatDate(mapDetail.endedAt || mapDetail.startedAt) || ('matchDetail.fallbacks.date' | translate) }}</time>
                 </div>
                 <strong class="match-report__map-score">{{ formatMapScore(mapDetail) }}</strong>
                 <div class="match-report__map-result">
-                  <span>Vencedor</span>
-                  <strong>{{ winnerLabel(mapDetail.winner) }}</strong>
+                  <span>{{ 'matchDetail.maps.winner' | translate }}</span>
+                  <strong>{{ winnerLabel(mapDetail.winner) || ('matchDetail.fallbacks.winner' | translate) }}</strong>
                 </div>
                 @if (mapDetail.name) {
                   <a [routerLink]="['/maps', mapDetail.name]">
-                    Ver detalhe do mapa <span aria-hidden="true">→</span>
+                    {{ 'matchDetail.maps.detailCta' | translate }} <span aria-hidden="true">→</span>
                   </a>
                 }
               </article>
@@ -152,13 +152,13 @@
                   <section class="match-report__team-surface">
                     <header class="match-report__team-heading">
                       <div>
-                        <span>Time</span>
-                        <h3 [title]="team.team || 'Time não informado'">{{ team.team || 'Time não informado' }}</h3>
+                        <span>{{ 'matchDetail.teams.label' | translate }}</span>
+                        <h3 [title]="team.team || ('matchDetail.fallbacks.team' | translate)">{{ team.team || ('matchDetail.fallbacks.team' | translate) }}</h3>
                       </div>
                       <dl>
-                        <div><dt>Kills</dt><dd>{{ team.teamTotals.kills }}</dd></div>
-                        <div><dt>Deaths</dt><dd>{{ team.teamTotals.deaths }}</dd></div>
-                        <div><dt>Damage</dt><dd>{{ team.teamTotals.damage }}</dd></div>
+                        <div><dt>{{ 'matchDetail.teams.kills' | translate }}</dt><dd>{{ team.teamTotals.kills }}</dd></div>
+                        <div><dt>{{ 'matchDetail.teams.deaths' | translate }}</dt><dd>{{ team.teamTotals.deaths }}</dd></div>
+                        <div><dt>{{ 'matchDetail.teams.damage' | translate }}</dt><dd>{{ team.teamTotals.damage }}</dd></div>
                       </dl>
                     </header>
                     <app-match-player-table
@@ -175,8 +175,8 @@
         @if (vm.detail.limitations.length > 0) {
           <section class="match-report__notes" aria-labelledby="report-notes-heading">
             <div class="match-report__section-heading">
-              <span>Notas do relatório</span>
-              <h2 id="report-notes-heading">Limitações dos dados</h2>
+              <span>{{ 'matchDetail.notes.eyebrow' | translate }}</span>
+              <h2 id="report-notes-heading">{{ 'matchDetail.notes.title' | translate }}</h2>
             </div>
             <ul>
               @for (limitation of vm.detail.limitations; track $index) {

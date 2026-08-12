@@ -1,8 +1,8 @@
-<div class="table-wrap" role="region" aria-label="Estatísticas dos jogadores">
+<div class="table-wrap" role="region" [attr.aria-label]="'matchPlayerTable.ariaLabel' | translate">
   <table class="player-table">
     <thead>
       <tr>
-        <th scope="col">Player</th>
+        <th scope="col">{{ 'matchPlayerTable.columns.player' | translate }}</th>
         <th scope="col">K</th>
         <th scope="col">D</th>
         <th scope="col">A</th>
@@ -18,8 +18,8 @@
     <tbody>
       @for (player of sortedPlayers(); track $index) {
         <tr>
-          <td class="cell-player" data-label="Player">
-            <strong>{{ nameLabel(player.name) }}</strong>
+          <td class="cell-player" [attr.data-label]="'matchPlayerTable.columns.player' | translate">
+            <strong>{{ nameLabel(player.name) || ('matchPlayerTable.fallbacks.unnamed' | translate) }}</strong>
             <span>{{ steamIdLabel(player.steamId64) }}</span>
           </td>
           <td data-label="K">{{ player.kills }}</td>

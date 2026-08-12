@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MatchesApiService, MatchesContractError } from './data-access/matches-api.service';
@@ -49,8 +50,12 @@ describe('MatchesPage', () => {
 
     TestBed.configureTestingModule({
       imports: [MatchesPage],
-      providers: [provideRouter([]), { provide: MatchesApiService, useValue: matchesApiMock }],
+      providers: [provideRouter([]), provideTranslateService(), { provide: MatchesApiService, useValue: matchesApiMock }],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { matches: { states: { loading: { title: 'Carregando partidas...', message: 'Sincronizando o histórico de partidas.' }, error: { title: 'Partidas indisponíveis', message: 'Erro', retry: 'Tentar novamente' }, empty: { title: 'Nenhuma partida encontrada', message: 'Nenhuma partida finalizada foi publicada.' }, filteredEmpty: { title: 'Nenhuma partida encontrada', message: 'A busca ou o filtro por mapa não retornou confrontos.' } }, hero: {}, summary: { ariaLabel: 'Resumo das partidas' }, history: {}, filters: {}, latest: { winner: 'Vencedor', seriesMapsAriaLabel: 'Mapas da série' }, feed: { winner: 'Vencedor', seriesMapsAriaLabel: 'Mapas da série' }, results: { summary: { one: 'Exibindo {{ start }}–{{ end }} de {{ total }} partida', other: 'Exibindo {{ start }}–{{ end }} de {{ total }} partidas' } }, pagination: {}, fallbacks: { map: 'Mapa não informado', team: 'Time não informado', date: 'Sem data disponível' }, counts: { maps: { one: '{{ count }} mapa', other: '{{ count }} mapas' } } } });
+    translate.setTranslation('en-US', { matches: { hero: { eyebrow: 'Matches', title: 'Competitive history', description: 'Recent HSC CS2 results.', syncActive: 'Sync active', updatedAt: 'Updated at' }, states: {}, summary: { ariaLabel: 'Matches summary', matches: 'Matches', mapsPlayed: 'Maps played', latestMatch: 'Latest match' }, history: { eyebrow: 'History', title: 'Recent matches', description: 'Browse published matchups.' }, filters: { mapLabel: 'Map filter', allMaps: 'All maps', searchLabel: 'Search match', searchPlaceholder: 'Match ID, team, winner, series or map' }, latest: { ariaLabel: 'Latest match', eyebrow: 'LATEST MATCH', title: 'Latest match', winner: 'Winner', seriesMapsAriaLabel: 'Series maps', reportCta: 'View report and highlights' }, feed: { ariaLabel: 'Match feed', winner: 'Winner', seriesMapsAriaLabel: 'Series maps', detailsCta: 'View details' }, results: { summary: { one: 'Showing {{ start }}–{{ end }} of {{ total }} match', other: 'Showing {{ start }}–{{ end }} of {{ total }} matches' } }, pagination: { ariaLabel: 'Match pagination', previous: 'Previous', next: 'Next' }, fallbacks: { map: 'Map unavailable', team: 'Team unavailable', date: 'No date available' }, counts: { maps: { one: '{{ count }} map', other: '{{ count }} maps' } } } });
+    void translate.use('pt-BR');
   });
 
   const createComponent = () => {
@@ -239,5 +244,26 @@ describe('MatchesPage', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'A busca ou o filtro por mapa não retornou confrontos.'
     );
+  });
+
+  it('troca a UI ready para en-US sem alterar estado, domínio ou nova request', async () => {
+    const matches = Array.from({ length: 11 }, (_, index) => createMockMatch(501 + index));
+    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
+    createComponent();
+    expect(fixture.nativeElement.textContent).toContain('Vencedor');
+
+    const translate = TestBed.inject(TranslateService);
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Competitive history');
+    expect(text).toContain('Map filter');
+    expect(fixture.nativeElement.querySelector('input[type="search"]').getAttribute('placeholder')).toBe('Match ID, team, winner, series or map');
+    expect(text).toContain('Winner');
+    expect(text).toContain('Previous');
+    expect(text).toContain('Next');
+    for (const value of ['Team A', 'Team B', 'de_mirage', 'BO3', '#501', '13', '7', 'VS']) expect(text).toContain(value);
+    expect(matchesApiMock.getMatches).toHaveBeenCalledTimes(1);
   });
 });

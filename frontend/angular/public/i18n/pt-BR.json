@@ -50,5 +50,33 @@
     "searchEmpty": { "title": "Nenhum jogador encontrado", "description": "A busca atual não encontrou nome ou SteamID64 correspondente." },
     "guide": { "eyebrow": "Como ler", "title": "Score e Impact", "score": "Resume a classificação geral do jogador no ranking, combinando performance e consistência em todas as partidas registradas.", "impact": "Destaca a influência direta em rounds: eliminações, participação e peso das ações decisivas dentro das partidas." },
     "date": { "unavailable": "Sem data disponível" }
+  },
+  "matches": {
+    "hero": { "eyebrow": "Partidas", "title": "Histórico competitivo", "description": "Resultados recentes do HSC CS2 com placar do mapa, vencedor e contexto da série.", "syncActive": "Sincronização ativa", "updatedAt": "Atualizado em" },
+    "states": { "loading": { "title": "Carregando partidas...", "message": "Sincronizando o histórico de partidas." }, "error": { "title": "Partidas indisponíveis", "message": "Não foi possível carregar as partidas no momento. Verifique a conexão com a API e tente novamente.", "retry": "Tentar novamente" }, "empty": { "title": "Nenhuma partida encontrada", "message": "Nenhuma partida finalizada foi publicada." }, "filteredEmpty": { "title": "Nenhuma partida encontrada", "message": "A busca ou o filtro por mapa não retornou confrontos." } },
+    "summary": { "ariaLabel": "Resumo das partidas", "matches": "Partidas", "mapsPlayed": "Mapas jogados", "latestMatch": "Última partida" },
+    "history": { "eyebrow": "Histórico", "title": "Partidas recentes", "description": "Consulte confrontos publicados por mapa, time, ID, vencedor ou tipo de série." },
+    "filters": { "mapLabel": "Filtro de mapa", "allMaps": "Todos os mapas", "searchLabel": "Buscar partida", "searchPlaceholder": "ID da partida, time, vencedor, série ou mapa" },
+    "latest": { "ariaLabel": "Última partida", "eyebrow": "ÚLTIMA PARTIDA", "title": "Última partida", "winner": "Vencedor", "seriesMapsAriaLabel": "Mapas da série", "reportCta": "Ver relatório e destaques" },
+    "feed": { "ariaLabel": "Feed de partidas", "winner": "Vencedor", "seriesMapsAriaLabel": "Mapas da série", "detailsCta": "Ver detalhes" },
+    "results": { "summary": { "one": "Exibindo {{ start }}–{{ end }} de {{ total }} partida", "other": "Exibindo {{ start }}–{{ end }} de {{ total }} partidas" } },
+    "pagination": { "ariaLabel": "Paginação de partidas", "previous": "Anterior", "next": "Próxima" },
+    "fallbacks": { "map": "Mapa não informado", "team": "Time não informado", "date": "Sem data disponível" },
+    "counts": { "maps": { "one": "{{ count }} mapa", "other": "{{ count }} mapas" } }
+  },
+  "matchDetail": {
+    "states": { "loading": { "eyebrow": "Relatório competitivo", "title": "Detalhe da partida", "description": "Carregando relatório competitivo.", "pageTitle": "Carregando partida...", "pageMessage": "Buscando detalhes do confronto." }, "notFound": { "eyebrow": "Partidas", "title": "Partida não encontrada", "description": "O registro solicitado não foi localizado.", "pageMessage": "Não encontramos a partida solicitada no histórico competitivo.", "action": "Voltar para partidas" }, "error": { "eyebrow": "Partidas", "title": "Partida indisponível", "description": "Não foi possível carregar o detalhe desta partida.", "pageTitle": "Erro ao carregar partida", "pageMessage": "Não foi possível carregar as informações desta partida no momento.", "retry": "Tentar novamente" } },
+    "backToMatches": "← Voltar para partidas",
+    "hero": { "match": "Partida #{{ id }}", "seriesUnavailable": "Série não informada", "winner": "Vencedor", "matchWinner": "Vencedor do confronto" },
+    "summary": { "ariaLabel": "Resumo da partida", "series": "Série", "seriesUnavailable": "Não informada", "score": "Placar", "maps": "Mapas", "bestOf": "Best of", "partialSeries": "Série parcial" },
+    "maps": { "eyebrow": "Mapas", "title": "Navegação da série", "description": "Selecione um mapa para consultar o placar e a performance dos times.", "selectAriaLabel": "Selecionar mapa", "winnerPrefix": "Vencedor:", "mapNumber": "Mapa #{{ number }}", "winner": "Vencedor", "detailCta": "Ver detalhe do mapa" },
+    "teams": { "label": "Time", "kills": "Abates", "deaths": "Mortes", "damage": "Dano" },
+    "notes": { "eyebrow": "Notas do relatório", "title": "Limitações dos dados" },
+    "fallbacks": { "team": "Time não informado", "map": "Mapa sem nome", "date": "Sem data disponível", "winner": "Sem vencedor" }
+  },
+  "matchPlayerTable": {
+    "ariaLabel": "Estatísticas dos jogadores",
+    "columns": { "player": "Jogador" },
+    "fallbacks": { "unnamed": "Sem nome" }
   }
 }

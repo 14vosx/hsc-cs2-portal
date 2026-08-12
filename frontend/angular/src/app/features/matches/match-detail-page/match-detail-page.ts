@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { PageState } from '../../../shared/components/page-state/page-state';
@@ -22,7 +23,7 @@ type MatchDetailVm =
 
 @Component({
   selector: 'app-match-detail-page',
-  imports: [AsyncPipe, MatchPlayerTable, PageState, RouterLink],
+  imports: [AsyncPipe, MatchPlayerTable, PageState, RouterLink, TranslatePipe],
   templateUrl: './match-detail-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './match-detail-page.css',
@@ -93,21 +94,21 @@ export class MatchDetailPage {
     return detail.maps[this.selectedMapIndex()];
   }
 
-  protected teamName(name: string | null): string {
-    return name || 'Time não informado';
+  protected teamName(name: string | null): string | null {
+    return name || null;
   }
 
   protected scoreLabel(score: number | null): number | string {
     return score ?? '—';
   }
 
-  protected mapName(mapDetail: MatchDetailMap): string {
-    return mapDetail.name || 'Mapa sem nome';
+  protected mapName(mapDetail: MatchDetailMap): string | null {
+    return mapDetail.name || null;
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data disponível';
+      return null;
     }
 
     const date = new Date(value);
@@ -132,8 +133,8 @@ export class MatchDetailPage {
     return `${this.scoreLabel(mapDetail.team1Score)}–${this.scoreLabel(mapDetail.team2Score)}`;
   }
 
-  protected winnerLabel(value?: string | null): string {
-    return value || 'Sem vencedor';
+  protected winnerLabel(value?: string | null): string | null {
+    return value || null;
   }
 
   protected isWinner(winner: string | null, teamName: string | null): boolean {

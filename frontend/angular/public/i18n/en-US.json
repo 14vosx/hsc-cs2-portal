@@ -50,5 +50,33 @@
     "searchEmpty": { "title": "No players found", "description": "The current search did not find a matching name or SteamID64." },
     "guide": { "eyebrow": "How to read", "title": "Score and Impact", "score": "Summarizes the player's overall ranking by combining performance and consistency across all recorded matches.", "impact": "Highlights direct influence in rounds: eliminations, participation, and the weight of decisive actions within matches." },
     "date": { "unavailable": "No date available" }
+  },
+  "matches": {
+    "hero": { "eyebrow": "Matches", "title": "Competitive history", "description": "Recent HSC CS2 results with map score, winner, and series context.", "syncActive": "Sync active", "updatedAt": "Updated at" },
+    "states": { "loading": { "title": "Loading matches...", "message": "Syncing match history." }, "error": { "title": "Matches unavailable", "message": "Matches could not be loaded right now. Check the API connection and try again.", "retry": "Try again" }, "empty": { "title": "No matches found", "message": "No completed matches have been published." }, "filteredEmpty": { "title": "No matches found", "message": "The search or map filter returned no matches." } },
+    "summary": { "ariaLabel": "Matches summary", "matches": "Matches", "mapsPlayed": "Maps played", "latestMatch": "Latest match" },
+    "history": { "eyebrow": "History", "title": "Recent matches", "description": "Browse published matchups by map, team, ID, winner, or series type." },
+    "filters": { "mapLabel": "Map filter", "allMaps": "All maps", "searchLabel": "Search match", "searchPlaceholder": "Match ID, team, winner, series or map" },
+    "latest": { "ariaLabel": "Latest match", "eyebrow": "LATEST MATCH", "title": "Latest match", "winner": "Winner", "seriesMapsAriaLabel": "Series maps", "reportCta": "View report and highlights" },
+    "feed": { "ariaLabel": "Match feed", "winner": "Winner", "seriesMapsAriaLabel": "Series maps", "detailsCta": "View details" },
+    "results": { "summary": { "one": "Showing {{ start }}–{{ end }} of {{ total }} match", "other": "Showing {{ start }}–{{ end }} of {{ total }} matches" } },
+    "pagination": { "ariaLabel": "Match pagination", "previous": "Previous", "next": "Next" },
+    "fallbacks": { "map": "Map unavailable", "team": "Team unavailable", "date": "No date available" },
+    "counts": { "maps": { "one": "{{ count }} map", "other": "{{ count }} maps" } }
+  },
+  "matchDetail": {
+    "states": { "loading": { "eyebrow": "Competitive report", "title": "Match detail", "description": "Loading competitive report.", "pageTitle": "Loading match...", "pageMessage": "Fetching matchup details." }, "notFound": { "eyebrow": "Matches", "title": "Match not found", "description": "The requested record could not be found.", "pageMessage": "We could not find the requested match in the competitive history.", "action": "Back to matches" }, "error": { "eyebrow": "Matches", "title": "Match unavailable", "description": "This match detail could not be loaded.", "pageTitle": "Error loading match", "pageMessage": "This match information could not be loaded right now.", "retry": "Try again" } },
+    "backToMatches": "← Back to matches",
+    "hero": { "match": "Match #{{ id }}", "seriesUnavailable": "Series unavailable", "winner": "Winner", "matchWinner": "Match winner" },
+    "summary": { "ariaLabel": "Match summary", "series": "Series", "seriesUnavailable": "Unavailable", "score": "Score", "maps": "Maps", "bestOf": "Best of", "partialSeries": "Partial series" },
+    "maps": { "eyebrow": "Maps", "title": "Series navigation", "description": "Select a map to view the score and team performance.", "selectAriaLabel": "Select map", "winnerPrefix": "Winner:", "mapNumber": "Map #{{ number }}", "winner": "Winner", "detailCta": "View map details" },
+    "teams": { "label": "Team", "kills": "Kills", "deaths": "Deaths", "damage": "Damage" },
+    "notes": { "eyebrow": "Report notes", "title": "Data limitations" },
+    "fallbacks": { "team": "Team unavailable", "map": "Unnamed map", "date": "No date available", "winner": "No winner" }
+  },
+  "matchPlayerTable": {
+    "ariaLabel": "Player statistics",
+    "columns": { "player": "Player" },
+    "fallbacks": { "unnamed": "Unnamed player" }
   }
 }

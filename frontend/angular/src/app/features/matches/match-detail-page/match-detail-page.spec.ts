@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, type ParamMap } from '@angular/router';
-import { BehaviorSubject, of, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, firstValueFrom, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MatchesApiService, MatchesContractError } from '../data-access/matches-api.service';
@@ -79,10 +80,15 @@ describe('MatchDetailPage', () => {
       imports: [MatchDetailPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: MatchesApiService, useValue: matchesApiMock },
         { provide: ActivatedRoute, useValue: { paramMap: paramMapSubject.asObservable() } },
       ],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { matchDetail: { states: { loading: { eyebrow: 'Relatório competitivo', title: 'Detalhe da partida', description: 'Carregando relatório competitivo.', pageTitle: 'Carregando partida...', pageMessage: 'Buscando detalhes do confronto.' }, notFound: { eyebrow: 'Partidas', title: 'Partida não encontrada', description: 'O registro solicitado não foi localizado.', pageMessage: 'Não encontrada', action: 'Voltar para partidas' }, error: { eyebrow: 'Partidas', title: 'Partida indisponível', description: 'Erro', pageTitle: 'Erro ao carregar partida', pageMessage: 'Erro', retry: 'Tentar novamente' } }, backToMatches: '← Voltar para partidas', hero: { match: 'Partida #{{ id }}', seriesUnavailable: 'Série não informada', winner: 'Vencedor', matchWinner: 'Vencedor do confronto' }, summary: { ariaLabel: 'Resumo da partida', series: 'Série', seriesUnavailable: 'Não informada', score: 'Placar', maps: 'Mapas', bestOf: 'Best of', partialSeries: 'Série parcial' }, maps: { eyebrow: 'Mapas', title: 'Navegação da série', description: 'Selecione um mapa.', selectAriaLabel: 'Selecionar mapa', winnerPrefix: 'Vencedor:', mapNumber: 'Mapa #{{ number }}', winner: 'Vencedor', detailCta: 'Ver detalhe do mapa' }, teams: { label: 'Time', kills: 'Abates', deaths: 'Mortes', damage: 'Dano' }, notes: { eyebrow: 'Notas do relatório', title: 'Limitações dos dados' }, fallbacks: { team: 'Time não informado', map: 'Mapa sem nome', date: 'Sem data disponível', winner: 'Sem vencedor' } }, matchPlayerTable: { ariaLabel: 'Estatísticas dos jogadores', columns: { player: 'Jogador' }, fallbacks: { unnamed: 'Sem nome' } } });
+    translate.setTranslation('en-US', { matchDetail: { backToMatches: '← Back to matches', hero: { match: 'Match #{{ id }}', seriesUnavailable: 'Series unavailable', winner: 'Winner', matchWinner: 'Match winner' }, summary: { ariaLabel: 'Match summary', series: 'Series', seriesUnavailable: 'Unavailable', score: 'Score', maps: 'Maps', bestOf: 'Best of', partialSeries: 'Partial series' }, maps: { eyebrow: 'Maps', title: 'Series navigation', description: 'Select a map to view team performance.', selectAriaLabel: 'Select map', winnerPrefix: 'Winner:', mapNumber: 'Map #{{ number }}', winner: 'Winner', detailCta: 'View map details' }, teams: { label: 'Team', kills: 'Kills', deaths: 'Deaths', damage: 'Damage' }, notes: { eyebrow: 'Report notes', title: 'Data limitations' }, fallbacks: { team: 'Team unavailable', map: 'Unnamed map', date: 'No date available', winner: 'No winner' } }, matchPlayerTable: { ariaLabel: 'Player statistics', columns: { player: 'Player' }, fallbacks: { unnamed: 'Unnamed player' } } });
+    void translate.use('pt-BR');
   });
 
   const createComponent = () => {
@@ -208,5 +214,33 @@ describe('MatchDetailPage', () => {
     );
     createComponent();
     expect(fixture.nativeElement.textContent).toContain('Série parcial');
+  });
+
+  it('troca a UI ready para en-US preservando mapa, domínio, limitations e request', async () => {
+    matchesApiMock.getMatch.mockReturnValue(of(createMockDetail()));
+    createComponent();
+    const secondTab = fixture.nativeElement.querySelectorAll('.match-report__map-tabs button')[1];
+    secondTab.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('← Voltar para partidas');
+    expect(fixture.nativeElement.textContent).toContain('Limitações dos dados');
+
+    const translate = TestBed.inject(TranslateService);
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('← Back to matches');
+    expect(fixture.nativeElement.querySelector('.match-report__summary').getAttribute('aria-label')).toBe('Match summary');
+    expect(text).toContain('Series navigation');
+    expect(text).toContain('Kills');
+    expect(text).toContain('Data limitations');
+    expect(text).toContain('Best of');
+    for (const value of ['Team A', 'Team B', 'de_nuke', 'de_mirage', 'BO3', '1 × 2', 'Partida #501']) {
+      expect(text).toContain(value === 'Partida #501' ? 'Match #501' : value);
+    }
+    expect(fixture.nativeElement.querySelector('.match-report__active-map').textContent).toContain('de_mirage');
+    expect(fixture.nativeElement.querySelector('.match-report__notes li').textContent.trim()).toBe('Nota sobre ETL incompleto');
+    expect(matchesApiMock.getMatch).toHaveBeenCalledTimes(1);
   });
 });
