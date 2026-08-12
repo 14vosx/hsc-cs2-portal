@@ -45,16 +45,11 @@ describe('MatchesPage', () => {
   let matchesApiMock: { getMatches: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    matchesApiMock = {
-      getMatches: vi.fn(),
-    };
+    matchesApiMock = { getMatches: vi.fn() };
 
     TestBed.configureTestingModule({
       imports: [MatchesPage],
-      providers: [
-        provideRouter([]),
-        { provide: MatchesApiService, useValue: matchesApiMock },
-      ],
+      providers: [provideRouter([]), { provide: MatchesApiService, useValue: matchesApiMock }],
     });
   });
 
@@ -64,181 +59,185 @@ describe('MatchesPage', () => {
     fixture.detectChanges();
   };
 
-  it('o componente pode ser criado utilizando MatchesApiService', () => {
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches: [] }));
-    createComponent();
-    expect(component).toBeTruthy();
-    expect(matchesApiMock.getMatches).toHaveBeenCalledTimes(1);
-  });
-
-  it('exibe estado de carregamento inicial', () => {
+  it('exibe o estado de loading', () => {
     matchesApiMock.getMatches.mockReturnValue(of());
     createComponent();
 
-    const pageState = fixture.nativeElement.querySelector('app-page-state') as HTMLElement | null;
-    expect(pageState).not.toBeNull();
-    expect(pageState?.textContent).toContain('Sincronizando o histórico de partidas.');
+    expect(fixture.nativeElement.textContent).toContain('Sincronizando o histórico de partidas.');
   });
 
-  it('exibe estado ready com métricas, destaque da última partida e histórico', () => {
-    const matches: MatchSummary[] = [
-      createMockMatch(101, { winner: 'Team A' }),
-      createMockMatch(102, { winner: 'Team B' }),
-    ];
-    const indexData: MatchesIndex = {
-      generatedAt: '2026-08-04T12:00:00Z',
-      matches,
-    };
-    matchesApiMock.getMatches.mockReturnValue(of(indexData));
-    createComponent();
-
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Histórico competitivo');
-    expect(el.textContent).toContain('Atualizado em');
-    expect(el.textContent).toContain('#101');
-  });
-
-  it('preserva a ordem remota de partidas sem reordenar localmente', () => {
-    const matches: MatchSummary[] = [
-      createMockMatch(201),
-      createMockMatch(202),
-      createMockMatch(203),
-    ];
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
-    createComponent();
-
-    const historyCards = Array.from(
-      fixture.nativeElement.querySelectorAll(
-        '.matches-page__list app-match-score-card',
-      ) as NodeListOf<HTMLElement>,
+  it('exibe erro e permite tentar novamente', () => {
+    matchesApiMock.getMatches.mockReturnValue(
+      throwError(() => new MatchesContractError('Invalid payload'))
     );
-
-    expect(historyCards).toHaveLength(3);
-    expect(historyCards[0].textContent).toContain('#201');
-    expect(historyCards[1].textContent).toContain('#202');
-    expect(historyCards[2].textContent).toContain('#203');
-
-    const latestMatchCard = fixture.nativeElement.querySelector(
-      '.matches-page__hero-match app-match-score-card',
-    ) as HTMLElement | null;
-
-    expect(latestMatchCard?.textContent).toContain('#201');
-  });
-
-  it('deriva o total de mapas jogados e deduplica mapOptions em ordem alfabética', () => {
-    const matches: MatchSummary[] = [
-      createMockMatch(1, {
-        maps: [
-          { mapNumber: 1, startedAt: null, endedAt: null, winner: null, name: 'de_nuke', team1Score: 13, team2Score: 5 },
-          { mapNumber: 2, startedAt: null, endedAt: null, winner: null, name: 'de_mirage', team1Score: 13, team2Score: 8 },
-        ],
-      }),
-      createMockMatch(2, {
-        maps: [
-          { mapNumber: 1, startedAt: null, endedAt: null, winner: null, name: 'de_mirage', team1Score: 13, team2Score: 2 },
-          { mapNumber: 2, startedAt: null, endedAt: null, winner: null, name: 'de_ancient', team1Score: 13, team2Score: 9 },
-        ],
-      }),
-    ];
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
     createComponent();
 
-    const metricCards = Array.from(
-      fixture.nativeElement.querySelectorAll(
-        '.matches-page__metrics app-metric-card',
-      ) as NodeListOf<HTMLElement>,
-    );
-
-    const mapsPlayedMetric = metricCards.find((card) =>
-      card.textContent?.includes('Mapas jogados'),
-    );
-
-    expect(mapsPlayedMetric?.textContent).toContain('4');
-
-    const mapOptions = Array.from(
-      fixture.nativeElement.querySelectorAll(
-        '.matches-page__controls select option',
-      ) as NodeListOf<HTMLOptionElement>,
-    ).map((option) => option.value);
-
-    expect(mapOptions).toEqual(['', 'de_ancient', 'de_mirage', 'de_nuke']);
-  });
-
-  it('exibe estado empty quando a API retorna array de partidas vazio', () => {
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches: [] }));
-    createComponent();
-
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Nenhuma partida finalizada foi publicada.');
-  });
-
-  it('exibe estado de erro ao ocorrer falha HTTP ou erro contratual', () => {
-    matchesApiMock.getMatches.mockReturnValue(throwError(() => new MatchesContractError('Invalid payload')));
-    createComponent();
-
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Partidas indisponíveis');
-  });
-
-  it('retry aciona uma nova requisição e emite estado loading', () => {
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(1)] }));
-    createComponent();
-
-    expect(matchesApiMock.getMatches).toHaveBeenCalledTimes(1);
-
+    expect(fixture.nativeElement.textContent).toContain('Partidas indisponíveis');
     component['retry']();
     expect(matchesApiMock.getMatches).toHaveBeenCalledTimes(2);
   });
 
-  it('filtra partidas por termo de busca (ID, time, vencedor ou mapa)', () => {
-    const matches: MatchSummary[] = [
-      createMockMatch(101, { team1: { name: 'Furia', score: 2 }, winner: 'Furia' }),
-      createMockMatch(102, { team1: { name: 'MIBR', score: 1 }, winner: 'Team X' }),
-    ];
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
+  it('exibe empty quando nenhuma partida foi publicada', () => {
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [] })
+    );
     createComponent();
 
-    component['searchTerm'].set('furia');
-    fixture.detectChanges();
-
-    const filtered = component['filteredMatches'](matches);
-    expect(filtered.length).toBe(1);
-    expect(filtered[0].id).toBe(101);
+    expect(fixture.nativeElement.textContent).toContain('Nenhuma partida finalizada foi publicada.');
   });
 
-  it('filtra partidas por mapa selecionado', () => {
-    const matches: MatchSummary[] = [
-      createMockMatch(101, {
+  it('usa o primeiro item publicado como latestMatch e preserva a ordem no feed', () => {
+    const matches = [createMockMatch(203), createMockMatch(201), createMockMatch(202)];
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
+    );
+    createComponent();
+
+    const latest = fixture.nativeElement.querySelector('.matches-page__latest') as HTMLElement;
+    const rows = Array.from(
+      fixture.nativeElement.querySelectorAll('.matches-page__match-row') as NodeListOf<HTMLElement>
+    );
+
+    expect(latest.textContent).toContain('#203');
+    expect(rows.map((row) => row.textContent)).toEqual([
+      expect.stringContaining('#203'),
+      expect.stringContaining('#201'),
+      expect.stringContaining('#202'),
+    ]);
+  });
+
+  it('mantém totalMapsPlayed correto sem alterar os matches', () => {
+    const matches = [createMockMatch(1), createMockMatch(2, { maps: [] })];
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
+    );
+    createComponent();
+
+    const metrics = Array.from(
+      fixture.nativeElement.querySelectorAll('.matches-page__summary-card') as NodeListOf<HTMLElement>
+    );
+    expect(metrics[1].textContent).toContain('2');
+    expect(matches.map((match) => match.id)).toEqual([1, 2]);
+  });
+
+  it('busca por ID, times, vencedor, seriesType e nomes de mapas', () => {
+    const matches = [
+      createMockMatch(101, { team1: { name: 'Furia', score: 2 }, winner: 'Furia' }),
+      createMockMatch(102, { seriesType: 'BO1' }),
+    ];
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
+    );
+    createComponent();
+
+    for (const term of ['101', 'furia', 'team b', 'bo3', 'de_nuke']) {
+      component['searchTerm'].set(term);
+      expect(component['filteredMatches'](matches)[0].id).toBe(101);
+    }
+  });
+
+  it('filtra por mapa sem reordenar os resultados', () => {
+    const matches = [
+      createMockMatch(8),
+      createMockMatch(3, {
         maps: [{ mapNumber: 1, startedAt: null, endedAt: null, winner: null, name: 'de_dust2', team1Score: 13, team2Score: 0 }],
       }),
-      createMockMatch(102, {
-        maps: [{ mapNumber: 1, startedAt: null, endedAt: null, winner: null, name: 'de_mirage', team1Score: 13, team2Score: 0 }],
-      }),
+      createMockMatch(5),
     ];
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
+    );
     createComponent();
 
-    component['selectedMap'].set('de_dust2');
-    fixture.detectChanges();
-
-    const filtered = component['filteredMatches'](matches);
-    expect(filtered.length).toBe(1);
-    expect(filtered[0].id).toBe(101);
+    component['selectedMap'].set('de_mirage');
+    expect(component['filteredMatches'](matches).map((match) => match.id)).toEqual([8, 5]);
   });
 
-  it('exibe estado empty localizado na seção quando a busca local não retorna resultados', () => {
-    const matches: MatchSummary[] = [createMockMatch(101)];
-    matchesApiMock.getMatches.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', matches }));
+  it('pagina em blocos de 10 preservando a ordem e a quantidade da página final', () => {
+    const matches = Array.from({ length: 23 }, (_, index) => createMockMatch(100 + index));
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
+    );
+    createComponent();
+
+    component['goToPage'](3, matches.length);
+    fixture.detectChanges();
+    const page = component['paginatedMatches'](matches);
+
+    expect(page).toHaveLength(3);
+    expect(page.map((match) => match.id)).toEqual([120, 121, 122]);
+    expect(fixture.nativeElement.textContent).toContain('Exibindo 21–23 de 23 partidas');
+  });
+
+  it('reseta para a primeira página ao alterar busca ou filtro de mapa', () => {
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(1)] })
+    );
+    createComponent();
+
+    component['currentPage'].set(2);
+    component['updateSearch']({ target: { value: 'team' } } as unknown as Event);
+    expect(component['currentPage']()).toBe(1);
+
+    component['currentPage'].set(2);
+    component['updateMapFilter']({ target: { value: 'de_mirage' } } as unknown as Event);
+    expect(component['currentPage']()).toBe(1);
+  });
+
+  it('mantém /matches/:id nos links do destaque e do feed', () => {
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(3012)] })
+    );
+    createComponent();
+
+    const latestLink = fixture.nativeElement.querySelector('.matches-page__latest-footer a');
+    const rowLink = fixture.nativeElement.querySelector('.matches-page__row-cta');
+    expect(latestLink.getAttribute('href')).toBe('/matches/3012');
+    expect(rowLink.getAttribute('href')).toBe('/matches/3012');
+  });
+
+  it('exibe duração somente quando os dois timestamps são válidos e ordenados', () => {
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(1)] })
+    );
+    createComponent();
+
+    expect(component['durationLabel'](createMockMatch(1))).toBe('1h 00min');
+    expect(component['durationLabel'](createMockMatch(2, { startedAt: null }))).toBeNull();
+    expect(component['durationLabel'](createMockMatch(3, { endedAt: 'inválido' }))).toBeNull();
+    expect(
+      component['durationLabel'](
+        createMockMatch(4, {
+          startedAt: '2026-08-04T11:00:00Z',
+          endedAt: '2026-08-04T10:00:00Z',
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('renderiza score null como ausência neutra', () => {
+    const match = createMockMatch(77, {
+      maps: [{ mapNumber: 1, startedAt: null, endedAt: null, winner: null, name: 'de_mirage', team1Score: null, team2Score: 9 }],
+    });
+    const index: MatchesIndex = { generatedAt: '2026-08-04T12:00:00Z', matches: [match] };
+    matchesApiMock.getMatches.mockReturnValue(of(index));
+    createComponent();
+
+    const row = fixture.nativeElement.querySelector('.matches-page__match-row') as HTMLElement;
+    expect(row.textContent).toContain('—');
+    expect(component['scoreLabel'](null)).toBe('—');
+  });
+
+  it('mantém o estado vazio local quando os filtros não retornam partidas', () => {
+    matchesApiMock.getMatches.mockReturnValue(
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(101)] })
+    );
     createComponent();
 
     component['searchTerm'].set('termo_inexistente');
     fixture.detectChanges();
-
-    const el = fixture.nativeElement as HTMLElement;
-    // O header e as métricas principais continuam visíveis
-    expect(el.textContent).toContain('Histórico competitivo');
-    expect(el.textContent).toContain('Partidas');
-    // Estado local sem resultados exibe mensagem de busca
-    expect(el.textContent).toContain('A busca ou o filtro por mapa não retornou confrontos.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'A busca ou o filtro por mapa não retornou confrontos.'
+    );
   });
 });

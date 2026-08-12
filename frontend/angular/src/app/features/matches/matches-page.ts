@@ -1,23 +1,19 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { UiCard } from '../../shared/components/card/card';
-import { MetricCard } from '../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../shared/components/page-header/page-header';
 import { PageState } from '../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { MatchesApiService } from './data-access/matches-api.service';
-import type { MatchSummary } from './domain/match.model';
-import { MatchScoreCard } from './match-score-card/match-score-card';
+import type { MatchMapSummary, MatchSummary } from './domain/match.model';
 
 interface MatchesReadyVm {
   state: 'ready';
   generatedAt: string;
   matches: readonly MatchSummary[];
   mapOptions: readonly string[];
-  latestMatch?: MatchSummary;
+  latestMatch: MatchSummary;
   totalMapsPlayed: number;
 }
 
@@ -29,16 +25,7 @@ type MatchesVm =
 
 @Component({
   selector: 'app-matches-page',
-  imports: [
-    AsyncPipe,
-    MetricCard,
-    PageHeader,
-    PageState,
-    SectionHeader,
-    StatusBadge,
-    UiCard,
-    MatchScoreCard,
-  ],
+  imports: [AsyncPipe, PageState, RouterLink, StatusBadge],
   templateUrl: './matches-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './matches-page.css',
@@ -46,9 +33,21 @@ type MatchesVm =
 export class MatchesPage {
   private readonly matchesApi = inject(MatchesApiService);
   private readonly reload$ = new Subject<void>();
+  private readonly knownMapImages = new Set([
+    'de_ancient',
+    'de_anubis',
+    'de_dust2',
+    'de_inferno',
+    'de_mirage',
+    'de_nuke',
+    'de_overpass',
+    'de_train',
+  ]);
 
+  protected readonly pageSize = 10;
   protected readonly searchTerm = signal('');
   protected readonly selectedMap = signal('');
+  protected readonly currentPage = signal(1);
 
   protected readonly vm$: Observable<MatchesVm> = this.reload$.pipe(
     startWith(undefined),
@@ -62,8 +61,10 @@ export class MatchesPage {
           const mapOptions = Array.from(
             new Set(
               index.matches
-                .flatMap((m) => m.maps.map((map) => map.name))
-                .filter((name): name is string => typeof name === 'string' && name.trim() !== '')
+                .flatMap((match) => match.maps.map((mapItem) => mapItem.name))
+                .filter(
+                  (name): name is string => typeof name === 'string' && name.trim() !== ''
+                )
             )
           ).sort((a, b) => a.localeCompare(b));
 
@@ -90,23 +91,23 @@ export class MatchesPage {
   }
 
   protected updateSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm.set(input.value);
+    this.searchTerm.set((event.target as HTMLInputElement).value);
+    this.currentPage.set(1);
   }
 
   protected updateMapFilter(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.selectedMap.set(select.value);
+    this.selectedMap.set((event.target as HTMLSelectElement).value);
+    this.currentPage.set(1);
   }
 
   protected filteredMatches(matches: readonly MatchSummary[]): readonly MatchSummary[] {
     const term = this.searchTerm().trim().toLowerCase();
-    const mapFilter = this.selectedMap();
+    const mapFilter = this.selectedMap().toLowerCase();
 
     return matches.filter((match) => {
       const matchesMap =
         !mapFilter ||
-        match.maps.some((map) => (map.name ?? '').toLowerCase() === mapFilter.toLowerCase());
+        match.maps.some((mapItem) => (mapItem.name ?? '').toLowerCase() === mapFilter);
 
       if (!matchesMap) {
         return false;
@@ -116,19 +117,94 @@ export class MatchesPage {
         return true;
       }
 
-      const searchable = [
+      return [
         String(match.id),
         match.team1.name ?? '',
         match.team2.name ?? '',
         match.winner ?? '',
         match.seriesType ?? '',
-        ...match.maps.map((map) => map.name ?? ''),
+        ...match.maps.map((mapItem) => mapItem.name ?? ''),
       ]
         .join(' ')
-        .toLowerCase();
-
-      return searchable.includes(term);
+        .toLowerCase()
+        .includes(term);
     });
+  }
+
+  protected paginatedMatches(matches: readonly MatchSummary[]): readonly MatchSummary[] {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return matches.slice(start, start + this.pageSize);
+  }
+
+  protected pageCount(totalMatches: number): number {
+    return Math.ceil(totalMatches / this.pageSize);
+  }
+
+  protected pageNumbers(totalMatches: number): readonly number[] {
+    return Array.from({ length: this.pageCount(totalMatches) }, (_, index) => index + 1);
+  }
+
+  protected goToPage(page: number, totalMatches: number): void {
+    const target = Math.min(Math.max(page, 1), this.pageCount(totalMatches));
+    this.currentPage.set(target);
+  }
+
+  protected rangeStart(totalMatches: number): number {
+    return totalMatches === 0 ? 0 : (this.currentPage() - 1) * this.pageSize + 1;
+  }
+
+  protected rangeEnd(totalMatches: number): number {
+    return Math.min(this.currentPage() * this.pageSize, totalMatches);
+  }
+
+  protected primaryMap(match: MatchSummary): MatchMapSummary | undefined {
+    return match.maps[0];
+  }
+
+  protected primaryMapName(match: MatchSummary): string {
+    return this.primaryMap(match)?.name || 'Mapa não informado';
+  }
+
+  protected mapBackgroundImage(match: MatchSummary): string {
+    const mapName = this.primaryMap(match)?.name;
+    return mapName && this.knownMapImages.has(mapName)
+      ? `url("map-images/${mapName}.png")`
+      : 'none';
+  }
+
+  protected teamName(name: string | null): string {
+    return name || 'Time não informado';
+  }
+
+  protected scoreLabel(score: number | null): number | string {
+    return score ?? '—';
+  }
+
+  protected winnerSide(match: MatchSummary): 'team1' | 'team2' | 'unknown' {
+    if (match.winner && match.winner === match.team1.name) {
+      return 'team1';
+    }
+    if (match.winner && match.winner === match.team2.name) {
+      return 'team2';
+    }
+    return 'unknown';
+  }
+
+  protected durationLabel(match: MatchSummary): string | null {
+    if (!match.startedAt || !match.endedAt) {
+      return null;
+    }
+
+    const startedAt = new Date(match.startedAt).getTime();
+    const endedAt = new Date(match.endedAt).getTime();
+    if (!Number.isFinite(startedAt) || !Number.isFinite(endedAt) || endedAt < startedAt) {
+      return null;
+    }
+
+    const totalMinutes = Math.floor((endedAt - startedAt) / 60_000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return hours > 0 ? `${hours}h ${String(minutes).padStart(2, '0')}min` : `${minutes} min`;
   }
 
   protected formatDate(value?: string | null): string {
@@ -137,7 +213,6 @@ export class MatchesPage {
     }
 
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) {
       return value;
     }
@@ -149,5 +224,9 @@ export class MatchesPage {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  }
+
+  protected matchDate(match: MatchSummary): string {
+    return this.formatDate(match.endedAt || match.startedAt);
   }
 }
