@@ -9,7 +9,7 @@ import { MapStatCard } from './map-stat-card';
 @Component({
   imports: [MapStatCard],
   changeDetection: ChangeDetectionStrategy.Eager,
-  template: `<app-map-stat-card [map]="testMap" [highlight]="isHighlight" />`,
+  template: `<app-map-stat-card [map]="testMap" [highlight]="isHighlight" [totalMapAppearances]="84" />`,
 })
 class TestHostComponent {
   testMap: MapSummary = {
@@ -43,6 +43,8 @@ describe('MapStatCard', () => {
     expect(el.textContent).toContain('42');
     expect(el.textContent).toContain('920');
     expect(el.textContent).toContain('21.9');
+    expect(el.textContent).toContain('50,0%');
+    expect(el.textContent).toContain('Aparições');
   });
 
   it('renderiza o link correto para o detalhe do mapa', () => {

@@ -2,136 +2,46 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-header
-          eyebrow="Mapas"
-          title="Detalhe do mapa"
-          description="Carregando estatísticas do mapa."
-        />
-        <app-page-state
-          type="loading"
-          title="Carregando mapa..."
-          message="Buscando detalhes do mapa."
-        />
+        <app-page-header eyebrow="Mapas" title="Detalhe do mapa" description="Carregando estatísticas do mapa." />
+        <app-page-state type="loading" title="Carregando mapa..." message="Buscando detalhes do mapa." />
       }
-
       @case ('not-found') {
-        <app-page-header
-          eyebrow="Mapas"
-          title="Mapa não encontrado"
-          description="O mapa solicitado não foi localizado no histórico."
-        />
-        <app-page-state
-          type="empty"
-          title="Mapa não encontrado"
-          message="Não encontramos o mapa solicitado na rotação competitiva."
-          actionLabel="Voltar para mapas"
-          (actionClick)="goBack()"
-        />
+        <app-page-header eyebrow="Mapas" title="Mapa não encontrado" description="O mapa solicitado não foi localizado no histórico." />
+        <app-page-state type="empty" title="Mapa não encontrado" message="Não encontramos o mapa solicitado na rotação competitiva." actionLabel="Voltar para mapas" (actionClick)="goBack()" />
       }
-
       @case ('error') {
-        <app-page-header
-          eyebrow="Mapas"
-          title="Mapa indisponível"
-          description="Não foi possível carregar as estatísticas deste mapa."
-        />
-        <app-page-state
-          type="error"
-          title="Erro ao carregar mapa"
-          message="Não foi possível carregar as informações deste mapa no momento."
-          actionLabel="Tentar novamente"
-          (actionClick)="retry()"
-        />
-        <div class="map-detail-page__back-wrap">
-          <a class="map-detail-page__back" routerLink="/maps">← voltar para mapas</a>
-        </div>
+        <app-page-header eyebrow="Mapas" title="Mapa indisponível" description="Não foi possível carregar as estatísticas deste mapa." />
+        <app-page-state type="error" title="Erro ao carregar mapa" message="Não foi possível carregar as informações deste mapa no momento." actionLabel="Tentar novamente" (actionClick)="retry()" />
+        <a class="map-detail-page__back" routerLink="/maps">← Voltar para mapas</a>
       }
-
       @case ('ready') {
-        <nav class="map-detail-page__breadcrumbs" aria-label="Breadcrumb">
-          <a routerLink="/">Portal CS2</a>
-          <span>/</span>
-          <a routerLink="/maps">Mapas</a>
-          <span>/</span>
-          <strong>{{ vm.detail.name }}</strong>
-        </nav>
-
-        <app-page-header
-          eyebrow="Detalhes do mapa"
-          [title]="vm.detail.name"
-          [description]="'Último jogo: ' + formatDate(vm.detail.lifetime.lastPlayedAt)"
-        >
-          <div meta class="map-detail-page__actions">
-            <a class="map-detail-page__back" routerLink="/maps">← voltar</a>
-            <a
-              class="map-detail-page__api"
-              [href]="'/api/cs2/v2/map/' + encodedMapName(vm.detail.name) + '.json'"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              /api/cs2/v2/map/{{ vm.detail.name }}.json
-            </a>
+        <article class="map-detail-page__hero" [class.map-detail-page__hero--fallback]="mapBackgroundImage(vm.detail.name) === 'none'" [style.--map-hero-bg]="mapBackgroundImage(vm.detail.name)">
+          <a class="map-detail-page__back" routerLink="/maps">← Voltar para mapas</a>
+          <div class="map-detail-page__hero-copy">
+            <span class="map-detail-page__eyebrow">Mapa</span>
+            <h1 title="{{ vm.detail.name }}">{{ vm.detail.name }}</h1>
+            <p><strong>{{ vm.detail.lifetime.matches }}</strong> aparições registradas <i aria-hidden="true">·</i> <strong>{{ vm.detail.lifetime.rounds }}</strong> rounds</p>
           </div>
-        </app-page-header>
+          <div class="map-detail-page__hero-meta">
+            <div><span>Último jogo</span><strong>{{ relativeDate(vm.detail.lifetime.lastPlayedAt, vm.detail.generatedAt) }}</strong><time [attr.datetime]="vm.detail.lifetime.lastPlayedAt">{{ formatDate(vm.detail.lifetime.lastPlayedAt) }}</time></div>
+            <div><span>Dados atualizados</span><time [attr.datetime]="vm.detail.generatedAt">{{ formatDate(vm.detail.generatedAt) }}</time></div>
+          </div>
+        </article>
 
-        <section class="map-detail-page__hero-card">
-          <app-ui-card variant="highlight">
-            <div
-              class="map-detail-page__hero-content"
-              [style.--map-hero-bg]="mapBackgroundImage(vm.detail.name)"
-            >
-              <div class="map-detail-page__hero-header">
-                <h2>{{ vm.detail.name }}</h2>
-                <app-status-badge label="Rotação oficial" tone="active" />
-              </div>
-              <p class="map-detail-page__hero-summary">
-                {{ vm.detail.lifetime.matches }} partidas registradas ·
-                {{ vm.detail.lifetime.rounds }} rounds acumulados ·
-                média {{ formatAvg(vm.detail.lifetime.averageRoundsPerMatch) }} rounds/partida
-              </p>
-            </div>
-          </app-ui-card>
+        <section class="map-detail-page__snapshot" aria-label="Resumo histórico do mapa">
+          <div><span>Aparições</span><strong>{{ vm.detail.lifetime.matches }}</strong><small>registros do mapa</small></div>
+          <div><span>Rounds</span><strong>{{ vm.detail.lifetime.rounds }}</strong><small>volume acumulado</small></div>
+          <div><span>Média de rounds</span><strong>{{ formatAvg(vm.detail.lifetime.averageRoundsPerMatch) }}</strong><small>por aparição</small></div>
+          <div><span>Último jogo</span><strong>{{ relativeDate(vm.detail.lifetime.lastPlayedAt, vm.detail.generatedAt) }}</strong><small>{{ formatDate(vm.detail.lifetime.lastPlayedAt) }}</small></div>
         </section>
 
-        <section class="map-detail-page__metrics" aria-label="Resumo do mapa">
-          <app-metric-card
-            label="Partidas"
-            [value]="vm.detail.lifetime.matches"
-            tone="ranking"
-          />
-          <app-metric-card
-            label="Rounds"
-            [value]="vm.detail.lifetime.rounds"
-            tone="success"
-          />
-          <app-metric-card
-            label="Média de rounds"
-            [value]="formatAvg(vm.detail.lifetime.averageRoundsPerMatch)"
-          />
-          <app-metric-card
-            label="Último jogo"
-            [value]="formatDate(vm.detail.lifetime.lastPlayedAt)"
-          />
-        </section>
-
-        <section class="map-detail-page__recent-section">
-          <app-section-header
-            eyebrow="Recentes"
-            title="Partidas neste mapa"
-            description="Histórico recente de partidas disputadas neste mapa."
-          />
-
-          <app-ui-card variant="default">
-            @if (vm.detail.recentMatches.length > 0) {
-              <app-map-recent-match-table [recentMatches]="vm.detail.recentMatches" />
-            } @else {
-              <app-page-state
-                type="empty"
-                title="Nenhuma partida recente"
-                message="Este mapa ainda não possui partidas recentes no histórico."
-              />
-            }
-          </app-ui-card>
+        <section class="map-detail-page__history" aria-labelledby="map-history-title">
+          <div class="map-detail-page__section-heading"><div><span>Histórico recente</span><h2 id="map-history-title">Confrontos neste mapa</h2></div><p>Placar do mapa, contexto da série e vencedor conforme publicados.</p></div>
+          @if (vm.detail.recentMatches.length > 0) {
+            <app-map-recent-match-table [recentMatches]="vm.detail.recentMatches" />
+          } @else {
+            <app-page-state type="empty" title="Nenhuma partida recente" message="Este mapa ainda não possui partidas recentes no histórico." />
+          }
         </section>
       }
     }

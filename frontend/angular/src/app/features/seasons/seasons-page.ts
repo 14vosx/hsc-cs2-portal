@@ -6,12 +6,14 @@ import { catchError, map, Observable, of, startWith } from 'rxjs';
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import { SeasonDto } from '../../core/api/dto/season.dto';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
-import { seasonCoverImage } from './season-ui';
+import { formatSeasonBoundaryDate, seasonCoverImage } from './season-ui';
 
 interface SeasonsReadyVm {
   state: 'ready';
   activeSeasonSlug?: string | null;
   seasons: SeasonDto[];
+  activeSeason: SeasonDto | null;
+  historicalSeasons: SeasonDto[];
 }
 
 type SeasonsVm = SeasonsReadyVm | { state: 'loading' } | { state: 'error' };
@@ -27,13 +29,26 @@ type SeasonsVm = SeasonsReadyVm | { state: 'loading' } | { state: 'error' };
 export class SeasonsPage {
   private readonly cs2Api = inject(Cs2ApiService);
   protected readonly seasonCoverImage = seasonCoverImage;
+  protected readonly formatSeasonBoundaryDate = (value?: string | null) =>
+    formatSeasonBoundaryDate(value, 'Data em aberto');
 
   protected readonly vm$: Observable<SeasonsVm> = this.cs2Api.getSeasons().pipe(
-    map((payload): SeasonsVm => ({
-      state: 'ready',
-      activeSeasonSlug: payload.activeSeasonSlug,
-      seasons: payload.seasons ?? [],
-    })),
+    map((payload): SeasonsVm => {
+      const seasons = payload.seasons ?? [];
+      const activeSeason = payload.activeSeasonSlug
+        ? seasons.find((season) => season.slug === payload.activeSeasonSlug) ?? null
+        : null;
+
+      return {
+        state: 'ready',
+        activeSeasonSlug: payload.activeSeasonSlug,
+        seasons,
+        activeSeason,
+        historicalSeasons: activeSeason
+          ? seasons.filter((season) => season !== activeSeason)
+          : seasons,
+      };
+    }),
     startWith({ state: 'loading' } satisfies SeasonsVm),
     catchError(() => of({ state: 'error' } satisfies SeasonsVm)),
   );
@@ -72,5 +87,9 @@ export class SeasonsPage {
     return season.slug && season.slug === activeSeasonSlug
       ? '/seasons/current/ranking'
       : `/seasons/${season.slug}/ranking`;
+  }
+
+  protected formatMetric(value?: number | null): string {
+    return typeof value === 'number' ? String(value) : '—';
   }
 }

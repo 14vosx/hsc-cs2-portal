@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100%;
   padding: var(--space-4);
-  background: var(--color-surface-base);
+  background: linear-gradient(180deg, var(--color-tactical-surface), var(--color-bg-base));
   border-right: 1px solid var(--color-border-subtle);
 }
 
@@ -25,6 +25,9 @@
   color: var(--color-text-main);
   font-size: 1.1rem;
   font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
 
 .app-sidebar__close-btn {

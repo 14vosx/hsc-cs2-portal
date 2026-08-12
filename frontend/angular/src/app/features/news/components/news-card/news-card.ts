@@ -1,12 +1,11 @@
 import { Component, computed, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { UiCard } from '../../../../shared/components/card/card';
 import type { NewsSummary } from '../../domain/news.model';
 
 @Component({
   selector: 'app-news-card',
-  imports: [RouterLink, UiCard],
+  imports: [RouterLink],
   templateUrl: './news-card.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-card.css',

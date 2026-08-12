@@ -1,85 +1,18 @@
-.season-ranking__table-wrap {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-}
+.season-ranking__table-wrap { min-width: 0; overflow: hidden; border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); }
+.season-ranking__table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.season-ranking__table th, .season-ranking__table td { padding: 11px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.season-ranking__table th { color: var(--color-text-subtle); background: var(--color-bg-base); border-bottom: 1px solid var(--color-border-default); font-family: var(--font-display); font-size: .56rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.season-ranking__table td { overflow: hidden; color: var(--color-text-muted); border-bottom: 1px solid var(--color-border-subtle); font-family: var(--font-display); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
+.season-ranking__table tbody tr:last-child td { border-bottom: 0; }
+.season-ranking__table tbody tr { background: var(--color-bg-base); transition: background 180ms ease; }
+.season-ranking__table tbody tr:hover { background: var(--color-glass-hover); }
+.season-ranking__table th:nth-child(1), .season-ranking__table td:nth-child(1) { width: 6%; text-align: left; }
+.season-ranking__table th:nth-child(2), .season-ranking__table td:nth-child(2) { width: 18%; text-align: left; }
+.season-ranking__table th:nth-child(3), .season-ranking__table td:nth-child(3) { width: 15%; text-align: left; }
+.season-ranking__table th:nth-child(4), .season-ranking__table td:nth-child(4) { width: 8%; }
+.season-ranking__table th:nth-child(11), .season-ranking__table td:nth-child(11) { width: 6%; }
+.season-ranking__table th:nth-child(12), .season-ranking__table td:nth-child(12) { width: 7%; }
 
-.season-ranking__table-wrap:focus-visible {
-  outline: 2px solid var(--color-border-strong);
-  outline-offset: 2px;
-}
-
-.season-ranking__table {
-  width: 100%;
-  min-width: 1100px;
-  border-collapse: collapse;
-}
-
-.season-ranking__table th,
-.season-ranking__table td {
-  padding: var(--space-3) var(--space-4);
-  text-align: left;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-.season-ranking__table th {
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-accent-lime);
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: var(--color-bg-base);
-}
-
-.season-ranking__table td {
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text);
-  font-size: 0.9rem;
-}
-
-.season-ranking__table td small {
-  display: block;
-  margin-top: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
-  white-space: normal;
-}
-
-.season-ranking__table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.season-ranking__table tbody tr:hover td {
-  background: var(--color-accent-purple-soft);
-}
-
-/* Column widths */
-.season-ranking__table th:nth-child(1),
-.season-ranking__table td:nth-child(1) {
-  width: 60px;
-}
-
-.season-ranking__table th:nth-child(2),
-.season-ranking__table td:nth-child(2) {
-  width: 220px;
-}
-
-.season-ranking__table th:nth-child(3),
-.season-ranking__table td:nth-child(3) {
-  width: 180px;
-}
-
-/* Player name truncation */
-.season-ranking__player strong {
-  display: block;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+@media (prefers-reduced-motion: reduce) {
+  .season-ranking__table tbody tr { transition: none; }
 }

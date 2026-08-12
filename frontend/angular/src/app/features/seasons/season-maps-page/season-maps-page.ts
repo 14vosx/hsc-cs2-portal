@@ -3,13 +3,10 @@ import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/cor
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { UiCard } from '../../../shared/components/card/card';
-import { MetricCard } from '../../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../../shared/components/section-header/section-header';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 import { StatusBadge, type StatusBadgeVariant } from '../../../shared/components/status-badge/status-badge';
+import { formatSeasonBoundaryDate } from '../season-ui';
 import { SeasonMapsApiService } from '../data-access/season-maps-api.service';
 import type { SeasonMaps, SeasonMapSummary } from '../domain/season-maps.model';
 
@@ -37,13 +34,9 @@ type SeasonMapsVm =
   imports: [
     AsyncPipe,
     RouterLink,
-    MetricCard,
-    PageHeader,
     PageState,
-    SectionHeader,
     SeasonTabs,
     StatusBadge,
-    UiCard,
   ],
   templateUrl: './season-maps-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -57,6 +50,7 @@ export class SeasonMapsPage {
 
   protected readonly searchTerm = signal('');
   protected readonly sortBy = signal<MapSort>('published');
+  protected readonly formatSeasonBoundaryDate = formatSeasonBoundaryDate;
 
   private readonly knownMapImages = new Set([
     'de_ancient',

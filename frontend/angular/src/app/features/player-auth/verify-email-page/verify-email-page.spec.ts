@@ -38,7 +38,10 @@ describe('VerifyEmailPage', () => {
     expect(api.verify).toHaveBeenCalledWith({ token: 'a'.repeat(64) });
     expect(location.replaceState).toHaveBeenCalledWith('/verify-email');
     fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(token);
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Confirmando e-mail');
+    expect(text).toContain('Estamos validando seu endereço de e-mail.');
+    expect(text).not.toContain(token);
   });
 
   it('navigates to the authoritative Player Area flow after success', async () => {
@@ -56,6 +59,17 @@ describe('VerifyEmailPage', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain(message);
     expect(text).not.toContain(code);
+  });
+
+  it('does not offer retry when the account is disabled', async () => {
+    api.verify.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 403,
+      error: { error: 'player_account_disabled' },
+    })));
+    await create();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Não foi possível confirmar');
+    expect(text).not.toContain('Tentar novamente');
   });
 
   it('handles malformed success generically and permits retry', async () => {

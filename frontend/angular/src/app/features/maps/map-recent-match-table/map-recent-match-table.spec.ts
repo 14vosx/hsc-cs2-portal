@@ -45,34 +45,25 @@ describe('MapRecentMatchTable', () => {
     fixture.detectChanges();
   });
 
-  it('renderiza os cabeçalhos acessíveis da tabela', () => {
-    const headers = fixture.nativeElement.querySelectorAll('th');
-    const texts = Array.from(headers).map((h) => (h as HTMLElement).textContent?.trim());
-    expect(texts).toEqual([
-      'Encerrado em',
-      'Match',
-      'Série',
-      'Times',
-      'Placar da série',
-      'Número do mapa',
-      'Placar do mapa',
-      'Vencedor',
-    ]);
+  it('renderiza um feed acessível sem duplicar markup responsivo', () => {
+    expect(fixture.nativeElement.querySelector('[role="list"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('[role="listitem"]')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelectorAll('.match-feed__item')).toHaveLength(2);
   });
 
   it('renderiza as partidas recentes preservando a ordem do input', () => {
-    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    const rows = fixture.nativeElement.querySelectorAll('.match-feed__item');
     expect(rows.length).toBe(2);
 
-    const matchLink1 = rows[0].querySelector('.match-link').textContent.trim();
-    const matchLink2 = rows[1].querySelector('.match-link').textContent.trim();
+    const matchLink1 = rows[0].querySelector('.match-feed__id').textContent.trim();
+    const matchLink2 = rows[1].querySelector('.match-feed__id').textContent.trim();
 
-    expect(matchLink1).toBe('#101');
-    expect(matchLink2).toBe('#102');
+    expect(matchLink1).toBe('Match #101');
+    expect(matchLink2).toBe('Match #102');
   });
 
   it('renderiza link correto para a rota de detalhe da partida /matches/:matchId', () => {
-    const link = fixture.nativeElement.querySelector('.match-link') as HTMLAnchorElement;
+    const link = fixture.nativeElement.querySelector('.match-feed__link') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/matches/101');
   });
 
@@ -90,21 +81,21 @@ describe('MapRecentMatchTable', () => {
     ];
     fixture.detectChanges();
 
-    const row = fixture.nativeElement.querySelector('tbody tr');
+    const row = fixture.nativeElement.querySelector('.match-feed__item');
     expect(row.textContent).toContain('Sem data');
     expect(row.textContent).toContain('Série não informada');
     expect(row.textContent).toContain('Time não informado');
-    expect(row.textContent).toContain('— x —');
+    expect(row.textContent).toContain('— – —');
     expect(row.textContent).toContain('Sem vencedor');
   });
 
   it('destaca visualmente o time vencedor somente quando houver correspondência exata', () => {
-    const row = fixture.nativeElement.querySelector('tbody tr');
-    const team1Span = row.querySelectorAll('td')[3].querySelectorAll('span')[0];
-    const team2Span = row.querySelectorAll('td')[3].querySelectorAll('span')[1];
+    const row = fixture.nativeElement.querySelector('.match-feed__item');
+    const teams = row.querySelectorAll('.match-feed__team');
 
-    expect(team1Span.classList.contains('team--winner')).toBe(true);
-    expect(team2Span.classList.contains('team--winner')).toBe(false);
+    expect(teams[0].classList.contains('is-winner')).toBe(true);
+    expect(teams[1].classList.contains('is-winner')).toBe(false);
+    expect(teams[0].textContent).toContain('Vencedor');
   });
 
   it('não infere vencedor pelo placar quando winner for nulo', () => {
@@ -117,7 +108,7 @@ describe('MapRecentMatchTable', () => {
     ];
     fixture.detectChanges();
 
-    const winnerSpans = fixture.nativeElement.querySelectorAll('.team--winner');
+    const winnerSpans = fixture.nativeElement.querySelectorAll('.is-winner');
     expect(winnerSpans.length).toBe(0);
   });
 
@@ -125,8 +116,36 @@ describe('MapRecentMatchTable', () => {
     host.testMatches = [];
     fixture.detectChanges();
 
-    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    const rows = fixture.nativeElement.querySelectorAll('.match-feed__item');
     expect(rows.length).toBe(0);
+  });
+
+  it('preserva team1 e team2 mesmo quando team2 é vencedor e diferencia os dois placares', () => {
+    host.testMatches = [createMockRecentMatch(401, {
+      winner: 'Team B',
+      team1: { name: 'Team A', score: 0 },
+      team2: { name: 'Team B', score: 1 },
+      mapScore: { team1: 2, team2: 13 },
+      mapNumber: 0,
+    })];
+    fixture.detectChanges();
+    const row = fixture.nativeElement.querySelector('.match-feed__item') as HTMLElement;
+    const teams = row.querySelectorAll('.match-feed__team');
+    const scores = row.querySelectorAll('.match-feed__map-score');
+    expect(teams[0].textContent).toContain('Team A');
+    expect(teams[1].textContent).toContain('Team B');
+    expect(scores[0].textContent?.trim()).toBe('2');
+    expect(scores[1].textContent?.trim()).toBe('13');
+    expect(teams[1].classList.contains('is-winner')).toBe(true);
+    expect(row.querySelector('.match-feed__footer')?.textContent).toContain('0 – 1');
+    expect(row.querySelector('.match-feed__footer')?.textContent).not.toContain('Mapa');
+    expect(row.textContent).not.toContain('#0');
+  });
+
+  it('preserva data inválida como texto recebido', () => {
+    host.testMatches = [createMockRecentMatch(501, { endedAt: 'data-custom' })];
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('data-custom');
   });
 
   it('não muta o array de recentMatches recebido no input', () => {

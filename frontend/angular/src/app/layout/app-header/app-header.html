@@ -1,36 +1,40 @@
 <header class="app-header" role="banner">
   <div class="app-header__container">
-    <div class="app-header__brand">
-      <a routerLink="/" class="app-header__logo-link" aria-label="HSC CS2 Portal - Página inicial">
-        <span class="app-header__badge">HSC</span>
-        <span class="app-header__title">CS2 PORTAL</span>
-      </a>
-    </div>
+    <a routerLink="/" class="app-header__logo-link" aria-label="HSC CS2 Portal - Página inicial">
+      <span class="app-header__badge">HSC</span>
+      <span class="app-header__brand-name"><span>HSC</span> <strong>CS2</strong> <span>PORTAL</span></span>
+    </a>
 
-    <!-- Mobile Navigation Drawer Toggle Button -->
-    <button
-      type="button"
-      class="app-header__toggle"
-      [attr.aria-expanded]="isDrawerOpen()"
-      aria-controls="mobile-drawer"
-      [attr.aria-label]="isDrawerOpen() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'"
-      (click)="onToggle()"
-    >
-      <svg
-        class="app-header__toggle-icon"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <line x1="3" y1="12" x2="21" y2="12"></line>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <line x1="3" y1="18" x2="21" y2="18"></line>
-      </svg>
-    </button>
+    <div class="app-header__actions">
+      @if (session(); as currentSession) {
+        @if (currentSession.status === 'authenticated') {
+          <div class="app-header__account">
+            <button
+              type="button"
+              class="app-header__account-trigger"
+              [attr.aria-expanded]="isAccountMenuOpen()"
+              aria-controls="player-account-menu"
+              (click)="toggleAccountMenu()"
+            >
+              <app-player-avatar [imageUrl]="currentSession.avatarMedium" [displayName]="currentSession.displayName" />
+              <span class="app-header__display-name">{{ currentSession.displayName }}</span>
+              <span aria-hidden="true">▾</span>
+            </button>
+            @if (isAccountMenuOpen()) {
+              <nav id="player-account-menu" class="app-header__menu" aria-label="Conta do jogador">
+                <a routerLink="/area-do-jogador" (click)="closeAccountMenu()">Área do Jogador</a>
+                <button type="button" (click)="logout()">Sair</button>
+              </nav>
+            }
+          </div>
+        } @else {
+          <a class="app-header__sign-in hsc-action-cyan" routerLink="/area-do-jogador">SIGN IN / ENTRAR</a>
+        }
+      }
+
+      <button type="button" class="app-header__toggle" [attr.aria-expanded]="isDrawerOpen()" aria-controls="mobile-drawer" [attr.aria-label]="isDrawerOpen() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'" (click)="onToggle()">
+        <svg class="app-header__toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
   </div>
 </header>

@@ -1,74 +1,80 @@
 import { describe, expect, it } from 'vitest';
-
-import { SeasonRankingDto } from '../../../core/api/dto/season-ranking.dto';
-import { SeasonContext } from '../../seasons/season-context';
+import type { SeasonRankingDto, SeasonRankingPlayerDto } from '../../../core/api/dto/season-ranking.dto';
+import type { SeasonContext } from '../../seasons/season-context';
 import { normalizeHomeSeasonMetrics } from './home-season.normalizer';
 
 describe('normalizeHomeSeasonMetrics', () => {
-  const mockContext: SeasonContext = {
+  const context: SeasonContext = {
     mode: 'active',
     slug: 'season-1',
-    season: {
-      slug: 'season-1',
-      name: 'Temporada 1',
-      start_at: '2026-01-01',
-      end_at: '2026-12-31',
-      status: 'active',
-    },
+    season: { slug: 'season-1', name: 'Temporada 1', status: 'active' },
   };
-
-  const mockRankingDto: SeasonRankingDto = {
-    season: { slug: 'season-1', name: 'Temporada 1' },
-    generatedAt: '2026-08-04T12:00:00Z',
-    summary: {
-      players: 42,
-      matches: 100,
-      maps: 150,
-      rounds: 1200,
-    },
-    players: [
-      {
-        rank: 1,
-        steamid64: '76561198012345678',
-        name: 'PlayerOne',
-        score: 1500,
-        wins: 10,
-        losses: 2,
-        kdRatio: 1.5,
-      },
-    ],
-  };
-
-  it('should normalize active season context and ranking dto correctly', () => {
-    const metrics = normalizeHomeSeasonMetrics(mockContext, mockRankingDto);
-
-    expect(metrics.seasonSlug).toBe('season-1');
-    expect(metrics.seasonName).toBe('Temporada 1');
-    expect(metrics.contextMode).toBe('active');
-    expect(metrics.playersCount).toBe(42);
-    expect(metrics.matchesCount).toBe(100);
-    expect(metrics.mapsCount).toBe(150);
-    expect(metrics.roundsCount).toBe(1200);
-    expect(metrics.hasClassifiedPlayers).toBe(true);
-    expect(metrics.leader).toEqual({
-      position: 1,
-      steamId64: '76561198012345678',
-      name: 'PlayerOne',
-      score: 1500,
-      wins: 10,
-      losses: 2,
-      kdRatio: 1.5,
-    });
+  const player = (rank: number): SeasonRankingPlayerDto => ({
+    rank,
+    steamid64: `7656119800000000${rank}`,
+    name: `Player ${rank}`,
+    steam_avatar_url: rank === 1 ? 'https://example.test/one.jpg' : null,
+    wins: 10,
+    losses: 2,
+    kdRatio: 1.5,
+    score: 1500,
+  });
+  const ranking = (players: SeasonRankingPlayerDto[]): SeasonRankingDto => ({
+    summary: { players: players.length, matches: 10, maps: 15, rounds: 300 },
+    players,
   });
 
-  it('should handle ranking dto with empty players list', () => {
-    const emptyRanking: SeasonRankingDto = {
-      ...mockRankingDto,
-      players: [],
-    };
-    const metrics = normalizeHomeSeasonMetrics(mockContext, emptyRanking);
+  it('preserves official order, leader, top three and canonical avatar', () => {
+    const result = normalizeHomeSeasonMetrics(context, ranking([player(1), player(2), player(3), player(4)]));
+    expect(result.leader?.name).toBe('Player 1');
+    expect(result.topPlayers.map((item) => item.name)).toEqual(['Player 1', 'Player 2', 'Player 3']);
+    expect(result.leader?.avatarUrl).toBe('https://example.test/one.jpg');
+  });
 
-    expect(metrics.hasClassifiedPlayers).toBe(false);
-    expect(metrics.leader).toBeNull();
+  it('rejects a missing rank', () => {
+    expect(() => normalizeHomeSeasonMetrics(context, ranking([{ ...player(1), rank: undefined }]))).toThrow();
+  });
+
+  it('rejects rank inconsistent with array position without promoting a player', () => {
+    expect(() => normalizeHomeSeasonMetrics(context, ranking([player(2), player(3)]))).toThrow();
+  });
+
+  it('rejects missing score instead of replacing it with zero', () => {
+    expect(() => normalizeHomeSeasonMetrics(context, ranking([{ ...player(1), score: undefined }]))).toThrow();
+  });
+
+  it('rejects invalid wins and K/D', () => {
+    expect(() => normalizeHomeSeasonMetrics(context, ranking([{ ...player(1), wins: -1 }]))).toThrow();
+    expect(() => normalizeHomeSeasonMetrics(context, ranking([{ ...player(1), kdRatio: Number.NaN }]))).toThrow();
+  });
+
+  it('rejects missing or invalid required summary metrics', () => {
+    expect(() => normalizeHomeSeasonMetrics(context, { players: [] })).toThrow();
+    expect(() => normalizeHomeSeasonMetrics(context, { summary: { players: 0, matches: -1, maps: 0, rounds: 0 }, players: [] })).toThrow();
+  });
+
+  it('rejects a summary player count mismatch', () => {
+    const payload = ranking([player(1)]);
+    expect(() => normalizeHomeSeasonMetrics(context, { ...payload, summary: { ...payload.summary, players: 2 } })).toThrow();
+  });
+
+  it('accepts a canonical empty ranking', () => {
+    const result = normalizeHomeSeasonMetrics(context, ranking([]));
+    expect(result.leader).toBeNull();
+    expect(result.topPlayers).toEqual([]);
+  });
+
+  it('preserves a canonical null avatar', () => {
+    const result = normalizeHomeSeasonMetrics(context, ranking([{ ...player(1), steam_avatar_url: null }]));
+    expect(result.leader?.avatarUrl).toBeNull();
+  });
+
+  it('does not use historical avatar aliases to repair a missing canonical field', () => {
+    const invalid = {
+      ...player(1),
+      steam_avatar_url: undefined,
+      avatarUrl: 'historical-alias.jpg',
+    };
+    expect(() => normalizeHomeSeasonMetrics(context, ranking([invalid]))).toThrow();
   });
 });

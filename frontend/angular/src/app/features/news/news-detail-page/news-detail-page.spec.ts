@@ -5,7 +5,6 @@ import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@ang
 import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
 import { NewsArticleBody } from '../components/news-article-body/news-article-body';
 import { NewsApiService, NewsContractError } from '../data-access/news-api.service';
 import type { NewsArticle } from '../domain/news.model';
@@ -117,25 +116,25 @@ describe('NewsDetailPage', () => {
 
   it('10. renderiza título do artigo', () => {
     createComponent(of(createNewsArticle({ title: 'Important HSC Update' })));
-    const titleEl = fixture.nativeElement.querySelector('.page-header__title');
+    const titleEl = fixture.nativeElement.querySelector('.news-detail-page__hero h1');
     expect(titleEl?.textContent?.trim()).toBe('Important HSC Update');
   });
 
   it('11. renderiza excerpt quando visível', () => {
     createComponent(of(createNewsArticle({ excerpt: 'Visible excerpt content' })));
-    const descEl = fixture.nativeElement.querySelector('.page-header__description');
+    const descEl = fixture.nativeElement.querySelector('.news-detail-page__excerpt');
     expect(descEl?.textContent?.trim()).toBe('Visible excerpt content');
   });
 
   it('12. omite descrição inventada quando excerpt é null', () => {
     createComponent(of(createNewsArticle({ excerpt: null })));
-    const descEl = fixture.nativeElement.querySelector('.page-header__description');
+    const descEl = fixture.nativeElement.querySelector('.news-detail-page__excerpt');
     expect(descEl).toBeNull();
   });
 
   it('13. omite descrição quando excerpt é whitespace', () => {
     createComponent(of(createNewsArticle({ excerpt: '   ' })));
-    const descEl = fixture.nativeElement.querySelector('.page-header__description');
+    const descEl = fixture.nativeElement.querySelector('.news-detail-page__excerpt');
     expect(descEl).toBeNull();
   });
 
@@ -143,15 +142,13 @@ describe('NewsDetailPage', () => {
     createComponent(of(createNewsArticle({ publishedAt: '2026-08-04T12:00:00Z' })));
     const timeEl = fixture.nativeElement.querySelector('.news-detail-page__meta time');
     expect(timeEl?.textContent?.trim()).toContain('2026');
+    expect(timeEl?.getAttribute('datetime')).toBe('2026-08-04T12:00:00Z');
   });
 
-  it('15. renderiza StatusBadge "Publicação oficial"', () => {
+  it('15. renderiza o label "Publicação oficial"', () => {
     createComponent();
-    const badgeDebug = fixture.debugElement.query((n) => n.providerTokens.includes(StatusBadge));
-    expect(badgeDebug).toBeTruthy();
-    const badge = badgeDebug.componentInstance as StatusBadge;
-    expect(badge.label()).toBe('Publicação oficial');
-    expect(badge.tone()).toBe('info');
+    const dispatchEl = fixture.nativeElement.querySelector('.news-detail-page__dispatch');
+    expect(dispatchEl?.textContent?.trim()).toBe('Publicação oficial');
   });
 
   it('16. renderiza NewsArticleBody', () => {
@@ -188,6 +185,8 @@ describe('NewsDetailPage', () => {
     const img = fixture.nativeElement.querySelector('.news-detail-page__media img') as HTMLImageElement;
     expect(img).toBeTruthy();
     expect(img.src).toContain('https://example.com/banner.jpg');
+    expect(img.alt).toBe('Sample Article Title');
+    expect(img.getAttribute('decoding')).toBe('async');
     expect(img.getAttribute('loading')).toBeNull();
   });
 
@@ -195,7 +194,8 @@ describe('NewsDetailPage', () => {
     createComponent(of(createNewsArticle({ imageUrl: null })));
     expect(fixture.nativeElement.querySelector('.news-detail-page__media img')).toBeNull();
     const fallback = fixture.nativeElement.querySelector('.news-detail-page__media-fallback');
-    expect(fallback?.textContent?.trim()).toBe('HSC');
+    expect(fallback?.querySelector('span')?.textContent?.trim()).toBe('HSC');
+    expect(fallback?.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('22. imageUrl vazio exibe fallback', () => {
@@ -331,12 +331,12 @@ describe('NewsDetailPage', () => {
     fixture = TestBed.createComponent(NewsDetailPage);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.page-header__title')?.textContent?.trim()).toBe('First Article Title');
+    expect(fixture.nativeElement.querySelector('.news-detail-page__hero h1')?.textContent?.trim()).toBe('First Article Title');
 
     paramMap$.next(convertToParamMap({ slug: 'segunda-noticia' }));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.page-header__title')?.textContent?.trim()).toBe('Second Article Title');
+    expect(fixture.nativeElement.querySelector('.news-detail-page__hero h1')?.textContent?.trim()).toBe('Second Article Title');
   });
 
   it('35. mudança de slug cancela a requisição anterior', () => {
@@ -374,12 +374,12 @@ describe('NewsDetailPage', () => {
     subject2.next(createNewsArticle({ title: 'New Article' }));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.page-header__title')?.textContent?.trim()).toBe('New Article');
+    expect(fixture.nativeElement.querySelector('.news-detail-page__hero h1')?.textContent?.trim()).toBe('New Article');
 
     subject1.next(createNewsArticle({ title: 'Late Article' }));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.page-header__title')?.textContent?.trim()).toBe('New Article');
+    expect(fixture.nativeElement.querySelector('.news-detail-page__hero h1')?.textContent?.trim()).toBe('New Article');
   });
 
   it('37. título do documento vira "HSC — <article.title>" no estado ready', () => {

@@ -3,7 +3,6 @@ import { provideRouter } from '@angular/router';
 import { NEVER, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { NewsApiService, NewsContractError } from './data-access/news-api.service';
 import type { NewsIndex, NewsSummary } from './domain/news.model';
 import { NewsPage } from './news-page';
@@ -71,9 +70,9 @@ describe('NewsPage', () => {
     expect(newsApiMock.getNewsIndex).toHaveBeenCalledTimes(1);
   });
 
-  it('4. exibe PageHeader nos estados', () => {
+  it('4. exibe o hero editorial nos estados', () => {
     createComponent(NEVER);
-    const headerEl = fixture.nativeElement.querySelector('app-page-header');
+    const headerEl = fixture.nativeElement.querySelector('.news-page__hero');
     expect(headerEl).toBeTruthy();
   });
 
@@ -129,19 +128,22 @@ describe('NewsPage', () => {
     expect(titles).toEqual(['Title B (Old)', 'Title A (New)']);
   });
 
-  it('11. exibe o count remoto no StatusBadge', () => {
+  it('11. exibe o count remoto no hero', () => {
     createComponent(of({ count: 42, items: sampleItems }));
-    const badgeDebug = fixture.debugElement.query((node) => node.providerTokens.includes(StatusBadge));
-    expect(badgeDebug).toBeTruthy();
-    const badgeComponent = badgeDebug.componentInstance as StatusBadge;
-    expect(badgeComponent.label()).toBe('42 publicações');
+    const countEl = fixture.nativeElement.querySelector('.news-page__count strong');
+    expect(countEl?.textContent?.trim()).toBe('42 publicações');
   });
 
   it('12. não substitui count por items.length', () => {
     createComponent(of({ count: 99, items: sampleItems }));
-    const badgeDebug = fixture.debugElement.query((node) => node.providerTokens.includes(StatusBadge));
-    const badgeComponent = badgeDebug.componentInstance as StatusBadge;
-    expect(badgeComponent.label()).toBe('99 publicações');
+    const countEl = fixture.nativeElement.querySelector('.news-page__count strong');
+    expect(countEl?.textContent?.trim()).toBe('99 publicações');
+  });
+
+  it('12a. usa o singular para uma publicação', () => {
+    createComponent(of({ count: 1, items: [sampleItems[0]] }));
+    const countEl = fixture.nativeElement.querySelector('.news-page__count strong');
+    expect(countEl?.textContent?.trim()).toBe('1 publicação');
   });
 
   it('13. erro HTTP exibe estado error', () => {

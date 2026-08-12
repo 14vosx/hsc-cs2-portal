@@ -2,8 +2,6 @@ import { Location } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { UiCard } from '../../../shared/components/card/card';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
 import { mapPlayerEmailAuthError } from '../player-email-auth-error';
 import { isValidPlayerEmailToken, isValidPlayerPassword } from '../player-email-auth-validation';
@@ -13,9 +11,9 @@ type ResetPasswordState = 'form' | 'invalid' | 'success';
 @Component({
   selector: 'app-reset-password-page',
   standalone: true,
-  imports: [PageHeader, RouterLink, UiCard],
+  imports: [RouterLink],
   templateUrl: './reset-password-page.html',
-  styleUrl: '../player-auth-page.css',
+  styleUrl: './reset-password-page.css',
 })
 export class ResetPasswordPage implements OnInit {
   private readonly route = inject(ActivatedRoute);

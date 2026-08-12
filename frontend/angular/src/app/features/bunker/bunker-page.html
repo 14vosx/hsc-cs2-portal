@@ -1,417 +1,304 @@
-<section class="b-page">
+<section class="analytics-page">
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <section class="bpnl bpnl--loading" aria-label="Carregando Bunker">
-          <span class="bpnl__eyebrow">Conectando</span>
-          <div class="bsk bsk--title"></div>
-          <div class="bsk"></div>
-          <div class="bsk bsk--short"></div>
+        <section class="analytics-loading" aria-label="Carregando Competitive Analytics">
+          <span class="analytics-eyebrow">Carregando analytics</span>
+          <div class="analytics-skeleton analytics-skeleton--title"></div>
+          <div class="analytics-skeleton"></div>
+          <div class="analytics-skeleton analytics-skeleton--short"></div>
         </section>
       }
 
       @case ('error') {
         <app-empty-state
-          title="Bunker indisponível"
+          title="Competitive Analytics indisponível"
           description="Não foi possível carregar sua sessão de jogador agora."
         />
       }
 
       @case ('unauthenticated') {
-        <app-bunker-auth-card
-          [steamLoginUrl]="steamLoginUrl"
-        />
+        <app-bunker-auth-card [steamLoginUrl]="steamLoginUrl" />
       }
 
       @case ('authenticated') {
-        <app-bunker-player-header
-          [player]="vm.player"
-          [summary]="vm.summary"
-          [logoutPending]="logoutPending()"
-          [logoutFailed]="logoutFailed()"
-          (logoutRequested)="logout()"
-        />
-
-        <app-bunker-season-info
-          [summary]="vm.summary"
-          [summaryState]="vm.summaryState"
-        />
-
-        <app-bunker-section-nav
-          [summary]="vm.summary"
-        />
-
-        <section id="bunker-summary" class="bs bs--overview" aria-labelledby="bunker-overview-title">
-          <div class="bh">
+        <header class="analytics-hero">
+          <div class="analytics-hero__identity">
+            <app-player-avatar
+              [imageUrl]="vm.player.avatarMedium"
+              [displayName]="vm.player.displayName ?? 'Jogador HSC'"
+              accent="cyan"
+            />
             <div>
-              <span>
-                <i class="bi bi--target" aria-hidden="true"></i>
-                Resumo
-              </span>
-              <h2 id="bunker-overview-title">Perfil competitivo geral</h2>
+              <span class="analytics-eyebrow">Competitive Analytics</span>
+              <h1>{{ vm.player.displayName }}</h1>
+              <span class="analytics-hero__steam">STEAMID {{ vm.player.steamId64 || '—' }}</span>
             </div>
-            <p>Histórico acumulado do jogador em partidas competitivas.</p>
           </div>
+          <div class="analytics-hero__context">
+            <span>Contexto atual</span>
+            <strong>{{ vm.summary.currentSeason?.name || 'Season indisponível' }}</strong>
+          </div>
+          <a class="analytics-action" routerLink="/area-do-jogador">Área do Jogador</a>
+        </header>
 
-          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
-            <div class="brs" aria-label="Métricas principais do perfil competitivo geral">
-              <article>
-                <div
-                  class="brg"
-                  [style.--ring-value]="ringValue(lifetime.kdRatio, 2)"
-                  aria-hidden="true"
-                >
-                  <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
-                </div>
-                <span>K/D</span>
-                <p>Eficiência em troca</p>
-              </article>
-              <article>
-                <div
-                  class="brg"
-                  [style.--ring-value]="ringValue(lifetime.winRate)"
-                  aria-hidden="true"
-                >
-                  <strong>{{ formatRatePercent(lifetime.winRate) }}</strong>
-                </div>
-                <span>Win rate</span>
-                <p>Conversão em vitórias</p>
-              </article>
-              <article>
-                <div
-                  class="brg"
-                  [style.--ring-value]="ringValue(lifetime.impactRating, 2)"
-                  aria-hidden="true"
-                >
-                  <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
-                </div>
-                <span>Impact</span>
-                <p>Peso nos mapas</p>
-              </article>
+        @if (vm.summaryState === 'error') {
+          <section class="analytics-partial" role="status">
+            <span class="analytics-eyebrow">Dados competitivos</span>
+            <h2>Resumo temporariamente indisponível</h2>
+            <p>Sua identidade continua conectada. Tente novamente mais tarde para carregar os analytics.</p>
+          </section>
+        } @else {
+          <section class="season-context" aria-label="Contexto da temporada atual">
+            <div>
+              <span>Season</span>
+              <strong>{{ vm.summary.currentSeason?.name || '—' }}</strong>
+              <small>{{ vm.summary.currentSeason?.slug || '—' }}</small>
             </div>
+            <div>
+              <span>Status</span>
+              <strong [class.season-context__active]="vm.summary.currentSeason?.status === 'active'">
+                {{ vm.summary.currentSeason?.status || '—' }}
+              </strong>
+            </div>
+            <div>
+              <span>Período</span>
+              <strong>
+                {{ formatDate(vm.summary.currentSeason?.scope?.startAt) }} —
+                {{ formatDate(vm.summary.currentSeason?.scope?.endAt) }}
+              </strong>
+            </div>
+            <div>
+              <span>Atualizado</span>
+              <strong>{{ formatDateTime(vm.summary.seasonPlayer?.generatedAt) }}</strong>
+            </div>
+          </section>
 
-            <div class="grid-auto-rows-1" aria-label="Score do perfil competitivo">
-              <article>
-                <span>Score</span>
-                <strong class="is-score">{{ formatDecimal(lifetime.score, 1) }}</strong>
-              </article>
-            </div>
-
-            <div class="bsm" aria-label="Resumo numérico do perfil competitivo">
-              <article>
-                <span>ADR</span>
-                <strong>{{ formatDecimal(lifetime.adr, 1) }}</strong>
-              </article>
-              <article>
-                <span>{{ playedLabel(lifetime) }}</span>
-                <strong>{{ playedValue(lifetime) }}</strong>
-              </article>
-              <article>
-                <span>Vitórias</span>
-                <strong>{{ formatInteger(lifetime.wins) }}</strong>
-              </article>
-              <article>
-                <span>Derrotas</span>
-                <strong>{{ formatInteger(lifetime.losses) }}</strong>
-              </article>
-              <article>
-                <span>Rounds</span>
-                <strong>{{ formatInteger(lifetime.roundsPlayed) }}</strong>
-              </article>
-              <article>
-                <span>Kills</span>
-                <strong>{{ formatInteger(lifetime.kills) }}</strong>
-              </article>
-              <article>
-                <span>Deaths</span>
-                <strong>{{ formatInteger(lifetime.deaths) }}</strong>
-              </article>
-              <article>
-                <span>Assists</span>
-                <strong>{{ formatInteger(lifetime.assists) }}</strong>
-              </article>
-              <article>
-                <span>HS%</span>
-                <strong>{{ formatRatePercent(lifetime.headshotPct) }}</strong>
-              </article>
-              <article>
-                <span>Accuracy</span>
-                <strong>{{ formatRatePercent(lifetime.accuracy) }}</strong>
-              </article>
-              <article>
-                <span>Util/R</span>
-                <strong>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</strong>
-              </article>
-              <article>
-                <span>Entry WR</span>
-                <strong>{{ formatRatePercent(lifetime.entryWinRate) }}</strong>
-              </article>
-            </div>
-
-            <div class="bhl" aria-label="Highlights simples do perfil competitivo">
-              <article>
-                <span>Clutches</span>
-                <strong class="bline">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Tipo</th>
-                        <th>Qtd</th>
-                        <th>Taxa</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (clutch of clutchItems(lifetime); track clutch.label) {
-                        <tr>
-                          <td>{{ clutch.label }}</td>
-                          <td>{{ clutch.value }}</td>
-                          <td><em>{{ clutch.rate }}</em></td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </strong>
-              </article>
-              <article>
-                <span>Multi-kills</span>
-                <strong class="bline">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Tipo</th>
-                        <th>Qtd</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                       @for (multiKill of multiKillItems(lifetime); track multiKill.label) {
-                        <tr>
-                          <td>{{ multiKill.label }}</td>
-                          <td>{{ multiKill.value }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </strong>
-              </article>
-            </div>
-          } @else {
-            <div class="bsm" aria-label="Aviso de perfil competitivo geral indisponível">
-              <article>
-                <span>Histórico</span>
-                <strong>Histórico competitivo geral ainda indisponível.</strong>
-              </article>
-            </div>
-          }
-        </section>
-
-        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.byMap; as byMap) {
-          @if (byMap.length > 0) {
-            <section id="bunker-maps" class="bs bs--maps" aria-labelledby="bm-title">
-              <div class="bh">
-                <div>
-                  <span>
-                    <i class="bi bi--map" aria-hidden="true"></i>
-                    Map pool
-                  </span>
-                  <h2 id="bm-title">Performance por mapa</h2>
-                </div>
-                <p>Cada linha mostra volume, resultado e eficiência individual no mapa.</p>
+          <section class="analytics-section" aria-labelledby="competitive-overview-title">
+            <div class="analytics-heading">
+              <div>
+                <span class="analytics-eyebrow">Visão geral</span>
+                <h2 id="competitive-overview-title">Perfil competitivo geral</h2>
               </div>
+              <p>Histórico lifetime publicado pelo pipeline competitivo.</p>
+            </div>
 
-              <div class="bhl bhl-4" aria-label="Highlights simples por mapa">
-                @if (mostPlayedMap(byMap); as mapSummary) {
-                  <article>
-                    <span>Mais jogado</span>
-                    <strong class="is-map">{{ mapSummary.mapName || '—' }}</strong>
-                    <p>{{ mapPlayedValue(mapSummary) }} mapas</p>
-                  </article>
-                }
-                @if (bestAdrMap(byMap); as mapSummary) {
-                  <article>
-                    <span>Melhor ADR</span>
-                    <strong class="is-good">{{ mapSummary.mapName || '—' }}</strong>
-                    <p>{{ formatDecimal(mapSummary.adr, 1) }}</p>
-                  </article>
-                }
-                @if (bestWinRateMap(byMap); as mapSummary) {
-                  <article>
-                    <span>Melhor WR</span>
-                    <strong class="is-good">{{ mapSummary.mapName || '—' }}</strong>
-                    <p class="is-good">{{ formatRatePercent(mapSummary.winRate) }}</p>
-                  </article>
-                }
-                @if (attentionMap(byMap); as mapSummary) {
-                  <article>
-                    <span>Atenção</span>
-                    <strong class="is-warn">{{ mapSummary.mapName || '—' }}</strong>
-                    <p class="is-bad">{{ formatRatePercent(mapSummary.winRate) }} WR</p>
-                  </article>
-                }
-              </div>
-
-              <div class="bm" aria-label="Métricas por mapa da temporada">
-                <div class="bm__row bm__row--head" aria-hidden="true">
-                  <span>Mapa</span>
-                  <span>Jogos</span>
-                  <span>V</span>
-                  <span>D</span>
-                  <span>WR</span>
+            @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
+              <div class="overview-kpis">
+                <article class="metric-card metric-card--cyan">
                   <span>K/D</span>
-                  <span>ADR</span>
-                  <span>HS%</span>
-                  <span>Entry</span>
-                </div>
+                  <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
+                  <small>Lifetime · valor canônico</small>
+                  @if (vm.summary.seasonPlayer?.timeline; as timeline) {
+                    <app-competitive-metric-sparkline
+                      [values]="canonicalTrend(timeline, 'kdRatio')"
+                    />
+                  }
+                </article>
 
-                @for (mapSummary of byMap; track mapSummary.mapName ?? $index) {
-                  <article class="bm__row">
-                    <strong class="is-map">{{ mapSummary.mapName || '—' }}</strong>
-                    <span data-label="Jogos">{{ mapPlayedValue(mapSummary) }}</span>
-                    <span class="is-good" data-label="V">{{ formatInteger(mapSummary.wins) }}</span>
-                    <span class="is-bad" data-label="D">{{ formatInteger(mapSummary.losses) }}</span>
-                    <span [class]="rateToneClass(mapSummary.winRate)" data-label="WR">{{ formatRatePercent(mapSummary.winRate) }}</span>
-                    <span data-label="K/D">{{ formatDecimal(mapSummary.kdRatio, 2) }}</span>
-                    <span data-label="ADR">{{ formatDecimal(mapSummary.adr, 1) }}</span>
-                    <span data-label="HS%">{{ formatRatePercent(mapSummary.headshotPct) }}</span>
-                    <span data-label="Entry">{{ formatRatePercent(mapSummary.entryWinRate) }}</span>
-                  </article>
-                }
+                <article class="metric-card metric-card--radial">
+                  <span>Win Rate</span>
+                  <app-competitive-win-rate-chart [value]="lifetime.winRate" />
+                  <small>Lifetime · {{ formatRate(lifetime.winRate) }}</small>
+                </article>
+
+                <article class="metric-card metric-card--orange">
+                  <span>Impact</span>
+                  <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
+                  <small>Lifetime · valor canônico</small>
+                  @if (vm.summary.seasonPlayer?.timeline; as timeline) {
+                    <app-competitive-metric-sparkline
+                      [values]="canonicalTrend(timeline, 'impactRating')"
+                      color="orange"
+                    />
+                  }
+                </article>
               </div>
-            </section>
+
+              <dl class="metrics-matrix" aria-label="Métricas lifetime">
+                <div><dt>Score</dt><dd>{{ formatDecimal(lifetime.score, 2) }}</dd></div>
+                <div><dt>ADR</dt><dd>{{ formatDecimal(lifetime.adr, 1) }}</dd></div>
+                <div><dt>Maps</dt><dd>{{ formatInteger(lifetime.mapsPlayed) }}</dd></div>
+                <div><dt>Wins</dt><dd>{{ formatInteger(lifetime.wins) }}</dd></div>
+                <div><dt>Losses</dt><dd>{{ formatInteger(lifetime.losses) }}</dd></div>
+                <div><dt>Rounds</dt><dd>{{ formatInteger(lifetime.roundsPlayed) }}</dd></div>
+                <div><dt>Kills</dt><dd>{{ formatInteger(lifetime.kills) }}</dd></div>
+                <div><dt>Deaths</dt><dd>{{ formatInteger(lifetime.deaths) }}</dd></div>
+                <div><dt>Assists</dt><dd>{{ formatInteger(lifetime.assists) }}</dd></div>
+                <div><dt>HS%</dt><dd>{{ formatRate(lifetime.headshotPct) }}</dd></div>
+                <div><dt>Accuracy</dt><dd>{{ formatRate(lifetime.accuracy) }}</dd></div>
+                <div><dt>Util/R</dt><dd>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</dd></div>
+                <div><dt>Entry WR</dt><dd>{{ formatRate(lifetime.entryWinRate) }}</dd></div>
+              </dl>
+            } @else {
+              <div class="analytics-empty">
+                <strong>Perfil competitivo geral ainda indisponível.</strong>
+                <p>Nenhuma métrica lifetime foi publicada para este jogador.</p>
+              </div>
+            }
+          </section>
+
+          @if (vm.summary.seasonPlayer?.timeline; as timeline) {
+            @if (timeline.length > 0 && hasImpactTrend(timeline)) {
+              <section class="analytics-section trend-section" aria-labelledby="impact-trend-title">
+                <div class="analytics-heading">
+                  <div>
+                    <span class="analytics-eyebrow">Performance trend</span>
+                    <h2 id="impact-trend-title">Evolução de Impacto</h2>
+                  </div>
+                  <p>Sequência sazonal na ordem publicada, sem score composto ou seleção de extremos.</p>
+                </div>
+                <app-competitive-impact-trend-chart [timeline]="timeline" />
+              </section>
+            }
           }
-        }
 
-        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.recentMaps; as recentMaps) {
-          @if (recentMaps.length > 0) {
-            <section id="bunker-recent" class="bs bs--recent" aria-labelledby="brc-title">
-              <div class="bh">
+          @if (vm.summary.seasonPlayer; as seasonPlayer) {
+            <section class="analytics-section" aria-labelledby="map-performance-title">
+              <div class="analytics-heading">
                 <div>
-                  <span>
-                    <i class="bi bi--clock" aria-hidden="true"></i>
-                    Recorte recente
-                  </span>
-                  <h2 id="brc-title">Últimos mapas jogados</h2>
+                  <span class="analytics-eyebrow">Map pool</span>
+                  <h2 id="map-performance-title">Performance por mapa</h2>
                 </div>
-                <p>Lista curta dos mapas mais recentes, com partida e linha individual.</p>
+                <p>Win Rate e métricas sazonais na ordem fornecida pelo BunkerSummary.</p>
               </div>
 
-              <div class="brc" aria-label="Mapas recentes da temporada">
-                @for (recentMap of recentMaps; track recentMap.matchId ?? recentMap.startedAt ?? $index) {
-                  <article [class]="resultToneClass(recentMap)">
-                    <div class="brc__header">
-                      <div>
-                        <span class="brc__badge">{{ recentMapResultLabel(recentMap) }}</span>
-                        <strong class="is-map">{{ recentMap.mapName || '—' }}</strong>
-                      </div>
-                      <p><strong>{{ recentMapScoreLabel(recentMap) }}</strong> {{ formatDateLabel(recentMap.startedAt) }}</p>
+              @if (seasonPlayer.byMap.length > 0) {
+                <div class="map-performance">
+                  <div class="chart-panel">
+                    <app-competitive-map-winrate-chart [maps]="seasonPlayer.byMap" />
+                  </div>
+                  <div class="map-table" role="table" aria-label="Performance sazonal por mapa">
+                    <div class="map-table__row map-table__head" role="row">
+                      <span role="columnheader">Mapa</span><span role="columnheader">Jogos</span>
+                      <span role="columnheader">V</span><span role="columnheader">D</span>
+                      <span role="columnheader">WR</span><span role="columnheader">K/D</span>
+                      <span role="columnheader">ADR</span><span role="columnheader">Impact</span>
+                      <span role="columnheader">HS%</span><span role="columnheader">Entry</span>
                     </div>
-
-                    <dl>
-                      <div>
-                        <dt>K/D</dt>
-                        <dd>{{ formatDecimal(recentMapKd(recentMap), 2) }}</dd>
+                    @for (map of seasonPlayer.byMap; track map.mapName ?? $index) {
+                      <div class="map-table__row" role="row">
+                        <strong role="cell" data-label="Mapa">{{ map.mapName || '—' }}</strong>
+                        <span role="cell" data-label="Jogos">{{ formatInteger(map.mapsPlayed) }}</span>
+                        <span role="cell" data-label="V">{{ formatInteger(map.wins) }}</span>
+                        <span role="cell" data-label="D">{{ formatInteger(map.losses) }}</span>
+                        <span role="cell" data-label="WR">{{ formatRate(map.winRate) }}</span>
+                        <span role="cell" data-label="K/D">{{ formatDecimal(map.kdRatio, 2) }}</span>
+                        <span role="cell" data-label="ADR">{{ formatDecimal(map.adr, 1) }}</span>
+                        <span role="cell" data-label="Impact">{{ formatDecimal(map.impactRating, 2) }}</span>
+                        <span role="cell" data-label="HS%">{{ formatRate(map.headshotPct) }}</span>
+                        <span role="cell" data-label="Entry">{{ formatRate(map.entryWinRate) }}</span>
                       </div>
-                      <div>
-                        <dt>K D A</dt>
-                        <dd>
-                          {{ formatInteger(recentMap.kills) }}-{{ formatInteger(recentMap.deaths) }}-{{ formatInteger(recentMap.assists) }}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>ADR</dt>
-                        <dd>{{ formatDecimal(recentMapAdr(recentMap), 1) }}</dd>
-                      </div>
-                      <div>
-                        <dt>HS%</dt>
-                        <dd>{{ formatRatePercent(recentMapHsPct(recentMap)) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Accuracy</dt>
-                        <dd>{{ formatRatePercent(recentMapAccuracy(recentMap)) }}</dd>
-                      </div>
-                      <div>
-                        <dt>Util</dt>
-                        <dd>{{ formatInteger(recentMap.utilityDamage) }}</dd>
-                      </div>
-                    </dl>
-                  </article>
-                }
-              </div>
-            </section>
-          }
-        }
-
-        @if (vm.summary.statsAvailable === true && vm.summary.seasonPlayer?.timeline; as timeline) {
-          @if (timeline.length > 0) {
-            <section id="bunker-timeline" class="bs bs--timeline" aria-labelledby="bt-title">
-              <div class="bh">
-                <div>
-                  <span>
-                    <i class="bi bi--calendar" aria-hidden="true"></i>
-                    Linha do tempo
-                  </span>
-                  <h2 id="bt-title">Timeline da temporada</h2>
-                </div>
-                <p>Sequência cronológica com o mapa, a partida e as métricas que contam o momento.</p>
-              </div>
-
-              @if (timelineMatchItems(timeline); as matchTimeline) {
-                <div class="bspark" aria-label="Sparkline da timeline">
-                  <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
-                    <polyline [attr.points]="timelineSparklinePoints(matchTimeline)"></polyline>
-                  </svg>
-                  <div class="bhl">
-                    @if (bestTimelineItem(matchTimeline); as timelineItem) {
-                      <article>
-                        <span>Melhor ponto</span>
-                        <strong class="is-map">{{ textOrFallback(timelineItem.mapName) }}</strong>
-                        <p class="is-good">{{ formatDecimal(timelineItem.impactRating ?? timelineItem.adr ?? timelineItem.kdRatio, 2) }}</p>
-                      </article>
-                    }
-                    @if (worstTimelineItem(matchTimeline); as timelineItem) {
-                      <article>
-                        <span>Pior ponto</span>
-                        <strong class="is-map">{{ textOrFallback(timelineItem.mapName) }}</strong>
-                        <p class="is-bad">{{ formatDecimal(timelineItem.impactRating ?? timelineItem.adr ?? timelineItem.kdRatio, 2) }}</p>
-                      </article>
                     }
                   </div>
                 </div>
-
-                <div class="bt" aria-label="Timeline da temporada">
-                  @for (timelineItem of matchTimeline; track timelineItem.matchId ?? timelineItem.at ?? $index) {
-                    <article>
-                      <div class="bt__marker" aria-hidden="true"></div>
-
-                      <div class="bt__content">
-                        <div class="bt__header">
-                          <div>
-                            <small><span>{{ timelineDateLabel(timelineItem) }}</span></small>
-                            <strong class="is-map">{{ textOrFallback(timelineItem.mapName) }}</strong>
-                          </div>
-                          <p [class]="timelineResultToneClass(timelineItem)">{{ timelineResultLabel(timelineItem) }}</p>
-                        </div>
-
-                        <div class="bt__meta" aria-label="Contexto do evento">
-                          <small>Score</small><span [class]="timelineResultToneClass(timelineItem)">{{ textOrFallback(timelineItem.score) }}</span>
-                          <small>K/D</small><span>{{ formatDecimal(timelineItem.kdRatio, 2) }}</span>
-                          <small>ADR</small><span>{{ formatDecimal(timelineItem.adr, 1) }}</span>
-                          <small>Impact</small><span>{{ formatDecimal(timelineItem.impactRating, 2) }}</span>
-                        </div>
-                      </div>
-                    </article>
-                  }
+              } @else {
+                <div class="analytics-empty analytics-empty--compact">
+                  <strong>Performance por mapa ainda indisponível.</strong>
                 </div>
               }
             </section>
           }
-        }
 
-        <section class="bpnl bpnl--quiet">
-          <span class="bpnl__eyebrow">Resumo</span>
-          <p>
-            {{ summaryMessage(vm.summary, vm.summaryState) }}
-          </p>
-        </section>
+          @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
+            <section class="analytics-section" aria-labelledby="combat-profile-title">
+              <div class="analytics-heading">
+                <div>
+                  <span class="analytics-eyebrow">Combat profile</span>
+                  <h2 id="combat-profile-title">Perfil de combate</h2>
+                </div>
+                <p>Conversão de clutch e contadores lifetime publicados.</p>
+              </div>
+              <div class="combat-grid">
+                <article class="combat-card">
+                  <span class="analytics-eyebrow">Clutch performance</span>
+                  <div class="clutch-table">
+                    <div class="clutch-row clutch-row--head"><span>Clutch</span><span>Sucesso</span><span>Conversão</span></div>
+                    <div class="clutch-row"><strong>1v1</strong><span>{{ formatInteger(lifetime.v1Wins) }}/{{ formatInteger(lifetime.v1Count) }}</span><strong>{{ formatRate(lifetime.v1WinRate) }}</strong></div>
+                    <div class="clutch-row"><strong>1v2</strong><span>{{ formatInteger(lifetime.v2Wins) }}/{{ formatInteger(lifetime.v2Count) }}</span><strong>{{ formatRate(lifetime.v2WinRate) }}</strong></div>
+                  </div>
+                </article>
+                <article class="combat-card combat-card--orange">
+                  <span class="analytics-eyebrow">Multi-kill profile</span>
+                  <app-competitive-multikill-chart [stats]="lifetime" />
+                </article>
+              </div>
+            </section>
+          }
+
+          @if (vm.summary.seasonPlayer?.recentMaps; as recentMaps) {
+            @if (recentMaps.length > 0) {
+              <section class="analytics-section" aria-labelledby="recent-maps-title">
+                <div class="analytics-heading">
+                  <div>
+                    <span class="analytics-eyebrow">Recent maps</span>
+                    <h2 id="recent-maps-title">Mapas recentes</h2>
+                  </div>
+                  <p>Resultados e métricas canônicas na sequência recebida.</p>
+                </div>
+                <div class="recent-maps">
+                  @for (map of recentMaps; track $index) {
+                    <article class="recent-map" [class.is-win]="map.isWin === true" [class.is-loss]="map.isWin === false">
+                      <div class="recent-map__identity">
+                        <span [class]="recentMapTone(map)">{{ recentMapResult(map) }}</span>
+                        <strong>{{ map.mapName || '—' }}</strong>
+                        <small>{{ formatDate(map.startedAt) }}</small>
+                      </div>
+                      <strong class="recent-map__score">{{ textOrFallback(map.score) }}</strong>
+                      <dl>
+                        <div><dt>K/D</dt><dd>{{ formatDecimal(map.kdRatio, 2) }}</dd></div>
+                        <div><dt>ADR</dt><dd>{{ formatDecimal(map.adr, 1) }}</dd></div>
+                        <div><dt>Impact</dt><dd>{{ formatDecimal(map.impactRating, 2) }}</dd></div>
+                        <div><dt>T1/T2</dt><dd>{{ recentMapTeamScore(map) }}</dd></div>
+                        <div><dt>K-D-A</dt><dd>{{ formatInteger(map.kills) }}-{{ formatInteger(map.deaths) }}-{{ formatInteger(map.assists) }}</dd></div>
+                        <div><dt>Util</dt><dd>{{ formatInteger(map.utilityDamage) }}</dd></div>
+                      </dl>
+                    </article>
+                  }
+                </div>
+              </section>
+            }
+          }
+
+          @if (vm.summary.seasonPlayer?.timeline; as timeline) {
+            @if (timeline.length > 0) {
+              <section class="analytics-section" aria-labelledby="timeline-title">
+                <div class="analytics-heading">
+                  <div>
+                    <span class="analytics-eyebrow">Events</span>
+                    <h2 id="timeline-title">Timeline da temporada</h2>
+                  </div>
+                  <p>Eventos competitivos preservados na ordem original.</p>
+                </div>
+                <div class="event-timeline">
+                  @for (event of timeline; track $index) {
+                    <article class="timeline-event">
+                      <span class="timeline-event__marker" aria-hidden="true"></span>
+                      <div>
+                        <div class="timeline-event__heading">
+                          <div><small>{{ formatDate(event.at) }}</small><strong>{{ event.mapName || '—' }}</strong></div>
+                          <span [class]="timelineOutcomeClass(event.result)">{{ event.result || '—' }}</span>
+                        </div>
+                        <dl>
+                          <div><dt>Score</dt><dd>{{ event.score || '—' }}</dd></div>
+                          <div><dt>K/D</dt><dd>{{ formatDecimal(event.kdRatio, 2) }}</dd></div>
+                          <div><dt>ADR</dt><dd>{{ formatDecimal(event.adr, 1) }}</dd></div>
+                          <div><dt>Impact</dt><dd>{{ formatDecimal(event.impactRating, 2) }}</dd></div>
+                        </dl>
+                      </div>
+                    </article>
+                  }
+                </div>
+              </section>
+            }
+          }
+
+          <div class="analytics-return">
+            <a class="analytics-action analytics-action--primary" routerLink="/area-do-jogador">
+              Voltar para Área do Jogador
+            </a>
+          </div>
+        }
       }
     }
   }

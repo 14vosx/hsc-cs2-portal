@@ -2,12 +2,10 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { UiCard } from '../../shared/components/card/card';
+import { PlayerSessionService } from '../../core/session/player-session.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
-import { MetricCard } from '../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../shared/components/page-header/page-header';
 import { PageState } from '../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../shared/components/section-header/section-header';
+import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { RankingApiService } from './data-access/ranking-api.service';
 import type { RankingPlayer } from './domain/ranking.model';
@@ -33,12 +31,9 @@ type RankingVm =
   imports: [
     AsyncPipe,
     EmptyState,
-    MetricCard,
-    PageHeader,
     PageState,
-    SectionHeader,
+    PlayerAvatar,
     StatusBadge,
-    UiCard,
   ],
   templateUrl: './ranking-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -47,6 +42,7 @@ type RankingVm =
 export class RankingPage {
   private readonly rankingApi = inject(RankingApiService);
   private readonly reload$ = new Subject<void>();
+  protected readonly playerSession = inject(PlayerSessionService);
 
   protected readonly searchTerm = signal('');
 
@@ -97,6 +93,28 @@ export class RankingPage {
         player.steamId64.toLowerCase().includes(term)
       );
     });
+  }
+
+  protected isCurrentPlayer(player: RankingPlayer): boolean {
+    const session = this.playerSession.state();
+
+    return (
+      session.status === 'authenticated' &&
+      session.steamId64 !== null &&
+      player.steamId64 === session.steamId64
+    );
+  }
+
+  protected avatarUrlFor(player: RankingPlayer): string | null {
+    const session = this.playerSession.state();
+
+    return (
+      session.status === 'authenticated' &&
+      session.steamId64 !== null &&
+      player.steamId64 === session.steamId64
+        ? session.avatarMedium
+        : null
+    );
   }
 
   protected formatDate(value?: string | null): string {

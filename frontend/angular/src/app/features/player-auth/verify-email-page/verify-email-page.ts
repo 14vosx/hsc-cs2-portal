@@ -2,8 +2,6 @@ import { Location } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { UiCard } from '../../../shared/components/card/card';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
 import { mapPlayerEmailAuthError } from '../player-email-auth-error';
 import { isValidPlayerEmailToken } from '../player-email-auth-validation';
@@ -13,9 +11,9 @@ type VerificationState = 'loading' | 'invalid' | 'error' | 'success';
 @Component({
   selector: 'app-verify-email-page',
   standalone: true,
-  imports: [PageHeader, RouterLink, UiCard],
+  imports: [RouterLink],
   templateUrl: './verify-email-page.html',
-  styleUrl: '../player-auth-page.css',
+  styleUrl: './verify-email-page.css',
 })
 export class VerifyEmailPage implements OnInit {
   private readonly route = inject(ActivatedRoute);

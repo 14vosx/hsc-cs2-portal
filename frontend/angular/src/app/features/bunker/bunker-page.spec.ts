@@ -1,198 +1,329 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { Component, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
+import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import type { PlayerIdentity } from '../player/domain/player-identity.model';
-import { BunkerApiService } from './data-access/bunker-api.service';
-import type { BunkerSummary } from './domain/bunker.model';
 import { BunkerPage } from './bunker-page';
-import { BunkerPlayerHeader } from './components/bunker-player-header/bunker-player-header';
+import { CompetitiveImpactTrendChart } from './components/analytics/competitive-impact-trend-chart/competitive-impact-trend-chart';
+import { CompetitiveMapWinrateChart } from './components/analytics/competitive-map-winrate-chart/competitive-map-winrate-chart';
+import { CompetitiveMetricSparkline } from './components/analytics/competitive-metric-sparkline/competitive-metric-sparkline';
+import { CompetitiveMultikillChart } from './components/analytics/competitive-multikill-chart/competitive-multikill-chart';
+import { CompetitiveWinRateChart } from './components/analytics/competitive-win-rate-chart/competitive-win-rate-chart';
+import { BunkerApiService } from './data-access/bunker-api.service';
+import type {
+  BunkerMapPerformance,
+  BunkerPlayerStats,
+  BunkerRecentMap,
+  BunkerSummary,
+  BunkerTimelineItem,
+} from './domain/bunker.model';
+
+@Component({
+  selector: 'app-competitive-win-rate-chart',
+  standalone: true,
+  template: '',
+})
+class WinRateChartStub {
+  readonly value = input<number | null>(null);
+}
+
+@Component({
+  selector: 'app-competitive-metric-sparkline',
+  standalone: true,
+  template: '',
+})
+class MetricSparklineStub {
+  readonly values = input<readonly (number | null)[]>([]);
+  readonly color = input<'cyan' | 'orange'>('cyan');
+}
+
+@Component({
+  selector: 'app-competitive-impact-trend-chart',
+  standalone: true,
+  template: '',
+})
+class ImpactTrendChartStub {
+  readonly timeline = input<readonly BunkerTimelineItem[]>([]);
+}
+
+@Component({
+  selector: 'app-competitive-map-winrate-chart',
+  standalone: true,
+  template: '',
+})
+class MapWinrateChartStub {
+  readonly maps = input<readonly BunkerMapPerformance[]>([]);
+}
+
+@Component({
+  selector: 'app-competitive-multikill-chart',
+  standalone: true,
+  template: '',
+})
+class MultikillChartStub {
+  readonly stats = input.required<BunkerPlayerStats>();
+}
 
 function createPlayerIdentity(overrides: Partial<PlayerIdentity> = {}): PlayerIdentity {
   return {
-    displayName: 'Test Player',
+    displayName: 'L4VOSX',
     steamId64: '76561198000000000',
     avatarMedium: 'https://example.com/avatar.jpg',
-    steamProfileUrl: 'https://steamcommunity.com/id/test',
+    steamProfileUrl: 'https://steamcommunity.com/id/lavosx',
+    ...overrides,
+  };
+}
+
+function createStats(overrides: Partial<BunkerPlayerStats> = {}): BunkerPlayerStats {
+  return {
+    mapsPlayed: 84,
+    matchesPlayed: 80,
+    wins: 45,
+    losses: 35,
+    winRate: 0.5625,
+    kdRatio: 1.08,
+    adr: 78.4,
+    impactRating: 1.03,
+    kills: 1432,
+    deaths: 1326,
+    assists: 411,
+    roundsPlayed: 1920,
+    headshotPct: 0.487,
+    accuracy: 0.219,
+    utilityDmgPerRound: 8.7,
+    killsPerRound: 0.746,
+    assistsPerRound: 0.214,
+    deathsPerRound: 0.691,
+    entryWinRate: 0.524,
+    v1Count: 38,
+    v1Wins: 21,
+    v1WinRate: 0.553,
+    v2Count: 61,
+    v2Wins: 29,
+    v2WinRate: 0.475,
+    enemy2ks: 186,
+    enemy3ks: 47,
+    enemy4ks: 12,
+    enemy5ks: 2,
+    sampleWeight: 84,
+    score: 1.12,
+    ...overrides,
+  };
+}
+
+function createMapPerformance(overrides: Partial<BunkerMapPerformance> = {}): BunkerMapPerformance {
+  return {
+    mapName: 'de_inferno',
+    mapsPlayed: 4,
+    matchesPlayed: 4,
+    wins: 3,
+    losses: 1,
+    winRate: 0.75,
+    kdRatio: 1.12,
+    adr: 82.4,
+    impactRating: 1.11,
+    roundsPlayed: 92,
+    kills: 74,
+    deaths: 66,
+    assists: 19,
+    headshotPct: 0.48,
+    accuracy: 0.22,
+    utilityDmgPerRound: 8.2,
+    entryWinRate: 0.58,
+    enemy2ks: 8,
+    enemy3ks: 2,
+    enemy4ks: 1,
+    enemy5ks: 0,
+    ...overrides,
+  };
+}
+
+function createRecentMap(overrides: Partial<BunkerRecentMap> = {}): BunkerRecentMap {
+  return {
+    mapName: 'de_mirage',
+    startedAt: '2026-08-01T12:00:00Z',
+    matchId: 'recent-1',
+    mapNumber: 1,
+    result: '13-11',
+    outcome: 'win',
+    score: '13-11',
+    team: 'team1',
+    winner: 'team1',
+    isWin: true,
+    team1Score: 13,
+    team2Score: 11,
+    rounds: 24,
+    damage: 2000,
+    utilityDamage: 300,
+    headShotKills: 10,
+    entryCount: 4,
+    entryWins: 3,
+    v1Count: 1,
+    v1Wins: 1,
+    v2Count: 0,
+    v2Wins: 0,
+    enemy2ks: 3,
+    enemy3ks: 1,
+    enemy4ks: 0,
+    enemy5ks: 0,
+    shotsFiredTotal: 500,
+    shotsOnTargetTotal: 110,
+    kills: 20,
+    deaths: 15,
+    assists: 5,
+    kdRatio: 1.33,
+    adr: 83.3,
+    impactRating: 1.2,
+    ...overrides,
+  };
+}
+
+function createTimelineItem(overrides: Partial<BunkerTimelineItem> = {}): BunkerTimelineItem {
+  return {
+    at: '2026-08-01T12:00:00Z',
+    event: 'map_completed',
+    mapName: 'de_mirage',
+    matchId: 'timeline-1',
+    mapNumber: 1,
+    result: 'win',
+    score: '13-11',
+    kills: 20,
+    deaths: 15,
+    assists: 5,
+    kdRatio: 1.33,
+    adr: 83.3,
+    impactRating: 1.2,
     ...overrides,
   };
 }
 
 function createBunkerSummary(overrides: Partial<BunkerSummary> = {}): BunkerSummary {
   return {
-    status: 'active',
+    status: 'ready',
     seasonFirst: false,
     statsAvailable: true,
     currentSeason: {
-      slug: 's5',
-      name: 'Season 5',
+      slug: 'season-02',
+      name: 'Season 02',
       status: 'active',
-      scope: { startAt: '2026-08-01', endAt: '2026-12-31' },
+      scope: { startAt: '2026-04-01', endAt: '2026-09-30' },
     },
     seasonPlayer: {
-      name: 'Test Player',
+      name: 'L4VOSX',
       steamId64: '76561198000000000',
-      generatedAt: '2026-08-04',
-      summary: {
-        mapsPlayed: 10,
-        matchesPlayed: 10,
-        wins: 6,
-        losses: 4,
-        winRate: 60,
-        kdRatio: 1.2,
-        adr: 85,
-        impactRating: 1.1,
-        kills: 180,
-        deaths: 150,
-        assists: 40,
-        roundsPlayed: 240,
-        headshotPct: 45,
-        accuracy: 20,
-        utilityDmgPerRound: 15,
-        killsPerRound: 0.75,
-        assistsPerRound: 0.16,
-        deathsPerRound: 0.62,
-        entryWinRate: 55,
-        v1Count: 5,
-        v1Wins: 3,
-        v1WinRate: 60,
-        v2Count: 2,
-        v2Wins: 1,
-        v2WinRate: 50,
-        enemy2ks: 10,
-        enemy3ks: 4,
-        enemy4ks: 1,
-        enemy5ks: 0,
-        sampleWeight: 1,
-        score: 80,
-      },
+      generatedAt: '2026-08-11T20:00:00Z',
+      summary: createStats({ mapsPlayed: 12, wins: 6, losses: 6, winRate: 0.5 }),
       byMap: [
-        {
-          mapName: 'de_inferno',
-          mapsPlayed: 5,
-          matchesPlayed: 5,
-          wins: 3,
-          losses: 2,
-          winRate: 60,
-          kdRatio: 1.1,
-          adr: 80,
-          impactRating: 1.0,
-          roundsPlayed: 120,
-          kills: 90,
-          deaths: 80,
-          assists: 20,
-          headshotPct: 50,
-          accuracy: 22,
-          utilityDmgPerRound: 10,
-          entryWinRate: 50,
-          enemy2ks: 5,
-          enemy3ks: 2,
-          enemy4ks: 0,
-          enemy5ks: 0,
-        },
+        createMapPerformance({ mapName: 'de_nuke', mapsPlayed: 2, wins: 1, losses: 1, winRate: 0.5 }),
+        createMapPerformance({ mapName: 'de_inferno', mapsPlayed: 4, wins: 3, losses: 1, winRate: 0.75 }),
       ],
       recentMaps: [
-        {
-          mapName: 'de_mirage',
-          startedAt: '2026-08-01T12:00:00Z',
-          matchId: 'm1',
-          mapNumber: 1,
-          result: '13-11',
-          outcome: 'win',
-          score: '13-11',
-          team: 'Team A',
-          winner: 'Team A',
-          isWin: true,
-          team1Score: 13,
-          team2Score: 11,
-          rounds: 24,
-          damage: 2000,
-          utilityDamage: 300,
-          headShotKills: 10,
-          entryCount: 4,
-          entryWins: 3,
-          v1Count: 1,
-          v1Wins: 1,
-          v2Count: 0,
-          v2Wins: 0,
-          enemy2ks: 3,
-          enemy3ks: 1,
-          enemy4ks: 0,
-          enemy5ks: 0,
-          shotsFiredTotal: 500,
-          shotsOnTargetTotal: 110,
-          kills: 20,
-          deaths: 15,
-          assists: 5,
-          kdRatio: 1.33,
-          adr: 83.3,
-          impactRating: 1.2,
-        },
+        createRecentMap({ mapName: 'de_mirage', matchId: 'recent-1', startedAt: '2026-08-01T12:00:00Z' }),
+        createRecentMap({
+          mapName: 'de_ancient',
+          matchId: 'recent-2',
+          startedAt: '2026-08-02T12:00:00Z',
+          score: '8-13',
+          result: '8-13',
+          outcome: 'loss',
+          isWin: false,
+          team1Score: 8,
+          team2Score: 13,
+        }),
       ],
       timeline: [
-        {
-          at: '2026-08-01T12:00:00Z',
-          event: 'match_completed',
+        createTimelineItem({
+          at: '2026-07-01T12:00:00Z',
+          mapName: 'de_vertigo',
+          matchId: 'timeline-1',
+          impactRating: 0.9,
+          kdRatio: 0.95,
+        }),
+        createTimelineItem({
+          at: '2026-07-02T12:00:00Z',
           mapName: 'de_mirage',
-          matchId: 'm1',
-          mapNumber: 1,
-          result: 'win',
-          score: '13-11',
-          kills: 20,
-          deaths: 15,
-          assists: 5,
-          kdRatio: 1.33,
-          adr: 83.3,
+          matchId: 'timeline-2',
           impactRating: 1.2,
-        },
+          kdRatio: 1.33,
+        }),
       ],
     },
-    competitiveProfile: null,
+    competitiveProfile: {
+      generatedAt: '2026-08-11T20:00:00Z',
+      steamId64: '76561198000000000',
+      name: 'L4VOSX',
+      avatarMedium: 'https://example.com/avatar.jpg',
+      steamProfileUrl: 'https://steamcommunity.com/id/lavosx',
+      lifetime: createStats(),
+    },
     ...overrides,
   };
 }
 
-describe('BunkerPage Canonical Integration', () => {
-  let fixture: ComponentFixture<BunkerPage>;
+function normalizedText(element: Element | HTMLElement): string {
+  return (element.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
 
-  let playerIdentityApiMock: {
-    getCurrentIdentity: ReturnType<typeof vi.fn>;
-  };
-  let bunkerApiMock: {
-    getSummary: ReturnType<typeof vi.fn>;
-  };
-  let playerAuthApiMock: {
-    steamLoginUrl: string;
-    logout: ReturnType<typeof vi.fn>;
-  };
+describe('BunkerPage Competitive Analytics', () => {
+  let fixture: ComponentFixture<BunkerPage>;
+  let playerIdentityApiMock: { getCurrentIdentity: ReturnType<typeof vi.fn> };
+  let bunkerApiMock: { getSummary: ReturnType<typeof vi.fn> };
+  let playerAuthApiMock: { steamLoginUrl: string };
 
   beforeEach(async () => {
-    playerIdentityApiMock = {
-      getCurrentIdentity: vi.fn(),
-    };
-    bunkerApiMock = {
-      getSummary: vi.fn(),
-    };
-    playerAuthApiMock = {
-      steamLoginUrl: 'https://example.com/steam/login',
-      logout: vi.fn(),
-    };
+    playerIdentityApiMock = { getCurrentIdentity: vi.fn() };
+    bunkerApiMock = { getSummary: vi.fn() };
+    playerAuthApiMock = { steamLoginUrl: 'https://example.com/steam/login' };
 
     await TestBed.configureTestingModule({
       imports: [BunkerPage],
       providers: [
+        provideRouter([]),
         { provide: PlayerIdentityApiService, useValue: playerIdentityApiMock },
         { provide: BunkerApiService, useValue: bunkerApiMock },
         { provide: PlayerAuthApiService, useValue: playerAuthApiMock },
       ],
-    }).compileComponents();
+    })
+      .overrideComponent(BunkerPage, {
+        remove: {
+          imports: [
+            CompetitiveWinRateChart,
+            CompetitiveMetricSparkline,
+            CompetitiveImpactTrendChart,
+            CompetitiveMapWinrateChart,
+            CompetitiveMultikillChart,
+          ],
+        },
+        add: {
+          imports: [
+            WinRateChartStub,
+            MetricSparklineStub,
+            ImpactTrendChartStub,
+            MapWinrateChartStub,
+            MultikillChartStub,
+          ],
+        },
+      })
+      .compileComponents();
   });
+
+  function render(summary: BunkerSummary = createBunkerSummary()): HTMLElement {
+    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
+    bunkerApiMock.getSummary.mockReturnValue(of(summary));
+
+    fixture = TestBed.createComponent(BunkerPage);
+    fixture.detectChanges();
+
+    return fixture.nativeElement as HTMLElement;
+  }
 
   it('1. renderiza loading antes da identidade responder', () => {
     const identity$ = new Subject<PlayerIdentity | null>();
@@ -201,46 +332,10 @@ describe('BunkerPage Canonical Integration', () => {
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.bpnl--loading')).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.analytics-loading')).toBeTruthy();
   });
 
-  it('2. identidade válida chama BunkerApiService.getSummary() uma vez', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
-  });
-
-  it('3. identidade válida e resumo válido renderizam estado authenticated', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-player-header')).toBeTruthy();
-    expect(compiled.querySelector('app-bunker-season-info')).toBeTruthy();
-    expect(compiled.querySelector('app-bunker-section-nav')).toBeTruthy();
-  });
-
-  it('4. o mesmo BunkerSummary canônico retornado pelo serviço alimenta os componentes integrados sem normalização na página', () => {
-    const summary = createBunkerSummary({ status: 'ready' });
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(summary));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Season 5');
-  });
-
-  it('5. identidade null renderiza BunkerAuthCard e não chama BunkerApiService', () => {
+  it('2. identidade null renderiza BunkerAuthCard e não chama BunkerApiService', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(null));
 
     fixture = TestBed.createComponent(BunkerPage);
@@ -248,21 +343,31 @@ describe('BunkerPage Canonical Integration', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('app-bunker-auth-card')).toBeTruthy();
+    expect(compiled.querySelector('app-bunker-auth-card a')?.getAttribute('href')).toBe(
+      'https://example.com/steam/login',
+    );
     expect(bunkerApiMock.getSummary).not.toHaveBeenCalled();
   });
 
-  it('6. BunkerAuthCard recebe steamLoginUrl exata do PlayerAuthApiService', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(null));
+  it('3. identidade autenticada chama BunkerApiService.getSummary() uma vez', () => {
+    render();
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    const link = compiled.querySelector('app-bunker-auth-card a');
-    expect(link?.getAttribute('href')).toBe('https://example.com/steam/login');
+    expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
+    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
   });
 
-  it('7. erro 401 da identidade renderiza unauthenticated', () => {
+  it('4. renderiza header de analytics com identidade, season e retorno para Área do Jogador', () => {
+    const compiled = render();
+
+    expect(compiled.querySelector('.analytics-hero h1')?.textContent?.trim()).toBe('L4VOSX');
+    expect(compiled.textContent).toContain('STEAMID 76561198000000000');
+    expect(compiled.textContent).toContain('Season 02');
+    expect(compiled.querySelector<HTMLAnchorElement>('a.analytics-action')?.getAttribute('href')).toBe(
+      '/area-do-jogador',
+    );
+  });
+
+  it('5. erro de identidade 401 renderiza autenticação e não chama BunkerApiService', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 401 })),
     );
@@ -270,25 +375,11 @@ describe('BunkerPage Canonical Integration', () => {
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-auth-card')).toBeTruthy();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-bunker-auth-card')).toBeTruthy();
     expect(bunkerApiMock.getSummary).not.toHaveBeenCalled();
   });
 
-  it('8. erro 403 da identidade renderiza unauthenticated', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 403 })),
-    );
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-auth-card')).toBeTruthy();
-    expect(bunkerApiMock.getSummary).not.toHaveBeenCalled();
-  });
-
-  it('9. erro 500 da identidade renderiza error global', () => {
+  it('6. erro de identidade não autenticacional renderiza erro global', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 500 })),
     );
@@ -296,24 +387,12 @@ describe('BunkerPage Canonical Integration', () => {
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-empty-state')).toBeTruthy();
-    expect(compiled.textContent).toContain('Bunker indisponível');
-  });
-
-  it('10. erro de rede da identidade renderiza error global', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(
-      throwError(() => new Error('Network error')),
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Competitive Analytics indisponível',
     );
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-empty-state')).toBeTruthy();
   });
 
-  it('11. erro do BunkerApiService preserva authenticated', () => {
+  it('7. erro do BunkerSummary preserva identidade autenticada e exibe fallback parcial', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
     bunkerApiMock.getSummary.mockReturnValue(throwError(() => new Error('Summary error')));
 
@@ -321,321 +400,235 @@ describe('BunkerPage Canonical Integration', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-player-header')).toBeTruthy();
+    expect(compiled.querySelector('.analytics-hero h1')?.textContent?.trim()).toBe('L4VOSX');
     expect(compiled.querySelector('app-empty-state')).toBeNull();
+    expect(compiled.textContent).toContain('Resumo temporariamente indisponível');
   });
 
-  it('12. erro do BunkerApiService produz summaryState error e exibe a temporada como indisponível', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(throwError(() => new Error('Summary error')));
+  it('8. lifetime alimenta visão geral com valores canônicos', () => {
+    const compiled = render();
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('indisponível');
+    expect(compiled.textContent).toContain('Perfil competitivo geral');
+    expect(compiled.textContent).toContain('1,08');
+    expect(compiled.textContent).toContain('78,4');
+    expect(compiled.textContent).toContain('1.432');
+    expect(compiled.textContent).toContain('48,7%');
+    expect(compiled.textContent).toContain('21,9%');
   });
 
-  it('13. erro do BunkerApiService não renderiza o empty state global', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(throwError(() => new Error('Summary error')));
+  it('9. Win Rate radial recebe somente lifetime.winRate canônico', () => {
+    render();
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
+    const chart = fixture.debugElement.query(By.directive(WinRateChartStub))
+      .componentInstance as WinRateChartStub;
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-empty-state')).toBeNull();
+    expect(chart.value()).toBe(0.5625);
   });
 
-  it('14. ciclo inicial chama identidade e resumo exatamente uma vez', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
+  it('10. sparklines usam sequência canônica da timeline e preservam null', () => {
+    const base = createBunkerSummary();
+    const seasonPlayer = base.seasonPlayer
+      ? {
+          ...base.seasonPlayer,
+          timeline: [
+            createTimelineItem({ kdRatio: 0.88, impactRating: 0.91 }),
+            createTimelineItem({ kdRatio: null, impactRating: null }),
+            createTimelineItem({ kdRatio: 1.22, impactRating: 1.31 }),
+          ],
+        }
+      : null;
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
+    render(createBunkerSummary({ seasonPlayer }));
 
-    expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
-    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
+    const sparklines = fixture.debugElement.queryAll(By.directive(MetricSparklineStub));
+    const kdSparkline = sparklines[0].componentInstance as MetricSparklineStub;
+    const impactSparkline = sparklines[1].componentInstance as MetricSparklineStub;
+
+    expect(kdSparkline.values()).toEqual([0.88, null, 1.22]);
+    expect(impactSparkline.values()).toEqual([0.91, null, 1.31]);
   });
 
-  it('15. authenticated renderiza os três componentes principais', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
+  it('11. trend de impacto preserva timeline publicada e não usa ADR/KD como fallback', () => {
+    const base = createBunkerSummary();
+    const timeline = [
+      createTimelineItem({ at: '2026-07-01T12:00:00Z', impactRating: null, adr: 99.9, kdRatio: 9.99 }),
+      createTimelineItem({ at: '2026-07-02T12:00:00Z', impactRating: null, adr: 88.8, kdRatio: 8.88 }),
+    ];
+    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, timeline } : null;
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-player-header')).toBeTruthy();
-    expect(compiled.querySelector('app-bunker-season-info')).toBeTruthy();
-    expect(compiled.querySelector('app-bunker-section-nav')).toBeTruthy();
+    expect(fixture.debugElement.query(By.directive(ImpactTrendChartStub))).toBeNull();
+    expect(compiled.textContent).not.toContain('Performance trend');
   });
 
-  it('16. player e summary são repassados corretamente ao BunkerPlayerHeader', () => {
-    const identity = createPlayerIdentity({ displayName: 'Player Specific Name' });
-    const summary = createBunkerSummary();
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(identity));
-    bunkerApiMock.getSummary.mockReturnValue(of(summary));
+  it('12. tabela e chart de mapas preservam ordem do BunkerSummary', () => {
+    const base = createBunkerSummary();
+    const byMap = [
+      createMapPerformance({ mapName: 'de_ancient', winRate: 0.4 }),
+      createMapPerformance({ mapName: 'de_anubis', winRate: 0.6 }),
+      createMapPerformance({ mapName: 'de_nuke', winRate: 0.5 }),
+    ];
+    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, byMap } : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
+    const rowNames = Array.from(
+      compiled.querySelectorAll<HTMLElement>('.map-table__row:not(.map-table__head) strong[data-label="Mapa"]'),
+    ).map((cell) => cell.textContent?.trim());
+    const chart = fixture.debugElement.query(By.directive(MapWinrateChartStub))
+      .componentInstance as MapWinrateChartStub;
 
-    const headerDebug = fixture.debugElement.query(By.directive(BunkerPlayerHeader));
-    const header = headerDebug.injector.get(BunkerPlayerHeader);
-
-    expect(header.player()).toBe(identity);
-    expect(header.summary()).toBe(summary);
+    expect(rowNames).toEqual(['de_ancient', 'de_anubis', 'de_nuke']);
+    expect(chart.maps()).toEqual(byMap);
   });
 
-  it('17. clicar no logout do BunkerPlayerHeader chama PlayerAuthApiService.logout() uma vez', async () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-    playerAuthApiMock.logout.mockReturnValue(of(undefined));
+  it('13. winRate null em mapa permanece ausência visual e não recebe tone/ranking', () => {
+    const base = createBunkerSummary();
+    const seasonPlayer = base.seasonPlayer
+      ? { ...base.seasonPlayer, byMap: [createMapPerformance({ mapName: 'de_cache', winRate: null })] }
+      : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
+    const winRateCell = compiled.querySelector('[data-label="WR"]');
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const headerDebug = fixture.debugElement.query(By.directive(BunkerPlayerHeader));
-    const logoutButton = headerDebug.query(
-      By.css('button[type="button"]'),
-    ).nativeElement as HTMLButtonElement;
-
-    expect(logoutButton.disabled).toBe(false);
-
-    logoutButton.click();
-    fixture.detectChanges();
-
-    expect(playerAuthApiMock.logout).toHaveBeenCalledTimes(1);
+    expect(winRateCell?.textContent?.trim()).toBe('—');
+    expect(compiled.textContent).not.toContain(['Aten', 'ção'].join(''));
   });
 
-  it('18. enquanto logout está pendente: desabilita e impede chamada duplicada', async () => {
-    const logout$ = new Subject<void>();
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-    playerAuthApiMock.logout.mockReturnValue(logout$);
+  it('14. combat profile usa clutch e multi-kill lifetime publicados', () => {
+    render();
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
+    const multikill = fixture.debugElement.query(By.directive(MultikillChartStub))
+      .componentInstance as MultikillChartStub;
 
-    const pageComponent = fixture.componentInstance;
-    void pageComponent['logout']();
-    fixture.detectChanges();
-
-    void pageComponent['logout']();
-    fixture.detectChanges();
-
-    expect(playerAuthApiMock.logout).toHaveBeenCalledTimes(1);
+    expect(multikill.stats().enemy2ks).toBe(186);
+    expect(multikill.stats().enemy5ks).toBe(2);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('21/38');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('55,3%');
   });
 
-  it('19. logout bem-sucedido renderiza unauthenticated e não refaz requisições', async () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-    playerAuthApiMock.logout.mockReturnValue(of(undefined));
+  it('15. mapas recentes preservam ordem e usam placar direto por time', () => {
+    const compiled = render();
+    const recentNames = Array.from(compiled.querySelectorAll<HTMLElement>('.recent-map__identity strong'))
+      .map((cell) => cell.textContent?.trim());
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const pageComponent = fixture.componentInstance;
-    await pageComponent['logout']();
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-auth-card')).toBeTruthy();
-    expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
-    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
-  });
-
-  it('20. logout com erro mantém authenticated e exibe erro', async () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-    playerAuthApiMock.logout.mockReturnValue(throwError(() => new Error('Logout failed')));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const pageComponent = fixture.componentInstance;
-    await pageComponent['logout']();
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-bunker-player-header')).toBeTruthy();
-  });
-
-  it('21. nova tentativa após erro chama logout novamente', async () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-    playerAuthApiMock.logout
-      .mockReturnValueOnce(throwError(() => new Error('Logout fail 1')))
-      .mockReturnValueOnce(of(undefined));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const pageComponent = fixture.componentInstance;
-    await pageComponent['logout']();
-    fixture.detectChanges();
-
-    await pageComponent['logout']();
-    fixture.detectChanges();
-
-    expect(playerAuthApiMock.logout).toHaveBeenCalledTimes(2);
-  });
-
-  it('22. conteúdo canônico recente usa team1Score/team2Score, utilityDamage, headShotKills, shotsFiredTotal/shotsOnTargetTotal', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
+    expect(recentNames).toEqual(['de_mirage', 'de_ancient']);
     expect(compiled.textContent).toContain('13 x 11');
     expect(compiled.textContent).toContain('300');
   });
 
-  it('23. nenhum button de navegação antigo permanece no BunkerPage', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
+  it('16. mapas recentes não calculam K/D ou ADR a partir de kills/deaths/damage/rounds', () => {
+    const base = createBunkerSummary();
+    const recentMaps = [
+      createRecentMap({
+        kills: 20,
+        deaths: 5,
+        damage: 2000,
+        rounds: 20,
+        kdRatio: null,
+        adr: null,
+        impactRating: null,
+      }),
+    ];
+    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, recentMaps } : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
+    const rowText = normalizedText(compiled.querySelector('.recent-map') ?? compiled);
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.bnav button')).toBeNull();
+    expect(rowText).toContain('K/D—');
+    expect(rowText).toContain('ADR—');
+    expect(rowText).not.toContain('4,00');
+    expect(rowText).not.toContain('100,0');
   });
 
-  it('24. nenhuma estrutura inline antiga de login, identidade, temporada ou navegação permanece duplicada', () => {
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(createBunkerSummary()));
+  it('17. timeline textual preserva ordem e campos canônicos publicados', () => {
+    const compiled = render();
+    const eventNames = Array.from(compiled.querySelectorAll<HTMLElement>('.timeline-event__heading strong'))
+      .map((cell) => cell.textContent?.trim());
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.bp__identity')).toBeNull();
-    expect(compiled.querySelector('.bunker-auth')).toBeNull();
-    expect(compiled.querySelector('.bsn__top')).toBeNull();
+    expect(eventNames).toEqual(['de_vertigo', 'de_mirage']);
+    expect(compiled.textContent).toContain('Timeline da temporada');
+    expect(compiled.textContent).toContain('13-11');
   });
 
-  it('25. inspeção estática de bunker-page.ts confirma ausência de elementos legados e presenças obrigatórias', () => {
-    const tsPath = path.resolve(__dirname, 'bunker-page.ts');
-    const tsContent = fs.readFileSync(tsPath, 'utf-8');
-
-    expect(tsContent).not.toContain('Cs2ApiService');
-    expect(tsContent).not.toContain('core/api/dto');
-    expect(tsContent).not.toContain('normalizeSummary');
-    expect(tsContent).not.toContain('normalizeBunkerSummary');
-    expect(tsContent).not.toContain('ViewEncapsulation');
-    expect(tsContent).not.toContain('window');
-    expect(tsContent).not.toContain('document');
-    expect(tsContent).not.toContain('scrollIntoView');
-    expect(tsContent).not.toContain('getElementById');
-    expect(tsContent).not.toContain('.subscribe(');
-    expect(tsContent).not.toContain('utility_damage');
-    expect(tsContent).not.toContain('team1_score');
-    expect(tsContent).not.toContain('team2_score');
-  });
-
-  it('26. inspeção estática de bunker-page.html confirma ausência de métodos e atributos legados', () => {
-    const htmlPath = path.resolve(__dirname, 'bunker-page.html');
-    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-
-    expect(htmlContent).not.toContain('loginWithSteam');
-    expect(htmlContent).not.toContain('scrollToSection');
-    expect(htmlContent).not.toContain('navButtonClass');
-    expect(htmlContent).not.toContain('utility_damage');
-    expect(htmlContent).not.toContain('team1_score');
-    expect(htmlContent).not.toContain('team2_score');
-    expect(htmlContent).not.toContain('head_shot_kills');
-    expect(htmlContent).not.toContain('shots_fired_total');
-    expect(htmlContent).not.toContain('shots_on_target_total');
-  });
-
-  it('27. inspeção estática confirma presença dos quatro selectors feature-local', () => {
-    const htmlPath = path.resolve(__dirname, 'bunker-page.html');
-    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-
-    expect(htmlContent).toContain('app-bunker-auth-card');
-    expect(htmlContent).toContain('app-bunker-player-header');
-    expect(htmlContent).toContain('app-bunker-season-info');
-    expect(htmlContent).toContain('app-bunker-section-nav');
-  });
-
-  it('28. lifetime presente + statsAvailable false renderiza métricas lifetime sem mostrar Bunker pendente', () => {
+  it('18. lifetime ausente renderiza estado vazio curto sem fabricar chart gigante', () => {
     const summary = createBunkerSummary({
-      statsAvailable: false,
-      seasonPlayer: null,
       competitiveProfile: {
-        generatedAt: '2026-08-01',
+        generatedAt: '2026-08-11T20:00:00Z',
         steamId64: '76561198000000000',
-        name: 'Lifetime Player',
+        name: 'L4VOSX',
         avatarMedium: null,
         steamProfileUrl: null,
-        lifetime: {
-          mapsPlayed: 100,
-          matchesPlayed: 100,
-          wins: 60,
-          losses: 40,
-          winRate: 60,
-          kdRatio: 1.45,
-          adr: 95,
-          impactRating: 1.3,
-          kills: 1800,
-          deaths: 1200,
-          assists: 400,
-          roundsPlayed: 2400,
-          headshotPct: 50,
-          accuracy: 25,
-          utilityDmgPerRound: 20,
-          killsPerRound: 0.75,
-          assistsPerRound: 0.16,
-          deathsPerRound: 0.5,
-          entryWinRate: 60,
-          v1Count: 10,
-          v1Wins: 6,
-          v1WinRate: 60,
-          v2Count: 5,
-          v2Wins: 2,
-          v2WinRate: 40,
-          enemy2ks: 50,
-          enemy3ks: 20,
-          enemy4ks: 5,
-          enemy5ks: 1,
-          sampleWeight: 1,
-          score: 85,
-        },
+        lifetime: null,
       },
     });
+    const compiled = render(summary);
 
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(summary));
-
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Perfil competitivo geral');
-    expect(compiled.textContent).toContain('1,45');
-    expect(compiled.textContent).not.toContain('Bunker pendente');
-    expect(compiled.textContent).toContain(
-      'Histórico competitivo geral carregado. Ainda não há estatísticas do jogador nesta Season.',
-    );
+    expect(compiled.textContent).toContain('Perfil competitivo geral ainda indisponível.');
+    expect(fixture.debugElement.query(By.directive(WinRateChartStub))).toBeNull();
+    expect(fixture.debugElement.query(By.directive(MultikillChartStub))).toBeNull();
   });
 
-  it('29. lifetime ausente exibe aviso de indisponibilidade sem fabricar métricas', () => {
-    const summary = createBunkerSummary({
-      statsAvailable: false,
-      seasonPlayer: null,
-      competitiveProfile: null,
-    });
+  it('19. byMap vazio exibe mensagem compacta', () => {
+    const base = createBunkerSummary();
+    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, byMap: [] } : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
 
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(summary));
+    expect(compiled.textContent).toContain('Performance por mapa ainda indisponível.');
+    expect(fixture.debugElement.query(By.directive(MapWinrateChartStub))).toBeNull();
+  });
 
-    fixture = TestBed.createComponent(BunkerPage);
-    fixture.detectChanges();
+  it('20. sem recentMaps e sem timeline omite seções dependentes', () => {
+    const base = createBunkerSummary();
+    const seasonPlayer = base.seasonPlayer
+      ? { ...base.seasonPlayer, recentMaps: [], timeline: [] }
+      : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Histórico competitivo geral ainda indisponível.');
+    expect(compiled.textContent).not.toContain('Mapas recentes');
+    expect(compiled.textContent).not.toContain('Timeline da temporada');
+    expect(fixture.debugElement.query(By.directive(ImpactTrendChartStub))).toBeNull();
+  });
+
+  it('21. remove conceitos antigos de ranking/highlight do layout', () => {
+    const compiled = render();
+    const text = compiled.textContent ?? '';
+
+    expect(text).not.toContain(['Mais', ' jogado'].join(''));
+    expect(text).not.toContain(['Melhor', ' ADR'].join(''));
+    expect(text).not.toContain(['Melhor', ' WR'].join(''));
+    expect(text).not.toContain(['Aten', 'ção'].join(''));
+    expect(text).not.toContain(['5K', ' / ', 'ACE'].join(''));
+  });
+
+  it('22. inspeção estática confirma ausência dos métodos derivados removidos', () => {
+    const tsPath = path.resolve(__dirname, 'bunker-page.ts');
+    const htmlPath = path.resolve(__dirname, 'bunker-page.html');
+    const tsContent = fs.readFileSync(tsPath, 'utf-8');
+    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
+    const combined = `${tsContent}\n${htmlContent}`;
+
+    expect(combined).not.toContain(['recentMap', 'Kd'].join(''));
+    expect(combined).not.toContain(['recentMap', 'Adr'].join(''));
+    expect(combined).not.toContain(['recentMap', 'HsPct'].join(''));
+    expect(combined).not.toContain(['recentMap', 'Accuracy'].join(''));
+    expect(combined).not.toContain(['mostPlayed', 'Map'].join(''));
+    expect(combined).not.toContain(['bestAdr', 'Map'].join(''));
+    expect(combined).not.toContain(['bestWinRate', 'Map'].join(''));
+    expect(combined).not.toContain(['attention', 'Map'].join(''));
+    expect(combined).not.toContain(['bestTimeline', 'Item'].join(''));
+    expect(combined).not.toContain(['worstTimeline', 'Item'].join(''));
+    expect(combined).not.toContain(['timelineSparkline', 'Points'].join(''));
+    expect(combined).not.toContain(['rateTone', 'Class'].join(''));
+  });
+
+  it('23. inspeção estática confirma que o dashboard não reutiliza componentes antigos da página', () => {
+    const htmlPath = path.resolve(__dirname, 'bunker-page.html');
+    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
+
+    expect(htmlContent).not.toContain(['app', 'bunker', 'player', 'header'].join('-'));
+    expect(htmlContent).not.toContain(['app', 'bunker', 'season', 'info'].join('-'));
+    expect(htmlContent).not.toContain(['app', 'bunker', 'section', 'nav'].join('-'));
+    expect(htmlContent).toContain('app-competitive-win-rate-chart');
+    expect(htmlContent).toContain('app-competitive-map-winrate-chart');
+    expect(htmlContent).toContain('app-competitive-impact-trend-chart');
   });
 });

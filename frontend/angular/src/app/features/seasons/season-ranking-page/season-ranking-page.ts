@@ -1,16 +1,13 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { MetricCard } from '../../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
-import { SectionHeader } from '../../../shared/components/section-header/section-header';
 import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
-import { UiCard } from '../../../shared/components/card/card';
+import { formatSeasonBoundaryDate } from '../season-ui';
 import { SeasonRankingApiService } from '../data-access/season-ranking-api.service';
 import { SeasonRankingPlayer, SeasonRankingRules, SeasonRankingSeason } from '../domain/season-ranking.model';
 import { SeasonPodium } from '../season-podium/season-podium';
@@ -42,7 +39,7 @@ interface SeasonRankingSummary {
 
 @Component({
   selector: 'app-season-ranking-page',
-  imports: [AsyncPipe, EmptyState, MetricCard, PageHeader, PageState, SeasonPodium, SeasonTabs, SectionHeader, StatusBadge, UiCard],
+  imports: [AsyncPipe, EmptyState, PageState, RouterLink, SeasonPodium, SeasonTabs, StatusBadge],
   templateUrl: './season-ranking-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./season-ranking-page.css', './season-ranking-page-table.css'],
@@ -53,6 +50,7 @@ export class SeasonRankingPage {
   private readonly reload$ = new Subject<void>();
 
   protected readonly searchTerm = signal('');
+  protected readonly formatSeasonBoundaryDate = formatSeasonBoundaryDate;
 
   protected readonly vm$: Observable<SeasonRankingVm> = this.route.paramMap.pipe(
     map((params) => params.get('slug')?.trim() ?? null),

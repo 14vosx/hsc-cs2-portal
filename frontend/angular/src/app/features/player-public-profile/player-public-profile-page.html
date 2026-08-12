@@ -2,10 +2,7 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-state
-          type="loading"
-          message="Carregando perfil do jogador..."
-        />
+        <app-page-state type="loading" message="Carregando perfil do jogador..." />
       }
 
       @case ('unauthenticated') {
@@ -49,70 +46,88 @@
 
       @case ('ready') {
         <article class="player-public-profile-page__profile">
-          <div class="player-public-profile-page__banner">
-            @if (vm.profile.bannerUrl) {
-              <img [src]="vm.profile.bannerUrl" alt="" decoding="async" />
-            } @else {
-              <div class="player-public-profile-page__banner-fallback" aria-hidden="true"></div>
-            }
-          </div>
-
-          <header class="player-public-profile-page__header">
-            <div class="player-public-profile-page__avatar">
-              @if (vm.profile.avatarUrl) {
-                <img
-                  [src]="vm.profile.avatarUrl"
-                  [alt]="'Avatar de ' + vm.profile.displayName"
-                  decoding="async"
-                />
+          <header class="player-public-profile-page__hero">
+            <div class="player-public-profile-page__banner">
+              @if (vm.profile.bannerUrl) {
+                <img [src]="vm.profile.bannerUrl" alt="" decoding="async" />
               } @else {
-                <span aria-hidden="true">{{ vm.profile.displayName.charAt(0) }}</span>
+                <div class="player-public-profile-page__banner-fallback" aria-hidden="true"></div>
               }
             </div>
+            <div class="player-public-profile-page__hero-overlay" aria-hidden="true"></div>
 
-            <div class="player-public-profile-page__identity">
-              <p>Perfil HSC</p>
-              <h1>{{ vm.profile.displayName }}</h1>
-              <span class="player-public-profile-page__slug">&#64;{{ vm.profile.slug }}</span>
+            <div class="player-public-profile-page__hero-content">
+              <div class="player-public-profile-page__avatar">
+                @if (vm.profile.avatarUrl) {
+                  <img
+                    [src]="vm.profile.avatarUrl"
+                    [alt]="'Avatar de ' + vm.profile.displayName"
+                    decoding="async"
+                  />
+                } @else {
+                  <span aria-hidden="true">{{ vm.profile.displayName.charAt(0) }}</span>
+                }
+              </div>
+
+              <div class="player-public-profile-page__identity">
+                <p>HSC Player Profile</p>
+                <h1>{{ vm.profile.displayName }}</h1>
+                <span class="player-public-profile-page__slug">&#64;{{ vm.profile.slug }}</span>
+              </div>
+
+              <span class="player-public-profile-page__mark" aria-hidden="true">HSC PLAYER</span>
             </div>
           </header>
 
-          <div class="player-public-profile-page__content">
+          <div class="player-public-profile-page__body">
+            <section
+              class="player-public-profile-page__identity-panel"
+              aria-labelledby="profile-identity-title"
+            >
+              <div class="player-public-profile-page__section-heading">
+                <span>Player identity</span>
+                <h2 id="profile-identity-title">Preferências</h2>
+              </div>
+
+              <dl class="player-public-profile-page__details">
+                @if (vm.profile.preferredRole) {
+                  <div>
+                    <dt>Função</dt>
+                    <dd>{{ preferredRoleLabel(vm.profile.preferredRole) }}</dd>
+                  </div>
+                }
+                @if (vm.profile.preferredMap) {
+                  <div>
+                    <dt>Mapa preferido</dt>
+                    <dd>{{ preferredMapLabel(vm.profile.preferredMap) }}</dd>
+                  </div>
+                }
+                <div>
+                  <dt>Membro desde</dt>
+                  <dd>
+                    <time [attr.datetime]="vm.profile.joinedAt">
+                      {{ formatJoinedAt(vm.profile.joinedAt) }}
+                    </time>
+                  </dd>
+                </div>
+                @if (vm.profile.discordHandle) {
+                  <div>
+                    <dt>Discord</dt>
+                    <dd>{{ vm.profile.discordHandle }}</dd>
+                  </div>
+                }
+              </dl>
+            </section>
+
             @if (vm.profile.bio) {
               <section class="player-public-profile-page__bio" aria-labelledby="profile-bio-title">
-                <h2 id="profile-bio-title">Sobre</h2>
+                <div class="player-public-profile-page__section-heading">
+                  <span>Public profile</span>
+                  <h2 id="profile-bio-title">Sobre</h2>
+                </div>
                 <p>{{ vm.profile.bio }}</p>
               </section>
             }
-
-            <dl class="player-public-profile-page__details">
-              @if (vm.profile.discordHandle) {
-                <div>
-                  <dt>Discord</dt>
-                  <dd>{{ vm.profile.discordHandle }}</dd>
-                </div>
-              }
-              @if (vm.profile.preferredRole) {
-                <div>
-                  <dt>Função preferida</dt>
-                  <dd>{{ preferredRoleLabel(vm.profile.preferredRole) }}</dd>
-                </div>
-              }
-              @if (vm.profile.preferredMap) {
-                <div>
-                  <dt>Mapa preferido</dt>
-                  <dd>{{ preferredMapLabel(vm.profile.preferredMap) }}</dd>
-                </div>
-              }
-              <div>
-                <dt>Na HSC desde</dt>
-                <dd>
-                  <time [attr.datetime]="vm.profile.joinedAt">
-                    {{ formatJoinedAt(vm.profile.joinedAt) }}
-                  </time>
-                </dd>
-              </div>
-            </dl>
           </div>
         </article>
       }

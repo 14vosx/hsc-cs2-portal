@@ -11,6 +11,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { PlayerSessionService } from '../../core/session/player-session.service';
 
 import { AppFooter } from '../app-footer/app-footer';
 import { AppHeader } from '../app-header/app-header';
@@ -33,6 +34,7 @@ export class AppShell {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly elementRef = inject(ElementRef);
+  protected readonly playerSession = inject(PlayerSessionService);
 
   protected readonly isDrawerOpen = signal<boolean>(false);
 
@@ -40,6 +42,7 @@ export class AppShell {
   private previousBodyOverflow = '';
 
   constructor() {
+    this.playerSession.load();
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -69,6 +72,12 @@ export class AppShell {
     } else {
       this.openDrawer();
     }
+  }
+
+  protected logout(): void {
+    this.playerSession.logout(() => {
+      void this.router.navigateByUrl('/area-do-jogador', { replaceUrl: true });
+    });
   }
 
   protected openDrawer(): void {

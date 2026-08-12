@@ -5,7 +5,6 @@ import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MetricCard } from '../../../shared/components/metric-card/metric-card';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { SeasonRankingApiService } from '../data-access/season-ranking-api.service';
 import type { SeasonRanking, SeasonRankingPlayer, SeasonRankingSeason } from '../domain/season-ranking.model';
@@ -289,16 +288,15 @@ describe('SeasonRankingPage', () => {
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(1);
   });
 
-  it('ready state renders all required Lego components', () => {
+  it('ready state renders the season suite composition', () => {
     const fixture = TestBed.createComponent(SeasonRankingPage);
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('app-page-header')).toBeTruthy();
+    expect(el.querySelector('.season-ranking__hero')).toBeTruthy();
     expect(el.querySelector('app-season-tabs')).toBeTruthy();
-    expect(el.querySelectorAll('app-metric-card').length).toBe(5);
-    expect(el.querySelector('app-section-header')).toBeTruthy();
-    expect(el.querySelector('app-ui-card')).toBeTruthy();
+    expect(el.querySelectorAll('.season-ranking__snapshot > div').length).toBe(5);
+    expect(el.querySelector('.season-ranking__classification')).toBeTruthy();
     expect(el.querySelector('app-status-badge')).toBeTruthy();
     expect(el.querySelector('app-season-podium')).toBeTruthy();
   });
@@ -307,12 +305,12 @@ describe('SeasonRankingPage', () => {
     const fixture = TestBed.createComponent(SeasonRankingPage);
     fixture.detectChanges();
 
-    const cards = fixture.debugElement.queryAll(By.directive(MetricCard));
-    expect(cards[0].componentInstance.value).toBe(mockRanking.summary.players);
-    expect(cards[1].componentInstance.value).toBe(mockRanking.summary.eligiblePlayers);
-    expect(cards[2].componentInstance.value).toBe(mockRanking.summary.matches);
-    expect(cards[3].componentInstance.value).toBe(mockRanking.summary.maps);
-    expect(cards[4].componentInstance.value).toBe(mockRanking.summary.rounds);
+    const snapshot = fixture.nativeElement.querySelector('.season-ranking__snapshot').textContent;
+    expect(snapshot).toContain(String(mockRanking.summary.players));
+    expect(snapshot).toContain(String(mockRanking.summary.eligiblePlayers));
+    expect(snapshot).toContain(String(mockRanking.summary.matches));
+    expect(snapshot).toContain(String(mockRanking.summary.maps));
+    expect(snapshot).toContain(String(mockRanking.summary.rounds));
   });
 
   it('passes topPrizeCandidates to SeasonPodium without derivation', () => {
@@ -346,7 +344,7 @@ describe('SeasonRankingPage', () => {
     expect(fixture.nativeElement.querySelector('.season-ranking__table')).toBeNull();
   });
 
-  it('empty state renders PageHeader, SeasonTabs and season context without metrics or table', () => {
+  it('empty state renders the compact hero, SeasonTabs and no table', () => {
     mockSeasonRankingApi.getRanking.mockReturnValue(
       of({ kind: 'available', ranking: { ...mockRanking, players: [] } }),
     );
@@ -354,10 +352,9 @@ describe('SeasonRankingPage', () => {
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('app-page-header')).toBeTruthy();
+    expect(el.querySelector('.season-ranking__hero')).toBeTruthy();
     expect(el.querySelector('app-season-tabs')).toBeTruthy();
-    expect(el.querySelector('app-ui-card')).toBeTruthy();
-    expect(el.querySelectorAll('app-metric-card').length).toBe(0);
+    expect(el.querySelector('.season-ranking__snapshot')).toBeNull();
     expect(el.querySelector('.season-ranking__table')).toBeNull();
   });
 

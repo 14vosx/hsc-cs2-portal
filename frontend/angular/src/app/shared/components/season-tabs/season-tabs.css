@@ -1,20 +1,53 @@
+:host {
+  display: block;
+  container-type: inline-size;
+  min-width: 0;
+  padding: var(--space-2);
+  background: var(--color-glass-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
 .season-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .season-tabs__item {
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 6px 9px;
-  background: rgba(5, 8, 11, 0.48);
+  min-height: 38px;
+  padding: 8px var(--space-4);
   color: var(--color-primary-strong);
+  background: rgba(5, 8, 11, 0.48);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
   font-weight: 800;
+  letter-spacing: 0.06em;
   text-decoration: none;
+  text-transform: uppercase;
 }
 
 .season-tabs__item--active {
-  border-color: var(--color-accent-purple-border);
-  color: var(--color-accent-purple-strong);
+  color: var(--color-bg-base);
+  background: var(--color-accent-cyan);
+  border-color: var(--color-accent-cyan);
+}
+
+.season-tabs__item:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 3px;
+}
+
+@container (max-width: 430px) {
+  .season-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .season-tabs__item {
+    justify-content: center;
+    text-align: center;
+  }
 }

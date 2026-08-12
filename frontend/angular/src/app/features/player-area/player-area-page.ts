@@ -1,12 +1,12 @@
 import { AsyncPipe, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   BehaviorSubject,
   Observable,
   catchError,
-  firstValueFrom,
   forkJoin,
   map,
   of,
@@ -48,17 +48,14 @@ import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-p
 import { PlayerEmailAuthPanel } from '../player-auth/player-email-auth-panel/player-email-auth-panel';
 import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
 import { mapSteamLinkResult } from '../player-account-security/player-account-security-error';
-import {
-  PlayerCs2ReadinessPanel,
-  type PlayerCs2StatsState,
-} from '../player-cs2-readiness/player-cs2-readiness-panel/player-cs2-readiness-panel';
-import {
-  PlayerServerAccessPanel,
-  type PlayerServerAccessLoadState,
-} from '../player-server-access/player-server-access-panel/player-server-access-panel';
+import type { PlayerCs2StatsState } from '../player-cs2-readiness/player-cs2-readiness-panel/player-cs2-readiness-panel';
+import type { PlayerServerAccessLoadState } from '../player-server-access/player-server-access-panel/player-server-access-panel';
+import { presentServerAccess } from '../player-server-access/player-server-access-presentation';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
+import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
+import { PlayerSessionService } from '../../core/session/player-session.service';
 import {
   StatusBadge,
   type StatusBadgeVariant,
@@ -98,8 +95,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     PlayerProfileMediaEditor,
     PlayerEmailAuthPanel,
     PlayerAccountSecurityPanel,
-    PlayerCs2ReadinessPanel,
-    PlayerServerAccessPanel,
+    PlayerAvatar,
   ],
   templateUrl: './player-area-page.html',
   styleUrl: './player-area-page.css',
@@ -111,13 +107,17 @@ export class PlayerAreaPage implements OnInit {
   private readonly authApi = inject(PlayerAuthApiService);
   private readonly serverAccessApi = inject(PlayerServerAccessApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly playerSession = inject(PlayerSessionService);
 
   protected readonly steamLoginUrl = this.authApi.steamLoginUrl;
   protected readonly steamLinkUrl = this.authApi.steamLinkUrl;
 
   protected readonly logoutPending = signal(false);
   protected readonly logoutFailed = signal(false);
+  protected readonly settingsOpen = signal(false);
 
   protected readonly isEditingProfile = signal(false);
   protected readonly savePending = signal(false);
@@ -137,7 +137,20 @@ export class PlayerAreaPage implements OnInit {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
 
+  constructor() {
+    this.playerSession.signedOut$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.handleSuccessfulLogout(this.logoutPending()));
+  }
+
   ngOnInit(): void {
+    if (
+      this.route.snapshot.fragment === 'perfil' ||
+      this.route.snapshot.fragment === 'conta-seguranca'
+    ) {
+      this.settingsOpen.set(true);
+    }
+
     const result = this.route.snapshot.queryParamMap.get('steamLink');
     if (result === null) return;
     const notice = mapSteamLinkResult(result);
@@ -304,7 +317,7 @@ export class PlayerAreaPage implements OnInit {
     return found ? found.label : map;
   }
 
-  protected async logout(): Promise<void> {
+  protected logout(): void {
     if (this.logoutPending()) {
       return;
     }
@@ -312,18 +325,32 @@ export class PlayerAreaPage implements OnInit {
     this.logoutPending.set(true);
     this.logoutFailed.set(false);
 
-    try {
-      await firstValueFrom(this.authApi.logout());
-      this.reload$.next('signed-out');
-    } catch {
+    this.playerSession.logout(undefined, () => {
       this.logoutFailed.set(true);
-    } finally {
       this.logoutPending.set(false);
-    }
+    });
   }
 
   protected onEmailAuthenticated(): void {
-    this.reload$.next('load');
+    this.playerSession.load(() => this.reload$.next('load'));
+  }
+
+  protected toggleSettings(): void {
+    this.settingsOpen.update((open) => !open);
+  }
+
+  protected serverAccessLabel(
+    access: PlayerServerAccess | null,
+    state: PlayerServerAccessLoadState,
+  ): string {
+    return presentServerAccess(access, state === 'ready').status;
+  }
+
+  protected serverAccessAuthorized(
+    access: PlayerServerAccess | null,
+    state: PlayerServerAccessLoadState,
+  ): boolean {
+    return presentServerAccess(access, state === 'ready').authorized;
   }
 
   protected profileVisibilityLabel(visibility: PlayerProfileVisibility): string {
@@ -409,6 +436,25 @@ export class PlayerAreaPage implements OnInit {
     }).format(value);
   }
 
+  protected formatDateTime(value: string | null | undefined): string {
+    if (!value) {
+      return '—';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  }
+
   protected formatInteger(value: number | null | undefined): string {
     if (typeof value !== 'number' || !Number.isFinite(value)) {
       return '—';
@@ -417,6 +463,10 @@ export class PlayerAreaPage implements OnInit {
     return new Intl.NumberFormat('pt-BR', {
       maximumFractionDigits: 0,
     }).format(value);
+  }
+
+  protected registeredMapsLabel(value: number): string {
+    return `${this.formatInteger(value)} ${value === 1 ? 'mapa registrado' : 'mapas registrados'} nesta temporada.`;
   }
 
   protected formatRate(value: number | null | undefined): string {
@@ -456,6 +506,26 @@ export class PlayerAreaPage implements OnInit {
     target.set(mapped.message);
   }
 
+  private handleSuccessfulLogout(navigate: boolean): void {
+    this.settingsOpen.set(false);
+    this.logoutPending.set(false);
+    this.logoutFailed.set(false);
+    this.isEditingProfile.set(false);
+    this.savePending.set(false);
+    this.saveError.set(null);
+    this.successNotice.set(null);
+    this.steamLinkNotice.set(null);
+    this.updatedProfile.set(null);
+    this.avatarPending.set(false);
+    this.bannerPending.set(false);
+    this.clearMediaErrors();
+    this.reload$.next('signed-out');
+
+    if (navigate) {
+      void this.router.navigateByUrl('/area-do-jogador', { replaceUrl: true });
+    }
+  }
+
   private loadVm(action: PlayerAreaReloadAction): Observable<PlayerAreaVm> {
     if (action === 'signed-out') {
       return of({ state: 'unauthenticated' } satisfies PlayerAreaVm);
@@ -466,6 +536,8 @@ export class PlayerAreaPage implements OnInit {
         if (!identity) {
           return of({ state: 'unauthenticated' } satisfies PlayerAreaVm);
         }
+
+        this.syncGlobalSession();
 
         return forkJoin({
           account: this.selfApi.getAccount(),
@@ -522,6 +594,13 @@ export class PlayerAreaPage implements OnInit {
         }),
       ),
     );
+  }
+
+  private syncGlobalSession(): void {
+    const status = this.playerSession.state().status;
+    if (status === 'anonymous' || status === 'unavailable') {
+      this.playerSession.load();
+    }
   }
 
   private loadServerAccess(): Observable<{

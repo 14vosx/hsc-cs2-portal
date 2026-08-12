@@ -1,15 +1,10 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { UiCard } from '../../../shared/components/card/card';
-import { MetricCard } from '../../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../../shared/components/section-header/section-header';
-import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
 import { MatchesApiService } from '../data-access/matches-api.service';
 import type { MatchDetail, MatchDetailMap, MatchHeader } from '../domain/match.model';
 import { MatchPlayerTable } from '../match-player-table/match-player-table';
@@ -27,17 +22,7 @@ type MatchDetailVm =
 
 @Component({
   selector: 'app-match-detail-page',
-  imports: [
-    AsyncPipe,
-    RouterLink,
-    MetricCard,
-    PageHeader,
-    PageState,
-    SectionHeader,
-    StatusBadge,
-    UiCard,
-    MatchPlayerTable,
-  ],
+  imports: [AsyncPipe, MatchPlayerTable, PageState, RouterLink],
   templateUrl: './match-detail-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './match-detail-page.css',
@@ -47,6 +32,18 @@ export class MatchDetailPage {
   private readonly router = inject(Router);
   private readonly matchesApi = inject(MatchesApiService);
   private readonly reload$ = new Subject<void>();
+  private readonly knownMapImages = new Set([
+    'de_ancient',
+    'de_anubis',
+    'de_dust2',
+    'de_inferno',
+    'de_mirage',
+    'de_nuke',
+    'de_overpass',
+    'de_train',
+  ]);
+
+  protected readonly selectedMapIndex = signal(0);
 
   protected readonly vm$: Observable<MatchDetailVm> = this.reload$.pipe(
     startWith(undefined),
@@ -64,6 +61,7 @@ export class MatchDetailPage {
             return of({ state: 'not-found' } satisfies MatchDetailVm);
           }
 
+          this.selectedMapIndex.set(0);
           return this.matchesApi.getMatch(matchId).pipe(
             map((detail) => ({ state: 'ready', detail }) satisfies MatchDetailVm),
             startWith({ state: 'loading' } satisfies MatchDetailVm),
@@ -87,10 +85,24 @@ export class MatchDetailPage {
     this.router.navigate(['/matches']);
   }
 
-  protected matchTitle(detail: MatchDetail): string {
-    const t1 = detail.match.team1.name || 'Time não informado';
-    const t2 = detail.match.team2.name || 'Time não informado';
-    return `${t1} vs ${t2}`;
+  protected selectMap(index: number): void {
+    this.selectedMapIndex.set(index);
+  }
+
+  protected selectedMap(detail: MatchDetail): MatchDetailMap | undefined {
+    return detail.maps[this.selectedMapIndex()];
+  }
+
+  protected teamName(name: string | null): string {
+    return name || 'Time não informado';
+  }
+
+  protected scoreLabel(score: number | null): number | string {
+    return score ?? '—';
+  }
+
+  protected mapName(mapDetail: MatchDetailMap): string {
+    return mapDetail.name || 'Mapa sem nome';
   }
 
   protected formatDate(value?: string | null): string {
@@ -99,7 +111,6 @@ export class MatchDetailPage {
     }
 
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) {
       return value;
     }
@@ -114,21 +125,11 @@ export class MatchDetailPage {
   }
 
   protected formatSeriesScore(header: MatchHeader): string {
-    const t1 = header.team1.score;
-    const t2 = header.team2.score;
-    if (t1 !== null && t2 !== null) {
-      return `${t1} x ${t2}`;
-    }
-    return '— x —';
+    return `${this.scoreLabel(header.team1.score)} × ${this.scoreLabel(header.team2.score)}`;
   }
 
   protected formatMapScore(mapDetail: MatchDetailMap): string {
-    const t1 = mapDetail.team1Score;
-    const t2 = mapDetail.team2Score;
-    if (t1 !== null && t2 !== null) {
-      return `${t1} x ${t2}`;
-    }
-    return '— x —';
+    return `${this.scoreLabel(mapDetail.team1Score)}–${this.scoreLabel(mapDetail.team2Score)}`;
   }
 
   protected winnerLabel(value?: string | null): string {
@@ -136,10 +137,7 @@ export class MatchDetailPage {
   }
 
   protected isWinner(winner: string | null, teamName: string | null): boolean {
-    if (!winner || !teamName) {
-      return false;
-    }
-    return winner === teamName;
+    return Boolean(winner && teamName && winner === teamName);
   }
 
   protected roundCount(mapDetail: MatchDetailMap): number {
@@ -149,7 +147,8 @@ export class MatchDetailPage {
     return 0;
   }
 
-  protected limitations(detail: MatchDetail): readonly string[] {
-    return detail.limitations ?? [];
+  protected mapBackgroundImage(mapDetail?: MatchDetailMap): string {
+    const name = mapDetail?.name;
+    return name && this.knownMapImages.has(name) ? `url("map-images/${name}.png")` : 'none';
   }
 }

@@ -1,14 +1,45 @@
-<section class="link-email-page">
-  <app-page-header eyebrow="Conta HSC" title="Vínculo de e-mail" description="Confirme o e-mail associado à sua conta HSC." />
-  <app-ui-card>
-    <div class="link-email-page__content">
-      <h2>
-        @if (state() === 'success') { Vínculo concluído }
-        @else if (state() === 'loading') { Confirmando... }
-        @else { Não foi possível vincular }
-      </h2>
-      <p [attr.role]="state() === 'loading' || state() === 'success' ? 'status' : 'alert'">{{ message() }}</p>
-      <a routerLink="/area-do-jogador">Voltar para a Área do Jogador</a>
+<section class="link-workspace" aria-labelledby="link-workspace-title">
+  <div class="link-workspace__context">
+    <div class="link-workspace__intro">
+      <p class="link-workspace__eyebrow">HSC Account Security</p>
+      <h1 id="link-workspace-title">Vínculo<br />de identidade</h1>
+      <p class="link-workspace__lead">Estamos confirmando o e-mail que será associado à sua conta HSC.</p>
     </div>
-  </app-ui-card>
+    <ol class="link-workspace__protocol" aria-label="Protocolo de vínculo de identidade">
+      <li><span>01</span><div><strong>Solicitação</strong><p>O vínculo foi iniciado pela Área do Jogador.</p></div></li>
+      <li><span>02</span><div><strong>Confirmação</strong><p>O link valida o endereço de e-mail solicitado.</p></div></li>
+      <li><span>03</span><div><strong>Identidade</strong><p>O endereço confirmado passa a integrar sua conta HSC.</p></div></li>
+    </ol>
+  </div>
+
+  <div class="link-workspace__surface">
+    <div class="link-workspace__surface-content">
+      @if (state() === 'loading') {
+        <div class="link-workspace__heading"><p class="link-workspace__eyebrow">Vínculo em andamento</p><h2>Confirmando e-mail</h2></div>
+        <div class="link-workspace__activity" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="link-workspace__message" role="status">Estamos validando a solicitação de vínculo.</p>
+      } @else if (state() === 'success') {
+        <div class="link-workspace__heading link-workspace__heading--success"><p class="link-workspace__eyebrow">Vínculo concluído</p><h2>E-mail vinculado</h2></div>
+        <p class="link-workspace__message" role="status">{{ message() }}</p>
+        <a class="link-workspace__action link-workspace__action--success" routerLink="/area-do-jogador">Voltar para a Área do Jogador</a>
+      } @else {
+        <div class="link-workspace__heading">
+          <p class="link-workspace__eyebrow">
+            @if (state() === 'invalid') { Confirmation link }
+            @else if (state() === 'conflict') { Conflito de identidade }
+            @else if (state() === 'disabled') { Conta HSC }
+            @else { Serviço de identidade }
+          </p>
+          <h2>
+            @if (state() === 'invalid') { Link indisponível }
+            @else if (state() === 'conflict') { Vínculo não realizado }
+            @else if (state() === 'disabled') { Operação indisponível }
+            @else { Não foi possível concluir }
+          </h2>
+        </div>
+        <p class="link-workspace__message link-workspace__message--error" role="alert">{{ message() }}</p>
+        <a class="link-workspace__action" routerLink="/area-do-jogador">Voltar para a Área do Jogador</a>
+      }
+    </div>
+  </div>
 </section>

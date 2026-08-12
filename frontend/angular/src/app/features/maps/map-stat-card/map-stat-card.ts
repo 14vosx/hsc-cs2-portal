@@ -13,6 +13,7 @@ import type { MapSummary } from '../domain/map.model';
 export class MapStatCard {
   readonly map = input.required<MapSummary>();
   readonly highlight = input<boolean>(false);
+  readonly totalMapAppearances = input<number>(0);
 
   private readonly knownMapImages = new Set([
     'de_ancient',
@@ -55,5 +56,14 @@ export class MapStatCard {
       return '0.0';
     }
     return val.toFixed(1);
+  }
+
+  protected rotationShare(): number {
+    const total = this.totalMapAppearances();
+    return total > 0 ? (this.map().matches / total) * 100 : 0;
+  }
+
+  protected formatPercent(): string {
+    return `${this.rotationShare().toFixed(1).replace('.', ',')}%`;
   }
 }

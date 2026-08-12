@@ -72,14 +72,59 @@ describe('MapsPage', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Rotação de mapas');
-    expect(el.textContent).toContain('Atualizado em');
+    expect(el.textContent).toContain('Dados atualizados');
     expect(el.textContent).toContain('de_mirage');
 
-    const metrics = el.querySelector('.maps-page__metrics');
-    expect(metrics?.textContent).toContain('Mapa mais jogado');
-    expect(metrics?.textContent).toContain('de_mirage');
+    const metrics = el.querySelector('.maps-page__overview');
+    expect(metrics?.textContent).toContain('Mapas');
+    expect(metrics?.textContent).toContain('2');
+    expect(metrics?.textContent).toContain('Aparições');
     expect(metrics?.textContent).toContain('80');
     expect(metrics?.textContent).toContain('1600');
+    expect(metrics?.textContent).toContain('20,0');
+  });
+
+  it('escolhe o hero por maior número de aparições sem depender da ordem', () => {
+    const maps = [createMockMap('de_nuke', { matches: 2 }), createMockMap('de_mirage', { matches: 8 })];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
+    createComponent();
+    expect((fixture.nativeElement.querySelector('.maps-page__hero h2') as HTMLElement).textContent).toContain('de_mirage');
+  });
+
+  it('preserva a primeira ocorrência publicada como desempate do hero', () => {
+    const maps = [createMockMap('de_nuke', { matches: 8 }), createMockMap('de_mirage', { matches: 8 })];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
+    createComponent();
+    expect((fixture.nativeElement.querySelector('.maps-page__hero h2') as HTMLElement).textContent).toContain('de_nuke');
+  });
+
+  it('calcula participação na rotação e mantém todos os mapas na distribuição publicada', () => {
+    const maps = [createMockMap('de_mirage', { matches: 10 }), createMockMap('de_nuke', { matches: 8 })];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-10T12:00:00Z', maps }));
+    createComponent();
+    const rows = fixture.nativeElement.querySelectorAll('.maps-page__distribution-row') as NodeListOf<HTMLElement>;
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toContain('55,6%');
+    expect(rows[0].textContent).toContain('de_mirage');
+    expect(rows[1].textContent).toContain('de_nuke');
+  });
+
+  it('usa fallback neutro para média e participação quando não há aparições', () => {
+    const maps = [createMockMap('de_mirage', { matches: 0, rounds: 0 })];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
+    createComponent();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.maps-page__overview')?.textContent).toContain('—');
+    expect(el.querySelector('.maps-page__distribution-row')?.textContent).toContain('0,0%');
+  });
+
+  it('usa generatedAt como referência para a recência e expõe o CTA do hero', () => {
+    const maps = [createMockMap('de_mirage', { lastPlayedAt: '2026-08-05T12:00:00Z' })];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-10T12:00:00Z', maps }));
+    createComponent();
+    const hero = fixture.nativeElement.querySelector('.maps-page__hero') as HTMLElement;
+    expect(hero.textContent).toContain('há 5 dias');
+    expect((hero.querySelector('a') as HTMLAnchorElement).getAttribute('href')).toBe('/maps/de_mirage');
   });
 
   it('preserva a ordem remota quando o sort selecionado é "published"', () => {
@@ -157,6 +202,15 @@ describe('MapsPage', () => {
     fixture.detectChanges();
 
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
+  });
+
+  it('filtra mapas pelo nome sem alterar a lista original', () => {
+    const maps = [createMockMap('de_mirage'), createMockMap('de_nuke')];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
+    createComponent();
+    component['searchTerm'].set('MIR');
+    expect(component['visibleMaps'](maps).map((map) => map.name)).toEqual(['de_mirage']);
+    expect(maps.map((map) => map.name)).toEqual(['de_mirage', 'de_nuke']);
   });
 
   it('exibe estado empty localizado quando a busca por nome não encontra mapas', () => {
