@@ -1,19 +1,24 @@
 <section class="news-page">
   @if (vm$ | async; as vm) {
-    <app-page-header
-      eyebrow="News HSC"
-      title="Últimas notícias do clube"
-      description="Comunicados, bastidores e atualizações da comunidade CS2 HSC."
-    >
+    <header class="news-page__hero">
+      <div class="news-page__hero-copy">
+        <span class="news-page__eyebrow">HSC Newsroom</span>
+        <h1>Notícias do <span>clube</span></h1>
+        <p>Comunicados, bastidores e atualizações da comunidade CS2 HSC.</p>
+
+        <div class="news-page__transmission" aria-hidden="true">
+          <span></span>
+          Editorial transmission board
+        </div>
+      </div>
+
       @if (vm.state === 'ready') {
-        <div meta>
-          <app-status-badge
-            [label]="publicationCountLabel(vm.count)"
-            tone="info"
-          />
+        <div class="news-page__count" aria-label="Total de publicações">
+          <span>Feed editorial</span>
+          <strong>{{ publicationCountLabel(vm.count) }}</strong>
         </div>
       }
-    </app-page-header>
+    </header>
 
     @switch (vm.state) {
       @case ('loading') {
@@ -43,12 +48,11 @@
       }
 
       @case ('ready') {
-        <section class="news-page__feed" aria-label="Últimas publicações">
-          <app-section-header
-            eyebrow="Editorial"
-            title="Últimas publicações"
-            description="Notícias e comunicados oficiais na ordem publicada pelo clube."
-          />
+        <section class="news-page__feed" aria-labelledby="news-feed-title">
+          <div class="news-page__feed-heading">
+            <span>Editorial feed</span>
+            <h2 id="news-feed-title">Publicações</h2>
+          </div>
 
           <div class="news-page__grid">
             @for (item of vm.items; track item.slug) {

@@ -7,11 +7,11 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-header
-          eyebrow="News HSC"
-          title="Artigo editorial"
-          description="Carregando a publicação selecionada."
-        />
+        <header class="news-detail-page__state-header">
+          <span>News HSC</span>
+          <h1>Artigo editorial</h1>
+          <p>Carregando a publicação selecionada.</p>
+        </header>
 
         <app-page-state
           type="loading"
@@ -21,11 +21,11 @@
       }
 
       @case ('not-found') {
-        <app-page-header
-          eyebrow="News HSC"
-          title="Notícia não encontrada"
-          description="A publicação solicitada não está disponível."
-        />
+        <header class="news-detail-page__state-header">
+          <span>News HSC</span>
+          <h1>Notícia não encontrada</h1>
+          <p>A publicação solicitada não está disponível.</p>
+        </header>
 
         <app-page-state
           type="empty"
@@ -35,11 +35,11 @@
       }
 
       @case ('error') {
-        <app-page-header
-          eyebrow="News HSC"
-          title="Notícia indisponível"
-          description="O conteúdo editorial não pôde ser carregado."
-        />
+        <header class="news-detail-page__state-header">
+          <span>News HSC</span>
+          <h1>Notícia indisponível</h1>
+          <p>O conteúdo editorial não pôde ser carregado.</p>
+        </header>
 
         <app-page-state
           type="error"
@@ -52,41 +52,55 @@
 
       @case ('ready') {
         <article class="news-detail-page__article">
-          <app-page-header
-            eyebrow="News HSC"
-            [title]="vm.article.title"
-            [description]="articleDescription(vm.article.excerpt)"
-          >
-            <div meta class="news-detail-page__meta">
-              <app-status-badge label="Publicação oficial" tone="info" />
-              <time [attr.datetime]="vm.article.publishedAt">
-                {{ formatDate(vm.article.publishedAt) }}
-              </time>
-            </div>
-          </app-page-header>
+          <header class="news-detail-page__hero">
+            <div class="news-detail-page__hero-copy">
+              <span class="news-detail-page__eyebrow">News HSC</span>
+              <p class="news-detail-page__dispatch">Publicação oficial</p>
+              <h1>{{ vm.article.title }}</h1>
 
-          <div class="news-detail-page__media">
-            @if (showHeroImage(vm.article.imageUrl)) {
-              <img
-                [src]="vm.article.imageUrl!"
-                [alt]="vm.article.title"
-                decoding="async"
-                (error)="onHeroImageError(vm.article.imageUrl)"
-              />
-            } @else {
-              <div class="news-detail-page__media-fallback" aria-hidden="true">
-                <span>HSC</span>
+              @if (vm.article.excerpt && vm.article.excerpt.trim()) {
+                <p class="news-detail-page__excerpt">{{ vm.article.excerpt }}</p>
+              }
+
+              <div class="news-detail-page__meta">
+                <span>Editorial dispatch</span>
+                <i aria-hidden="true"></i>
+                <span>Publicado em</span>
+                <time [attr.datetime]="vm.article.publishedAt">
+                  {{ formatDate(vm.article.publishedAt) }}
+                </time>
               </div>
-            }
-          </div>
+            </div>
+
+            <div class="news-detail-page__media">
+              @if (showHeroImage(vm.article.imageUrl)) {
+                <img
+                  [src]="vm.article.imageUrl!"
+                  [alt]="vm.article.title"
+                  decoding="async"
+                  (error)="onHeroImageError(vm.article.imageUrl)"
+                />
+              } @else {
+                <div class="news-detail-page__media-fallback" aria-hidden="true">
+                  <span>HSC</span>
+                  <small>News / Editorial</small>
+                </div>
+              }
+              <span class="news-detail-page__media-mark" aria-hidden="true">HSC // NEWS</span>
+            </div>
+          </header>
 
           <section
             class="news-detail-page__content"
             aria-label="Conteúdo da notícia"
           >
-            <app-ui-card variant="default">
+            <div class="news-detail-page__content-heading" aria-hidden="true">
+              <span>Editorial dispatch</span>
+              <i></i>
+            </div>
+            <div class="news-detail-page__reading-column">
               <app-news-article-body [contentHtml]="vm.article.contentHtml" />
-            </app-ui-card>
+            </div>
           </section>
         </article>
       }

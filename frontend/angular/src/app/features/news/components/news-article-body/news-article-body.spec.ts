@@ -130,6 +130,9 @@ describe('NewsArticleBody', () => {
       .filter((l) => l.endsWith('{'));
 
     for (const line of lines) {
+      if (line.startsWith('@')) {
+        continue;
+      }
       const selectors = line.replace('{', '').split(',');
       for (const selector of selectors) {
         const trimmed = selector.trim();

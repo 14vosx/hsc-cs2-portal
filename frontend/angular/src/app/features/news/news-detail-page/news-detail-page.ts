@@ -15,10 +15,7 @@ import {
   tap,
 } from 'rxjs';
 
-import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
-import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
-import { UiCard } from '../../../shared/components/card/card';
 import { NewsArticleBody } from '../components/news-article-body/news-article-body';
 import { NewsApiService } from '../data-access/news-api.service';
 import type { NewsArticle } from '../domain/news.model';
@@ -36,15 +33,7 @@ type NewsDetailVm =
 
 @Component({
   selector: 'app-news-detail-page',
-  imports: [
-    AsyncPipe,
-    RouterLink,
-    NewsArticleBody,
-    PageHeader,
-    PageState,
-    StatusBadge,
-    UiCard,
-  ],
+  imports: [AsyncPipe, RouterLink, NewsArticleBody, PageState],
   templateUrl: './news-detail-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-detail-page.css',
@@ -117,13 +106,6 @@ export class NewsDetailPage implements OnDestroy {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
-  }
-
-  protected articleDescription(excerpt: string | null): string | undefined {
-    if (!excerpt || excerpt.trim().length === 0) {
-      return undefined;
-    }
-    return excerpt;
   }
 
   protected showHeroImage(imageUrl: string | null): boolean {

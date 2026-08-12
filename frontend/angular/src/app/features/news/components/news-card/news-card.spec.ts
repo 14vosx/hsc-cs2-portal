@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { UiCard } from '../../../../shared/components/card/card';
 import type { NewsSummary } from '../../domain/news.model';
 import { NewsCard } from './news-card';
 
@@ -106,6 +105,7 @@ describe('NewsCard', () => {
     const { fixture } = setupFixture();
     const imgEl = fixture.nativeElement.querySelector('.news-card__media img') as HTMLImageElement;
     expect(imgEl.getAttribute('loading')).toBe('lazy');
+    expect(imgEl.getAttribute('decoding')).toBe('async');
   });
 
   it('13. imageUrl null mostra fallback HSC', () => {
@@ -115,7 +115,7 @@ describe('NewsCard', () => {
 
     expect(imgEl).toBeNull();
     expect(fallbackEl).toBeTruthy();
-    expect(fallbackEl?.textContent?.trim()).toBe('HSC');
+    expect(fallbackEl?.querySelector('span')?.textContent?.trim()).toBe('HSC');
   });
 
   it('14. imageUrl vazio mostra fallback', () => {
@@ -176,6 +176,7 @@ describe('NewsCard', () => {
     const formattedText = timeEl?.textContent?.trim();
     expect(formattedText).toContain('2026');
     expect(formattedText).toContain('04');
+    expect(timeEl?.getAttribute('datetime')).toBe('2026-08-04T12:00:00Z');
   });
 
   it('19. data inválida é preservada como texto', () => {
@@ -184,14 +185,10 @@ describe('NewsCard', () => {
     expect(timeEl?.textContent?.trim()).toBe('invalid-date-string');
   });
 
-  it('20. UiCard usa variant interactive', () => {
+  it('20. article contém o link editorial completo', () => {
     const { fixture } = setupFixture();
-    const uiCardComponent = fixture.debugElement.query(
-      (debugNode) => debugNode.providerTokens.includes(UiCard)
-    )?.componentInstance as UiCard;
-
-    expect(uiCardComponent).toBeTruthy();
-    expect(uiCardComponent.variant()).toBe('interactive');
+    const articleEl = fixture.nativeElement.querySelector('article.news-card');
+    expect(articleEl?.firstElementChild?.matches('a.news-card__link')).toBe(true);
   });
 
   it('21. CTA visual aparece sem criar segundo link', () => {

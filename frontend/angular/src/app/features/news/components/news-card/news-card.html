@@ -1,49 +1,49 @@
 <article class="news-card">
-  <app-ui-card variant="interactive">
-    <a
-      class="news-card__link"
-      [routerLink]="['/news', item().slug]"
-      [attr.aria-label]="'Ler notícia: ' + item().title"
-    >
-      <div class="news-card__media">
-        @if (showImage()) {
-          <img
-            [src]="item().imageUrl!"
-            [alt]="item().title"
-            loading="lazy"
-            decoding="async"
-            (error)="onImageError()"
-          />
-        } @else {
-          <div class="news-card__media-fallback" aria-hidden="true">
-            <span>HSC</span>
-          </div>
-        }
-      </div>
+  <a
+    class="news-card__link"
+    [routerLink]="['/news', item().slug]"
+    [attr.aria-label]="'Ler notícia: ' + item().title"
+  >
+    <div class="news-card__media">
+      @if (showImage()) {
+        <img
+          [src]="item().imageUrl!"
+          [alt]="item().title"
+          loading="lazy"
+          decoding="async"
+          (error)="onImageError()"
+        />
+      } @else {
+        <div class="news-card__media-fallback" aria-hidden="true">
+          <span>HSC</span>
+          <small>News / Editorial</small>
+        </div>
+      }
+      <span class="news-card__media-index" aria-hidden="true">HSC // NEWS</span>
+    </div>
 
-      <div class="news-card__body">
-        <time
-          class="news-card__date"
-          [attr.datetime]="item().publishedAt"
-        >
-          {{ formatDate(item().publishedAt) }}
-        </time>
+    <div class="news-card__body">
+      <time
+        class="news-card__date"
+        [attr.datetime]="item().publishedAt"
+      >
+        {{ formatDate(item().publishedAt) }}
+      </time>
 
-        <h2 class="news-card__title">
-          {{ item().title }}
-        </h2>
+      <h2 class="news-card__title">
+        {{ item().title }}
+      </h2>
 
-        @if (hasExcerpt()) {
-          <p class="news-card__excerpt">
-            {{ item().excerpt }}
-          </p>
-        }
+      @if (hasExcerpt()) {
+        <p class="news-card__excerpt">
+          {{ item().excerpt }}
+        </p>
+      }
 
-        <span class="news-card__cta">
-          Ler notícia
-          <span aria-hidden="true">→</span>
-        </span>
-      </div>
-    </a>
-  </app-ui-card>
+      <span class="news-card__cta">
+        Ler publicação
+        <span aria-hidden="true">→</span>
+      </span>
+    </div>
+  </a>
 </article>

@@ -2,10 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { PageHeader } from '../../shared/components/page-header/page-header';
 import { PageState } from '../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../shared/components/section-header/section-header';
-import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { NewsCard } from './components/news-card/news-card';
 import { NewsApiService } from './data-access/news-api.service';
 import type { NewsSummary } from './domain/news.model';
@@ -24,14 +21,7 @@ type NewsVm =
 
 @Component({
   selector: 'app-news-page',
-  imports: [
-    AsyncPipe,
-    PageHeader,
-    PageState,
-    SectionHeader,
-    StatusBadge,
-    NewsCard,
-  ],
+  imports: [AsyncPipe, PageState, NewsCard],
   templateUrl: './news-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-page.css',
