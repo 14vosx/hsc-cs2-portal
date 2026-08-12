@@ -1,13 +1,9 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { UiCard } from '../../shared/components/card/card';
-import { MetricCard } from '../../shared/components/metric-card/metric-card';
-import { PageHeader } from '../../shared/components/page-header/page-header';
 import { PageState } from '../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../shared/components/section-header/section-header';
-import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { MapsApiService } from './data-access/maps-api.service';
 import type { MapSummary } from './domain/map.model';
 import { MapStatCard } from './map-stat-card/map-stat-card';
@@ -21,6 +17,7 @@ interface MapsReadyVm {
   mostPlayedMap?: MapSummary;
   totalMapAppearances: number;
   totalRounds: number;
+  averageRounds: number | null;
 }
 
 type MapsVm = MapsReadyVm | { state: 'loading' } | { state: 'error' } | { state: 'empty' };
@@ -29,12 +26,8 @@ type MapsVm = MapsReadyVm | { state: 'loading' } | { state: 'error' } | { state:
   selector: 'app-maps-page',
   imports: [
     AsyncPipe,
-    MetricCard,
-    PageHeader,
+    RouterLink,
     PageState,
-    SectionHeader,
-    StatusBadge,
-    UiCard,
     MapStatCard,
   ],
   templateUrl: './maps-page.html',
@@ -57,13 +50,20 @@ export class MapsPage {
             return { state: 'empty' };
           }
 
+          const totalMapAppearances = index.maps.reduce((acc, curr) => acc + curr.matches, 0);
+          const totalRounds = index.maps.reduce((acc, curr) => acc + curr.rounds, 0);
+          const mostPlayedMap = index.maps.reduce((current, candidate) =>
+            candidate.matches > current.matches ? candidate : current
+          );
+
           return {
             state: 'ready',
             generatedAt: index.generatedAt,
             maps: index.maps,
-            mostPlayedMap: index.maps[0],
-            totalMapAppearances: index.maps.reduce((acc, curr) => acc + curr.matches, 0),
-            totalRounds: index.maps.reduce((acc, curr) => acc + curr.rounds, 0),
+            mostPlayedMap,
+            totalMapAppearances,
+            totalRounds,
+            averageRounds: totalMapAppearances > 0 ? totalRounds / totalMapAppearances : null,
           };
         }),
         startWith({ state: 'loading' } satisfies MapsVm),
@@ -150,5 +150,37 @@ export class MapsPage {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date);
+  }
+
+  protected formatNumber(value: number | null): string {
+    return value === null || !Number.isFinite(value) ? '—' : value.toFixed(1).replace('.', ',');
+  }
+
+  protected rotationShare(matches: number, total: number): number {
+    return total > 0 ? (matches / total) * 100 : 0;
+  }
+
+  protected formatPercent(value: number): string {
+    return `${value.toFixed(1).replace('.', ',')}%`;
+  }
+
+  protected mapBackgroundImage(name: string): string {
+    const knownMaps = new Set([
+      'de_ancient', 'de_anubis', 'de_dust2', 'de_inferno',
+      'de_mirage', 'de_nuke', 'de_overpass', 'de_train',
+    ]);
+    return knownMaps.has(name) ? `url("map-images/${name}.png")` : 'none';
+  }
+
+  protected relativeDate(value: string | null | undefined, generatedAt: string): string {
+    const played = value ? new Date(value).getTime() : Number.NaN;
+    const snapshot = new Date(generatedAt).getTime();
+    if (Number.isNaN(played) || Number.isNaN(snapshot)) {
+      return 'Sem recência disponível';
+    }
+    const days = Math.max(0, Math.floor((snapshot - played) / 86_400_000));
+    if (days === 0) return 'no dia da atualização';
+    if (days === 1) return 'há 1 dia';
+    return `há ${days} dias`;
   }
 }

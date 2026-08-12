@@ -1,37 +1,13 @@
-<article
-  class="map-stat-card"
-  [class.map-stat-card--highlight]="highlight()"
-  [style.--map-bg]="mapBackgroundImage()"
->
-  <header class="map-stat-card__header">
-    <div class="map-stat-card__title-wrap">
-      <span class="map-stat-card__label">Mapa</span>
-      <strong class="map-stat-card__name">{{ map().name }}</strong>
-    </div>
-  </header>
-
-  <dl class="map-stat-card__stats">
-    <div class="map-stat-card__stat">
-      <dt>Partidas</dt>
-      <dd>{{ map().matches }}</dd>
-    </div>
-    <div class="map-stat-card__stat">
-      <dt>Rounds</dt>
-      <dd>{{ map().rounds }}</dd>
-    </div>
-    <div class="map-stat-card__stat">
-      <dt>Média de rounds</dt>
-      <dd>{{ formatAvg(map().averageRoundsPerMatch) }}</dd>
-    </div>
-    <div class="map-stat-card__stat">
-      <dt>Último jogo</dt>
-      <dd>{{ formatDate(map().lastPlayedAt) }}</dd>
-    </div>
-  </dl>
-
-  <footer class="map-stat-card__footer">
-    <a class="map-stat-card__details-link" [routerLink]="['/maps', map().name]">
-      Ver detalhe →
-    </a>
-  </footer>
+<article class="map-stat-card" [class.map-stat-card--highlight]="highlight()" [class.map-stat-card--fallback]="mapBackgroundImage() === 'none'" [style.--map-bg]="mapBackgroundImage()">
+  <div class="map-stat-card__visual"><span>Mapa</span><h3 title="{{ map().name }}">{{ map().name }}</h3></div>
+  <div class="map-stat-card__body">
+    <div class="map-stat-card__share"><div><span>Participação na rotação</span><strong>{{ formatPercent() }}</strong></div><div class="map-stat-card__track" role="img" [attr.aria-label]="map().name + ': ' + formatPercent() + ' de participação na rotação'"><span [style.width.%]="rotationShare()"></span></div></div>
+    <dl class="map-stat-card__stats">
+      <div><dt>Aparições</dt><dd>{{ map().matches }}</dd></div>
+      <div><dt>Rounds</dt><dd>{{ map().rounds }}</dd></div>
+      <div><dt>Média de rounds</dt><dd>{{ formatAvg(map().averageRoundsPerMatch) }}</dd></div>
+    </dl>
+    <div class="map-stat-card__recent"><span>Último jogo</span><time [attr.datetime]="map().lastPlayedAt">{{ formatDate(map().lastPlayedAt) }}</time></div>
+    <a class="map-stat-card__details-link" [routerLink]="['/maps', map().name]">Ver detalhe <span aria-hidden="true">→</span></a>
+  </div>
 </article>
