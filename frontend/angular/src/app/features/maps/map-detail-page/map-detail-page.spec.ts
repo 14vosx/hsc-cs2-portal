@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter, type ParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router, type ParamMap } from '@angular/router';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -81,7 +81,10 @@ describe('MapDetailPage', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('de_mirage');
-    expect(el.textContent).toContain('42 partidas registradas');
+    expect(el.querySelector('.map-detail-page__hero')?.textContent).toContain('42');
+    expect(el.querySelector('.map-detail-page__snapshot')?.textContent).toContain('920');
+    expect(el.querySelector('.map-detail-page__snapshot')?.textContent).toContain('21.9');
+    expect(el.textContent).toContain('04/08/2026');
   });
 
   it('aceita mapa com nome customizado válido e faz a requisição corretamente', () => {
@@ -135,15 +138,51 @@ describe('MapDetailPage', () => {
     expect(mapsApiMock.getMap).toHaveBeenCalledWith('de_nuke');
   });
 
-  it('renderiza breadcrumbs, link de voltar e link para JSON público com nome codificado', () => {
+  it('renderiza hero, metadata do snapshot e link de voltar sem controles técnicos ou status sem suporte', () => {
     mapsApiMock.getMap.mockReturnValue(of(createMockMapDetail('de_mirage')));
     createComponent();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.map-detail-page__breadcrumbs')).not.toBeNull();
+    expect(el.querySelector('.map-detail-page__hero h1')?.textContent).toContain('de_mirage');
+    expect(el.querySelector('.map-detail-page__hero-meta')?.textContent).toContain('Dados atualizados');
+    expect((el.querySelector('.map-detail-page__back') as HTMLAnchorElement).getAttribute('href')).toBe('/maps');
+    expect(el.textContent).not.toContain('/api/cs2/v2/map');
+    expect(el.textContent).not.toContain('Rotação oficial');
+  });
 
-    const apiLink = el.querySelector('.map-detail-page__api') as HTMLAnchorElement;
-    expect(apiLink.href).toContain('/api/cs2/v2/map/de_mirage.json');
+  it('aplica asset conhecido e fallback neutro para mapa desconhecido', () => {
+    mapsApiMock.getMap.mockReturnValue(of(createMockMapDetail('de_mirage')));
+    createComponent();
+    let hero = fixture.nativeElement.querySelector('.map-detail-page__hero') as HTMLElement;
+    expect(hero.style.getPropertyValue('--map-hero-bg')).toContain('de_mirage.png');
+
+    mapsApiMock.getMap.mockReturnValue(of(createMockMapDetail('de_custom')));
+    paramMapSubject.next(convertToParamMap({ map: 'de_custom' }));
+    fixture.detectChanges();
+    hero = fixture.nativeElement.querySelector('.map-detail-page__hero') as HTMLElement;
+    expect(hero.style.getPropertyValue('--map-hero-bg')).toBe('none');
+    expect(hero.classList.contains('map-detail-page__hero--fallback')).toBe(true);
+  });
+
+  it('retry repete a chamada e goBack navega para /maps', () => {
+    mapsApiMock.getMap.mockReturnValue(of(createMockMapDetail()));
+    createComponent();
+    component['retry']();
+    expect(mapsApiMock.getMap).toHaveBeenCalledTimes(2);
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    component['goBack']();
+    expect(navigate).toHaveBeenCalledWith(['/maps']);
+  });
+
+  it('repassa recentMatches ao feed sem reordenar', () => {
+    const detail = createMockMapDetail();
+    mapsApiMock.getMap.mockReturnValue(of(detail));
+    createComponent();
+    const items = fixture.nativeElement.querySelectorAll('.match-feed__item') as NodeListOf<HTMLElement>;
+    expect(items[0].textContent).toContain('#101');
+    expect(items[1].textContent).toContain('#102');
+    expect(detail.recentMatches.map((match) => match.matchId)).toEqual([101, 102]);
   });
 
   it('exibe estado empty localizado na seção quando o mapa não possui partidas recentes', () => {

@@ -4,12 +4,8 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
-import { UiCard } from '../../../shared/components/card/card';
-import { MetricCard } from '../../../shared/components/metric-card/metric-card';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
-import { SectionHeader } from '../../../shared/components/section-header/section-header';
-import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
 import { MapsApiService } from '../data-access/maps-api.service';
 import type { MapDetail } from '../domain/map.model';
 import { MapRecentMatchTable } from '../map-recent-match-table/map-recent-match-table';
@@ -30,12 +26,8 @@ type MapDetailVm =
   imports: [
     AsyncPipe,
     RouterLink,
-    MetricCard,
     PageHeader,
     PageState,
-    SectionHeader,
-    StatusBadge,
-    UiCard,
     MapRecentMatchTable,
   ],
   templateUrl: './map-detail-page.html',
@@ -120,14 +112,22 @@ export class MapDetailPage {
     return val.toFixed(1);
   }
 
-  protected encodedMapName(name: string): string {
-    return encodeURIComponent(name);
-  }
-
   protected mapBackgroundImage(name: string): string {
     if (!name || !this.knownMapImages.has(name)) {
       return 'none';
     }
     return `url("map-images/${name}.png")`;
+  }
+
+  protected relativeDate(value: string | null | undefined, generatedAt: string): string {
+    const played = value ? new Date(value).getTime() : Number.NaN;
+    const snapshot = new Date(generatedAt).getTime();
+    if (Number.isNaN(played) || Number.isNaN(snapshot)) {
+      return 'Sem recência disponível';
+    }
+    const days = Math.max(0, Math.floor((snapshot - played) / 86_400_000));
+    if (days === 0) return 'no dia da atualização';
+    if (days === 1) return 'há 1 dia';
+    return `há ${days} dias`;
   }
 }

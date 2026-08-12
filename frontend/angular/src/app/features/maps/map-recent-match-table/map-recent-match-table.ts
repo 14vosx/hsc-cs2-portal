@@ -46,25 +46,22 @@ export class MapRecentMatchTable {
     const t1 = match.team1.score;
     const t2 = match.team2.score;
     if (typeof t1 === 'number' && typeof t2 === 'number') {
-      return `${t1} x ${t2}`;
+      return `${t1} – ${t2}`;
     }
-    return '— x —';
-  }
-
-  protected mapNumberLabel(mapNumber?: number | null): string {
-    if (typeof mapNumber === 'number' && Number.isInteger(mapNumber)) {
-      return `#${mapNumber}`;
-    }
-    return '—';
+    return '— – —';
   }
 
   protected mapScoreLabel(match: MapRecentMatch): string {
     const t1 = match.mapScore.team1;
     const t2 = match.mapScore.team2;
     if (typeof t1 === 'number' && typeof t2 === 'number') {
-      return `${t1} x ${t2}`;
+      return `${t1} – ${t2}`;
     }
-    return '— x —';
+    return '— – —';
+  }
+
+  protected scoreLabel(value?: number | null): string {
+    return typeof value === 'number' && Number.isFinite(value) ? String(value) : '—';
   }
 
   protected winnerLabel(winner?: string | null): string {
