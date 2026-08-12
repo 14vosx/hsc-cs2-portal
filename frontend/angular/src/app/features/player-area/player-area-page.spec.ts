@@ -224,11 +224,15 @@ describe('PlayerAreaPage athlete dashboard', () => {
     expect(native.querySelector('app-player-profile-editor')).toBeTruthy();
   });
 
-  it('keeps the existing unauthenticated email and Steam gateway', async () => {
+  it('renders the unauthenticated player gateway without the athlete dashboard', async () => {
     identityApi.getCurrentIdentity.mockReturnValue(of(null));
     const native = await render();
+    expect(native.querySelector('.player-gateway')).toBeTruthy();
+    expect(native.textContent).toContain('Seu espaço competitivo HSC');
     expect(native.textContent).toContain('Entre para acessar sua área');
     expect(native.querySelector('a[href="/player/auth/steam/start"]')).toBeTruthy();
+    expect(native.querySelector('.athlete-hero')).toBeNull();
+    expect(native.querySelector('.season-dashboard')).toBeNull();
     expect(selfApi.getAccount).not.toHaveBeenCalled();
   });
 

@@ -12,6 +12,8 @@
 
   @if (success()) {
     <div class="player-auth-panel__notice" role="status">
+      <span class="player-auth-panel__notice-mark" aria-hidden="true"></span>
+      <strong>Solicitação recebida</strong>
       <p>{{ success() }}</p>
       <button type="button" (click)="setMode('login')">Voltar para entrar</button>
     </div>

@@ -33,6 +33,10 @@ describe('PlayerEmailAuthPanel', () => {
     const element = fixture.nativeElement as HTMLElement;
     expect(element.textContent).toContain('Entre para acessar sua área');
     expect(element.querySelector<HTMLAnchorElement>('a')?.href).toContain('/player/auth/steam/start');
+    expect(element.querySelector('label[for="player-auth-email"]')).toBeTruthy();
+    expect(element.querySelector('label[for="player-auth-password"]')).toBeTruthy();
+    expect(element.querySelector<HTMLInputElement>('#player-auth-email')?.autocomplete).toBe('email');
+    expect(element.querySelector<HTMLInputElement>('#player-auth-password')?.autocomplete).toBe('current-password');
   });
 
   it('submits normalized login credentials and emits authentication', () => {

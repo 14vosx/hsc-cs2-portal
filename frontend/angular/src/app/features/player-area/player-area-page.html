@@ -9,8 +9,34 @@
         <app-empty-state title="Área do Jogador indisponível" description="Não foi possível carregar sua conta HSC agora. Tente novamente em alguns instantes." />
       }
       @case ('unauthenticated') {
-        <app-page-header eyebrow="HSC Membros" title="Área do Jogador" description="Sua conta HSC centraliza perfil, identidade CS2, estatísticas e associação." />
-        <app-ui-card><app-player-email-auth-panel [steamLoginUrl]="steamLoginUrl" (authenticated)="onEmailAuthenticated()" /></app-ui-card>
+        <section class="player-gateway hsc-tactical-grid" aria-labelledby="player-gateway-title">
+          <div class="player-gateway__context">
+            <div class="player-gateway__intro">
+              <span class="player-gateway__eyebrow">HSC Membros</span>
+              <h1 id="player-gateway-title">Área do Jogador</h1>
+              <p>Sua conta HSC centraliza perfil, identidade CS2, estatísticas personalizadas e associação.</p>
+            </div>
+
+            <div class="player-gateway__identity" aria-hidden="true">
+              <span>HSC</span>
+              <strong>PLAYER ACCESS</strong>
+            </div>
+
+            <div class="player-gateway__benefits" aria-labelledby="player-gateway-benefits-title">
+              <span class="player-gateway__section-label" id="player-gateway-benefits-title">Seu espaço competitivo HSC</span>
+              <ul>
+                <li><span aria-hidden="true">01</span><div><strong>Perfil HSC</strong><small>Sua identidade dentro da comunidade.</small></div></li>
+                <li><span aria-hidden="true">02</span><div><strong>Identidade CS2</strong><small>Conecte sua conta à Steam quando aplicável.</small></div></li>
+                <li><span aria-hidden="true">03</span><div><strong>Estatísticas</strong><small>Acompanhe sua atividade competitiva quando disponível.</small></div></li>
+                <li><span aria-hidden="true">04</span><div><strong>Associação</strong><small>Consulte o estado da sua relação com o HSC.</small></div></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="player-gateway__auth">
+            <app-player-email-auth-panel [steamLoginUrl]="steamLoginUrl" (authenticated)="onEmailAuthenticated()" />
+          </div>
+        </section>
       }
       @case ('ready') {
         @let profile = updatedProfile() ?? vm.profile;
