@@ -1,11 +1,12 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export type SeasonTab = 'overview' | 'ranking' | 'matches' | 'maps';
 
 interface SeasonTabItem {
   id: SeasonTab;
-  label: string;
+  labelKey: string;
 }
 
 export function seasonTabLink(
@@ -25,7 +26,7 @@ export function seasonTabLink(
 
 @Component({
   selector: 'app-season-tabs',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './season-tabs.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './season-tabs.css',
@@ -35,10 +36,10 @@ export class SeasonTabs {
   @Input({ required: true }) activeTab!: SeasonTab;
 
   protected readonly tabs: readonly SeasonTabItem[] = [
-    { id: 'overview', label: 'Visão geral' },
-    { id: 'ranking', label: 'Ranking' },
-    { id: 'matches', label: 'Partidas' },
-    { id: 'maps', label: 'Mapas' },
+    { id: 'overview', labelKey: 'seasons.tabs.overview' },
+    { id: 'ranking', labelKey: 'seasons.tabs.ranking' },
+    { id: 'matches', labelKey: 'seasons.tabs.matches' },
+    { id: 'maps', labelKey: 'seasons.tabs.maps' },
   ];
 
   protected tabLink(tab: SeasonTab): string {

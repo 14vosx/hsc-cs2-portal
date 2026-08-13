@@ -1,12 +1,13 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 import { StatusBadge, type StatusBadgeVariant } from '../../../shared/components/status-badge/status-badge';
-import { formatSeasonBoundaryDate } from '../season-ui';
+import { formatSeasonBoundaryDate, seasonStatusLabel } from '../season-ui';
 import { SeasonMapsApiService } from '../data-access/season-maps-api.service';
 import type { SeasonMaps, SeasonMapSummary } from '../domain/season-maps.model';
 
@@ -37,6 +38,7 @@ type SeasonMapsVm =
     PageState,
     SeasonTabs,
     StatusBadge,
+    TranslatePipe,
   ],
   templateUrl: './season-maps-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -157,9 +159,9 @@ export class SeasonMapsPage {
     return `url("map-images/${name}.png")`;
   }
 
-  protected formatDate(value?: string | null, includeTime = true): string {
+  protected formatDate(value?: string | null, includeTime = true): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
 
     const date = new Date(value);
@@ -184,18 +186,7 @@ export class SeasonMapsPage {
     return val.toFixed(1);
   }
 
-  protected seasonStatusLabel(status?: string | null): string {
-    if (!status) {
-      return 'Status indisponível';
-    }
-    if (status.toLowerCase() === 'active') {
-      return 'Season ativa';
-    }
-    if (status.toLowerCase() === 'closed') {
-      return 'Season encerrada';
-    }
-    return status;
-  }
+  protected readonly seasonStatusLabel = seasonStatusLabel;
 
   protected seasonStatusTone(status?: string | null): StatusBadgeVariant {
     if (status === 'active') {

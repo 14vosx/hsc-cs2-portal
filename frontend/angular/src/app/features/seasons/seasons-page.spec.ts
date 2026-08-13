@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import type { SeasonsIndexDto } from '../../core/api/dto/season.dto';
 import { SeasonsPage } from './seasons-page';
+import { installSeasonsTranslations } from '../../testing/seasons-i18n.fixture';
 
 describe('SeasonsPage', () => {
   let fixture: ComponentFixture<SeasonsPage>;
@@ -29,14 +31,37 @@ describe('SeasonsPage', () => {
     api.getSeasons.mockReturnValue(response);
     await TestBed.configureTestingModule({
       imports: [SeasonsPage],
-      providers: [provideRouter([]), { provide: Cs2ApiService, useValue: api }],
+      providers: [provideRouter([]), provideTranslateService({ fallbackLang: 'pt-BR' }), { provide: Cs2ApiService, useValue: api }],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    await installSeasonsTranslations(translate);
     fixture = TestBed.createComponent(SeasonsPage);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
+
+  it('switches runtime locale without refetching or changing domain values', async () => {
+    const native = await render();
+    const calls = api.getSeasons.mock.calls.length;
+    expect(native.textContent).toContain('Temporadas HSC');
+    expect(native.textContent).toContain('Temporada ativa');
+    expect(native.textContent).toContain('Entrar na temporada');
+    const href = native.querySelector('.active-season a')?.getAttribute('href');
+    const translate = TestBed.inject(TranslateService);
+    await translate.use('en-US').toPromise();
+    fixture.detectChanges();
+    expect(native.textContent).toContain('HSC Seasons');
+    expect(native.textContent).toContain('Active season');
+    expect(native.textContent).toContain('Enter season');
+    expect(native.textContent).toContain('Season Two');
+    expect(native.textContent).toContain('Circuito atual.');
+    expect(native.textContent).toContain('published');
+    expect(native.querySelector('.active-season a')?.getAttribute('href')).toBe(href);
+    for (const metric of ['8', '20', '480', '32']) expect(native.querySelector('.active-season__metrics')?.textContent).toContain(metric);
+    expect(api.getSeasons).toHaveBeenCalledTimes(calls);
+  });
 
   it('shows loading while the index request is pending', async () => {
     const pending = new Subject<SeasonsIndexDto>();

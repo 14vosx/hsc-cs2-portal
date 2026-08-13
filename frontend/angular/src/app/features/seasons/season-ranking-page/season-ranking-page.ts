@@ -1,13 +1,14 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
-import { formatSeasonBoundaryDate } from '../season-ui';
+import { eligibilityLabel, eligibilityReason, formatSeasonBoundaryDate, seasonStatusLabel } from '../season-ui';
 import { SeasonRankingApiService } from '../data-access/season-ranking-api.service';
 import { SeasonRankingPlayer, SeasonRankingRules, SeasonRankingSeason } from '../domain/season-ranking.model';
 import { SeasonPodium } from '../season-podium/season-podium';
@@ -39,7 +40,7 @@ interface SeasonRankingSummary {
 
 @Component({
   selector: 'app-season-ranking-page',
-  imports: [AsyncPipe, EmptyState, PageState, RouterLink, SeasonPodium, SeasonTabs, StatusBadge],
+  imports: [AsyncPipe, EmptyState, PageState, RouterLink, SeasonPodium, SeasonTabs, StatusBadge, TranslatePipe],
   templateUrl: './season-ranking-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./season-ranking-page.css', './season-ranking-page-table.css'],
@@ -86,9 +87,9 @@ export class SeasonRankingPage {
     return players.filter((player) => (player.name ?? '').toLowerCase().includes(term));
   }
 
-  protected formatDate(value?: string | null, includeTime = false): string {
+  protected formatDate(value?: string | null, includeTime = false): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
 
     const date = new Date(value);
@@ -132,34 +133,8 @@ export class SeasonRankingPage {
       .join('');
   }
 
-  protected eligibilityLabel(player: SeasonRankingPlayer): 'Elegível' | 'Em progresso' | 'Indefinido' {
-    if (player.prizeEligible === true) {
-      return 'Elegível';
-    }
-
-    if (player.prizeEligible === false) {
-      return 'Em progresso';
-    }
-
-    return 'Indefinido';
-  }
-
-  protected eligibilityReason(player: SeasonRankingPlayer): string {
-    if (player.prizeEligible) {
-      return 'Elegível para premiação';
-    }
-
-    switch (player.prizeEligibilityReason) {
-      case 'below_minimum_maps_and_rounds':
-        return 'Faltam mapas e rounds';
-      case 'below_minimum_maps':
-        return 'Faltam mapas';
-      case 'below_minimum_rounds':
-        return 'Faltam rounds';
-      default:
-        return 'Em progresso';
-    }
-  }
+  protected readonly eligibilityLabel = eligibilityLabel;
+  protected readonly eligibilityReason = eligibilityReason;
 
   protected eligibilityTone(player: SeasonRankingPlayer): 'success' | 'info' | 'neutral' {
     if (player.prizeEligible === true) return 'success';
@@ -167,11 +142,7 @@ export class SeasonRankingPage {
     return 'neutral';
   }
 
-  protected seasonStatusLabel(status?: string | null): string {
-    if (status === 'active') return 'Season ativa';
-    if (status === 'closed') return 'Season encerrada';
-    return status || 'Status indisponível';
-  }
+  protected readonly seasonStatusLabel = seasonStatusLabel;
 
   protected seasonStatusTone(status?: string | null): 'active' | 'closed' | 'neutral' {
     if (status === 'active') return 'active';

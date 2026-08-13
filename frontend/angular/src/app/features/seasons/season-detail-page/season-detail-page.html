@@ -1,14 +1,14 @@
 <section class="season-hub">
-  <a class="season-hub__back" routerLink="/seasons"><span aria-hidden="true">←</span> Todas as temporadas</a>
+  <a class="season-hub__back" routerLink="/seasons"><span aria-hidden="true">←</span> {{ 'seasons.shared.back' | translate }}</a>
 
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <div class="season-hub__state" role="status"><span>Season command center</span><p>Carregando temporada...</p></div>
+        <div class="season-hub__state" role="status"><span>{{ 'seasons.overview.states.loadingEyebrow' | translate }}</span><p>{{ 'seasons.overview.states.loading' | translate }}</p></div>
       }
 
       @case ('error') {
-        <app-empty-state title="Temporada indisponível" description="Não foi possível carregar esta temporada neste momento." />
+        <app-empty-state [title]="'seasons.overview.states.errorTitle' | translate" [description]="'seasons.overview.states.errorMessage' | translate" />
       }
 
       @case ('ready') {
@@ -16,24 +16,24 @@
           <header class="season-hero hsc-tactical-grid" [style.--season-cover]="seasonCoverImage(vm.season)">
             <div class="season-hero__content">
               <span class="season-hub__eyebrow" [class.season-hub__eyebrow--orange]="vm.isCurrentRoute">
-                {{ vm.isCurrentRoute ? 'Temporada ativa' : (vm.season.status || 'Temporada HSC') }}
+                @if (vm.isCurrentRoute) { {{ 'seasons.shared.status.active' | translate }} } @else { @let status = seasonStatusLabel(vm.season.status); {{ status.translationKey ? (status.translationKey | translate) : status.raw }} }
               </span>
-              <h1>{{ vm.season.name || vm.season.slug || 'Temporada HSC' }}</h1>
-              <p>{{ vm.season.description || 'Temporada competitiva oficial do HSC.' }}</p>
+              <h1>{{ vm.season.name || vm.season.slug || ('seasons.shared.fallbacks.season' | translate) }}</h1>
+              <p>{{ vm.season.description || ('seasons.shared.fallbacks.description' | translate) }}</p>
 
               <div class="season-hero__meta">
-                <div><span>Período</span><strong>{{ formatSeasonBoundaryDate(vm.season.start_at) }} <i>até</i> {{ formatSeasonBoundaryDate(vm.season.end_at) }}</strong></div>
-                @if (vm.generatedAt) { <div><span>Dados atualizados</span><strong>{{ formatDate(vm.generatedAt, true) }}</strong></div> }
-                @if (vm.summary?.lastMapEndedAt; as lastMapEndedAt) { <div><span>Última atividade</span><strong>{{ formatDate(lastMapEndedAt, true) }}</strong></div> }
+                <div><span>{{ 'seasons.shared.period' | translate }}</span><strong>{{ formatSeasonBoundaryDate(vm.season.start_at) || ('seasons.shared.date.open' | translate) }} <i>{{ 'seasons.shared.until' | translate }}</i> {{ formatSeasonBoundaryDate(vm.season.end_at) || ('seasons.shared.date.open' | translate) }}</strong></div>
+                @if (vm.generatedAt) { <div><span>{{ 'seasons.shared.updated' | translate }}</span><strong>{{ formatDate(vm.generatedAt, true) || ('seasons.shared.date.open' | translate) }}</strong></div> }
+                @if (vm.summary?.lastMapEndedAt; as lastMapEndedAt) { <div><span>{{ 'seasons.shared.lastActivity' | translate }}</span><strong>{{ formatDate(lastMapEndedAt, true) || ('seasons.shared.date.open' | translate) }}</strong></div> }
               </div>
             </div>
 
-            <dl class="season-snapshot" aria-label="Resumo competitivo da Season">
-              <div><dt>Jogadores</dt><dd>{{ formatInteger(vm.summary?.players) }}</dd></div>
-              <div><dt>Elegíveis</dt><dd>{{ formatInteger(vm.summary?.eligiblePlayers) }}</dd></div>
-              <div><dt>Partidas</dt><dd>{{ formatInteger(vm.summary?.matches) }}</dd></div>
-              <div><dt>Mapas</dt><dd>{{ formatInteger(vm.summary?.maps) }}</dd></div>
-              <div><dt>Rounds</dt><dd>{{ formatInteger(vm.summary?.rounds) }}</dd></div>
+            <dl class="season-snapshot" [attr.aria-label]="'seasons.overview.summary.ariaLabel' | translate">
+              <div><dt>{{ 'seasons.shared.players' | translate }}</dt><dd>{{ formatInteger(vm.summary?.players) }}</dd></div>
+              <div><dt>{{ 'seasons.shared.eligiblePlayers' | translate }}</dt><dd>{{ formatInteger(vm.summary?.eligiblePlayers) }}</dd></div>
+              <div><dt>{{ 'seasons.shared.matches' | translate }}</dt><dd>{{ formatInteger(vm.summary?.matches) }}</dd></div>
+              <div><dt>{{ 'seasons.shared.maps' | translate }}</dt><dd>{{ formatInteger(vm.summary?.maps) }}</dd></div>
+              <div><dt>{{ 'seasons.shared.rounds' | translate }}</dt><dd>{{ formatInteger(vm.summary?.rounds) }}</dd></div>
             </dl>
           </header>
 
@@ -41,7 +41,7 @@
 
           @if (vm.topPrizeCandidates?.length) {
             <section class="season-hub__podium" aria-labelledby="season-podium-title">
-              <header class="season-section-heading"><div><span class="season-hub__eyebrow season-hub__eyebrow--orange">Premiação</span><h2 id="season-podium-title">Top 3 premiável</h2></div><p>Candidatos publicados para premiação nesta Season.</p></header>
+              <header class="season-section-heading"><div><span class="season-hub__eyebrow season-hub__eyebrow--orange">{{ 'seasons.overview.prize.eyebrow' | translate }}</span><h2 id="season-podium-title">{{ 'seasons.overview.prize.title' | translate }}</h2></div><p>{{ 'seasons.overview.prize.description' | translate }}</p></header>
               <app-season-podium [players]="vm.topPrizeCandidates" />
             </section>
           }
@@ -49,56 +49,56 @@
           <div class="season-command-grid">
             <section class="season-ranking-panel" aria-labelledby="season-ranking-title">
               <header class="season-section-heading">
-                <div><span class="season-hub__eyebrow">Ranking oficial</span><h2 id="season-ranking-title">Top da Season</h2></div>
-                <a [routerLink]="seasonTabLink(vm.season.slug, 'ranking')">Ranking completo <span aria-hidden="true">→</span></a>
+                <div><span class="season-hub__eyebrow">{{ 'seasons.overview.rankingPreview.eyebrow' | translate }}</span><h2 id="season-ranking-title">{{ 'seasons.overview.rankingPreview.title' | translate }}</h2></div>
+                <a [routerLink]="seasonTabLink(vm.season.slug, 'ranking')">{{ 'seasons.overview.rankingPreview.complete' | translate }} <span aria-hidden="true">→</span></a>
               </header>
 
               @if (rankingPreview(vm.players).length) {
-                <div class="ranking-preview" role="table" aria-label="Top 5 da Season">
+                <div class="ranking-preview" role="table" [attr.aria-label]="'seasons.overview.rankingPreview.ariaLabel' | translate">
                   <div class="ranking-preview__header" role="row">
-                    <span role="columnheader">Rank</span><span role="columnheader">Jogador</span><span role="columnheader">Elegibilidade</span><span role="columnheader">Score</span><span role="columnheader">K/D</span><span role="columnheader">ADR</span><span role="columnheader">Mapas</span>
+                    <span role="columnheader">{{ 'seasons.shared.position' | translate }}</span><span role="columnheader">{{ 'seasons.shared.player' | translate }}</span><span role="columnheader">{{ 'seasons.shared.eligibilityLabel' | translate }}</span><span role="columnheader">Score</span><span role="columnheader">K/D</span><span role="columnheader">ADR</span><span role="columnheader">{{ 'seasons.shared.maps' | translate }}</span>
                   </div>
                   @for (player of rankingPreview(vm.players); track player.steamid64 || player.name) {
                     <article role="row">
                       <span class="ranking-preview__rank" role="cell">#{{ formatInteger(player.rank) }}</span>
                       <div class="ranking-preview__player" role="cell">
                         <div class="ranking-preview__avatar">@if (playerAvatar(player)) { <img [src]="playerAvatar(player)" alt="" /> } @else { <span>{{ playerInitials(player) }}</span> }</div>
-                        <strong>{{ player.name || 'Jogador HSC' }}</strong>
+                        <strong>{{ player.name || ('seasons.shared.fallbacks.player' | translate) }}</strong>
                       </div>
-                      <span class="season-badge" [class.season-badge--eligible]="player.prizeEligible === true" role="cell">{{ eligibilityLabel(player) }}</span>
+                      @let eligibility = eligibilityLabel(player); <span class="season-badge" [class.season-badge--eligible]="player.prizeEligible === true" role="cell">{{ eligibility.translationKey ? (eligibility.translationKey | translate) : eligibility.raw }}</span>
                       <span role="cell" data-label="Score">{{ formatStat(player.score) }}</span>
                       <span role="cell" data-label="K/D">{{ formatStat(player.kdRatio) }}</span>
                       <span role="cell" data-label="ADR">{{ formatStat(player.adr, 1) }}</span>
-                      <span role="cell" data-label="Mapas">{{ formatInteger(player.mapsPlayed) }}</span>
+                      <span role="cell" [attr.data-label]="'seasons.shared.maps' | translate">{{ formatInteger(player.mapsPlayed) }}</span>
                     </article>
                   }
                 </div>
               } @else {
-                <div class="season-ranking-panel__empty"><strong>Ranking ainda sem dados</strong><p>Os jogadores aparecerão aqui quando o ranking for publicado.</p></div>
+                <div class="season-ranking-panel__empty"><strong>{{ 'seasons.overview.rankingPreview.emptyTitle' | translate }}</strong><p>{{ 'seasons.overview.rankingPreview.emptyMessage' | translate }}</p></div>
               }
             </section>
 
             <aside class="season-rules-panel" aria-labelledby="season-rules-title">
-              <span class="season-hub__eyebrow season-hub__eyebrow--orange">Premiação e regras</span>
-              <h2 id="season-rules-title">Critérios de elegibilidade</h2>
-              <p>Top 3 da Season serão premiados. Premiação será anunciada em breve.</p>
+              <span class="season-hub__eyebrow season-hub__eyebrow--orange">{{ 'seasons.overview.rules.eyebrow' | translate }}</span>
+              <h2 id="season-rules-title">{{ 'seasons.overview.rules.title' | translate }}</h2>
+              <p>{{ 'seasons.overview.rules.description' | translate }}</p>
               <dl>
-                <div><dt>Mapas mínimos</dt><dd>{{ formatInteger(vm.rules?.prizeEligibility?.minMapsPlayed) }}</dd></div>
-                <div><dt>Rounds mínimos</dt><dd>{{ formatInteger(vm.rules?.prizeEligibility?.minRoundsPlayed) }}</dd></div>
-                <div><dt>Rounds por mapa válido</dt><dd>{{ formatInteger(minRoundsPerMap(vm.rules)) }}</dd></div>
+                <div><dt>{{ 'seasons.overview.rules.minMaps' | translate }}</dt><dd>{{ formatInteger(vm.rules?.prizeEligibility?.minMapsPlayed) }}</dd></div>
+                <div><dt>{{ 'seasons.overview.rules.minRounds' | translate }}</dt><dd>{{ formatInteger(vm.rules?.prizeEligibility?.minRoundsPlayed) }}</dd></div>
+                <div><dt>{{ 'seasons.overview.rules.roundsPerMap' | translate }}</dt><dd>{{ formatInteger(minRoundsPerMap(vm.rules)) }}</dd></div>
               </dl>
             </aside>
           </div>
 
           <section class="season-explore" aria-labelledby="season-explore-title">
-            <header class="season-section-heading"><div><span class="season-hub__eyebrow">Explore a Season</span><h2 id="season-explore-title">Partidas e mapas</h2></div><p>Acesse os recortes competitivos desta temporada.</p></header>
+            <header class="season-section-heading"><div><span class="season-hub__eyebrow">{{ 'seasons.overview.explore.eyebrow' | translate }}</span><h2 id="season-explore-title">{{ 'seasons.overview.explore.title' | translate }}</h2></div><p>{{ 'seasons.overview.explore.description' | translate }}</p></header>
             <div class="season-explore__grid">
-              <article><span aria-hidden="true">01</span><div><h3>Partidas</h3><p>Consulte os confrontos desta temporada.</p></div><a [routerLink]="seasonTabLink(vm.season.slug, 'matches')">Ver partidas <span aria-hidden="true">→</span></a></article>
-              <article><span aria-hidden="true">02</span><div><h3>Mapas</h3><p>Veja os mapas disputados nesta temporada.</p></div><a [routerLink]="seasonTabLink(vm.season.slug, 'maps')">Ver mapas <span aria-hidden="true">→</span></a></article>
+              <article><span aria-hidden="true">01</span><div><h3>{{ 'seasons.shared.matches' | translate }}</h3><p>{{ 'seasons.overview.explore.matchesDescription' | translate }}</p></div><a [routerLink]="seasonTabLink(vm.season.slug, 'matches')">{{ 'seasons.overview.explore.viewMatches' | translate }} <span aria-hidden="true">→</span></a></article>
+              <article><span aria-hidden="true">02</span><div><h3>{{ 'seasons.shared.maps' | translate }}</h3><p>{{ 'seasons.overview.explore.mapsDescription' | translate }}</p></div><a [routerLink]="seasonTabLink(vm.season.slug, 'maps')">{{ 'seasons.overview.explore.viewMaps' | translate }} <span aria-hidden="true">→</span></a></article>
             </div>
           </section>
         } @else {
-          <app-empty-state title="Temporada não encontrada" description="A temporada solicitada não está disponível." />
+          <app-empty-state [title]="'seasons.overview.states.notFoundTitle' | translate" [description]="'seasons.overview.states.notFoundMessage' | translate" />
         }
       }
     }

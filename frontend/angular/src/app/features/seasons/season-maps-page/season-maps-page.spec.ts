@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, type ParamMap } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SeasonMapsApiService } from '../data-access/season-maps-api.service';
 import type { SeasonMaps } from '../domain/season-maps.model';
 import { SeasonMapsPage } from './season-maps-page';
+import { installSeasonsTranslations } from '../../../testing/seasons-i18n.fixture';
 
 const createMockSeasonMaps = (slug = 'season-1'): SeasonMaps => ({
   generatedAt: '2026-08-04T12:00:00Z',
@@ -58,7 +60,7 @@ describe('SeasonMapsPage', () => {
   let seasonMapsApiMock: { getMaps: ReturnType<typeof vi.fn> };
   let paramMapSubject: BehaviorSubject<ParamMap>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     seasonMapsApiMock = {
       getMaps: vi.fn(),
     };
@@ -67,6 +69,7 @@ describe('SeasonMapsPage', () => {
     TestBed.configureTestingModule({
       imports: [SeasonMapsPage],
       providers: [
+        provideTranslateService({ fallbackLang: 'pt-BR' }),
         provideRouter([]),
         { provide: SeasonMapsApiService, useValue: seasonMapsApiMock },
         {
@@ -75,6 +78,7 @@ describe('SeasonMapsPage', () => {
         },
       ],
     });
+    await installSeasonsTranslations(TestBed.inject(TranslateService));
   });
 
   const createComponent = () => {
@@ -101,6 +105,27 @@ describe('SeasonMapsPage', () => {
     expect(el.querySelector<HTMLAnchorElement>('.season-map-card a')?.getAttribute('href')).toBe('/maps/de_mirage');
   });
 
+  it('switches map-pool chrome at runtime while preserving search, sort, maps, links, and requests', async () => {
+    const data = createMockSeasonMaps('season-1');
+    seasonMapsApiMock.getMaps.mockReturnValue(of({ kind: 'available', maps: data }));
+    const translate = TestBed.inject(TranslateService);
+    createComponent();
+    const search = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    search.value = 'mirage'; search.dispatchEvent(new Event('input')); select.value = 'name'; select.dispatchEvent(new Event('change')); fixture.detectChanges();
+    const calls = seasonMapsApiMock.getMaps.mock.calls.length;
+    const links = fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+    const hrefs = Array.from(links, (link) => link.getAttribute('href'));
+    expect(fixture.nativeElement.textContent).toContain('Map pool da temporada'); expect(fixture.nativeElement.textContent).toContain('Buscar mapa'); expect(fixture.nativeElement.textContent).toContain('Ordenar por'); expect(fixture.nativeElement.textContent).toContain('Média de rounds');
+    await translate.use('en-US').toPromise(); fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Season map pool'); expect(text).toContain('Search map'); expect(text).toContain('Sort by'); expect(text).toContain('Average rounds'); expect(text).toContain('View map');
+    expect(text).toContain('de_mirage'); expect(search.value).toBe('mirage'); expect(select.value).toBe('name');
+    const localizedLinks = fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+    expect(Array.from(localizedLinks, (link) => link.getAttribute('href'))).toEqual(hrefs);
+    expect(seasonMapsApiMock.getMaps).toHaveBeenCalledTimes(calls);
+  });
+
   it('passa null para o serviço no recorte /seasons/current/maps (slug ausente)', () => {
     paramMapSubject.next(convertToParamMap({}));
     seasonMapsApiMock.getMaps.mockReturnValue(
@@ -116,7 +141,7 @@ describe('SeasonMapsPage', () => {
     createComponent();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Season não encontrada');
+    expect(el.textContent).toContain('Temporada não encontrada');
   });
 
   it('preserva published por padrão e aplica busca e ordenações locais sem mutar o array original', () => {
@@ -166,7 +191,7 @@ describe('SeasonMapsPage', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Season 1');
     expect(el.textContent).toContain('Mapas distintos');
-    expect(el.textContent).toContain('Nenhum mapa na Season');
+    expect(el.textContent).toContain('Nenhum mapa na temporada');
     expect(el.querySelector('app-season-tabs')).toBeTruthy();
   });
 

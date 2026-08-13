@@ -1,6 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, ViewEncapsulation, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, switchMap } from 'rxjs';
 
 import { Cs2ApiService } from '../../../core/api/cs2-api.service';
@@ -20,6 +21,7 @@ import {
   playerAvatar,
   playerInitials,
   seasonCoverImage,
+  seasonStatusLabel,
 } from '../season-ui';
 import { resolveSeasonContext } from '../season-context';
 import { SeasonPodium } from '../season-podium/season-podium';
@@ -36,7 +38,7 @@ type SeasonDetailVm =
 
 @Component({
   selector: 'app-season-detail-page',
-  imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium, SeasonTabs],
+  imports: [AsyncPipe, EmptyState, RouterLink, SeasonPodium, SeasonTabs, TranslatePipe],
   templateUrl: './season-detail-page.html',
   styleUrls: ['./season-detail-page.css', './season-detail-page-table.css'],
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -54,8 +56,7 @@ export class SeasonDetailPage {
   );
 
   protected readonly playerAvatar = playerAvatar;
-  protected readonly formatSeasonBoundaryDate = (value?: string | null) =>
-    formatSeasonBoundaryDate(value, 'Data em aberto');
+  protected readonly formatSeasonBoundaryDate = formatSeasonBoundaryDate;
   protected readonly playerInitials = playerInitials;
   protected readonly eligibilityLabel = eligibilityLabel;
   protected readonly eligibilityReason = eligibilityReason;
@@ -63,11 +64,12 @@ export class SeasonDetailPage {
   protected readonly formatPercent = formatPercent;
   protected readonly formatStat = formatStat;
   protected readonly seasonCoverImage = seasonCoverImage;
+  protected readonly seasonStatusLabel = seasonStatusLabel;
   protected readonly seasonTabLink = seasonTabLink;
 
-  protected formatDate(value?: string | null, includeTime = false): string {
+  protected formatDate(value?: string | null, includeTime = false): string | null {
     if (!value) {
-      return 'Data em aberto';
+      return null;
     }
 
     const date = new Date(value);

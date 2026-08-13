@@ -1,9 +1,22 @@
 import { SeasonDto } from '../../core/api/dto/season.dto';
 import { SeasonRankingPlayerDto } from '../../core/api/dto/season-ranking.dto';
 
-export function formatSeasonBoundaryDate(value?: string | null, fallback = 'Sem data'): string {
+export interface SeasonPresentationLabel {
+  readonly translationKey: string | null;
+  readonly raw: string | null;
+}
+
+interface PrizeEligibilitySource {
+  readonly prizeEligible?: boolean | null;
+  readonly prizeEligibilityReason?: string | null;
+}
+
+const translated = (translationKey: string): SeasonPresentationLabel => ({ translationKey, raw: null });
+const preserved = (raw: string): SeasonPresentationLabel => ({ translationKey: null, raw });
+
+export function formatSeasonBoundaryDate(value?: string | null): string | null {
   if (!value) {
-    return fallback;
+    return null;
   }
 
   const boundary = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.000)?Z)?$/.exec(value);
@@ -62,45 +75,54 @@ export function playerInitials(player?: SeasonRankingPlayerDto | null): string {
     .join('');
 }
 
-export function eligibilityLabel(player: SeasonRankingPlayerDto): 'Elegível' | 'Em progresso' | 'Indefinido' {
+export function seasonStatusLabel(status?: string | null): SeasonPresentationLabel {
+  if (!status) return translated('seasons.shared.status.unavailable');
+  if (status === 'active') return translated('seasons.shared.status.active');
+  if (status === 'closed') return translated('seasons.shared.status.closed');
+  return preserved(status);
+}
+
+export function eligibilityLabel(player: Pick<PrizeEligibilitySource, 'prizeEligible'>): SeasonPresentationLabel {
   if (player.prizeEligible === true) {
-    return 'Elegível';
+    return translated('seasons.shared.eligibility.eligible');
   }
 
   if (player.prizeEligible === false) {
-    return 'Em progresso';
+    return translated('seasons.shared.eligibility.inProgress');
   }
 
-  return 'Indefinido';
+  return translated('seasons.shared.eligibility.unknown');
 }
 
-export function eligibilityReason(player: SeasonRankingPlayerDto): string {
+export function eligibilityReason(player: PrizeEligibilitySource): SeasonPresentationLabel {
   if (player.prizeEligible) {
-    return 'Elegível para premiação';
+    return translated('seasons.shared.eligibility.eligibleForPrize');
   }
 
   switch (player.prizeEligibilityReason) {
     case 'below_minimum_maps_and_rounds':
-      return 'Faltam mapas e rounds';
+      return translated('seasons.shared.eligibility.missingMapsAndRounds');
     case 'below_minimum_maps':
-      return 'Faltam mapas';
+      return translated('seasons.shared.eligibility.missingMaps');
     case 'below_minimum_rounds':
-      return 'Faltam rounds';
+      return translated('seasons.shared.eligibility.missingRounds');
     default:
-      return 'Em progresso';
+      return player.prizeEligibilityReason
+        ? preserved(player.prizeEligibilityReason)
+        : translated('seasons.shared.eligibility.inProgress');
   }
 }
 
-export function podiumPlacementLabel(player: SeasonRankingPlayerDto): string {
+export function podiumPlacementLabel(player: Pick<SeasonRankingPlayerDto, 'prizeRank' | 'rank'>): SeasonPresentationLabel {
   switch (player.prizeRank ?? player.rank) {
     case 1:
-      return 'Primeiro lugar';
+      return translated('seasons.podium.placement.first');
     case 2:
-      return 'Segundo lugar';
+      return translated('seasons.podium.placement.second');
     case 3:
-      return 'Terceiro lugar';
+      return translated('seasons.podium.placement.third');
     default:
-      return 'Top da Season';
+      return translated('seasons.podium.placement.top');
   }
 }
 
