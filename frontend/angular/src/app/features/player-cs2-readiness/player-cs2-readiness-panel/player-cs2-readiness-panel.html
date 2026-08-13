@@ -12,7 +12,13 @@
     @for (item of items(); track item.label) {
       <article class="cs2-readiness__item">
         <span>{{ item.label }}</span>
-        <strong [class]="'cs2-readiness__status--' + item.tone">{{ item.status }}</strong>
+        <strong [class]="'cs2-readiness__status--' + item.tone">
+          @if (item.statusKey) {
+            {{ item.statusKey | translate }}
+          } @else {
+            {{ item.status }}
+          }
+        </strong>
         @if (item.href) {
           <a [href]="item.href">Ver detalhes</a>
         }

@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { PlayerAccountSummary } from '../../player/domain/player-account.model';
 import type { PlayerMembership } from '../../player/domain/player-membership.model';
@@ -12,7 +13,8 @@ type ReadinessTone = 'positive' | 'attention' | 'neutral';
 
 interface ReadinessItem {
   readonly label: string;
-  readonly status: string;
+  readonly status?: string;
+  readonly statusKey?: string;
   readonly tone: ReadinessTone;
   readonly href: string | null;
 }
@@ -20,6 +22,7 @@ interface ReadinessItem {
 @Component({
   selector: 'app-player-cs2-readiness-panel',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './player-cs2-readiness-panel.html',
   styleUrl: './player-cs2-readiness-panel.css',
 })
@@ -121,7 +124,7 @@ export class PlayerCs2ReadinessPanel {
     const presentation = presentServerAccess(access, true);
     return {
       label: 'Server Access',
-      status: presentation.status,
+      statusKey: presentation.status,
       tone: presentation.authorized ? 'positive' : 'attention',
       href: '#acesso-servidores',
     };
