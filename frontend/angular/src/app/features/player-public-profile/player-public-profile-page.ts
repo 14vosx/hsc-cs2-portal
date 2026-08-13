@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   catchError,
   combineLatest,
@@ -32,13 +33,12 @@ type PlayerPublicProfilePageState =
   | { readonly state: 'loading' }
   | { readonly state: 'ready'; readonly profile: PlayerPublicProfile }
   | { readonly state: 'unauthenticated' }
-  | { readonly state: 'forbidden' }
   | { readonly state: 'unavailable' }
   | { readonly state: 'failure' };
 
 @Component({
   selector: 'app-player-public-profile-page',
-  imports: [AsyncPipe, PageState],
+  imports: [AsyncPipe, PageState, TranslatePipe],
   templateUrl: './player-public-profile-page.html',
   styleUrl: './player-public-profile-page.css',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -97,10 +97,7 @@ function toFailureState(error: unknown): PlayerPublicProfilePageState {
     if (error.status === 401) {
       return { state: 'unauthenticated' };
     }
-    if (error.status === 403) {
-      return { state: 'forbidden' };
-    }
-    if (error.status === 404) {
+    if (error.status === 403 || error.status === 404) {
       return { state: 'unavailable' };
     }
   }

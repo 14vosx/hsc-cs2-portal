@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, ParamMap } from '@angular/router';
-import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, firstValueFrom, NEVER, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
@@ -26,12 +27,17 @@ describe('PlayerPublicProfilePage', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { paramMap: paramMap$.asObservable() } },
         { provide: PlayerPublicProfileApiService, useValue: publicProfileApiMock },
+        provideTranslateService(),
         {
           provide: PlayerAuthApiService,
           useValue: { steamLoginUrl: '/player/auth/steam/start' },
         },
       ],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', PUBLIC_PROFILE_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', PUBLIC_PROFILE_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   function createComponent(profile$ = of(createProfile())): void {
@@ -107,12 +113,14 @@ describe('PlayerPublicProfilePage', () => {
     expect(text).not.toContain('Estatísticas');
   });
 
-  it('renders the privacy-preserving unavailable state for HTTP 404', () => {
-    createComponent(throwError(() => httpError(404)));
+  it.each([403, 404])('renders the same privacy-preserving unavailable state for HTTP %s', (status) => {
+    createComponent(throwError(() => httpError(status)));
 
     expect(pageText()).toContain('Perfil indisponível');
     expect(pageText()).toContain('Não foi possível encontrar um perfil público com este endereço.');
     expect(pageText().toLowerCase()).not.toContain('privado');
+    expect(pageText().toLowerCase()).not.toContain('permissão');
+    expect(pageText().toLowerCase()).not.toContain('forbidden');
   });
 
   it('renders authentication required for HTTP 401 with the canonical Steam action', () => {
@@ -122,13 +130,6 @@ describe('PlayerPublicProfilePage', () => {
     const action = fixture.nativeElement.querySelector('.player-public-profile-page__action');
     expect(action?.getAttribute('href')).toBe('/player/auth/steam/start');
     expect(action?.textContent).toContain('Entrar com Steam');
-  });
-
-  it('renders generic access unavailable for HTTP 403', () => {
-    createComponent(throwError(() => httpError(403)));
-
-    expect(pageText()).toContain('Acesso indisponível');
-    expect(pageText()).not.toContain('associação');
   });
 
   it.each([500, 0])('renders generic failure for HTTP status %s', (status) => {
@@ -184,6 +185,33 @@ describe('PlayerPublicProfilePage', () => {
     expect(pageText()).toContain('Player Two');
     expect(pageText()).not.toContain('Player One');
   });
+
+  it('switches locale on the same profile without changing remote data or refetching', async () => {
+    createComponent();
+    const host = fixture.nativeElement as HTMLElement;
+    const avatar = host.querySelector<HTMLImageElement>('.player-public-profile-page__avatar img')!;
+    const banner = host.querySelector<HTMLImageElement>('.player-public-profile-page__banner img')!;
+    const avatarSrc = avatar.getAttribute('src');
+    const bannerSrc = banner.getAttribute('src');
+    expect(pageText()).toContain('Preferências');
+
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    const text = pageText();
+    expect(text).toContain('Preferences');
+    expect(text).toContain('Player One');
+    expect(text).toContain('@player-one');
+    expect(text).toContain('Heavy smoke.');
+    expect(text).toContain('player.one');
+    expect(text).toContain('Rifler');
+    expect(text).toContain('Mirage');
+    expect(avatar.getAttribute('alt')).toBe('Player One avatar');
+    expect(avatar.getAttribute('src')).toBe(avatarSrc);
+    expect(banner.getAttribute('src')).toBe(bannerSrc);
+    expect(publicProfileApiMock.getProfile).toHaveBeenCalledTimes(1);
+    expect(publicProfileApiMock.getProfile).toHaveBeenCalledWith('player-one');
+  });
 });
 
 function createProfile(overrides: Partial<PlayerPublicProfile> = {}): PlayerPublicProfile {
@@ -204,3 +232,24 @@ function createProfile(overrides: Partial<PlayerPublicProfile> = {}): PlayerPubl
 function httpError(status: number): HttpErrorResponse {
   return new HttpErrorResponse({ status, statusText: 'Request failed' });
 }
+
+const publicProfileDictionary = (english: boolean) => ({
+  shared: { playerAvatar: { alt: english ? '{{displayName}} avatar' : 'Avatar de {{displayName}}' } },
+  playerPublicProfile: {
+    states: {
+      loading: { message: english ? 'Loading player profile...' : 'Carregando perfil do jogador...' },
+      unauthenticated: { title: english ? 'Authentication required' : 'Autenticação necessária', message: english ? 'Sign in with your HSC account.' : 'Entre com sua conta HSC para acessar perfis públicos de jogadores.' },
+      unavailable: { title: english ? 'Profile unavailable' : 'Perfil indisponível', message: english ? 'A public profile could not be found at this address.' : 'Não foi possível encontrar um perfil público com este endereço.' },
+      failure: { title: english ? 'Could not load profile' : 'Não foi possível carregar o perfil', message: english ? 'A temporary failure occurred. Try again.' : 'Ocorreu uma falha temporária. Tente novamente.' },
+    },
+    actions: { loginWithSteam: english ? 'Sign in with Steam' : 'Entrar com Steam', retry: english ? 'Try again' : 'Tentar novamente' },
+    header: { eyebrow: english ? 'HSC Player Profile' : 'Perfil de jogador HSC', mark: english ? 'HSC PLAYER' : 'JOGADOR HSC' },
+    sections: { identity: { eyebrow: english ? 'Player identity' : 'Identidade do jogador', title: english ? 'Preferences' : 'Preferências' }, bio: { eyebrow: english ? 'Public profile' : 'Perfil público', title: english ? 'About' : 'Sobre' } },
+    labels: { role: english ? 'Role' : 'Função', preferredMap: english ? 'Preferred map' : 'Mapa preferido', memberSince: english ? 'Member since' : 'Membro desde' },
+  },
+});
+
+const PUBLIC_PROFILE_TRANSLATIONS = {
+  'pt-BR': publicProfileDictionary(false),
+  'en-US': publicProfileDictionary(true),
+} as const;

@@ -19,6 +19,9 @@
     "sidebarAriaLabel": "Navegação lateral",
     "drawerAriaLabel": "Menu principal de navegação"
   },
+  "shared": {
+    "playerAvatar": { "alt": "Avatar de {{displayName}}" }
+  },
   "header": {
     "homeAriaLabel": "HSC CS2 Portal - Página inicial",
     "playerAccountAriaLabel": "Conta do jogador",
@@ -31,6 +34,13 @@
   "sidebar": {
     "title": "Navegação",
     "closeNavigation": "Fechar menu de navegação"
+  },
+  "playerPublicProfile": {
+    "states": { "loading": { "message": "Carregando perfil do jogador..." }, "unauthenticated": { "title": "Autenticação necessária", "message": "Entre com sua conta HSC para acessar perfis públicos de jogadores." }, "unavailable": { "title": "Perfil indisponível", "message": "Não foi possível encontrar um perfil público com este endereço." }, "failure": { "title": "Não foi possível carregar o perfil", "message": "Ocorreu uma falha temporária. Tente novamente." } },
+    "actions": { "loginWithSteam": "Entrar com Steam", "retry": "Tentar novamente" },
+    "header": { "eyebrow": "Perfil de jogador HSC", "mark": "JOGADOR HSC" },
+    "sections": { "identity": { "eyebrow": "Identidade do jogador", "title": "Preferências" }, "bio": { "eyebrow": "Perfil público", "title": "Sobre" } },
+    "labels": { "role": "Função", "preferredMap": "Mapa preferido", "memberSince": "Membro desde" }
   },
   "home": {
     "hero": { "active": "TEMPORADA • ATIVA", "latestClosed": "ÚLTIMA TEMPORADA ENCERRADA", "metricsAriaLabel": "Métricas da temporada", "players": "Jogadores", "matches": "Partidas", "maps": "Mapas", "viewRanking": "Ver ranking", "viewSeason": "Ver temporada", "leaderAriaLabel": "Líder da temporada", "leaderLabel": "LÍDER DA TEMPORADA", "wins": "Vitórias", "noLeader": "Ainda não há jogadores classificados nesta temporada.", "rankingError": "O ranking está temporariamente indisponível.", "loadingTitle": "Carregando contexto", "loadingEmphasis": "competitivo...", "seasons": "Temporadas", "empty": "Nenhuma temporada pública está disponível no momento.", "seasonsError": "Não foi possível carregar o contexto sazonal." },

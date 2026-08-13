@@ -19,6 +19,9 @@
     "sidebarAriaLabel": "Sidebar navigation",
     "drawerAriaLabel": "Main navigation menu"
   },
+  "shared": {
+    "playerAvatar": { "alt": "{{displayName}} avatar" }
+  },
   "header": {
     "homeAriaLabel": "HSC CS2 Portal - Home",
     "playerAccountAriaLabel": "Player account",
@@ -31,6 +34,13 @@
   "sidebar": {
     "title": "Navigation",
     "closeNavigation": "Close navigation menu"
+  },
+  "playerPublicProfile": {
+    "states": { "loading": { "message": "Loading player profile..." }, "unauthenticated": { "title": "Authentication required", "message": "Sign in with your HSC account to access public player profiles." }, "unavailable": { "title": "Profile unavailable", "message": "A public profile could not be found at this address." }, "failure": { "title": "Could not load profile", "message": "A temporary failure occurred. Try again." } },
+    "actions": { "loginWithSteam": "Sign in with Steam", "retry": "Try again" },
+    "header": { "eyebrow": "HSC Player Profile", "mark": "HSC PLAYER" },
+    "sections": { "identity": { "eyebrow": "Player identity", "title": "Preferences" }, "bio": { "eyebrow": "Public profile", "title": "About" } },
+    "labels": { "role": "Role", "preferredMap": "Preferred map", "memberSince": "Member since" }
   },
   "home": {
     "hero": { "active": "SEASON • ACTIVE", "latestClosed": "LATEST COMPLETED SEASON", "metricsAriaLabel": "Season metrics", "players": "Players", "matches": "Matches", "maps": "Maps", "viewRanking": "View ranking", "viewSeason": "View season", "leaderAriaLabel": "Season leader", "leaderLabel": "SEASON LEADER", "wins": "Wins", "noLeader": "There are no ranked players in this season yet.", "rankingError": "The ranking is temporarily unavailable.", "loadingTitle": "Loading competitive", "loadingEmphasis": "context...", "seasons": "Seasons", "empty": "No public season is available right now.", "seasonsError": "The seasonal context could not be loaded." },

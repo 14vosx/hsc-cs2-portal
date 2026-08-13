@@ -2,44 +2,36 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-state type="loading" message="Carregando perfil do jogador..." />
+        <app-page-state type="loading" [message]="'playerPublicProfile.states.loading.message' | translate" />
       }
 
       @case ('unauthenticated') {
         <div class="player-public-profile-page__state">
           <app-page-state
             type="empty"
-            title="Autenticação necessária"
-            message="Entre com sua conta HSC para acessar perfis públicos de jogadores."
+            [title]="'playerPublicProfile.states.unauthenticated.title' | translate"
+            [message]="'playerPublicProfile.states.unauthenticated.message' | translate"
           />
           <a class="player-public-profile-page__action" [href]="steamLoginUrl">
-            Entrar com Steam
+            {{ 'playerPublicProfile.actions.loginWithSteam' | translate }}
           </a>
         </div>
-      }
-
-      @case ('forbidden') {
-        <app-page-state
-          type="empty"
-          title="Acesso indisponível"
-          message="Este conteúdo não está disponível para sua conta."
-        />
       }
 
       @case ('unavailable') {
         <app-page-state
           type="empty"
-          title="Perfil indisponível"
-          message="Não foi possível encontrar um perfil público com este endereço."
+          [title]="'playerPublicProfile.states.unavailable.title' | translate"
+          [message]="'playerPublicProfile.states.unavailable.message' | translate"
         />
       }
 
       @case ('failure') {
         <app-page-state
           type="error"
-          title="Não foi possível carregar o perfil"
-          message="Ocorreu uma falha temporária. Tente novamente."
-          actionLabel="Tentar novamente"
+          [title]="'playerPublicProfile.states.failure.title' | translate"
+          [message]="'playerPublicProfile.states.failure.message' | translate"
+          [actionLabel]="'playerPublicProfile.actions.retry' | translate"
           (actionClick)="retry()"
         />
       }
@@ -61,7 +53,7 @@
                 @if (vm.profile.avatarUrl) {
                   <img
                     [src]="vm.profile.avatarUrl"
-                    [alt]="'Avatar de ' + vm.profile.displayName"
+                    [alt]="'shared.playerAvatar.alt' | translate:{ displayName: vm.profile.displayName }"
                     decoding="async"
                   />
                 } @else {
@@ -70,12 +62,12 @@
               </div>
 
               <div class="player-public-profile-page__identity">
-                <p>HSC Player Profile</p>
+                <p>{{ 'playerPublicProfile.header.eyebrow' | translate }}</p>
                 <h1>{{ vm.profile.displayName }}</h1>
                 <span class="player-public-profile-page__slug">&#64;{{ vm.profile.slug }}</span>
               </div>
 
-              <span class="player-public-profile-page__mark" aria-hidden="true">HSC PLAYER</span>
+              <span class="player-public-profile-page__mark" aria-hidden="true">{{ 'playerPublicProfile.header.mark' | translate }}</span>
             </div>
           </header>
 
@@ -85,25 +77,25 @@
               aria-labelledby="profile-identity-title"
             >
               <div class="player-public-profile-page__section-heading">
-                <span>Player identity</span>
-                <h2 id="profile-identity-title">Preferências</h2>
+                <span>{{ 'playerPublicProfile.sections.identity.eyebrow' | translate }}</span>
+                <h2 id="profile-identity-title">{{ 'playerPublicProfile.sections.identity.title' | translate }}</h2>
               </div>
 
               <dl class="player-public-profile-page__details">
                 @if (vm.profile.preferredRole) {
                   <div>
-                    <dt>Função</dt>
+                    <dt>{{ 'playerPublicProfile.labels.role' | translate }}</dt>
                     <dd>{{ preferredRoleLabel(vm.profile.preferredRole) }}</dd>
                   </div>
                 }
                 @if (vm.profile.preferredMap) {
                   <div>
-                    <dt>Mapa preferido</dt>
+                    <dt>{{ 'playerPublicProfile.labels.preferredMap' | translate }}</dt>
                     <dd>{{ preferredMapLabel(vm.profile.preferredMap) }}</dd>
                   </div>
                 }
                 <div>
-                  <dt>Membro desde</dt>
+                  <dt>{{ 'playerPublicProfile.labels.memberSince' | translate }}</dt>
                   <dd>
                     <time [attr.datetime]="vm.profile.joinedAt">
                       {{ formatJoinedAt(vm.profile.joinedAt) }}
@@ -122,8 +114,8 @@
             @if (vm.profile.bio) {
               <section class="player-public-profile-page__bio" aria-labelledby="profile-bio-title">
                 <div class="player-public-profile-page__section-heading">
-                  <span>Public profile</span>
-                  <h2 id="profile-bio-title">Sobre</h2>
+                  <span>{{ 'playerPublicProfile.sections.bio.eyebrow' | translate }}</span>
+                  <h2 id="profile-bio-title">{{ 'playerPublicProfile.sections.bio.title' | translate }}</h2>
                 </div>
                 <p>{{ vm.profile.bio }}</p>
               </section>

@@ -3,7 +3,8 @@ import { Component, input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { of, Subject, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -287,6 +288,7 @@ describe('BunkerPage Competitive Analytics', () => {
       imports: [BunkerPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: PlayerIdentityApiService, useValue: playerIdentityApiMock },
         { provide: BunkerApiService, useValue: bunkerApiMock },
         { provide: PlayerAuthApiService, useValue: playerAuthApiMock },
@@ -313,6 +315,11 @@ describe('BunkerPage Competitive Analytics', () => {
         },
       })
       .compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', {
+      shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } },
+    });
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   function render(summary: BunkerSummary = createBunkerSummary()): HTMLElement {
