@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { describe, beforeEach, it, expect, vi } from 'vitest';
 
 import type { PlayerProfile } from '../../player/domain/player-profile.model';
@@ -26,7 +28,13 @@ describe('PlayerProfileEditor', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PlayerProfileEditor],
+      providers: [provideTranslateService()],
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', EDITOR_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', EDITOR_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
 
     fixture = TestBed.createComponent(PlayerProfileEditor);
     component = fixture.componentInstance;
@@ -135,7 +143,7 @@ describe('PlayerProfileEditor', () => {
     fixture.componentRef.setInput('serverError', {
       targetField: 'slug',
       code: 'slug_unavailable',
-      message: 'Este endereço de perfil já está em uso por outro jogador.',
+      message: 'playerProfile.errors.slugUnavailable',
     });
     fixture.detectChanges();
 
@@ -209,4 +217,37 @@ describe('PlayerProfileEditor', () => {
     expect(host.textContent).toContain('Nome de exibição é obrigatório.');
   });
 
+  it('switches locale without changing canonical form values, options, or PATCH semantics', async () => {
+    component['editModel'].update((model) => ({ ...model, bio: 'Updated bio', preferredRole: 'igl' }));
+    fixture.detectChanges();
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Edit your HSC profile');
+    expect(component['editModel']()).toEqual({
+      displayName: 'Gaules', slug: 'gaules', bio: 'Updated bio', discordHandle: 'gaules#1234',
+      preferredRole: 'igl', preferredMap: 'de_train', visibility: 'public',
+    });
+    const roleOptions = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLOptionElement>('#editor-preferredRole option'));
+    const mapOptions = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLOptionElement>('#editor-preferredMap option'));
+    expect(roleOptions.find((option) => option.textContent?.trim() === 'IGL')?.value).toBe('igl');
+    expect(roleOptions.find((option) => option.textContent?.trim() === 'Entry Fragger')?.value).toBe('entry_fragger');
+    expect(mapOptions.find((option) => option.textContent?.trim() === 'Train')?.value).toBe('de_train');
+
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+    await component['onSubmit'](new Event('submit'));
+    expect(saveSpy).toHaveBeenCalledWith({ bio: 'Updated bio', preferredRole: 'igl' });
+  });
+
 });
+
+const editorTranslations = (english: boolean) => ({ playerProfile: {
+  editor: { eyebrow: english ? 'Profile Editing' : 'Edição de Perfil', title: english ? 'Edit your HSC profile' : 'Editar seu perfil HSC', description: english ? 'Update your profile.' : 'Atualize suas informações.', cancel: english ? 'Cancel' : 'Cancelar', saving: english ? 'Saving...' : 'Salvando...', save: english ? 'Save profile' : 'Salvar perfil' },
+  fields: { displayName: english ? 'Display name' : 'Nome de exibição', slug: english ? 'Profile address (slug)' : 'Endereço do perfil (slug)', slugHelp: english ? 'Used to identify your HSC profile.' : 'Usado para identificar seu perfil no HSC.', bio: english ? 'Bio' : 'Biografia', discordPlaceholder: english ? 'e.g. user' : 'ex: usuario', visibility: english ? 'Profile visibility' : 'Visibilidade do perfil', preferredRole: english ? 'Preferred role' : 'Função preferida', preferredMap: english ? 'Preferred map' : 'Mapa preferido' },
+  visibility: { private: english ? 'Private (only you)' : 'Privado (apenas você)', public: english ? 'Visible to HSC members' : 'Visível para membros HSC' },
+  roles: { none: english ? 'None selected' : 'Nenhuma selecionada', awper: 'AWPer', rifler: 'Rifler', entry_fragger: 'Entry Fragger', lurker: 'Lurker', support: 'Support', igl: 'IGL', anchor: 'Anchor' }, maps: { none: english ? 'None selected' : 'Nenhum selecionado' },
+  validation: { displayNameRequired: english ? 'Display name is required.' : 'Nome de exibição é obrigatório.', displayNameMaxLength: 'max', displayNameInvalid: 'invalid', slugRequired: 'required', slugMinLength: 'min', slugMaxLength: 'max', slugPattern: 'pattern', slugInvalid: 'invalid', bioMaxLength: 'max', bioInvalid: 'invalid', discordMaxLength: 'max', discordInvalid: 'invalid', publicProfileRequiresCustomSlug: 'custom slug required' },
+  errors: { slugUnavailable: english ? 'Profile address unavailable.' : 'Este endereço de perfil já está em uso por outro jogador.' },
+} });
+const EDITOR_TRANSLATIONS = { 'pt-BR': editorTranslations(false), 'en-US': editorTranslations(true) } as const;

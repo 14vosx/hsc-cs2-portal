@@ -10,12 +10,14 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { PlayerProfile } from '../../player/domain/player-profile.model';
 
 @Component({
   selector: 'app-player-profile-media-editor',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './player-profile-media-editor.html',
   styleUrl: './player-profile-media-editor.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

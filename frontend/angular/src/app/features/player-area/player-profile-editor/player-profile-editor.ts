@@ -1,4 +1,5 @@
 import { Component, effect, input, output, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   disabled,
   form,
@@ -29,7 +30,7 @@ import { UiCard } from '../../../shared/components/card/card';
 @Component({
   selector: 'app-player-profile-editor',
   standalone: true,
-  imports: [FormField, UiCard],
+  imports: [FormField, UiCard, TranslatePipe],
   templateUrl: './player-profile-editor.html',
   styleUrl: './player-profile-editor.css',
 })
@@ -67,18 +68,18 @@ export class PlayerProfileEditor {
     disabled(f.visibility, { when: () => this.savePending() });
     disabled(f.preferredRole, { when: () => this.savePending() });
     disabled(f.preferredMap, { when: () => this.savePending() });
-    required(f.displayName, { message: 'Nome de exibição é obrigatório.' });
-    maxLength(f.displayName, 255, { message: 'Nome de exibição deve ter no máximo 255 caracteres.' });
+    required(f.displayName, { message: 'playerProfile.validation.displayNameRequired' });
+    maxLength(f.displayName, 255, { message: 'playerProfile.validation.displayNameMaxLength' });
 
-    required(f.slug, { message: 'Endereço do perfil (slug) é obrigatório.' });
-    minLength(f.slug, 3, { message: 'Slug deve ter pelo menos 3 caracteres.' });
-    maxLength(f.slug, 64, { message: 'Slug deve ter no máximo 64 caracteres.' });
+    required(f.slug, { message: 'playerProfile.validation.slugRequired' });
+    minLength(f.slug, 3, { message: 'playerProfile.validation.slugMinLength' });
+    maxLength(f.slug, 64, { message: 'playerProfile.validation.slugMaxLength' });
     pattern(f.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-      message: 'Slug deve conter apenas letras minúsculas, números e hífens (ex: meu-slug).',
+      message: 'playerProfile.validation.slugPattern',
     });
 
-    maxLength(f.bio, 500, { message: 'Biografia deve ter no máximo 500 caracteres.' });
-    maxLength(f.discordHandle, 100, { message: 'Discord handle deve ter no máximo 100 caracteres.' });
+    maxLength(f.bio, 500, { message: 'playerProfile.validation.bioMaxLength' });
+    maxLength(f.discordHandle, 100, { message: 'playerProfile.validation.discordMaxLength' });
 
     validateTree(f, (ctx) => {
       const visibility = ctx.valueOf(f.visibility);
@@ -88,8 +89,7 @@ export class PlayerProfileEditor {
         return {
           fieldTree: ctx.fieldTreeOf(f.slug),
           kind: 'public_profile_requires_custom_slug',
-          message:
-            'Para tornar o perfil visível para membros HSC, você precisa escolher um endereço de perfil personalizado.',
+          message: 'playerProfile.validation.publicProfileRequiresCustomSlug',
         };
       }
 
