@@ -1,11 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { NewsApiService, NewsContractError } from './data-access/news-api.service';
 import type { NewsIndex, NewsSummary } from './domain/news.model';
 import { NewsPage } from './news-page';
+import { PageState } from '../../shared/components/page-state/page-state';
 
 describe('NewsPage', () => {
   let fixture: ComponentFixture<NewsPage>;
@@ -44,9 +47,25 @@ describe('NewsPage', () => {
       imports: [NewsPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: NewsApiService, useValue: newsApiMock },
       ],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { news: { hero: { eyebrow: 'Redação HSC', titleStart: 'Notícias do', titleEmphasis: 'clube', description: 'Descrição', board: 'Painel editorial' }, states: { loading: { title: 'Carregando notícias...', message: 'Sincronizando as publicações editoriais do HSC.' }, error: { title: 'Notícias indisponíveis', message: 'Erro', retry: 'Tentar novamente' }, empty: { title: 'Nenhuma notícia publicada', message: 'Sem publicações' } }, count: { ariaLabel: 'Total de publicações', label: 'Feed editorial', one: '1 publicação', other: '{{ count }} publicações' }, feed: { eyebrow: 'Feed editorial', title: 'Publicações' } }, newsCard: { accessibility: { read: 'Ler notícia: {{ title }}' }, fallback: { date: 'Sem data', mediaLabel: 'Notícias / Editorial' }, readMore: 'Ler publicação' } });
+    translate.setTranslation('en-US', { news: { hero: { eyebrow: 'HSC Newsroom', titleStart: 'Club', titleEmphasis: 'news', description: 'Description', board: 'Editorial board' }, states: { loading: { title: 'Loading news...', message: 'Syncing' }, error: { title: 'News unavailable', message: 'Error', retry: 'Try again' }, empty: { title: 'No news published', message: 'No publications' } }, count: { ariaLabel: 'Total publications', label: 'Editorial feed', one: '1 publication', other: '{{ count }} publications' }, feed: { eyebrow: 'Editorial feed', title: 'Publications' } }, newsCard: { accessibility: { read: 'Read news: {{ title }}' }, fallback: { date: 'No date', mediaLabel: 'News / Editorial' }, readMore: 'Read publication' } });
+    await translate.use('pt-BR').toPromise();
+  });
+
+  it('switches locale without refetching or changing editorial data', async () => {
+    createComponent();
+    const calls = newsApiMock.getNewsIndex.mock.calls.length;
+    expect(fixture.nativeElement.textContent).toContain('Redação HSC');
+    const translate = TestBed.inject(TranslateService); await translate.use('en-US').toPromise(); fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('HSC Newsroom'); expect(text).toContain('42 publications');
+    expect(text).toContain(sampleItems[0].title); expect(text).toContain(sampleItems[1].excerpt);
+    expect(newsApiMock.getNewsIndex).toHaveBeenCalledTimes(calls);
   });
 
   function createComponent(getNewsIndex$ = of(sampleIndex)) {
@@ -162,8 +181,8 @@ describe('NewsPage', () => {
 
   it('15. estado error oferece "Tentar novamente"', () => {
     createComponent(throwError(() => new Error('HTTP 500')));
-    const stateEl = fixture.nativeElement.querySelector('app-page-state');
-    expect(stateEl?.getAttribute('actionlabel')).toBe('Tentar novamente');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.actionLabel()).toBe('Tentar novamente');
   });
 
   it('16. retry realiza exatamente uma nova chamada', () => {
@@ -204,7 +223,8 @@ describe('NewsPage', () => {
     const loadingState = fixture.nativeElement.querySelector('app-page-state');
     expect(loadingState).toBeTruthy();
     expect(loadingState?.getAttribute('type')).toBe('loading');
-    expect(loadingState?.getAttribute('message')).toBe('Sincronizando as publicações editoriais do HSC.');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.message()).toBe('Sincronizando as publicações editoriais do HSC.');
     expect(fixture.nativeElement.querySelector('app-page-state[type="error"]')).toBeNull();
   });
 

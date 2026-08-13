@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { NewsSummary } from '../../domain/news.model';
@@ -20,8 +21,22 @@ describe('NewsCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NewsCard],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideTranslateService()],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { newsCard: { accessibility: { read: 'Ler notícia: {{ title }}' }, fallback: { date: 'Sem data', mediaLabel: 'Notícias / Editorial' }, readMore: 'Ler publicação' } });
+    translate.setTranslation('en-US', { newsCard: { accessibility: { read: 'Read news: {{ title }}' }, fallback: { date: 'No date', mediaLabel: 'News / Editorial' }, readMore: 'Read publication' } });
+    await translate.use('pt-BR').toPromise();
+  });
+
+  it('switches locale while preserving title, route, alt and invalid date', async () => {
+    const item = createNewsSummary({ publishedAt: null }); const { fixture } = setupFixture(item);
+    expect(fixture.nativeElement.textContent).toContain('Sem data');
+    const translate = TestBed.inject(TranslateService); await translate.use('en-US').toPromise(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('No date');
+    expect(fixture.nativeElement.textContent).toContain(item.title);
+    expect(fixture.nativeElement.querySelector('a').getAttribute('href')).toBe('/news/sample-news');
+    expect(fixture.nativeElement.querySelector('img').alt).toBe(item.title);
   });
 
   function setupFixture(item: NewsSummary = createNewsSummary()) {

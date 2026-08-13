@@ -1,51 +1,51 @@
 <section class="news-detail-page">
   <a class="news-detail-page__back" routerLink="/news">
     <span aria-hidden="true">←</span>
-    Voltar para News
+    {{ 'newsDetail.back' | translate }}
   </a>
 
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
         <header class="news-detail-page__state-header">
-          <span>News HSC</span>
-          <h1>Artigo editorial</h1>
-          <p>Carregando a publicação selecionada.</p>
+          <span>{{ 'newsDetail.stateHeader.eyebrow' | translate }}</span>
+          <h1>{{ 'newsDetail.stateHeader.loadingTitle' | translate }}</h1>
+          <p>{{ 'newsDetail.stateHeader.loadingMessage' | translate }}</p>
         </header>
 
         <app-page-state
           type="loading"
-          title="Carregando notícia..."
-          message="Sincronizando o conteúdo editorial do HSC."
+          [title]="'newsDetail.states.loading.title' | translate"
+          [message]="'newsDetail.states.loading.message' | translate"
         />
       }
 
       @case ('not-found') {
         <header class="news-detail-page__state-header">
-          <span>News HSC</span>
-          <h1>Notícia não encontrada</h1>
-          <p>A publicação solicitada não está disponível.</p>
+          <span>{{ 'newsDetail.stateHeader.eyebrow' | translate }}</span>
+          <h1>{{ 'newsDetail.stateHeader.notFoundTitle' | translate }}</h1>
+          <p>{{ 'newsDetail.stateHeader.notFoundMessage' | translate }}</p>
         </header>
 
         <app-page-state
           type="empty"
-          title="Notícia não encontrada"
-          message="Esta publicação não existe ou não está disponível publicamente."
+          [title]="'newsDetail.states.notFound.title' | translate"
+          [message]="'newsDetail.states.notFound.message' | translate"
         />
       }
 
       @case ('error') {
         <header class="news-detail-page__state-header">
-          <span>News HSC</span>
-          <h1>Notícia indisponível</h1>
-          <p>O conteúdo editorial não pôde ser carregado.</p>
+          <span>{{ 'newsDetail.stateHeader.eyebrow' | translate }}</span>
+          <h1>{{ 'newsDetail.stateHeader.errorTitle' | translate }}</h1>
+          <p>{{ 'newsDetail.stateHeader.errorMessage' | translate }}</p>
         </header>
 
         <app-page-state
           type="error"
-          title="Notícia indisponível"
-          message="Não foi possível carregar esta publicação neste momento."
-          actionLabel="Tentar novamente"
+          [title]="'newsDetail.states.error.title' | translate"
+          [message]="'newsDetail.states.error.message' | translate"
+          [actionLabel]="'newsDetail.states.error.retry' | translate"
           (actionClick)="retry()"
         />
       }
@@ -54,8 +54,8 @@
         <article class="news-detail-page__article">
           <header class="news-detail-page__hero">
             <div class="news-detail-page__hero-copy">
-              <span class="news-detail-page__eyebrow">News HSC</span>
-              <p class="news-detail-page__dispatch">Publicação oficial</p>
+              <span class="news-detail-page__eyebrow">{{ 'newsDetail.hero.eyebrow' | translate }}</span>
+              <p class="news-detail-page__dispatch">{{ 'newsDetail.hero.official' | translate }}</p>
               <h1>{{ vm.article.title }}</h1>
 
               @if (vm.article.excerpt && vm.article.excerpt.trim()) {
@@ -63,11 +63,11 @@
               }
 
               <div class="news-detail-page__meta">
-                <span>Editorial dispatch</span>
+                <span>{{ 'newsDetail.hero.dispatch' | translate }}</span>
                 <i aria-hidden="true"></i>
-                <span>Publicado em</span>
+                <span>{{ 'newsDetail.hero.publishedAt' | translate }}</span>
                 <time [attr.datetime]="vm.article.publishedAt">
-                  {{ formatDate(vm.article.publishedAt) }}
+                  {{ formatDate(vm.article.publishedAt) || ('newsDetail.fallback.date' | translate) }}
                 </time>
               </div>
             </div>
@@ -83,7 +83,7 @@
               } @else {
                 <div class="news-detail-page__media-fallback" aria-hidden="true">
                   <span>HSC</span>
-                  <small>News / Editorial</small>
+                  <small>{{ 'newsDetail.fallback.mediaLabel' | translate }}</small>
                 </div>
               }
               <span class="news-detail-page__media-mark" aria-hidden="true">HSC // NEWS</span>
@@ -92,10 +92,10 @@
 
           <section
             class="news-detail-page__content"
-            aria-label="Conteúdo da notícia"
+            [attr.aria-label]="'newsDetail.content.ariaLabel' | translate"
           >
             <div class="news-detail-page__content-heading" aria-hidden="true">
-              <span>Editorial dispatch</span>
+              <span>{{ 'newsDetail.hero.dispatch' | translate }}</span>
               <i></i>
             </div>
             <div class="news-detail-page__reading-column">

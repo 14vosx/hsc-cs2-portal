@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
 import { PageState } from '../../shared/components/page-state/page-state';
@@ -21,7 +22,7 @@ type NewsVm =
 
 @Component({
   selector: 'app-news-page',
-  imports: [AsyncPipe, PageState, NewsCard],
+  imports: [AsyncPipe, PageState, NewsCard, TranslatePipe],
   templateUrl: './news-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-page.css',
@@ -54,7 +55,7 @@ export class NewsPage {
     this.reload$.next();
   }
 
-  protected publicationCountLabel(count: number): string {
-    return count === 1 ? '1 publicação' : `${count} publicações`;
+  protected publicationCountKey(count: number): string {
+    return count === 1 ? 'news.count.one' : 'news.count.other';
   }
 }

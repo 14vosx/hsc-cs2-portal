@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Title } from '@angular/platform-browser';
+import { By, Title } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap, provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, NEVER, of, Subject, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { NewsArticleBody } from '../components/news-article-body/news-article-body';
+import { PageState } from '../../../shared/components/page-state/page-state';
 import { NewsApiService, NewsContractError } from '../data-access/news-api.service';
 import type { NewsArticle } from '../domain/news.model';
 import { NewsDetailPage } from './news-detail-page';
@@ -40,10 +42,16 @@ describe('NewsDetailPage', () => {
       imports: [NewsDetailPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: NewsApiService, useValue: newsApiMock },
         { provide: ActivatedRoute, useValue: { paramMap: paramMap$.asObservable() } },
       ],
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { newsDetail: { back: 'Voltar para Notícias', documentTitle: 'HSC — Notícias', stateHeader: { eyebrow: 'Notícias HSC', loadingTitle: 'Artigo editorial', loadingMessage: 'Carregando a publicação selecionada.', notFoundTitle: 'Notícia não encontrada', notFoundMessage: 'A publicação solicitada não está disponível.', errorTitle: 'Notícia indisponível', errorMessage: 'O conteúdo editorial não pôde ser carregado.' }, states: { loading: { title: 'Carregando notícia...', message: 'Sincronizando o conteúdo editorial do HSC.' }, notFound: { title: 'Notícia não encontrada', message: 'Esta publicação não existe ou não está disponível publicamente.' }, error: { title: 'Notícia indisponível', message: 'Não foi possível carregar esta publicação neste momento.', retry: 'Tentar novamente' } }, hero: { eyebrow: 'Notícias HSC', official: 'Publicação oficial', dispatch: 'Despacho editorial', publishedAt: 'Publicado em' }, content: { ariaLabel: 'Conteúdo da notícia' }, fallback: { date: 'Sem data', mediaLabel: 'Notícias / Editorial' } } });
+    translate.setTranslation('en-US', { newsDetail: { back: 'Back to News', documentTitle: 'HSC — News', stateHeader: { eyebrow: 'HSC News', loadingTitle: 'Editorial article', loadingMessage: 'Loading the selected publication.', notFoundTitle: 'News article not found', notFoundMessage: 'The requested publication is unavailable.', errorTitle: 'News unavailable', errorMessage: 'The editorial content could not be loaded.' }, states: { loading: { title: 'Loading news article...', message: 'Syncing HSC editorial content.' }, notFound: { title: 'News article not found', message: 'This publication does not exist or is not publicly available.' }, error: { title: 'News unavailable', message: 'Could not load this publication right now.', retry: 'Try again' } }, hero: { eyebrow: 'HSC News', official: 'Official publication', dispatch: 'Editorial dispatch', publishedAt: 'Published on' }, content: { ariaLabel: 'News article content' }, fallback: { date: 'No date', mediaLabel: 'News / Editorial' } } });
+    await translate.use('pt-BR').toPromise();
 
     titleService = TestBed.inject(Title);
     titleService.setTitle('Original Title');
@@ -100,7 +108,8 @@ describe('NewsDetailPage', () => {
     createComponent();
     const stateEl = fixture.nativeElement.querySelector('app-page-state');
     expect(stateEl?.getAttribute('type')).toBe('empty');
-    expect(stateEl?.getAttribute('title')).toBe('Notícia não encontrada');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.title()).toBe('Notícia não encontrada');
   });
 
   it('8. exibe loading enquanto a requisição não emite', () => {
@@ -242,7 +251,8 @@ describe('NewsDetailPage', () => {
     createComponent(throwError(() => new HttpErrorResponse({ status: 404, statusText: 'Not Found' })));
     const stateEl = fixture.nativeElement.querySelector('app-page-state');
     expect(stateEl?.getAttribute('type')).toBe('empty');
-    expect(stateEl?.getAttribute('title')).toBe('Notícia não encontrada');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.title()).toBe('Notícia não encontrada');
   });
 
   it('26. HTTP 404 não oferece retry', () => {
@@ -255,7 +265,8 @@ describe('NewsDetailPage', () => {
     createComponent(throwError(() => new HttpErrorResponse({ status: 500, statusText: 'Server Error' })));
     const stateEl = fixture.nativeElement.querySelector('app-page-state');
     expect(stateEl?.getAttribute('type')).toBe('error');
-    expect(stateEl?.getAttribute('title')).toBe('Notícia indisponível');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.title()).toBe('Notícia indisponível');
   });
 
   it('28. HTTP 503 exibe error', () => {
@@ -272,8 +283,8 @@ describe('NewsDetailPage', () => {
 
   it('30. estado error oferece "Tentar novamente"', () => {
     createComponent(throwError(() => new HttpErrorResponse({ status: 500 })));
-    const stateEl = fixture.nativeElement.querySelector('app-page-state');
-    expect(stateEl?.getAttribute('actionlabel')).toBe('Tentar novamente');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.actionLabel()).toBe('Tentar novamente');
   });
 
   it('31. retry realiza exatamente uma nova chamada', () => {
@@ -309,7 +320,8 @@ describe('NewsDetailPage', () => {
     expect(newsApiMock.getNewsArticle).toHaveBeenCalledTimes(2);
     const loadingState = fixture.nativeElement.querySelector('app-page-state');
     expect(loadingState?.getAttribute('type')).toBe('loading');
-    expect(loadingState?.getAttribute('message')).toBe('Sincronizando o conteúdo editorial do HSC.');
+    const pageState = fixture.debugElement.query(By.directive(PageState));
+    expect(pageState.componentInstance.message()).toBe('Sincronizando o conteúdo editorial do HSC.');
   });
 
   it('33. mudança de slug realiza nova chamada', () => {
@@ -403,15 +415,15 @@ describe('NewsDetailPage', () => {
     expect(titleService.getTitle()).toBe('HSC — Article 2');
   });
 
-  it('39. loading, error e not-found usam título-base "HSC — News"', () => {
+  it('39. loading, error e not-found usam título-base localizado', () => {
     createComponent(NEVER);
-    expect(titleService.getTitle()).toBe('HSC — News');
+    expect(titleService.getTitle()).toBe('HSC — Notícias');
 
     createComponent(throwError(() => new HttpErrorResponse({ status: 500 })));
-    expect(titleService.getTitle()).toBe('HSC — News');
+    expect(titleService.getTitle()).toBe('HSC — Notícias');
 
     createComponent(throwError(() => new HttpErrorResponse({ status: 404 })));
-    expect(titleService.getTitle()).toBe('HSC — News');
+    expect(titleService.getTitle()).toBe('HSC — Notícias');
   });
 
   it('40. destruir a fixture restaura exatamente o título anterior', () => {
@@ -443,5 +455,21 @@ describe('NewsDetailPage', () => {
 
   it('45. não usa bypassSecurityTrustHtml diretamente na página', () => {
     expect(true).toBe(true);
+  });
+
+  it('46. alterna locale sem nova requisição e preserva conteúdo editorial', async () => {
+    const article = createNewsArticle(); createComponent(of(article));
+    const calls = newsApiMock.getNewsArticle.mock.calls.length;
+    expect(fixture.nativeElement.textContent).toContain('Publicação oficial');
+    expect(titleService.getTitle()).toBe(`HSC — ${article.title}`);
+    const translate = TestBed.inject(TranslateService); await translate.use('en-US').toPromise(); fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Official publication'); expect(text).toContain('Back to News');
+    expect(text).toContain(article.title); expect(text).toContain(article.excerpt);
+    expect(fixture.debugElement.query(By.directive(NewsArticleBody)).componentInstance.contentHtml()).toBe(article.contentHtml);
+    expect(fixture.nativeElement.querySelector('img').getAttribute('src')).toBe(article.imageUrl);
+    expect(fixture.nativeElement.querySelector('time').getAttribute('datetime')).toBe(article.publishedAt);
+    expect(titleService.getTitle()).toBe(`HSC — ${article.title}`);
+    expect(newsApiMock.getNewsArticle).toHaveBeenCalledTimes(calls);
   });
 });
