@@ -45,7 +45,7 @@
         </div>
       }
 
-      @if (error()) { <p class="player-auth-panel__error" role="alert">{{ errorIsTranslationKey() ? (error()! | translate) : error() }}</p> }
+      @if (error()) { <p class="player-auth-panel__error" role="alert">{{ error()! | translate }}</p> }
 
       <button class="player-auth-panel__submit" type="submit" [disabled]="pending()">
         @if (pending()) { {{ 'playerAuth.actions.pending' | translate }} } @else if (mode() === 'registration') { {{ 'playerAuth.actions.createAccount' | translate }} }

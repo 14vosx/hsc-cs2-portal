@@ -126,6 +126,23 @@ describe('PlayerAccountSecurityPanel', () => {
     expect(alert.nativeElement.textContent).not.toContain('internal');
   });
 
+  it('translates a reset-request mapped error without changing linked identities or calls', async () => {
+    emailAuthApi.requestPasswordReset.mockReturnValue(throwError(() => new Error('internal')));
+    fixture.componentRef.setInput('account', account(true, true, true, 'Player+CS2@example.test'));
+    fixture.detectChanges();
+    resetPasswordButton()!.click();
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Não foi possível concluir a operação agora. Tente novamente.');
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+    expect(host.textContent).toContain('Could not complete the operation right now. Try again.');
+    expect(host.textContent).toContain('Player+CS2@example.test');
+    expect(host.textContent).toContain('76561198000000001');
+    expect(emailAuthApi.requestPasswordReset).toHaveBeenCalledTimes(1);
+    expect(emailAuthApi.requestPasswordReset).toHaveBeenCalledWith({ email: 'Player+CS2@example.test' });
+  });
+
   it('renders the email form and existing Steam URL when unlinked', () => {
     const link = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
     expect(link.getAttribute('href')).toBe('/player/auth/steam/link/start');
@@ -262,4 +279,7 @@ const panelDictionary = (english: boolean) => ({ playerAccount: {
   validation: { emailRequired: 'Informe seu e-mail.', passwordRequired: 'Informe uma senha.', confirmPasswordRequired: 'Confirme a senha.', invalidEmail: 'Informe um endereço de e-mail válido.', passwordLength: 'A senha deve ter entre 10 e 128 caracteres.', passwordMismatch: 'As senhas não coincidem.' },
   emailLink: { request: { password: english ? 'Password' : 'Senha', confirmPassword: english ? 'Confirm password' : 'Confirmar senha', passwordHint: 'Use de 10 a 128 caracteres.', pending: 'Enviando solicitação...', sending: 'Enviando...', cancel: english ? 'Cancel' : 'Cancelar', submit: english ? 'Send confirmation' : 'Enviar confirmação', success: 'Solicitação recebida. Se este endereço puder ser vinculado, enviaremos uma confirmação por e-mail.', errors: { generic: 'Não foi possível solicitar o vínculo agora. Tente novamente.', invalidSession: '', accountDisabled: '', tooManyRequests: '', unavailable: '' } } },
 } });
-const PANEL_TRANSLATIONS = { 'pt-BR': panelDictionary(false), 'en-US': panelDictionary(true) } as const;
+const PANEL_TRANSLATIONS = {
+  'pt-BR': { ...panelDictionary(false), playerAuth: { errors: { generic: 'Não foi possível concluir a operação agora. Tente novamente.' } } },
+  'en-US': { ...panelDictionary(true), playerAuth: { errors: { generic: 'Could not complete the operation right now. Try again.' } } },
+} as const;

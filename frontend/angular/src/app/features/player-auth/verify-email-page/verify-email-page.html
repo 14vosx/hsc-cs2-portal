@@ -1,15 +1,15 @@
 <section class="verify-workspace" aria-labelledby="verify-workspace-title">
   <div class="verify-workspace__context">
     <div class="verify-workspace__intro">
-      <p class="verify-workspace__eyebrow">HSC Account Security</p>
-      <h1 id="verify-workspace-title">Verificação<br />de identidade</h1>
-      <p class="verify-workspace__lead">Estamos confirmando o endereço de e-mail associado à sua conta HSC.</p>
+      <p class="verify-workspace__eyebrow">{{ 'playerAuth.verifyEmail.workspace.eyebrow' | translate }}</p>
+      <h1 id="verify-workspace-title">{{ 'playerAuth.verifyEmail.workspace.title' | translate }}</h1>
+      <p class="verify-workspace__lead">{{ 'playerAuth.verifyEmail.workspace.lead' | translate }}</p>
     </div>
 
-    <ol class="verify-workspace__protocol" aria-label="Protocolo de verificação de identidade">
-      <li><span>01</span><div><strong>Link seguro</strong><p>A confirmação utiliza o link enviado ao endereço informado.</p></div></li>
-      <li><span>02</span><div><strong>Verificação</strong><p>A identidade de e-mail é validada pela HSC.</p></div></li>
-      <li><span>03</span><div><strong>Acesso</strong><p>Após a confirmação, você seguirá para a Área do Jogador.</p></div></li>
+    <ol class="verify-workspace__protocol" [attr.aria-label]="'playerAuth.verifyEmail.protocol.ariaLabel' | translate">
+      <li><span>01</span><div><strong>{{ 'playerAuth.verifyEmail.protocol.secureLink.title' | translate }}</strong><p>{{ 'playerAuth.verifyEmail.protocol.secureLink.description' | translate }}</p></div></li>
+      <li><span>02</span><div><strong>{{ 'playerAuth.verifyEmail.protocol.verification.title' | translate }}</strong><p>{{ 'playerAuth.verifyEmail.protocol.verification.description' | translate }}</p></div></li>
+      <li><span>03</span><div><strong>{{ 'playerAuth.verifyEmail.protocol.access.title' | translate }}</strong><p>{{ 'playerAuth.verifyEmail.protocol.access.description' | translate }}</p></div></li>
     </ol>
   </div>
 
@@ -17,35 +17,35 @@
     <div class="verify-workspace__surface-content">
       @if (state() === 'loading') {
         <div class="verify-workspace__heading">
-          <p class="verify-workspace__eyebrow">Verificação em andamento</p>
-          <h2>Confirmando e-mail</h2>
+          <p class="verify-workspace__eyebrow">{{ 'playerAuth.verifyEmail.loading.eyebrow' | translate }}</p>
+          <h2>{{ 'playerAuth.verifyEmail.loading.title' | translate }}</h2>
         </div>
         <div class="verify-workspace__activity" aria-hidden="true"><span></span><span></span><span></span></div>
-        <p class="verify-workspace__message" role="status">Estamos validando seu endereço de e-mail.</p>
+        <p class="verify-workspace__message" role="status">{{ messageKey() | translate }}</p>
       } @else if (state() === 'success') {
         <div class="verify-workspace__heading verify-workspace__heading--success">
-          <p class="verify-workspace__eyebrow">Identidade confirmada</p>
-          <h2>E-mail verificado</h2>
+          <p class="verify-workspace__eyebrow">{{ 'playerAuth.verifyEmail.success.eyebrow' | translate }}</p>
+          <h2>{{ 'playerAuth.verifyEmail.success.title' | translate }}</h2>
         </div>
         <div role="status">
-          <p class="verify-workspace__message">Seu endereço foi confirmado com sucesso.</p>
-          <p class="verify-workspace__secondary">Entrando na Área do Jogador...</p>
+          <p class="verify-workspace__message">{{ 'playerAuth.verifyEmail.success.message' | translate }}</p>
+          <p class="verify-workspace__secondary">{{ messageKey() | translate }}</p>
         </div>
       } @else if (state() === 'invalid') {
         <div class="verify-workspace__heading">
-          <p class="verify-workspace__eyebrow">Verification link</p>
-          <h2>Link indisponível</h2>
+          <p class="verify-workspace__eyebrow">{{ 'playerAuth.verifyEmail.invalid.eyebrow' | translate }}</p>
+          <h2>{{ 'playerAuth.verifyEmail.invalid.title' | translate }}</h2>
         </div>
-        <p class="verify-workspace__message verify-workspace__message--error" role="alert">{{ message() }}</p>
-        <a class="verify-workspace__action" routerLink="/area-do-jogador">Voltar para entrar</a>
+        <p class="verify-workspace__message verify-workspace__message--error" role="alert">{{ messageKey() | translate }}</p>
+        <a class="verify-workspace__action" routerLink="/area-do-jogador">{{ 'playerAuth.verifyEmail.actions.backToLogin' | translate }}</a>
       } @else {
         <div class="verify-workspace__heading">
-          <p class="verify-workspace__eyebrow">Verificação interrompida</p>
-          <h2>Não foi possível confirmar</h2>
+          <p class="verify-workspace__eyebrow">{{ 'playerAuth.verifyEmail.error.eyebrow' | translate }}</p>
+          <h2>{{ 'playerAuth.verifyEmail.error.title' | translate }}</h2>
         </div>
-        <p class="verify-workspace__message verify-workspace__message--error" role="alert">{{ message() }}</p>
+        <p class="verify-workspace__message verify-workspace__message--error" role="alert">{{ messageKey() | translate }}</p>
         @if (retryable()) {
-          <button class="verify-workspace__action" type="button" (click)="retry()">Tentar novamente</button>
+          <button class="verify-workspace__action" type="button" (click)="retry()">{{ 'playerAuth.verifyEmail.actions.retry' | translate }}</button>
         }
       }
     </div>

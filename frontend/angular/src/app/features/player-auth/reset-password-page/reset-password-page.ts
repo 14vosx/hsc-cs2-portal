@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
 import { mapPlayerEmailAuthError } from '../player-email-auth-error';
@@ -11,7 +12,7 @@ type ResetPasswordState = 'form' | 'invalid' | 'success';
 @Component({
   selector: 'app-reset-password-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './reset-password-page.html',
   styleUrl: './reset-password-page.css',
 })
@@ -52,11 +53,11 @@ export class ResetPasswordPage implements OnInit {
     if (this.pending() || !this.token) return;
 
     if (!isValidPlayerPassword(this.password())) {
-      this.error.set('A senha deve ter entre 10 e 128 caracteres.');
+      this.error.set('playerAuth.validation.passwordLength');
       return;
     }
     if (this.password() !== this.confirmation()) {
-      this.error.set('A confirmação deve ser igual à nova senha.');
+      this.error.set('playerAuth.validation.passwordMismatch');
       return;
     }
 
@@ -71,9 +72,9 @@ export class ResetPasswordPage implements OnInit {
       },
       error: (error: unknown) => {
         this.pending.set(false);
-        const message = mapPlayerEmailAuthError(error, 'reset-confirm');
-        if (message.startsWith('Link de redefinição')) this.state.set('invalid');
-        else this.error.set(message);
+        const presentation = mapPlayerEmailAuthError(error, 'reset-confirm');
+        if (presentation.kind === 'invalid-password-reset-link') this.state.set('invalid');
+        else this.error.set(presentation.messageKey);
       },
     });
   }

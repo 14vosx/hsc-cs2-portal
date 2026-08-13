@@ -26,7 +26,6 @@ export class PlayerEmailAuthPanel {
   protected readonly displayName = signal('');
   protected readonly pending = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly errorIsTranslationKey = signal(false);
   protected readonly success = signal<string | null>(null);
 
   protected setMode(mode: AuthPanelMode): void {
@@ -117,17 +116,15 @@ export class PlayerEmailAuthPanel {
 
   private finishWithError(error: unknown, operation: 'login' | 'registration' | 'reset-request'): void {
     this.pending.set(false);
-    this.errorIsTranslationKey.set(false);
-    this.error.set(mapPlayerEmailAuthError(error, operation));
+    const presentation = mapPlayerEmailAuthError(error, operation);
+    this.error.set(presentation.messageKey);
   }
 
   private clearError(): void {
     if (this.error()) this.error.set(null);
-    this.errorIsTranslationKey.set(false);
   }
 
   private setLocalError(key: string): void {
-    this.errorIsTranslationKey.set(true);
     this.error.set(key);
   }
 }

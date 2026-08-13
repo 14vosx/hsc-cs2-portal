@@ -39,7 +39,7 @@
     <p class="account-security__success" role="status">{{ passwordResetSuccess()! | translate }}</p>
   }
   @if (passwordResetError()) {
-    <p class="account-security__error" role="alert">{{ passwordResetError() }}</p>
+    <p class="account-security__error" role="alert">{{ passwordResetError()! | translate }}</p>
   }
 
   @if (!account().identities.email.linked && formVisible()) {

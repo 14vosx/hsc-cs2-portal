@@ -142,7 +142,8 @@ export class PlayerAccountSecurityPanel {
       },
       error: (error: unknown) => {
         this.passwordResetPending.set(false);
-        this.passwordResetError.set(mapPlayerEmailAuthError(error, 'reset-request'));
+        const presentation = mapPlayerEmailAuthError(error, 'reset-request');
+        this.passwordResetError.set(presentation.messageKey);
       },
     });
   }
