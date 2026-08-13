@@ -1,44 +1,44 @@
 <section class="link-workspace" aria-labelledby="link-workspace-title">
   <div class="link-workspace__context">
     <div class="link-workspace__intro">
-      <p class="link-workspace__eyebrow">HSC Account Security</p>
-      <h1 id="link-workspace-title">Vínculo<br />de identidade</h1>
-      <p class="link-workspace__lead">Estamos confirmando o e-mail que será associado à sua conta HSC.</p>
+      <p class="link-workspace__eyebrow">{{ 'playerAccount.emailLink.confirmation.workspace.eyebrow' | translate }}</p>
+      <h1 id="link-workspace-title">{{ 'playerAccount.emailLink.confirmation.workspace.title' | translate }}</h1>
+      <p class="link-workspace__lead">{{ 'playerAccount.emailLink.confirmation.workspace.lead' | translate }}</p>
     </div>
-    <ol class="link-workspace__protocol" aria-label="Protocolo de vínculo de identidade">
-      <li><span>01</span><div><strong>Solicitação</strong><p>O vínculo foi iniciado pela Área do Jogador.</p></div></li>
-      <li><span>02</span><div><strong>Confirmação</strong><p>O link valida o endereço de e-mail solicitado.</p></div></li>
-      <li><span>03</span><div><strong>Identidade</strong><p>O endereço confirmado passa a integrar sua conta HSC.</p></div></li>
+    <ol class="link-workspace__protocol" [attr.aria-label]="'playerAccount.emailLink.confirmation.protocol.ariaLabel' | translate">
+      <li><span>01</span><div><strong>{{ 'playerAccount.emailLink.confirmation.protocol.request.title' | translate }}</strong><p>{{ 'playerAccount.emailLink.confirmation.protocol.request.description' | translate }}</p></div></li>
+      <li><span>02</span><div><strong>{{ 'playerAccount.emailLink.confirmation.protocol.confirm.title' | translate }}</strong><p>{{ 'playerAccount.emailLink.confirmation.protocol.confirm.description' | translate }}</p></div></li>
+      <li><span>03</span><div><strong>{{ 'playerAccount.emailLink.confirmation.protocol.identity.title' | translate }}</strong><p>{{ 'playerAccount.emailLink.confirmation.protocol.identity.description' | translate }}</p></div></li>
     </ol>
   </div>
 
   <div class="link-workspace__surface">
     <div class="link-workspace__surface-content">
       @if (state() === 'loading') {
-        <div class="link-workspace__heading"><p class="link-workspace__eyebrow">Vínculo em andamento</p><h2>Confirmando e-mail</h2></div>
+        <div class="link-workspace__heading"><p class="link-workspace__eyebrow">{{ 'playerAccount.emailLink.confirmation.loading.eyebrow' | translate }}</p><h2>{{ 'playerAccount.emailLink.confirmation.loading.title' | translate }}</h2></div>
         <div class="link-workspace__activity" aria-hidden="true"><span></span><span></span><span></span></div>
-        <p class="link-workspace__message" role="status">Estamos validando a solicitação de vínculo.</p>
+        <p class="link-workspace__message" role="status">{{ 'playerAccount.emailLink.confirmation.loading.message' | translate }}</p>
       } @else if (state() === 'success') {
-        <div class="link-workspace__heading link-workspace__heading--success"><p class="link-workspace__eyebrow">Vínculo concluído</p><h2>E-mail vinculado</h2></div>
-        <p class="link-workspace__message" role="status">{{ message() }}</p>
-        <a class="link-workspace__action link-workspace__action--success" routerLink="/area-do-jogador">Voltar para a Área do Jogador</a>
+        <div class="link-workspace__heading link-workspace__heading--success"><p class="link-workspace__eyebrow">{{ 'playerAccount.emailLink.confirmation.success.eyebrow' | translate }}</p><h2>{{ 'playerAccount.emailLink.confirmation.success.title' | translate }}</h2></div>
+        <p class="link-workspace__message" role="status">{{ message() | translate }}</p>
+        <a class="link-workspace__action link-workspace__action--success" routerLink="/area-do-jogador">{{ 'playerAccount.emailLink.confirmation.back' | translate }}</a>
       } @else {
         <div class="link-workspace__heading">
           <p class="link-workspace__eyebrow">
-            @if (state() === 'invalid') { Confirmation link }
-            @else if (state() === 'conflict') { Conflito de identidade }
-            @else if (state() === 'disabled') { Conta HSC }
-            @else { Serviço de identidade }
+            @if (state() === 'invalid') { {{ 'playerAccount.emailLink.confirmation.states.invalid.eyebrow' | translate }} }
+            @else if (state() === 'conflict') { {{ 'playerAccount.emailLink.confirmation.states.conflict.eyebrow' | translate }} }
+            @else if (state() === 'disabled') { {{ 'playerAccount.emailLink.confirmation.states.disabled.eyebrow' | translate }} }
+            @else { {{ 'playerAccount.emailLink.confirmation.states.service.eyebrow' | translate }} }
           </p>
           <h2>
-            @if (state() === 'invalid') { Link indisponível }
-            @else if (state() === 'conflict') { Vínculo não realizado }
-            @else if (state() === 'disabled') { Operação indisponível }
-            @else { Não foi possível concluir }
+            @if (state() === 'invalid') { {{ 'playerAccount.emailLink.confirmation.states.invalid.title' | translate }} }
+            @else if (state() === 'conflict') { {{ 'playerAccount.emailLink.confirmation.states.conflict.title' | translate }} }
+            @else if (state() === 'disabled') { {{ 'playerAccount.emailLink.confirmation.states.disabled.title' | translate }} }
+            @else { {{ 'playerAccount.emailLink.confirmation.states.service.title' | translate }} }
           </h2>
         </div>
-        <p class="link-workspace__message link-workspace__message--error" role="alert">{{ message() }}</p>
-        <a class="link-workspace__action" routerLink="/area-do-jogador">Voltar para a Área do Jogador</a>
+        <p class="link-workspace__message link-workspace__message--error" role="alert">{{ message() | translate }}</p>
+        <a class="link-workspace__action" routerLink="/area-do-jogador">{{ 'playerAccount.emailLink.confirmation.back' | translate }}</a>
       }
     </div>
   </div>

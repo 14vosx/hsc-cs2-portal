@@ -125,6 +125,7 @@ export class PlayerAreaPage implements OnInit {
   protected readonly saveError = signal<MappedProfileError | null>(null);
   protected readonly successNotice = signal<string | null>(null);
   protected readonly steamLinkNoticeKey = signal<string | null>(null);
+  protected readonly steamLinkNoticeKind = signal<'success' | 'error' | null>(null);
   protected readonly updatedProfile = signal<PlayerProfile | null>(null);
   protected readonly avatarPending = signal(false);
   protected readonly bannerPending = signal(false);
@@ -155,7 +156,10 @@ export class PlayerAreaPage implements OnInit {
     const result = this.route.snapshot.queryParamMap.get('steamLink');
     if (result === null) return;
     const noticeKey = steamLinkResultKey(result);
-    if (noticeKey) this.steamLinkNoticeKey.set(noticeKey);
+    if (noticeKey) {
+      this.steamLinkNoticeKey.set(noticeKey);
+      this.steamLinkNoticeKind.set(result === 'success' ? 'success' : 'error');
+    }
     const queryParams = { ...this.route.snapshot.queryParams };
     delete queryParams['steamLink'];
     const query = new URLSearchParams(queryParams).toString();
@@ -520,6 +524,7 @@ export class PlayerAreaPage implements OnInit {
     this.saveError.set(null);
     this.successNotice.set(null);
     this.steamLinkNoticeKey.set(null);
+    this.steamLinkNoticeKind.set(null);
     this.updatedProfile.set(null);
     this.avatarPending.set(false);
     this.bannerPending.set(false);

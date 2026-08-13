@@ -15,6 +15,7 @@ import { PlayerIdentityLinkApiService } from '../player/data-access/player-ident
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
 import { PlayerServerAccessApiService } from '../player/data-access/player-server-access-api.service';
 import { PlayerAreaPage } from './player-area-page';
+import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import type { PlayerSession } from '../../core/session/player-session.model';
 
@@ -378,6 +379,34 @@ describe('PlayerAreaPage athlete dashboard', () => {
     serverAccessApi.getServerAccess.mockReturnValue(throwError(() => new HttpErrorResponse({ status })));
     expect((await render()).textContent).toContain('Entre para acessar sua área');
   });
+
+  it.each([
+    ['success', 'success'],
+    ['identity_conflict', 'error'],
+    ['already_linked', 'error'],
+    ['unavailable', 'error'],
+    ['failed', 'error'],
+  ] as const)('transports steamLink=%s with semantic notice kind %s', async (result, kind) => {
+    const route = TestBed.inject(ActivatedRoute) as unknown as { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap>; queryParams: Record<string, string> } };
+    route.snapshot.queryParamMap = convertToParamMap({ steamLink: result });
+    route.snapshot.queryParams = { steamLink: result };
+    const native = await render();
+    click(native, 'Editar perfil / configurações');
+    const panel = fixture.debugElement.query(By.directive(PlayerAccountSecurityPanel)).componentInstance as PlayerAccountSecurityPanel;
+    expect(panel.steamNoticeKind()).toBe(kind);
+    expect(panel.steamNotice()).toBeTruthy();
+  });
+
+  it('does not transport a notice for an unknown steamLink result', async () => {
+    const route = TestBed.inject(ActivatedRoute) as unknown as { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap>; queryParams: Record<string, string> } };
+    route.snapshot.queryParamMap = convertToParamMap({ steamLink: 'unknown' });
+    route.snapshot.queryParams = { steamLink: 'unknown' };
+    const native = await render();
+    click(native, 'Editar perfil / configurações');
+    const panel = fixture.debugElement.query(By.directive(PlayerAccountSecurityPanel)).componentInstance as PlayerAccountSecurityPanel;
+    expect(panel.steamNoticeKind()).toBeNull();
+    expect(panel.steamNotice()).toBeNull();
+  });
 });
 
 const areaDictionary = (english: boolean) => ({
@@ -398,6 +427,14 @@ const areaDictionary = (english: boolean) => ({
     steamLink: { results: { success: 'Steam vinculada com sucesso.', identityConflict: 'Conflito Steam.', alreadyLinked: 'Steam já vinculada.', unavailable: 'Steam indisponível.', failed: 'Falha ao vincular Steam.' } },
   },
   playerAuth: AUTH_CHILD_TRANSLATIONS[english ? 'en-US' : 'pt-BR'].playerAuth,
+  playerAccount: {
+    security: { eyebrow: 'Conta e segurança', title: 'Identidades de acesso', active: 'Conta ativa' },
+    email: { label: 'E-mail', verified: 'Vinculado e verificado', pendingVerification: 'Vinculado · verificação pendente', notLinked: 'Nenhum e-mail vinculado.', link: 'Vincular e-mail' },
+    passwordReset: { action: 'Redefinir senha', pending: 'Enviando...', success: 'Solicitação recebida.' },
+    steam: { linked: 'Vinculada', notLinked: 'Nenhuma conta Steam vinculada.', link: 'Vincular Steam' },
+    validation: { emailRequired: 'Informe seu e-mail.', passwordRequired: 'Informe uma senha.', confirmPasswordRequired: 'Confirme a senha.', invalidEmail: 'E-mail inválido.', passwordLength: 'Senha inválida.', passwordMismatch: 'As senhas não coincidem.' },
+    emailLink: { request: { password: 'Senha', confirmPassword: 'Confirmar senha', passwordHint: 'Use de 10 a 128 caracteres.', pending: 'Enviando solicitação...', sending: 'Enviando...', cancel: 'Cancelar', submit: 'Enviar confirmação', success: 'Solicitação recebida.', errors: { generic: 'Falha no vínculo.', invalidSession: 'Sessão expirada.', accountDisabled: 'Conta indisponível.', tooManyRequests: 'Muitas tentativas.', unavailable: 'Vínculo indisponível.' } } },
+  },
 });
 
 const AUTH_CHILD_TRANSLATIONS = {

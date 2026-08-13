@@ -1,27 +1,27 @@
 <div class="account-security" aria-labelledby="player-account-title">
   <header class="account-security__header">
-    <div><span>Conta e segurança</span><h2 id="player-account-title">Identidades de acesso</h2></div>
-    <strong>Conta ativa</strong>
+    <div><span>{{ 'playerAccount.security.eyebrow' | translate }}</span><h2 id="player-account-title">{{ 'playerAccount.security.title' | translate }}</h2></div>
+    <strong>{{ 'playerAccount.security.active' | translate }}</strong>
   </header>
 
   @if (steamNotice()) {
     <p
       class="account-security__notice"
-      [attr.role]="steamNotice() === 'Steam vinculada com sucesso.' ? 'status' : 'alert'"
+      [attr.role]="steamNoticeKind() === 'success' ? 'status' : 'alert'"
     >{{ steamNotice() }}</p>
   }
 
   <section class="account-security__identity" aria-labelledby="email-identity-title">
     <div>
-      <h3 id="email-identity-title">E-mail</h3>
+      <h3 id="email-identity-title">{{ 'playerAccount.email.label' | translate }}</h3>
       @if (account().identities.email.linked) {
         <p>{{ account().identities.email.email }}</p>
-        <small>{{ account().identities.email.verified ? 'Vinculado e verificado' : 'Vinculado · verificação pendente' }}</small>
-      } @else { <p>Nenhum e-mail vinculado.</p> }
+        <small>{{ (account().identities.email.verified ? 'playerAccount.email.verified' : 'playerAccount.email.pendingVerification') | translate }}</small>
+      } @else { <p>{{ 'playerAccount.email.notLinked' | translate }}</p> }
     </div>
     <div class="account-security__identity-actions">
       @if (!account().identities.email.linked && !formVisible() && !success()) {
-        <button type="button" (click)="showEmailLinkForm()">Vincular e-mail</button>
+        <button type="button" (click)="showEmailLinkForm()">{{ 'playerAccount.email.link' | translate }}</button>
       }
       @if (canRequestPasswordReset()) {
         <button
@@ -29,14 +29,14 @@
           type="button"
           [disabled]="passwordResetPending()"
           (click)="requestPasswordReset()"
-        >{{ passwordResetPending() ? 'Enviando...' : 'Redefinir senha' }}</button>
+        >{{ (passwordResetPending() ? 'playerAccount.passwordReset.pending' : 'playerAccount.passwordReset.action') | translate }}</button>
       }
     </div>
   </section>
 
-  @if (success()) { <p class="account-security__success" role="status">{{ success() }}</p> }
+  @if (success()) { <p class="account-security__success" role="status">{{ success()! | translate }}</p> }
   @if (passwordResetSuccess()) {
-    <p class="account-security__success" role="status">{{ passwordResetSuccess() }}</p>
+    <p class="account-security__success" role="status">{{ passwordResetSuccess()! | translate }}</p>
   }
   @if (passwordResetError()) {
     <p class="account-security__error" role="alert">{{ passwordResetError() }}</p>
@@ -45,32 +45,32 @@
   @if (!account().identities.email.linked && formVisible()) {
     <form novalidate (input)="onMeaningfulEdit()" (submit)="onSubmit($event)">
       <div class="account-security__field">
-        <label for="email-link-email">E-mail</label>
+        <label for="email-link-email">{{ 'playerAccount.email.label' | translate }}</label>
         <input id="email-link-email" type="email" autocomplete="email" [formField]="emailLinkForm.email" />
         @if (emailLinkForm.email().touched() && emailLinkForm.email().errors().length) {
-          <small role="alert">{{ emailLinkForm.email().errors()[0].message }}</small>
+          <small role="alert">{{ emailLinkForm.email().errors()[0].message | translate }}</small>
         }
       </div>
       <div class="account-security__field">
-        <label for="email-link-password">Senha</label>
+        <label for="email-link-password">{{ 'playerAccount.emailLink.request.password' | translate }}</label>
         <input id="email-link-password" type="password" autocomplete="new-password" [formField]="emailLinkForm.password" />
-        <small>Use de 10 a 128 caracteres.</small>
+        <small>{{ 'playerAccount.emailLink.request.passwordHint' | translate }}</small>
         @if (emailLinkForm.password().touched() && emailLinkForm.password().errors().length) {
-          <span role="alert">{{ emailLinkForm.password().errors()[0].message }}</span>
+          <span role="alert">{{ emailLinkForm.password().errors()[0].message | translate }}</span>
         }
       </div>
       <div class="account-security__field">
-        <label for="email-link-confirm-password">Confirmar senha</label>
+        <label for="email-link-confirm-password">{{ 'playerAccount.emailLink.request.confirmPassword' | translate }}</label>
         <input id="email-link-confirm-password" type="password" autocomplete="new-password" [formField]="emailLinkForm.confirmPassword" />
         @if (emailLinkForm.confirmPassword().touched() && emailLinkForm.confirmPassword().errors().length) {
-          <small role="alert">{{ emailLinkForm.confirmPassword().errors()[0].message }}</small>
+          <small role="alert">{{ emailLinkForm.confirmPassword().errors()[0].message | translate }}</small>
         }
       </div>
-      @if (serverError()) { <p class="account-security__error" role="alert">{{ serverError() }}</p> }
-      @if (pending()) { <p role="status">Enviando solicitação...</p> }
+      @if (serverError()) { <p class="account-security__error" role="alert">{{ serverError()! | translate }}</p> }
+      @if (pending()) { <p role="status">{{ 'playerAccount.emailLink.request.pending' | translate }}</p> }
       <div class="account-security__actions">
-        <button type="button" [disabled]="pending()" (click)="cancelEmailLink()">Cancelar</button>
-        <button type="submit" [disabled]="pending()">{{ pending() ? 'Enviando...' : 'Enviar confirmação' }}</button>
+        <button type="button" [disabled]="pending()" (click)="cancelEmailLink()">{{ 'playerAccount.emailLink.request.cancel' | translate }}</button>
+        <button type="submit" [disabled]="pending()">{{ (pending() ? 'playerAccount.emailLink.request.sending' : 'playerAccount.emailLink.request.submit') | translate }}</button>
       </div>
     </form>
   }
@@ -79,9 +79,9 @@
     <div>
       <h3 id="steam-identity-title">Steam</h3>
       @if (account().identities.steam.linked) {
-        <p>Vinculada</p><small>SteamID64 {{ account().identities.steam.steamId64 }}</small>
-      } @else { <p>Nenhuma conta Steam vinculada.</p> }
+        <p>{{ 'playerAccount.steam.linked' | translate }}</p><small>SteamID64 {{ account().identities.steam.steamId64 }}</small>
+      } @else { <p>{{ 'playerAccount.steam.notLinked' | translate }}</p> }
     </div>
-    @if (!account().identities.steam.linked) { <a [href]="steamLinkUrl()">Vincular Steam</a> }
+    @if (!account().identities.steam.linked) { <a [href]="steamLinkUrl()">{{ 'playerAccount.steam.link' | translate }}</a> }
   </section>
 </div>
