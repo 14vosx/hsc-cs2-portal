@@ -15,6 +15,7 @@ import {
   switchMap,
 } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import {
@@ -44,6 +45,7 @@ type PlayerPublicProfilePageState =
   changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class PlayerPublicProfilePage {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly publicProfileApi = inject(PlayerPublicProfileApiService);
   private readonly playerAuthApi = inject(PlayerAuthApiService);
@@ -84,7 +86,7 @@ export class PlayerPublicProfilePage {
   }
 
   protected formatJoinedAt(value: string): string {
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

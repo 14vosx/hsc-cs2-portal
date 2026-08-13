@@ -13,6 +13,7 @@ import type {
   ApexTooltip,
 } from 'ng-apexcharts';
 
+import { LocaleService } from '../../../../../core/i18n/locale.service';
 import {
   analyticsChartTranslationKeys,
   analyticsFontFamily,
@@ -32,9 +33,9 @@ import {
         [colors]="colors"
         [dataLabels]="dataLabels"
         [labels]="labels()"
-        [plotOptions]="plotOptions"
+        [plotOptions]="plotOptions()"
         [stroke]="stroke"
-        [tooltip]="tooltip"
+        [tooltip]="tooltip()"
       />
     } @else {
       <span class="chart-empty">—</span>
@@ -48,6 +49,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveWinRateChart {
+  private readonly localeService = inject(LocaleService);
   private readonly translate = inject(TranslateService);
   private readonly winRateLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.winRate), {
     initialValue: this.translate.instant(analyticsChartTranslationKeys.winRate),
@@ -69,28 +71,34 @@ export class CompetitiveWinRateChart {
   protected readonly colors = ['#32d1ff'];
   protected readonly dataLabels: ApexDataLabels = { enabled: true };
   protected readonly stroke: ApexStroke = { lineCap: 'round' };
-  protected readonly tooltip: ApexTooltip = {
-    enabled: true,
-    theme: 'dark',
-    y: { formatter: () => formatRate(this.value()) },
-  };
-  protected readonly plotOptions: ApexPlotOptions = {
-    radialBar: {
-      startAngle: -132,
-      endAngle: 132,
-      hollow: { size: '66%', background: '#0b1118' },
-      track: { background: '#222d39', strokeWidth: '92%', margin: 2 },
-      dataLabels: {
-        name: { show: false },
-        value: {
-          color: '#f3f8fb',
-          fontFamily: analyticsFontFamily,
-          fontSize: '22px',
-          fontWeight: 700,
-          offsetY: 7,
-          formatter: () => formatRate(this.value()),
+  protected readonly tooltip = computed<ApexTooltip>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      enabled: true,
+      theme: 'dark',
+      y: { formatter: () => formatRate(this.value(), locale) },
+    };
+  });
+  protected readonly plotOptions = computed<ApexPlotOptions>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      radialBar: {
+        startAngle: -132,
+        endAngle: 132,
+        hollow: { size: '66%', background: '#0b1118' },
+        track: { background: '#222d39', strokeWidth: '92%', margin: 2 },
+        dataLabels: {
+          name: { show: false },
+          value: {
+            color: '#f3f8fb',
+            fontFamily: analyticsFontFamily,
+            fontSize: '22px',
+            fontWeight: 700,
+            offsetY: 7,
+            formatter: () => formatRate(this.value(), locale),
+          },
         },
       },
-    },
-  };
+    };
+  });
 }

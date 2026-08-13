@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { MapsApiService } from './data-access/maps-api.service';
 import type { MapSummary } from './domain/map.model';
@@ -38,6 +39,7 @@ interface RelativeDateDescriptor { readonly key: string; readonly params: { read
   styleUrl: './maps-page.css',
 })
 export class MapsPage {
+  private readonly localeService = inject(LocaleService);
   private readonly mapsApi = inject(MapsApiService);
   private readonly reload$ = new Subject<void>();
 
@@ -146,7 +148,7 @@ export class MapsPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

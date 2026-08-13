@@ -189,10 +189,13 @@ describe('PlayerPublicProfilePage', () => {
   it('switches locale on the same profile without changing remote data or refetching', async () => {
     createComponent();
     const host = fixture.nativeElement as HTMLElement;
+    const joinedAt = host.querySelector<HTMLTimeElement>('time[datetime]')!;
     const avatar = host.querySelector<HTMLImageElement>('.player-public-profile-page__avatar img')!;
     const banner = host.querySelector<HTMLImageElement>('.player-public-profile-page__banner img')!;
     const avatarSrc = avatar.getAttribute('src');
     const bannerSrc = banner.getAttribute('src');
+    const joinedAtValue = joinedAt.getAttribute('datetime');
+    const ptJoinedAt = joinedAt.textContent?.trim();
     expect(pageText()).toContain('Preferências');
 
     await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
@@ -206,6 +209,9 @@ describe('PlayerPublicProfilePage', () => {
     expect(text).toContain('player.one');
     expect(text).toContain('Rifler');
     expect(text).toContain('Mirage');
+    expect(joinedAt.textContent?.trim()).toBe('August 07, 2026');
+    expect(joinedAt.textContent?.trim()).not.toBe(ptJoinedAt);
+    expect(joinedAt.getAttribute('datetime')).toBe(joinedAtValue);
     expect(avatar.getAttribute('alt')).toBe('Player One avatar');
     expect(avatar.getAttribute('src')).toBe(avatarSrc);
     expect(banner.getAttribute('src')).toBe(bannerSrc);

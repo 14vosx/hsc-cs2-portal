@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { SeasonTabs } from '../../../shared/components/season-tabs/season-tabs';
 import { StatusBadge, type StatusBadgeVariant } from '../../../shared/components/status-badge/status-badge';
@@ -43,6 +44,7 @@ type SeasonMatchesVm =
   styleUrl: './season-matches-page.css',
 })
 export class SeasonMatchesPage {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly seasonMatchesApi = inject(SeasonMatchesApiService);
@@ -101,7 +103,7 @@ export class SeasonMatchesPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

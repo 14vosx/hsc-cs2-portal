@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, catchError, map, of, shareReplay, startWith, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
@@ -68,6 +69,7 @@ const unavailableBunkerSummary: BunkerSummary = {
   changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class BunkerPage {
+  private readonly localeService = inject(LocaleService);
   private readonly playerIdentityApi = inject(PlayerIdentityApiService);
   private readonly bunkerApi = inject(BunkerApiService);
   private readonly playerAuthApi = inject(PlayerAuthApiService);
@@ -83,7 +85,7 @@ export class BunkerPage {
       return '—';
     }
 
-    return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(value);
+    return new Intl.NumberFormat(this.localeService.currentLocale(), { maximumFractionDigits: 0 }).format(value);
   }
 
   protected formatDecimal(value: number | null | undefined, digits = 2): string {
@@ -91,7 +93,7 @@ export class BunkerPage {
       return '—';
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     }).format(value);
@@ -104,7 +106,7 @@ export class BunkerPage {
 
     const normalized = value > 1 ? value / 100 : value;
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       style: 'percent',
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,
@@ -118,7 +120,7 @@ export class BunkerPage {
       return textOrFallback(value);
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -132,7 +134,7 @@ export class BunkerPage {
       return textOrFallback(value);
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

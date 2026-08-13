@@ -1,7 +1,8 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import type { MapRecentMatch } from '../domain/map.model';
 
 @Component({
@@ -12,6 +13,7 @@ import type { MapRecentMatch } from '../domain/map.model';
   styleUrl: './map-recent-match-table.css',
 })
 export class MapRecentMatchTable {
+  private readonly localeService = inject(LocaleService);
   readonly recentMatches = input.required<readonly MapRecentMatch[]>();
 
   protected formatDate(value?: string | null): string | null {
@@ -22,7 +24,7 @@ export class MapRecentMatchTable {
     if (Number.isNaN(date.getTime())) {
       return value;
     }
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

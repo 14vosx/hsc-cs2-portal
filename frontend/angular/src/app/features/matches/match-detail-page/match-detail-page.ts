@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { MatchesApiService } from '../data-access/matches-api.service';
 import type { MatchDetail, MatchDetailMap, MatchHeader } from '../domain/match.model';
@@ -29,6 +30,7 @@ type MatchDetailVm =
   styleUrl: './match-detail-page.css',
 })
 export class MatchDetailPage {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly matchesApi = inject(MatchesApiService);
@@ -116,7 +118,7 @@ export class MatchDetailPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

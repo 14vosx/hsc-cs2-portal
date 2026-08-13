@@ -10,6 +10,7 @@ import {
   SeasonRankingPlayerDto,
   SeasonRankingRulesDto,
 } from '../../../core/api/dto/season-ranking.dto';
+import { LocaleService } from '../../../core/i18n/locale.service';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
 import {
   eligibilityLabel,
@@ -45,6 +46,7 @@ type SeasonDetailVm =
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonDetailPage {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly cs2Api = inject(Cs2ApiService);
 
@@ -78,7 +80,7 @@ export class SeasonDetailPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

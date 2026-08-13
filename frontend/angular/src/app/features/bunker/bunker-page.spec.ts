@@ -680,6 +680,17 @@ describe('BunkerPage Competitive Analytics', () => {
     fixture.detectChanges();
 
     const ptText = normalizedText(fixture.nativeElement as HTMLElement);
+    const actualWinRateFixture = TestBed.createComponent(CompetitiveWinRateChart);
+    actualWinRateFixture.componentRef.setInput('value', 0.5625);
+    const actualWinRate = actualWinRateFixture.componentInstance;
+    const tooltipFormatter = () => {
+      const tooltipY = actualWinRate['tooltip']().y;
+      expect(Array.isArray(tooltipY)).toBe(false);
+      return tooltipY && !Array.isArray(tooltipY) ? tooltipY.formatter : undefined;
+    };
+    const ptFormatter = tooltipFormatter();
+    expect(ptFormatter).toBeDefined();
+    const ptChartRate = ptFormatter?.(56.25, {} as never);
     const winRate = fixture.debugElement.query(By.directive(WinRateChartStub)).componentInstance as WinRateChartStub;
     const sparklines = fixture.debugElement.queryAll(By.directive(MetricSparklineStub));
     const impact = fixture.debugElement.query(By.directive(ImpactTrendChartStub)).componentInstance as ImpactTrendChartStub;
@@ -697,6 +708,8 @@ describe('BunkerPage Competitive Analytics', () => {
     expect(ptText).toContain('Vitória');
     expect(ptText).toContain('Derrota');
     expect(ptText).toContain('Vit%');
+    expect(ptText).toContain('1.432');
+    expect(ptText).toContain('48,7%');
 
     await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
     fixture.detectChanges();
@@ -719,6 +732,13 @@ describe('BunkerPage Competitive Analytics', () => {
     expect(enText).toContain('1v1');
     expect(enText).toContain('1v2');
     expect(enText).toContain('2K 3K 4K 5K');
+    expect(enText).toContain('1,432');
+    expect(enText).toContain('48.7%');
+    expect(enText).not.toContain('1.432');
+    const enFormatter = tooltipFormatter();
+    expect(enFormatter).toBeDefined();
+    expect(enFormatter?.(56.25, {} as never)).toBe('56.3%');
+    expect(enFormatter?.(56.25, {} as never)).not.toBe(ptChartRate);
 
     expect(winRate.value()).toBe(canonicalInputs.winRate);
     expect(sparklines.map((item) => (item.componentInstance as MetricSparklineStub).values()))

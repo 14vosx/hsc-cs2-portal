@@ -55,6 +55,7 @@ import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import {
   StatusBadge,
@@ -102,6 +103,7 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
   styleUrl: './player-area-page.css',
 })
 export class PlayerAreaPage implements OnInit {
+  private readonly localeService = inject(LocaleService);
   private readonly identityApi = inject(PlayerIdentityApiService);
   private readonly selfApi = inject(PlayerSelfApiService);
   private readonly bunkerApi = inject(BunkerApiService);
@@ -425,7 +427,7 @@ export class PlayerAreaPage implements OnInit {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -437,7 +439,7 @@ export class PlayerAreaPage implements OnInit {
       return '—';
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     }).format(value);
@@ -453,7 +455,7 @@ export class PlayerAreaPage implements OnInit {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -467,7 +469,7 @@ export class PlayerAreaPage implements OnInit {
       return '—';
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       maximumFractionDigits: 0,
     }).format(value);
   }
@@ -485,7 +487,7 @@ export class PlayerAreaPage implements OnInit {
 
     const normalized = value > 1 ? value / 100 : value;
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       style: 'percent',
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,

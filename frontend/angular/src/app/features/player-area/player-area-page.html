@@ -93,7 +93,7 @@
           </section>
         }
 
-        <section class="readiness-strip" aria-label="HSC Server Readiness">
+        <section class="readiness-strip" [attr.aria-label]="'playerArea.serverAccess.readiness' | translate">
           <span class="player-area-page__eyebrow">{{ 'playerArea.serverAccess.readiness' | translate }}</span>
           <strong [class.readiness-strip__positive]="serverAccessAuthorized(vm.serverAccess, vm.serverAccessState)">{{ serverAccessLabel(vm.serverAccess, vm.serverAccessState) | translate }}</strong>
         </section>

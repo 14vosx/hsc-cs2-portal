@@ -12,6 +12,7 @@ import {
   axisSeriesForChartCore,
   chartAnimationsEnabled,
 } from '../analytics-chart-presentation';
+import { LocaleService } from '../../../../../core/i18n/locale.service';
 
 @Component({
   selector: 'app-competitive-metric-sparkline',
@@ -24,7 +25,7 @@ import {
         [colors]="colors()"
         [fill]="fill"
         [stroke]="stroke"
-        [tooltip]="tooltip"
+        [tooltip]="tooltip()"
       />
     }
   `,
@@ -32,6 +33,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMetricSparkline {
+  private readonly localeService = inject(LocaleService);
   private readonly translate = inject(TranslateService);
   private readonly valueLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.value), {
     initialValue: this.translate.instant(analyticsChartTranslationKeys.value),
@@ -61,11 +63,14 @@ export class CompetitiveMetricSparkline {
     gradient: { shadeIntensity: 0.25, opacityFrom: 0.38, opacityTo: 0.02, stops: [0, 100] },
   };
   protected readonly stroke: ApexStroke = { curve: 'smooth', width: 2 };
-  protected readonly tooltip: ApexTooltip = {
-    enabled: true,
-    theme: 'dark',
-    x: { show: false },
-    y: { formatter: (value) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value) },
-    marker: { show: false },
-  };
+  protected readonly tooltip = computed<ApexTooltip>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      enabled: true,
+      theme: 'dark',
+      x: { show: false },
+      y: { formatter: (value) => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value) },
+      marker: { show: false },
+    };
+  });
 }

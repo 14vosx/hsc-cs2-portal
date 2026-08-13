@@ -17,6 +17,7 @@ import {
   tap,
 } from 'rxjs';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { NewsArticleBody } from '../components/news-article-body/news-article-body';
 import { NewsApiService } from '../data-access/news-api.service';
@@ -41,6 +42,7 @@ type NewsDetailVm =
   styleUrl: './news-detail-page.css',
 })
 export class NewsDetailPage implements OnDestroy {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly newsApi = inject(NewsApiService);
   private readonly title = inject(Title);
@@ -109,7 +111,7 @@ export class NewsDetailPage implements OnDestroy {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

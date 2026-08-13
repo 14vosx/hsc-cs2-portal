@@ -16,6 +16,7 @@ import type {
 } from 'ng-apexcharts';
 
 import type { BunkerPlayerStats } from '../../../domain/bunker.model';
+import { LocaleService } from '../../../../../core/i18n/locale.service';
 import {
   analyticsChartTranslationKeys,
   analyticsFontFamily,
@@ -34,7 +35,7 @@ import {
       [dataLabels]="dataLabels"
       [grid]="grid"
       [plotOptions]="plotOptions"
-      [tooltip]="tooltip"
+      [tooltip]="tooltip()"
       [xaxis]="xaxis"
       [yaxis]="yaxis"
     />
@@ -43,6 +44,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMultikillChart {
+  private readonly localeService = inject(LocaleService);
   private readonly translate = inject(TranslateService);
   private readonly occurrencesLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.occurrences), {
     initialValue: this.translate.instant(analyticsChartTranslationKeys.occurrences),
@@ -79,11 +81,14 @@ export class CompetitiveMultikillChart {
   protected readonly plotOptions: ApexPlotOptions = {
     bar: { horizontal: false, borderRadius: 4, columnWidth: '48%' },
   };
-  protected readonly tooltip: ApexTooltip = {
-    enabled: true,
-    theme: 'dark',
-    y: { formatter: (value) => new Intl.NumberFormat('pt-BR').format(value) },
-  };
+  protected readonly tooltip = computed<ApexTooltip>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      enabled: true,
+      theme: 'dark',
+      y: { formatter: (value) => new Intl.NumberFormat(locale).format(value) },
+    };
+  });
   protected readonly xaxis: ApexXAxis = {
     categories: ['2K', '3K', '4K', '5K'],
     labels: { style: { colors: ['#a2afb8', '#a2afb8', '#a2afb8', '#a2afb8'], fontFamily: analyticsFontFamily } },

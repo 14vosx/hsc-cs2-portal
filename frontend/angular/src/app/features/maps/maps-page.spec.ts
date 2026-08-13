@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
-import { of, throwError } from 'rxjs';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MapsApiService, MapsContractError } from './data-access/maps-api.service';
@@ -207,6 +207,28 @@ describe('MapsPage', () => {
     component['sortBy'].set('name');
     fixture.detectChanges();
 
+    expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
+  });
+
+  it('troca o locale da data na mesma instância sem refetch ou reordenar mapas', async () => {
+    const maps = [
+      createMockMap('de_nuke'),
+      createMockMap('de_mirage'),
+      createMockMap('de_dust2'),
+    ];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
+    createComponent();
+
+    const ptDate = (fixture.nativeElement as HTMLElement).querySelector('.maps-page__snapshot time')?.textContent?.trim();
+    const publishedOrder = component['visibleMaps'](maps).map((map) => map.name);
+
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    const enDate = (fixture.nativeElement as HTMLElement).querySelector('.maps-page__snapshot time')?.textContent?.trim();
+    expect(enDate).not.toBe(ptDate);
+    expect(component['visibleMaps'](maps).map((map) => map.name)).toEqual(publishedOrder);
+    expect(publishedOrder).toEqual(['de_nuke', 'de_mirage', 'de_dust2']);
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
   });
 

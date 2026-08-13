@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { MatchesApiService } from './data-access/matches-api.service';
@@ -32,6 +33,7 @@ type MatchesVm =
   styleUrl: './matches-page.css',
 })
 export class MatchesPage {
+  private readonly localeService = inject(LocaleService);
   private readonly matchesApi = inject(MatchesApiService);
   private readonly reload$ = new Subject<void>();
   private readonly knownMapImages = new Set([
@@ -218,7 +220,7 @@ export class MatchesPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

@@ -3,6 +3,7 @@ import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/cor
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageState } from '../../shared/components/page-state/page-state';
@@ -42,6 +43,7 @@ type RankingVm =
   styleUrl: './ranking-page.css',
 })
 export class RankingPage {
+  private readonly localeService = inject(LocaleService);
   private readonly rankingApi = inject(RankingApiService);
   private readonly reload$ = new Subject<void>();
   protected readonly playerSession = inject(PlayerSessionService);
@@ -130,7 +132,7 @@ export class RankingPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

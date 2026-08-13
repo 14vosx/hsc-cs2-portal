@@ -246,6 +246,11 @@ describe('PlayerAreaPage athlete dashboard', () => {
   it('switches locale at runtime while preserving identity, domain and competitive values', async () => {
     const native = await render();
     click(native, 'Editar perfil / configurações');
+    const readiness = native.querySelector<HTMLElement>('.readiness-strip')!;
+    const ptText = native.textContent ?? '';
+    expect(readiness.getAttribute('aria-label')).toBe('Prontidão dos servidores HSC');
+    expect(ptText).toContain('0,55');
+    expect(ptText).toContain('46,3%');
     const callsBeforeSwitch = {
       identity: identityApi.getCurrentIdentity.mock.calls.length,
       account: selfApi.getAccount.mock.calls.length,
@@ -264,7 +269,10 @@ describe('PlayerAreaPage athlete dashboard', () => {
     expect(text).toContain('Rifler');
     expect(text).toContain('Mirage');
     expect(text).toContain('Season 02');
-    expect(text).toContain('0,55');
+    expect(text).toContain('0.55');
+    expect(text).toContain('46.3%');
+    expect(text).not.toContain('0,55');
+    expect(readiness.getAttribute('aria-label')).toBe('HSC Server Readiness');
     expect(native.querySelector('a[href="/players/player-hsc"]')).toBeTruthy();
     expect(identityApi.getCurrentIdentity).toHaveBeenCalledTimes(callsBeforeSwitch.identity);
     expect(selfApi.getAccount).toHaveBeenCalledTimes(callsBeforeSwitch.account);
@@ -418,7 +426,7 @@ const areaDictionary = (english: boolean) => ({
     settings: { eyebrow: english ? 'Settings' : 'Configurações', title: english ? 'Profile and account' : 'Perfil e conta' },
     profile: { eyebrow: 'Perfil', title: 'Seu perfil HSC', name: 'Nome', joinedAt: 'No HSC desde', visibility: { label: 'Visibilidade', public: 'Visível para membros HSC', private: 'Privado' } },
     membership: { title: english ? 'Your Membership' : 'Sua associação', plan: 'Plano', start: 'Início', validUntil: 'Validade', empty: 'Sem associação HSC cadastrada.', status: { none: 'Sem associação HSC', inactive: 'Associação inativa', active: english ? 'Active Membership' : 'Associação ativa', suspended: 'Associação suspensa', expired: 'Associação expirada', cancelled: 'Associação cancelada' } },
-    serverAccess: { readiness: 'HSC Server Readiness', unavailable: { status: 'Verificação indisponível', description: '' }, authorized: { status: english ? 'Access granted' : 'Acesso liberado', description: '' }, reasons: { steamIdentityNotLinked: { status: 'Steam necessária', description: '' }, accountDisabled: { status: 'Acesso indisponível', description: '' }, membershipRequired: { status: english ? 'HSC Membership required' : 'Associação HSC necessária', description: '' }, membershipInactive: { status: 'Associação inativa', description: '' }, membershipSuspended: { status: 'Associação suspensa', description: '' }, membershipExpired: { status: 'Associação expirada', description: '' }, membershipCancelled: { status: 'Associação cancelada', description: '' } } },
+    serverAccess: { readiness: english ? 'HSC Server Readiness' : 'Prontidão dos servidores HSC', unavailable: { status: 'Verificação indisponível', description: '' }, authorized: { status: english ? 'Access granted' : 'Acesso liberado', description: '' }, reasons: { steamIdentityNotLinked: { status: 'Steam necessária', description: '' }, accountDisabled: { status: 'Acesso indisponível', description: '' }, membershipRequired: { status: english ? 'HSC Membership required' : 'Associação HSC necessária', description: '' }, membershipInactive: { status: 'Associação inativa', description: '' }, membershipSuspended: { status: 'Associação suspensa', description: '' }, membershipExpired: { status: 'Associação expirada', description: '' }, membershipCancelled: { status: 'Associação cancelada', description: '' } } },
     competitive: { available: 'Disponíveis', steamRequired: 'Vínculo Steam necessário', error: 'O resumo competitivo está temporariamente indisponível. Seu perfil e sua conta continuam acessíveis.', seasonPerformance: 'Season performance', updatedAt: 'Atualizado em', registeredMaps: { one: '{{ count }} mapa registrado nesta temporada.', other: '{{ count }} mapas registrados nesta temporada.' }, noSeasonStats: { title: 'Esta temporada ainda não possui estatísticas competitivas para você.', description: 'Assim que houver dados competitivos nesta temporada, eles aparecerão aqui.' }, lifetime: { eyebrow: 'Histórico HSC', title: 'Perfil Competitivo Geral', description: 'Seu histórico competitivo no HSC.', empty: 'Seu perfil competitivo ainda não possui histórico disponível.' }, combat: { title: 'Combat Breakdown', clutchPerformance: 'Clutch Performance', success: 'Success', conversion: 'Conversion', multiKill: 'Multi-kill Counters' } },
     metrics: { winRate: 'Win Rate', mapsPlayed: 'Maps Played', wins: 'Wins', losses: 'Losses', rounds: 'Rounds', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', accuracy: 'Accuracy', utilityPerRound: 'Util / R' },
     account: { ariaLabel: 'Identidades e associação', membership: english ? 'Membership' : 'Associação', email: { label: 'E-mail', notLinked: 'Não vinculado', pendingVerification: 'Vinculado · verificação pendente', verified: 'Vinculado e verificado' }, steam: { linked: 'Vinculada', notLinked: 'Não vinculada' } },

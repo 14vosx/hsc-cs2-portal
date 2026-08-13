@@ -6,6 +6,7 @@ import { catchError, map, Observable, of, startWith } from 'rxjs';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import { SeasonDto } from '../../core/api/dto/season.dto';
+import { LocaleService } from '../../core/i18n/locale.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { formatSeasonBoundaryDate, seasonCoverImage, seasonStatusLabel } from './season-ui';
 
@@ -28,6 +29,7 @@ type SeasonsVm = SeasonsReadyVm | { state: 'loading' } | { state: 'error' };
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonsPage {
+  private readonly localeService = inject(LocaleService);
   private readonly cs2Api = inject(Cs2ApiService);
   protected readonly seasonCoverImage = seasonCoverImage;
   protected readonly formatSeasonBoundaryDate = formatSeasonBoundaryDate;
@@ -65,7 +67,7 @@ export class SeasonsPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
