@@ -1,6 +1,8 @@
 import 'apexcharts/line';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type {
   ApexAxisChartSeries,
@@ -17,6 +19,7 @@ import type {
 
 import type { BunkerTimelineItem } from '../../../domain/bunker.model';
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
@@ -50,6 +53,10 @@ interface ImpactPoint {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveImpactTrendChart {
+  private readonly translate = inject(TranslateService);
+  private readonly mapUnavailable = toSignal(this.translate.stream(analyticsChartTranslationKeys.mapUnavailable), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.mapUnavailable),
+  });
   readonly timeline = input<readonly BunkerTimelineItem[]>([]);
 
   protected readonly points = computed<readonly ImpactPoint[]>(() =>
@@ -131,7 +138,7 @@ export class CompetitiveImpactTrendChart {
       month: '2-digit',
       year: 'numeric',
     }).format(new Date(point.timestamp));
-    const map = escapeHtml(point.mapName || 'Mapa não informado');
+    const map = escapeHtml(point.mapName || this.mapUnavailable());
     const impact = point.value === null
       ? '—'
       : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(point.value);

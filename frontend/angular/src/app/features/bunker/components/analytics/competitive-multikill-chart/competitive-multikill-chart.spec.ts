@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { ChartCoreComponent, type ApexAxisChartSeries } from 'ng-apexcharts';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -62,13 +64,18 @@ describe('CompetitiveMultikillChart', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CompetitiveMultikillChart],
+      providers: [provideTranslateService()],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { bunker: { charts: { occurrences: 'Ocorrências' } } });
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   it('usa somente contadores 2K, 3K, 4K e 5K publicados', () => {
     const chart = render(stats({ enemy2ks: 20, enemy3ks: 6, enemy4ks: 2, enemy5ks: 1 }));
 
     expect(chart.xaxis()?.categories).toEqual(['2K', '3K', '4K', '5K']);
+    expect(axisSeries(chart)[0].name).toBe('Ocorrências');
     expect(axisSeries(chart)[0].data).toEqual([20, 6, 2, 1]);
   });
 });

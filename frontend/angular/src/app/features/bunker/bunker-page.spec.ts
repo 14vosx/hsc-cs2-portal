@@ -27,6 +27,39 @@ import type {
   BunkerTimelineItem,
 } from './domain/bunker.model';
 
+const BUNKER_TRANSLATIONS = {
+  'pt-BR': {
+    shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } },
+    bunker: {
+      header: { productName: 'Competitive Analytics', currentContext: 'Contexto atual' },
+      states: { loading: { eyebrow: 'Carregando analytics' }, failure: { title: 'Competitive Analytics indisponível', description: 'Falha global.' }, partial: { eyebrow: 'Dados competitivos', title: 'Resumo temporariamente indisponível', description: 'Falha parcial.' }, empty: { lifetimeTitle: 'Perfil competitivo geral ainda indisponível.', lifetimeDescription: 'Nenhuma métrica lifetime foi publicada.', maps: 'Performance por mapa ainda indisponível.' } },
+      auth: { eyebrow: 'Conta Steam', title: 'Entre para acessar o Competitive Analytics', description: 'Entre com Steam para validar sua sessão.', action: 'Entrar com Steam' },
+      season: { label: 'Season', status: 'Status', period: 'Período', updated: 'Atualizado', unavailable: 'Season indisponível' },
+      sections: { overview: { eyebrow: 'Visão geral', title: 'Perfil competitivo geral', description: 'Histórico lifetime.', canonicalLifetime: 'Lifetime · valor canônico' }, impactTrend: { eyebrow: 'Tendência de performance', title: 'Evolução de Impacto', description: 'Sequência sazonal.' }, maps: { eyebrow: 'Map pool', title: 'Performance por mapa', description: 'Métricas sazonais.' }, combat: { eyebrow: 'Perfil de combate', title: 'Perfil de combate', description: 'Contadores publicados.', clutchEyebrow: 'Performance de clutch', multiKillEyebrow: 'Perfil de multi-kill' }, recent: { eyebrow: 'Mapas recentes', title: 'Mapas recentes', description: 'Resultados canônicos.' }, timeline: { eyebrow: 'Eventos', title: 'Timeline da temporada', description: 'Eventos competitivos.' } },
+      charts: { value: 'Valor', winRate: 'Win Rate', occurrences: 'Ocorrências', mapUnavailable: 'Mapa não informado' },
+      labels: { playerFallback: 'Jogador HSC', winRate: 'Win Rate', maps: 'Mapas', wins: 'Vitórias', losses: 'Derrotas', kills: 'Abates', deaths: 'Mortes', assists: 'Assistências', accuracy: 'Precisão', utilityPerRound: 'Util/R', map: 'Mapa', games: 'Jogos', winShort: 'V', lossShort: 'D', winPct: 'Vit%', entry: 'Entrada', success: 'Sucesso', conversion: 'Conversão', utility: 'Utilidade' },
+      results: { win: 'Vitória', loss: 'Derrota' },
+      actions: { playerArea: 'Área do Jogador', backToPlayerArea: 'Voltar para Área do Jogador' },
+      accessibility: { loading: 'Carregando Competitive Analytics', seasonContext: 'Contexto da temporada atual', lifetimeMetrics: 'Métricas lifetime', mapPerformance: 'Performance sazonal por mapa' },
+    },
+  },
+  'en-US': {
+    shared: { playerAvatar: { alt: '{{displayName}} avatar' } },
+    bunker: {
+      header: { productName: 'Competitive Analytics', currentContext: 'Current context' },
+      states: { loading: { eyebrow: 'Loading analytics' }, failure: { title: 'Competitive Analytics unavailable', description: 'Global failure.' }, partial: { eyebrow: 'Competitive data', title: 'Summary temporarily unavailable', description: 'Partial failure.' }, empty: { lifetimeTitle: 'Overall competitive profile is not available yet.', lifetimeDescription: 'No lifetime metrics have been published.', maps: 'Map performance is not available yet.' } },
+      auth: { eyebrow: 'Steam Account', title: 'Sign in to access Competitive Analytics', description: 'Sign in with Steam to validate your session.', action: 'Sign in with Steam' },
+      season: { label: 'Season', status: 'Status', period: 'Period', updated: 'Updated', unavailable: 'Season unavailable' },
+      sections: { overview: { eyebrow: 'Overview', title: 'Overall Competitive Profile', description: 'Lifetime history.', canonicalLifetime: 'Lifetime · canonical value' }, impactTrend: { eyebrow: 'Performance trend', title: 'Impact Trend', description: 'Season sequence.' }, maps: { eyebrow: 'Map pool', title: 'Map Performance', description: 'Season metrics.' }, combat: { eyebrow: 'Combat profile', title: 'Combat Profile', description: 'Published counters.', clutchEyebrow: 'Clutch performance', multiKillEyebrow: 'Multi-kill profile' }, recent: { eyebrow: 'Recent maps', title: 'Recent Maps', description: 'Canonical results.' }, timeline: { eyebrow: 'Events', title: 'Season Timeline', description: 'Competitive events.' } },
+      charts: { value: 'Value', winRate: 'Win Rate', occurrences: 'Occurrences', mapUnavailable: 'Map unavailable' },
+      labels: { playerFallback: 'HSC Player', winRate: 'Win Rate', maps: 'Maps', wins: 'Wins', losses: 'Losses', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', accuracy: 'Accuracy', utilityPerRound: 'Util/R', map: 'Map', games: 'Games', winShort: 'W', lossShort: 'L', winPct: 'Win%', entry: 'Entry', success: 'Success', conversion: 'Conversion', utility: 'Util' },
+      results: { win: 'Win', loss: 'Loss' },
+      actions: { playerArea: 'Player Area', backToPlayerArea: 'Back to Player Area' },
+      accessibility: { loading: 'Loading Competitive Analytics', seasonContext: 'Current season context', lifetimeMetrics: 'Lifetime metrics', mapPerformance: 'Season map performance' },
+    },
+  },
+} as const;
+
 @Component({
   selector: 'app-competitive-win-rate-chart',
   standalone: true,
@@ -67,7 +100,7 @@ class MapWinrateChartStub {
 @Component({
   selector: 'app-competitive-multikill-chart',
   standalone: true,
-  template: '',
+  template: '2K 3K 4K 5K',
 })
 class MultikillChartStub {
   readonly stats = input.required<BunkerPlayerStats>();
@@ -316,9 +349,8 @@ describe('BunkerPage Competitive Analytics', () => {
       })
       .compileComponents();
     const translate = TestBed.inject(TranslateService);
-    translate.setTranslation('pt-BR', {
-      shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } },
-    });
+    translate.setTranslation('pt-BR', BUNKER_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', BUNKER_TRANSLATIONS['en-US']);
     await firstValueFrom(translate.use('pt-BR'));
   });
 
@@ -495,7 +527,7 @@ describe('BunkerPage Competitive Analytics', () => {
       ? { ...base.seasonPlayer, byMap: [createMapPerformance({ mapName: 'de_cache', winRate: null })] }
       : null;
     const compiled = render(createBunkerSummary({ seasonPlayer }));
-    const winRateCell = compiled.querySelector('[data-label="WR"]');
+    const winRateCell = compiled.querySelector('[data-label="Vit%"]');
 
     expect(winRateCell?.textContent?.trim()).toBe('—');
     expect(compiled.textContent).not.toContain(['Aten', 'ção'].join(''));
@@ -637,5 +669,69 @@ describe('BunkerPage Competitive Analytics', () => {
     expect(htmlContent).toContain('app-competitive-win-rate-chart');
     expect(htmlContent).toContain('app-competitive-map-winrate-chart');
     expect(htmlContent).toContain('app-competitive-impact-trend-chart');
+  });
+
+  it('24. troca pt-BR por en-US na mesma instância sem refetch ou alteração competitiva', async () => {
+    const summary = createBunkerSummary();
+    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
+    bunkerApiMock.getSummary.mockReturnValue(of(summary));
+
+    fixture = TestBed.createComponent(BunkerPage);
+    fixture.detectChanges();
+
+    const ptText = normalizedText(fixture.nativeElement as HTMLElement);
+    const winRate = fixture.debugElement.query(By.directive(WinRateChartStub)).componentInstance as WinRateChartStub;
+    const sparklines = fixture.debugElement.queryAll(By.directive(MetricSparklineStub));
+    const impact = fixture.debugElement.query(By.directive(ImpactTrendChartStub)).componentInstance as ImpactTrendChartStub;
+    const maps = fixture.debugElement.query(By.directive(MapWinrateChartStub)).componentInstance as MapWinrateChartStub;
+    const multikill = fixture.debugElement.query(By.directive(MultikillChartStub)).componentInstance as MultikillChartStub;
+    const canonicalInputs = {
+      winRate: winRate.value(),
+      sparklines: sparklines.map((item) => [...(item.componentInstance as MetricSparklineStub).values()]),
+      timeline: impact.timeline(),
+      maps: maps.maps(),
+      multikill: multikill.stats(),
+    };
+
+    expect(ptText).toContain('Visão geral');
+    expect(ptText).toContain('Vitória');
+    expect(ptText).toContain('Derrota');
+    expect(ptText).toContain('Vit%');
+
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    const enText = normalizedText(fixture.nativeElement as HTMLElement);
+    expect(enText).toContain('Overview');
+    expect(enText).toContain('Win');
+    expect(enText).toContain('Loss');
+    expect(enText).toContain('Win%');
+    expect(enText).toContain('Competitive Analytics');
+    expect(enText).toContain('L4VOSX');
+    expect(enText).toContain('76561198000000000');
+    expect(enText).toContain('Season 02');
+    expect(enText).toContain('de_nuke');
+    expect(enText).toContain('de_inferno');
+    expect(enText).toContain('de_mirage');
+    expect(enText).toContain('K/D');
+    expect(enText).toContain('ADR');
+    expect(enText).toContain('Impact');
+    expect(enText).toContain('1v1');
+    expect(enText).toContain('1v2');
+    expect(enText).toContain('2K 3K 4K 5K');
+
+    expect(winRate.value()).toBe(canonicalInputs.winRate);
+    expect(sparklines.map((item) => (item.componentInstance as MetricSparklineStub).values()))
+      .toEqual(canonicalInputs.sparklines);
+    expect(impact.timeline()).toBe(canonicalInputs.timeline);
+    expect(maps.maps()).toBe(canonicalInputs.maps);
+    expect(multikill.stats()).toBe(canonicalInputs.multikill);
+    expect(maps.maps().map((map) => map.mapName)).toEqual(['de_nuke', 'de_inferno']);
+    expect(summary.seasonPlayer?.recentMaps.map((map) => map.mapName)).toEqual(['de_mirage', 'de_ancient']);
+    expect(summary.seasonPlayer?.timeline.map((event) => event.mapName)).toEqual(['de_vertigo', 'de_mirage']);
+    expect(summary.competitiveProfile?.lifetime?.kdRatio).toBe(1.08);
+    expect(summary.seasonPlayer?.timeline[0].impactRating).toBe(0.9);
+    expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
+    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
   });
 });

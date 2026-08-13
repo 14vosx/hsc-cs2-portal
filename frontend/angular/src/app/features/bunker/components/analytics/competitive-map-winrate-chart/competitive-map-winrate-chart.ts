@@ -1,6 +1,8 @@
 import 'apexcharts/bar';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type {
   ApexAxisChartSeries,
@@ -15,6 +17,7 @@ import type {
 
 import type { BunkerMapPerformance } from '../../../domain/bunker.model';
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
@@ -42,10 +45,14 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMapWinrateChart {
+  private readonly translate = inject(TranslateService);
+  private readonly winRateLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.winRate), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.winRate),
+  });
   readonly maps = input<readonly BunkerMapPerformance[]>([]);
 
   protected readonly series = computed(() => axisSeriesForChartCore([{
-    name: 'Win Rate',
+    name: this.winRateLabel(),
     data: this.maps().map((map) => rateToPercent(map.winRate)),
   }] satisfies ApexAxisChartSeries));
   protected readonly yaxis: ApexYAxis = {

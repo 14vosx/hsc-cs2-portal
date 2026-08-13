@@ -1,10 +1,13 @@
 import 'apexcharts/line';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type { ApexAxisChartSeries, ApexChart, ApexFill, ApexStroke, ApexTooltip } from 'ng-apexcharts';
 
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
@@ -29,12 +32,16 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMetricSparkline {
+  private readonly translate = inject(TranslateService);
+  private readonly valueLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.value), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.value),
+  });
   readonly values = input<readonly (number | null)[]>([]);
   readonly color = input<'cyan' | 'orange'>('cyan');
 
   protected readonly hasData = computed(() => this.values().some((value) => value !== null));
   protected readonly series = computed(() => axisSeriesForChartCore([
-    { name: 'Valor', data: [...this.values()] },
+    { name: this.valueLabel(), data: [...this.values()] },
   ] satisfies ApexAxisChartSeries));
   protected readonly colors = computed(() => [
     this.color() === 'orange' ? '#f37b21' : '#32d1ff',

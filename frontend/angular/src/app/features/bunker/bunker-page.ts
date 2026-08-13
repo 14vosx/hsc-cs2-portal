@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, catchError, map, of, shareReplay, startWith, switchMap } from 'rxjs';
 
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
@@ -52,6 +53,7 @@ const unavailableBunkerSummary: BunkerSummary = {
   imports: [
     AsyncPipe,
     RouterLink,
+    TranslatePipe,
     EmptyState,
     PlayerAvatar,
     BunkerAuthCard,
@@ -69,6 +71,7 @@ export class BunkerPage {
   private readonly playerIdentityApi = inject(PlayerIdentityApiService);
   private readonly bunkerApi = inject(BunkerApiService);
   private readonly playerAuthApi = inject(PlayerAuthApiService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly steamLoginUrl = this.playerAuthApi.steamLoginUrl;
   protected readonly vm$: Observable<BunkerVm> = this.loadVm().pipe(
@@ -144,11 +147,11 @@ export class BunkerPage {
 
   protected recentMapResult(item: BunkerRecentMap): string {
     if (item.isWin === true) {
-      return 'Vitória';
+      return this.translate.instant('bunker.results.win');
     }
 
     if (item.isWin === false) {
-      return 'Derrota';
+      return this.translate.instant('bunker.results.loss');
     }
 
     return item.outcome || item.result || '—';

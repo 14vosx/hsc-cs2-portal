@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { ChartCoreComponent, type ApexAxisChartSeries } from 'ng-apexcharts';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -52,7 +54,11 @@ describe('CompetitiveMapWinrateChart', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CompetitiveMapWinrateChart],
+      providers: [provideTranslateService()],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { bunker: { charts: { winRate: 'Win Rate' } } });
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   it('preserva ordem dos mapas e mantém winRate null como null', () => {
@@ -63,6 +69,7 @@ describe('CompetitiveMapWinrateChart', () => {
     ]);
 
     expect(chart.xaxis()?.categories).toEqual(['de_ancient', 'de_nuke', 'de_inferno']);
+    expect(axisSeries(chart)[0].name).toBe('Win Rate');
     expect(axisSeries(chart)[0].data).toEqual([40, null, 75]);
   });
 });

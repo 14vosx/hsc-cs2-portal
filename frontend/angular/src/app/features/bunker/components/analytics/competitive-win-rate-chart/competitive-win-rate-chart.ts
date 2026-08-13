@@ -1,6 +1,8 @@
 import 'apexcharts/radialBar';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type {
   ApexChart,
@@ -12,6 +14,7 @@ import type {
 } from 'ng-apexcharts';
 
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   chartAnimationsEnabled,
   formatRate,
@@ -28,6 +31,7 @@ import {
         [chart]="chart"
         [colors]="colors"
         [dataLabels]="dataLabels"
+        [labels]="labels()"
         [plotOptions]="plotOptions"
         [stroke]="stroke"
         [tooltip]="tooltip"
@@ -44,6 +48,11 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveWinRateChart {
+  private readonly translate = inject(TranslateService);
+  private readonly winRateLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.winRate), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.winRate),
+  });
+  protected readonly labels = computed(() => [this.winRateLabel()]);
   readonly value = input<number | null>(null);
   protected readonly series = computed<ApexNonAxisChartSeries>(() => {
     const percent = rateToPercent(this.value());

@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { ChartCoreComponent, type ApexAxisChartSeries } from 'ng-apexcharts';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -44,7 +46,11 @@ describe('CompetitiveImpactTrendChart', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CompetitiveImpactTrendChart],
+      providers: [provideTranslateService()],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { bunker: { charts: { mapUnavailable: 'Mapa não informado' } } });
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   it('usa somente at e impactRating, preservando ordem e lacunas null', () => {

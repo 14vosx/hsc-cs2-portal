@@ -2,6 +2,13 @@ import type { ApexAxisChartSeries, ApexNonAxisChartSeries } from 'ng-apexcharts'
 
 export const analyticsFontFamily = '"Chakra Petch", ui-sans-serif, system-ui, sans-serif';
 
+export const analyticsChartTranslationKeys = {
+  value: 'bunker.charts.value',
+  winRate: 'bunker.charts.winRate',
+  occurrences: 'bunker.charts.occurrences',
+  mapUnavailable: 'bunker.charts.mapUnavailable',
+} as const;
+
 export function chartAnimationsEnabled(): boolean {
   return !(
     typeof window !== 'undefined' &&

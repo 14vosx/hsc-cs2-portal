@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { ChartCoreComponent, type ApexAxisChartSeries } from 'ng-apexcharts';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -22,7 +24,11 @@ describe('CompetitiveMetricSparkline', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CompetitiveMetricSparkline],
+      providers: [provideTranslateService()],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { bunker: { charts: { value: 'Valor' } } });
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   it('repassa a sequência canônica preservando null', () => {
@@ -32,6 +38,7 @@ describe('CompetitiveMetricSparkline', () => {
       .componentInstance as ChartCoreComponent;
 
     expect(axisSeries(chart)[0].data).toEqual([0.9, null, 1.2]);
+    expect(axisSeries(chart)[0].name).toBe('Valor');
   });
 
   it('não renderiza chart quando a sequência não possui valor canônico', () => {

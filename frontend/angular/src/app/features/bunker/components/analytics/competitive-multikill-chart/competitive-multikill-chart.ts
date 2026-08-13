@@ -1,6 +1,8 @@
 import 'apexcharts/bar';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type {
   ApexAxisChartSeries,
@@ -15,6 +17,7 @@ import type {
 
 import type { BunkerPlayerStats } from '../../../domain/bunker.model';
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
@@ -40,10 +43,14 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMultikillChart {
+  private readonly translate = inject(TranslateService);
+  private readonly occurrencesLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.occurrences), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.occurrences),
+  });
   readonly stats = input.required<BunkerPlayerStats>();
 
   protected readonly series = computed(() => axisSeriesForChartCore([{
-    name: 'Ocorrências',
+    name: this.occurrencesLabel(),
     data: [
       this.stats().enemy2ks,
       this.stats().enemy3ks,
