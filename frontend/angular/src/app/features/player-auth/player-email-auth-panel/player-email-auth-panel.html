@@ -1,11 +1,11 @@
 <div class="player-auth-panel">
   <div class="player-auth-panel__heading">
-    <span>Conta HSC</span>
+    <span>{{ 'playerAuth.eyebrow' | translate }}</span>
     <h2>
       @switch (mode()) {
-        @case ('registration') { Crie sua conta }
-        @case ('reset-request') { Redefina sua senha }
-        @default { Entre para acessar sua área }
+        @case ('registration') { {{ 'playerAuth.headings.registration' | translate }} }
+        @case ('reset-request') { {{ 'playerAuth.headings.resetRequest' | translate }} }
+        @default { {{ 'playerAuth.headings.login' | translate }} }
       }
     </h2>
   </div>
@@ -13,58 +13,58 @@
   @if (success()) {
     <div class="player-auth-panel__notice" role="status">
       <span class="player-auth-panel__notice-mark" aria-hidden="true"></span>
-      <strong>Solicitação recebida</strong>
-      <p>{{ success() }}</p>
-      <button type="button" (click)="setMode('login')">Voltar para entrar</button>
+      <strong>{{ 'playerAuth.notices.received' | translate }}</strong>
+      <p>{{ success()! | translate }}</p>
+      <button type="button" (click)="setMode('login')">{{ 'playerAuth.actions.backToLogin' | translate }}</button>
     </div>
   } @else {
     <form novalidate (submit)="submit($event)">
       <div class="player-auth-panel__field">
-        <label for="player-auth-email">E-mail</label>
+        <label for="player-auth-email">{{ 'playerAuth.fields.email' | translate }}</label>
         <input id="player-auth-email" type="email" autocomplete="email" required
           [disabled]="pending()" [value]="email()" (input)="updateEmail($event)" />
       </div>
 
       @if (mode() !== 'reset-request') {
         <div class="player-auth-panel__field">
-          <label for="player-auth-password">Senha</label>
+          <label for="player-auth-password">{{ 'playerAuth.fields.password' | translate }}</label>
           <input id="player-auth-password" type="password"
             [autocomplete]="mode() === 'registration' ? 'new-password' : 'current-password'"
             required [disabled]="pending()" [value]="password()" (input)="updatePassword($event)" />
           @if (mode() === 'registration') {
-            <small>Use de 10 a 128 caracteres.</small>
+            <small>{{ 'playerAuth.hints.passwordLength' | translate }}</small>
           }
         </div>
       }
 
       @if (mode() === 'registration') {
         <div class="player-auth-panel__field">
-          <label for="player-auth-display-name">Nome de exibição <small>(opcional)</small></label>
+          <label for="player-auth-display-name">{{ 'playerAuth.fields.displayName' | translate }} <small>{{ 'playerAuth.fields.optional' | translate }}</small></label>
           <input id="player-auth-display-name" type="text" autocomplete="nickname"
             [disabled]="pending()" [value]="displayName()" (input)="updateDisplayName($event)" />
         </div>
       }
 
-      @if (error()) { <p class="player-auth-panel__error" role="alert">{{ error() }}</p> }
+      @if (error()) { <p class="player-auth-panel__error" role="alert">{{ error()! | translate }}</p> }
 
       <button class="player-auth-panel__submit" type="submit" [disabled]="pending()">
-        @if (pending()) { Aguarde... } @else if (mode() === 'registration') { Criar conta }
-        @else if (mode() === 'reset-request') { Enviar instruções } @else { Entrar }
+        @if (pending()) { {{ 'playerAuth.actions.pending' | translate }} } @else if (mode() === 'registration') { {{ 'playerAuth.actions.createAccount' | translate }} }
+        @else if (mode() === 'reset-request') { {{ 'playerAuth.actions.sendInstructions' | translate }} } @else { {{ 'playerAuth.actions.login' | translate }} }
       </button>
     </form>
 
     <div class="player-auth-panel__links">
       @if (mode() === 'login') {
-        <button type="button" (click)="setMode('registration')">Criar conta</button>
-        <button type="button" (click)="setMode('reset-request')">Esqueci minha senha</button>
+        <button type="button" (click)="setMode('registration')">{{ 'playerAuth.actions.createAccount' | translate }}</button>
+        <button type="button" (click)="setMode('reset-request')">{{ 'playerAuth.actions.forgotPassword' | translate }}</button>
       } @else {
-        <button type="button" (click)="setMode('login')">Voltar para entrar</button>
+        <button type="button" (click)="setMode('login')">{{ 'playerAuth.actions.backToLogin' | translate }}</button>
       }
     </div>
   }
 
   <div class="player-auth-panel__alternative">
-    <span>ou</span>
-    <a [href]="steamLoginUrl()">Entrar com Steam</a>
+    <span>{{ 'playerAuth.alternative' | translate }}</span>
+    <a [href]="steamLoginUrl()">{{ 'playerAuth.actions.loginWithSteam' | translate }}</a>
   </div>
 </div>

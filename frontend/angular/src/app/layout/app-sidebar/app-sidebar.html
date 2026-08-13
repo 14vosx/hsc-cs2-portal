@@ -1,11 +1,11 @@
 <div class="app-sidebar" [class.app-sidebar--mobile]="isMobileDrawer()">
   @if (isMobileDrawer()) {
     <div class="app-sidebar__header">
-      <span class="app-sidebar__title">Navegação</span>
+      <span class="app-sidebar__title">{{ 'sidebar.title' | translate }}</span>
       <button
         type="button"
         class="app-sidebar__close-btn"
-        aria-label="Fechar menu de navegação"
+        [attr.aria-label]="'sidebar.closeNavigation' | translate"
         (click)="onClose()"
       >
         <svg

@@ -9,13 +9,15 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { PlayerSession } from '../../core/session/player-session.model';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
+import { LocaleSwitcher } from '../locale-switcher/locale-switcher';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, PlayerAvatar],
+  imports: [RouterLink, TranslatePipe, PlayerAvatar, LocaleSwitcher],
   templateUrl: './app-header.html',
   styleUrl: './app-header.css',
   changeDetection: ChangeDetectionStrategy.Eager,

@@ -1,6 +1,7 @@
 import { AsyncPipe, Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
@@ -47,7 +48,6 @@ import { PlayerProfileEditor } from './player-profile-editor/player-profile-edit
 import { PlayerProfileMediaEditor } from './player-profile-media-editor/player-profile-media-editor';
 import { PlayerEmailAuthPanel } from '../player-auth/player-email-auth-panel/player-email-auth-panel';
 import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
-import { mapSteamLinkResult } from '../player-account-security/player-account-security-error';
 import type { PlayerCs2StatsState } from '../player-cs2-readiness/player-cs2-readiness-panel/player-cs2-readiness-panel';
 import type { PlayerServerAccessLoadState } from '../player-server-access/player-server-access-panel/player-server-access-panel';
 import { presentServerAccess } from '../player-server-access/player-server-access-presentation';
@@ -55,6 +55,7 @@ import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { UiCard } from '../../shared/components/card/card';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import {
   StatusBadge,
@@ -96,11 +97,13 @@ type PlayerAreaReloadAction = 'load' | 'signed-out';
     PlayerEmailAuthPanel,
     PlayerAccountSecurityPanel,
     PlayerAvatar,
+    TranslatePipe,
   ],
   templateUrl: './player-area-page.html',
   styleUrl: './player-area-page.css',
 })
 export class PlayerAreaPage implements OnInit {
+  private readonly localeService = inject(LocaleService);
   private readonly identityApi = inject(PlayerIdentityApiService);
   private readonly selfApi = inject(PlayerSelfApiService);
   private readonly bunkerApi = inject(BunkerApiService);
@@ -123,7 +126,8 @@ export class PlayerAreaPage implements OnInit {
   protected readonly savePending = signal(false);
   protected readonly saveError = signal<MappedProfileError | null>(null);
   protected readonly successNotice = signal<string | null>(null);
-  protected readonly steamLinkNotice = signal<string | null>(null);
+  protected readonly steamLinkNoticeKey = signal<string | null>(null);
+  protected readonly steamLinkNoticeKind = signal<'success' | 'error' | null>(null);
   protected readonly updatedProfile = signal<PlayerProfile | null>(null);
   protected readonly avatarPending = signal(false);
   protected readonly bannerPending = signal(false);
@@ -153,8 +157,11 @@ export class PlayerAreaPage implements OnInit {
 
     const result = this.route.snapshot.queryParamMap.get('steamLink');
     if (result === null) return;
-    const notice = mapSteamLinkResult(result);
-    if (notice) this.steamLinkNotice.set(notice);
+    const noticeKey = steamLinkResultKey(result);
+    if (noticeKey) {
+      this.steamLinkNoticeKey.set(noticeKey);
+      this.steamLinkNoticeKind.set(result === 'success' ? 'success' : 'error');
+    }
     const queryParams = { ...this.route.snapshot.queryParams };
     delete queryParams['steamLink'];
     const query = new URLSearchParams(queryParams).toString();
@@ -192,7 +199,7 @@ export class PlayerAreaPage implements OnInit {
         this.updatedProfile.set(updated);
         this.isEditingProfile.set(false);
         this.savePending.set(false);
-        this.successNotice.set('Perfil atualizado.');
+        this.successNotice.set('playerArea.notices.profileUpdated');
       },
       error: (error: unknown) => {
         this.savePending.set(false);
@@ -225,7 +232,7 @@ export class PlayerAreaPage implements OnInit {
       next: (profile) => {
         this.updatedProfile.set(profile);
         this.avatarPending.set(false);
-        this.successNotice.set('Avatar atualizado.');
+        this.successNotice.set('playerArea.notices.avatarUpdated');
       },
       error: (error: unknown) => {
         this.avatarPending.set(false);
@@ -247,7 +254,7 @@ export class PlayerAreaPage implements OnInit {
       next: (profile) => {
         this.updatedProfile.set(profile);
         this.avatarPending.set(false);
-        this.successNotice.set('Avatar removido.');
+        this.successNotice.set('playerArea.notices.avatarRemoved');
       },
       error: (error: unknown) => {
         this.avatarPending.set(false);
@@ -269,7 +276,7 @@ export class PlayerAreaPage implements OnInit {
       next: (profile) => {
         this.updatedProfile.set(profile);
         this.bannerPending.set(false);
-        this.successNotice.set('Banner atualizado.');
+        this.successNotice.set('playerArea.notices.bannerUpdated');
       },
       error: (error: unknown) => {
         this.bannerPending.set(false);
@@ -291,7 +298,7 @@ export class PlayerAreaPage implements OnInit {
       next: (profile) => {
         this.updatedProfile.set(profile);
         this.bannerPending.set(false);
-        this.successNotice.set('Banner removido.');
+        this.successNotice.set('playerArea.notices.bannerRemoved');
       },
       error: (error: unknown) => {
         this.bannerPending.set(false);
@@ -354,20 +361,22 @@ export class PlayerAreaPage implements OnInit {
   }
 
   protected profileVisibilityLabel(visibility: PlayerProfileVisibility): string {
-    return visibility === 'public' ? 'Visível para membros HSC' : 'Privado';
+    return visibility === 'public'
+      ? 'playerArea.profile.visibility.public'
+      : 'playerArea.profile.visibility.private';
   }
 
   protected membershipLabel(membership: PlayerMembership | null): string {
     if (!membership) {
-      return 'Sem associação HSC';
+      return 'playerArea.membership.status.none';
     }
 
     const labels: Record<PlayerMembershipStatus, string> = {
-      inactive: 'Associação inativa',
-      active: 'Associação ativa',
-      suspended: 'Associação suspensa',
-      expired: 'Associação expirada',
-      cancelled: 'Associação cancelada',
+      inactive: 'playerArea.membership.status.inactive',
+      active: 'playerArea.membership.status.active',
+      suspended: 'playerArea.membership.status.suspended',
+      expired: 'playerArea.membership.status.expired',
+      cancelled: 'playerArea.membership.status.cancelled',
     };
 
     return labels[membership.status];
@@ -391,20 +400,20 @@ export class PlayerAreaPage implements OnInit {
 
   protected emailIdentityLabel(account: PlayerAccountSummary): string {
     if (!account.identities.email.linked) {
-      return 'Não vinculado';
+      return 'playerArea.account.email.notLinked';
     }
 
     if (!account.identities.email.verified) {
-      return 'Vinculado · verificação pendente';
+      return 'playerArea.account.email.pendingVerification';
     }
 
-    return 'Vinculado e verificado';
+    return 'playerArea.account.email.verified';
   }
 
   protected statsCapabilityLabel(account: PlayerAccountSummary): string {
     return account.capabilities.personalizedStats.available
-      ? 'Disponíveis'
-      : 'Vínculo Steam necessário';
+      ? 'playerArea.competitive.available'
+      : 'playerArea.competitive.steamRequired';
   }
 
   protected formatDate(value: string | null | undefined): string {
@@ -418,7 +427,7 @@ export class PlayerAreaPage implements OnInit {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -430,7 +439,7 @@ export class PlayerAreaPage implements OnInit {
       return '—';
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
     }).format(value);
@@ -446,7 +455,7 @@ export class PlayerAreaPage implements OnInit {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -460,13 +469,15 @@ export class PlayerAreaPage implements OnInit {
       return '—';
     }
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       maximumFractionDigits: 0,
     }).format(value);
   }
 
-  protected registeredMapsLabel(value: number): string {
-    return `${this.formatInteger(value)} ${value === 1 ? 'mapa registrado' : 'mapas registrados'} nesta temporada.`;
+  protected registeredMapsKey(value: number): string {
+    return value === 1
+      ? 'playerArea.competitive.registeredMaps.one'
+      : 'playerArea.competitive.registeredMaps.other';
   }
 
   protected formatRate(value: number | null | undefined): string {
@@ -476,7 +487,7 @@ export class PlayerAreaPage implements OnInit {
 
     const normalized = value > 1 ? value / 100 : value;
 
-    return new Intl.NumberFormat('pt-BR', {
+    return new Intl.NumberFormat(this.localeService.currentLocale(), {
       style: 'percent',
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,
@@ -514,7 +525,8 @@ export class PlayerAreaPage implements OnInit {
     this.savePending.set(false);
     this.saveError.set(null);
     this.successNotice.set(null);
-    this.steamLinkNotice.set(null);
+    this.steamLinkNoticeKey.set(null);
+    this.steamLinkNoticeKind.set(null);
     this.updatedProfile.set(null);
     this.avatarPending.set(false);
     this.bannerPending.set(false);
@@ -631,4 +643,15 @@ export class PlayerAreaPage implements OnInit {
 
     return { state: 'error' };
   }
+}
+
+function steamLinkResultKey(result: string | null): string | null {
+  const keys: Record<string, string> = {
+    success: 'playerArea.steamLink.results.success',
+    identity_conflict: 'playerArea.steamLink.results.identityConflict',
+    already_linked: 'playerArea.steamLink.results.alreadyLinked',
+    unavailable: 'playerArea.steamLink.results.unavailable',
+    failed: 'playerArea.steamLink.results.failed',
+  };
+  return result ? keys[result] ?? null : null;
 }

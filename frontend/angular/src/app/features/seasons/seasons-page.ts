@@ -1,12 +1,14 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, ViewEncapsulation, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith } from 'rxjs';
 
 import { Cs2ApiService } from '../../core/api/cs2-api.service';
 import { SeasonDto } from '../../core/api/dto/season.dto';
+import { LocaleService } from '../../core/i18n/locale.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
-import { formatSeasonBoundaryDate, seasonCoverImage } from './season-ui';
+import { formatSeasonBoundaryDate, seasonCoverImage, seasonStatusLabel } from './season-ui';
 
 interface SeasonsReadyVm {
   state: 'ready';
@@ -20,17 +22,18 @@ type SeasonsVm = SeasonsReadyVm | { state: 'loading' } | { state: 'error' };
 
 @Component({
   selector: 'app-seasons-page',
-  imports: [AsyncPipe, EmptyState, RouterLink],
+  imports: [AsyncPipe, EmptyState, RouterLink, TranslatePipe],
   templateUrl: './seasons-page.html',
   styleUrl: './seasons-page.css',
   changeDetection: ChangeDetectionStrategy.Eager,
   encapsulation: ViewEncapsulation.None,
 })
 export class SeasonsPage {
+  private readonly localeService = inject(LocaleService);
   private readonly cs2Api = inject(Cs2ApiService);
   protected readonly seasonCoverImage = seasonCoverImage;
-  protected readonly formatSeasonBoundaryDate = (value?: string | null) =>
-    formatSeasonBoundaryDate(value, 'Data em aberto');
+  protected readonly formatSeasonBoundaryDate = formatSeasonBoundaryDate;
+  protected readonly seasonStatusLabel = seasonStatusLabel;
 
   protected readonly vm$: Observable<SeasonsVm> = this.cs2Api.getSeasons().pipe(
     map((payload): SeasonsVm => {
@@ -53,9 +56,9 @@ export class SeasonsPage {
     catchError(() => of({ state: 'error' } satisfies SeasonsVm)),
   );
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Data em aberto';
+      return null;
     }
 
     const date = new Date(value);
@@ -64,7 +67,7 @@ export class SeasonsPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

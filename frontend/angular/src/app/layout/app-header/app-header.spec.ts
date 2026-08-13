@@ -1,10 +1,13 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { describe, expect, it, beforeEach } from 'vitest';
 
 import { AppHeader } from './app-header';
 import type { PlayerSession } from '../../core/session/player-session.model';
+import { LocaleService } from '../../core/i18n/locale.service';
 
 @Component({
   template: '<app-header [isDrawerOpen]="isOpen" [session]="session" (toggleDrawer)="onToggle()" (logoutRequested)="onLogout()" />',
@@ -28,12 +31,39 @@ class TestHostComponent {
 
 describe('AppHeader', () => {
   let fixture: ComponentFixture<TestHostComponent>;
+  let translate: TranslateService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, AppHeader],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        provideTranslateService(),
+        {
+          provide: LocaleService,
+          useValue: { currentLocale: signal('pt-BR'), setLocale: () => Promise.resolve() },
+        },
+      ],
     }).compileComponents();
+
+    translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', {
+      header: {
+        homeAriaLabel: 'HSC CS2 Portal - Página inicial', playerAccountAriaLabel: 'Conta do jogador',
+        playerArea: 'Área do Jogador', signOut: 'Sair', signIn: 'ENTRAR',
+        openNavigation: 'Abrir menu de navegação', closeNavigation: 'Fechar menu de navegação',
+      },
+      locale: { ariaLabel: 'Idioma do portal', portuguese: 'Português (Brasil)', english: 'English (United States)' },
+    });
+    translate.setTranslation('en-US', {
+      header: {
+        homeAriaLabel: 'HSC CS2 Portal - Home', playerAccountAriaLabel: 'Player account',
+        playerArea: 'Player Area', signOut: 'Sign out', signIn: 'SIGN IN',
+        openNavigation: 'Open navigation menu', closeNavigation: 'Close navigation menu',
+      },
+      locale: { ariaLabel: 'Portal language', portuguese: 'Portuguese (Brazil)', english: 'English (United States)' },
+    });
+    await firstValueFrom(translate.use('pt-BR'));
 
     fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
@@ -67,6 +97,18 @@ describe('AppHeader', () => {
     expect(signIn).toBeTruthy();
     expect(signIn.getAttribute('href')).toBe('/area-do-jogador');
     expect(signIn.getAttribute('href')).not.toBe('/player/auth/steam/start');
+    expect(signIn.textContent?.trim()).toBe('ENTRAR');
+  });
+
+  it('renders the en-US visitor CTA without changing route or session state', async () => {
+    const session = fixture.componentInstance.session;
+    const href = fixture.nativeElement.querySelector('.app-header__sign-in').getAttribute('href');
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.app-header__sign-in').textContent.trim()).toBe('SIGN IN');
+    expect(fixture.nativeElement.querySelector('.app-header__sign-in').getAttribute('href')).toBe(href);
+    expect(fixture.componentInstance.session).toBe(session);
   });
 
   it('shows the sign-in action when session is unavailable', () => {
@@ -90,6 +132,29 @@ describe('AppHeader', () => {
     expect(text).not.toContain('Meu Perfil');
     expect(text).not.toContain('Conta e Segurança');
     expect(fixture.nativeElement.querySelector('.player-avatar__fallback')).toBeTruthy();
+  });
+
+  it('renders the authenticated menu in en-US', async () => {
+    fixture.componentInstance.session = { status: 'authenticated', displayName: 'Player One', steamId64: '1', avatarMedium: null };
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.app-header__account-trigger') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.app-header__menu').textContent).toContain('Player Area');
+    expect(fixture.nativeElement.querySelector('.app-header__menu').textContent).toContain('Sign out');
+  });
+
+  it('translates the dynamic drawer aria-label', async () => {
+    const button = fixture.nativeElement.querySelector('.app-header__toggle') as HTMLButtonElement;
+    expect(button.getAttribute('aria-label')).toBe('Abrir menu de navegação');
+    fixture.componentInstance.isOpen = true;
+    fixture.detectChanges();
+    expect(button.getAttribute('aria-label')).toBe('Fechar menu de navegação');
+
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect(button.getAttribute('aria-label')).toBe('Close navigation menu');
   });
 
   it('toggles aria-expanded when the account disclosure is opened', () => {

@@ -1,11 +1,12 @@
 <header class="app-header" role="banner">
   <div class="app-header__container">
-    <a routerLink="/" class="app-header__logo-link" aria-label="HSC CS2 Portal - Página inicial">
+    <a routerLink="/" class="app-header__logo-link" [attr.aria-label]="'header.homeAriaLabel' | translate">
       <span class="app-header__badge">HSC</span>
       <span class="app-header__brand-name"><span>HSC</span> <strong>CS2</strong> <span>PORTAL</span></span>
     </a>
 
     <div class="app-header__actions">
+      <app-locale-switcher />
       @if (session(); as currentSession) {
         @if (currentSession.status === 'authenticated') {
           <div class="app-header__account">
@@ -21,18 +22,18 @@
               <span aria-hidden="true">▾</span>
             </button>
             @if (isAccountMenuOpen()) {
-              <nav id="player-account-menu" class="app-header__menu" aria-label="Conta do jogador">
-                <a routerLink="/area-do-jogador" (click)="closeAccountMenu()">Área do Jogador</a>
-                <button type="button" (click)="logout()">Sair</button>
+              <nav id="player-account-menu" class="app-header__menu" [attr.aria-label]="'header.playerAccountAriaLabel' | translate">
+                <a routerLink="/area-do-jogador" (click)="closeAccountMenu()">{{ 'header.playerArea' | translate }}</a>
+                <button type="button" (click)="logout()">{{ 'header.signOut' | translate }}</button>
               </nav>
             }
           </div>
         } @else {
-          <a class="app-header__sign-in hsc-action-cyan" routerLink="/area-do-jogador">SIGN IN / ENTRAR</a>
+          <a class="app-header__sign-in hsc-action-cyan" routerLink="/area-do-jogador">{{ 'header.signIn' | translate }}</a>
         }
       }
 
-      <button type="button" class="app-header__toggle" [attr.aria-expanded]="isDrawerOpen()" aria-controls="mobile-drawer" [attr.aria-label]="isDrawerOpen() ? 'Fechar menu de navegação' : 'Abrir menu de navegação'" (click)="onToggle()">
+      <button type="button" class="app-header__toggle" [attr.aria-expanded]="isDrawerOpen()" aria-controls="mobile-drawer" [attr.aria-label]="(isDrawerOpen() ? 'header.closeNavigation' : 'header.openNavigation') | translate" (click)="onToggle()">
         <svg class="app-header__toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>

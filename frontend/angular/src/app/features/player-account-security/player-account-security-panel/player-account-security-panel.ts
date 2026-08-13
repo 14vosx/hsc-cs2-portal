@@ -1,4 +1,5 @@
 import { Component, inject, input, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { disabled, form, FormField, required, submit, validateTree } from '@angular/forms/signals';
 
 import type { PlayerAccountSummary } from '../../player/domain/player-account.model';
@@ -16,7 +17,7 @@ interface EmailLinkFormModel {
 @Component({
   selector: 'app-player-account-security-panel',
   standalone: true,
-  imports: [FormField],
+  imports: [FormField, TranslatePipe],
   templateUrl: './player-account-security-panel.html',
   styleUrl: './player-account-security-panel.css',
 })
@@ -27,6 +28,7 @@ export class PlayerAccountSecurityPanel {
   readonly account = input.required<PlayerAccountSummary>();
   readonly steamLinkUrl = input.required<string>();
   readonly steamNotice = input<string | null>(null);
+  readonly steamNoticeKind = input<'success' | 'error' | null>(null);
 
   protected readonly formVisible = signal(false);
   protected readonly pending = signal(false);
@@ -45,9 +47,9 @@ export class PlayerAccountSecurityPanel {
     disabled(f.email, { when: () => this.pending() });
     disabled(f.password, { when: () => this.pending() });
     disabled(f.confirmPassword, { when: () => this.pending() });
-    required(f.email, { message: 'Informe seu e-mail.' });
-    required(f.password, { message: 'Informe uma senha.' });
-    required(f.confirmPassword, { message: 'Confirme a senha.' });
+    required(f.email, { message: 'playerAccount.validation.emailRequired' });
+    required(f.password, { message: 'playerAccount.validation.passwordRequired' });
+    required(f.confirmPassword, { message: 'playerAccount.validation.confirmPasswordRequired' });
     validateTree(f, (ctx) => {
       const email = ctx.valueOf(f.email).trim();
       const password = ctx.valueOf(f.password);
@@ -57,21 +59,21 @@ export class PlayerAccountSecurityPanel {
         return {
           fieldTree: ctx.fieldTreeOf(f.email),
           kind: 'invalid_email',
-          message: 'Informe um endereço de e-mail válido.',
+          message: 'playerAccount.validation.invalidEmail',
         };
       }
       if (password && (passwordLength < 10 || passwordLength > 128)) {
         return {
           fieldTree: ctx.fieldTreeOf(f.password),
           kind: 'password_length',
-          message: 'A senha deve ter entre 10 e 128 caracteres.',
+          message: 'playerAccount.validation.passwordLength',
         };
       }
       if (confirmPassword && password !== confirmPassword) {
         return {
           fieldTree: ctx.fieldTreeOf(f.confirmPassword),
           kind: 'password_mismatch',
-          message: 'As senhas não coincidem.',
+          message: 'playerAccount.validation.passwordMismatch',
         };
       }
       return null;
@@ -110,9 +112,7 @@ export class PlayerAccountSecurityPanel {
             this.pending.set(false);
             this.formVisible.set(false);
             this.emailLinkModel.set({ email: '', password: '', confirmPassword: '' });
-            this.success.set(
-              'Solicitação recebida. Se este endereço puder ser vinculado, enviaremos uma confirmação por e-mail.',
-            );
+            this.success.set('playerAccount.emailLink.request.success');
           },
           error: (error: unknown) => {
             this.pending.set(false);
@@ -138,13 +138,12 @@ export class PlayerAccountSecurityPanel {
     this.emailAuthApi.requestPasswordReset({ email }).subscribe({
       next: () => {
         this.passwordResetPending.set(false);
-        this.passwordResetSuccess.set(
-          'Solicitação recebida. Se a conta estiver elegível, enviaremos instruções para o e-mail vinculado.',
-        );
+        this.passwordResetSuccess.set('playerAccount.passwordReset.success');
       },
       error: (error: unknown) => {
         this.passwordResetPending.set(false);
-        this.passwordResetError.set(mapPlayerEmailAuthError(error, 'reset-request'));
+        const presentation = mapPlayerEmailAuthError(error, 'reset-request');
+        this.passwordResetError.set(presentation.messageKey);
       },
     });
   }

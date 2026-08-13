@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { Observable, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,6 +8,7 @@ import { Cs2ApiService } from '../../../core/api/cs2-api.service';
 import type { SeasonRankingDto } from '../../../core/api/dto/season-ranking.dto';
 import type { SeasonsIndexDto } from '../../../core/api/dto/season.dto';
 import { SeasonDetailPage } from './season-detail-page';
+import { installSeasonsTranslations } from '../../../testing/seasons-i18n.fixture';
 
 describe('SeasonDetailPage command center', () => {
   let fixture: ComponentFixture<SeasonDetailPage>;
@@ -47,11 +49,13 @@ describe('SeasonDetailPage command center', () => {
     await TestBed.configureTestingModule({
       imports: [SeasonDetailPage],
       providers: [
+        provideTranslateService({ fallbackLang: 'pt-BR' }),
         provideRouter([]),
         { provide: Cs2ApiService, useValue: api },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap(options.slug ? { slug: options.slug } : {})) } },
       ],
     }).compileComponents();
+    await installSeasonsTranslations(TestBed.inject(TranslateService));
     fixture = TestBed.createComponent(SeasonDetailPage);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -62,6 +66,25 @@ describe('SeasonDetailPage command center', () => {
   it('shows loading while the existing flow is pending', async () => {
     const native = await render({ slug: 's2', rankingResponse: new Subject<SeasonRankingDto>() });
     expect(native.textContent).toContain('Carregando temporada...');
+  });
+
+  it('switches overview copy at runtime without changing domain data or loading again', async () => {
+    const native = await render({ slug: 's2' });
+    const translate = TestBed.inject(TranslateService);
+    expect(native.textContent).toContain('Todas as temporadas');
+    expect(native.textContent).toContain('Top da temporada');
+    expect(native.textContent).toContain('Critérios de elegibilidade');
+    const calls = api.getSeasonRanking.mock.calls.length;
+    const links = Array.from(native.querySelectorAll('a')).map((link) => link.getAttribute('href'));
+    await translate.use('en-US').toPromise(); fixture.detectChanges();
+    expect(native.textContent).toContain('All seasons');
+    expect(native.textContent).toContain('Season top');
+    expect(native.textContent).toContain('Eligibility criteria');
+    expect(native.textContent).toContain(ranking.season!.name!);
+    expect(native.textContent).toContain(ranking.season!.description!);
+    expect(native.textContent).toContain('480');
+    expect(Array.from(native.querySelectorAll('a')).map((link) => link.getAttribute('href'))).toEqual(links);
+    expect(api.getSeasonRanking).toHaveBeenCalledTimes(calls);
   });
 
   it('shows error and season-not-found states', async () => {

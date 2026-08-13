@@ -6,25 +6,25 @@
           @let season = seasonState.data;
           <div class="home-hero__content">
             <span class="home-label home-label--cyan">
-              {{ season.contextMode === 'active' ? 'SEASON • TEMPORADA ATIVA' : 'ÚLTIMA TEMPORADA ENCERRADA' }}
+              {{ (season.contextMode === 'active' ? 'home.hero.active' : 'home.hero.latestClosed') | translate }}
             </span>
             <h1 id="home-title" class="home-hero__title">
               <span>HSC Competitive</span>
               <strong>{{ season.seasonName }}</strong>
             </h1>
-            <div class="home-hero__metrics" aria-label="Métricas da temporada">
-              <div><strong>{{ season.playersCount }}</strong><span>Jogadores</span></div>
-              <div><strong>{{ season.matchesCount }}</strong><span>Partidas</span></div>
-              <div><strong>{{ season.mapsCount }}</strong><span>Mapas</span></div>
+            <div class="home-hero__metrics" [attr.aria-label]="'home.hero.metricsAriaLabel' | translate">
+              <div><strong>{{ season.playersCount }}</strong><span>{{ 'home.hero.players' | translate }}</span></div>
+              <div><strong>{{ season.matchesCount }}</strong><span>{{ 'home.hero.matches' | translate }}</span></div>
+              <div><strong>{{ season.mapsCount }}</strong><span>{{ 'home.hero.maps' | translate }}</span></div>
             </div>
             <div class="home-hero__actions">
-              <a class="home-action home-action--primary" [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)">Ver ranking</a>
-              <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)">Ver temporada</a>
+              <a class="home-action home-action--primary" [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)">{{ 'home.hero.viewRanking' | translate }}</a>
+              <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)">{{ 'home.hero.viewSeason' | translate }}</a>
             </div>
           </div>
 
-          <aside class="home-leader" aria-label="Líder da temporada">
-            <span class="home-label home-label--orange">SEASON LEADER</span>
+          <aside class="home-leader" [attr.aria-label]="'home.hero.leaderAriaLabel' | translate">
+            <span class="home-label home-label--orange">{{ 'home.hero.leaderLabel' | translate }}</span>
             @if (season.leader; as leader) {
               <div class="home-leader__identity">
                 <app-player-avatar [imageUrl]="leader.avatarUrl" [displayName]="leader.name" accent="orange" />
@@ -32,40 +32,40 @@
               </div>
               <dl class="home-leader__stats">
                 <div><dt>K/D</dt><dd>{{ leader.kdRatio | number:'1.2-2' }}</dd></div>
-                <div><dt>Vitórias</dt><dd>{{ leader.wins }}</dd></div>
+                <div><dt>{{ 'home.hero.wins' | translate }}</dt><dd>{{ leader.wins }}</dd></div>
                 <div><dt>Score</dt><dd>{{ leader.score | number:'1.0-2' }}</dd></div>
               </dl>
             } @else {
-              <p class="home-empty">Ainda não há jogadores classificados nesta temporada.</p>
+              <p class="home-empty">{{ 'home.hero.noLeader' | translate }}</p>
             }
           </aside>
         }
         @case ('ranking-error') {
           <div class="home-hero__content">
-            <span class="home-label home-label--cyan">{{ seasonState.contextMode === 'active' ? 'SEASON • TEMPORADA ATIVA' : 'ÚLTIMA TEMPORADA ENCERRADA' }}</span>
+            <span class="home-label home-label--cyan">{{ (seasonState.contextMode === 'active' ? 'home.hero.active' : 'home.hero.latestClosed') | translate }}</span>
             <h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ seasonState.seasonName }}</strong></h1>
-            <p class="home-source-state home-source-state--error">O ranking está temporariamente indisponível.</p>
-            <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(seasonState.seasonSlug, seasonState.contextMode)">Ver temporada</a>
+            <p class="home-source-state home-source-state--error">{{ 'home.hero.rankingError' | translate }}</p>
+            <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(seasonState.seasonSlug, seasonState.contextMode)">{{ 'home.hero.viewSeason' | translate }}</a>
           </div>
         }
         @case ('loading') {
-          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>Carregando contexto</span><strong>competitivo...</strong></h1></div>
+          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>{{ 'home.hero.loadingTitle' | translate }}</span><strong>{{ 'home.hero.loadingEmphasis' | translate }}</strong></h1></div>
         }
         @case ('empty') {
-          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>Temporadas</strong></h1><p class="home-source-state">Nenhuma temporada pública está disponível no momento.</p></div>
+          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ 'home.hero.seasons' | translate }}</strong></h1><p class="home-source-state">{{ 'home.hero.empty' | translate }}</p></div>
         }
         @case ('seasons-error') {
-          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>Temporadas</strong></h1><p class="home-source-state home-source-state--error">Não foi possível carregar o contexto sazonal.</p></div>
+          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ 'home.hero.seasons' | translate }}</strong></h1><p class="home-source-state home-source-state--error">{{ 'home.hero.seasonsError' | translate }}</p></div>
         }
       }
     </section>
   }
 
   <section class="home-section" aria-labelledby="happening-title">
-    <div class="home-section__heading"><span class="home-label home-label--live">HAPPENING NOW</span><h2 id="happening-title">HSC AGORA</h2></div>
+    <div class="home-section__heading"><span class="home-label home-label--live">{{ 'home.now.eyebrow' | translate }}</span><h2 id="happening-title">{{ 'home.now.title' | translate }}</h2></div>
     <div class="home-now-grid">
       <article class="home-panel home-panel--match">
-        <span class="home-label home-label--cyan">ÚLTIMA PARTIDA</span>
+        <span class="home-label home-label--cyan">{{ 'home.now.latestMatch' | translate }}</span>
         @if (matchesState$ | async; as matchesState) {
           @if (matchesState.status === 'ready') {
             @let match = matchesState.data[0];
@@ -75,51 +75,51 @@
               <span [class.home-scoreline__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</span>
             </div>
             <div class="home-meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
-            <a class="home-inline-link" [routerLink]="['/matches', match.matchId]">Ver detalhes →</a>
+            <a class="home-inline-link" [routerLink]="['/matches', match.matchId]">{{ 'home.now.details' | translate }}</a>
           } @else if (matchesState.status === 'loading') {
-            <p class="home-empty">Carregando partidas...</p>
+            <p class="home-empty">{{ 'home.now.matchesLoading' | translate }}</p>
           } @else if (matchesState.status === 'error') {
-            <p class="home-empty">Partidas temporariamente indisponíveis.</p>
+            <p class="home-empty">{{ 'home.now.matchesError' | translate }}</p>
           } @else {
-            <p class="home-empty">Nenhuma partida registrada nesta temporada.</p>
+            <p class="home-empty">{{ 'home.now.matchesEmpty' | translate }}</p>
           }
         }
       </article>
 
       <article class="home-panel home-panel--ranking">
-        <span class="home-label home-label--orange">TOP 3</span>
+        <span class="home-label home-label--orange">{{ 'home.now.topThree' | translate }}</span>
         @if (seasonState$ | async; as rankingState) {
           @if (rankingState.status === 'ready' && rankingState.data.topPlayers.length > 0) {
             <ol class="home-top-list">
               @for (player of rankingState.data.topPlayers; track player.steamId64) {
-                <li><strong>#{{ player.position }}</strong><app-player-avatar [imageUrl]="player.avatarUrl" [displayName]="player.name" /><span>{{ player.name }}</span><small>{{ player.score | number:'1.0-2' }} pts</small></li>
+                <li><strong>#{{ player.position }}</strong><app-player-avatar [imageUrl]="player.avatarUrl" [displayName]="player.name" /><span>{{ player.name }}</span><small>{{ player.score | number:'1.0-2' }} {{ 'home.points' | translate }}</small></li>
               }
             </ol>
           } @else if (rankingState.status === 'loading') {
-            <p class="home-empty">Carregando classificação...</p>
+            <p class="home-empty">{{ 'home.now.rankingLoading' | translate }}</p>
           } @else if (rankingState.status === 'ranking-error') {
-            <p class="home-empty">Ranking temporariamente indisponível.</p>
+            <p class="home-empty">{{ 'home.now.rankingError' | translate }}</p>
           } @else {
-            <p class="home-empty">Ainda não há jogadores classificados.</p>
+            <p class="home-empty">{{ 'home.now.rankingEmpty' | translate }}</p>
           }
         }
       </article>
 
       <article class="home-panel home-panel--notice">
-        <span class="home-label home-label--cyan">HSC NEWS</span>
+        <span class="home-label home-label--cyan">{{ 'home.now.newsLabel' | translate }}</span>
         @if (newsState$ | async; as newsState) {
           @if (newsState.status === 'ready') {
             @let notice = newsState.data[0];
             @if (formatDate(notice.publishedAt); as date) { <time class="home-notice__date">{{ date }}</time> }
             <h3>{{ notice.title }}</h3>
             @if (notice.excerpt) { <p>{{ notice.excerpt }}</p> }
-            <a class="home-inline-link" [routerLink]="['/news', notice.slug]">Ler notícia →</a>
+            <a class="home-inline-link" [routerLink]="['/news', notice.slug]">{{ 'home.now.readNews' | translate }}</a>
           } @else if (newsState.status === 'loading') {
-            <p class="home-empty">Carregando notícias...</p>
+            <p class="home-empty">{{ 'home.now.newsLoading' | translate }}</p>
           } @else if (newsState.status === 'error') {
-            <p class="home-empty">Notícias temporariamente indisponíveis.</p>
+            <p class="home-empty">{{ 'home.now.newsError' | translate }}</p>
           } @else {
-            <p class="home-empty">Nenhuma notícia publicada.</p>
+            <p class="home-empty">{{ 'home.now.newsEmpty' | translate }}</p>
           }
         }
       </article>
@@ -127,7 +127,7 @@
   </section>
 
   <section class="home-section" aria-labelledby="recent-title">
-    <div class="home-section__heading"><span class="home-label home-label--cyan">MATCH CENTER</span><h2 id="recent-title">PARTIDAS RECENTES</h2></div>
+    <div class="home-section__heading"><span class="home-label home-label--cyan">{{ 'home.recent.eyebrow' | translate }}</span><h2 id="recent-title">{{ 'home.recent.title' | translate }}</h2></div>
     @if (matchesState$ | async; as recentState) {
       @if (recentState.status === 'ready') {
         <div class="home-matches-list">
@@ -141,24 +141,24 @@
           }
         </div>
       } @else if (recentState.status === 'loading') {
-        <div class="home-panel"><p class="home-empty">Carregando partidas recentes...</p></div>
+        <div class="home-panel"><p class="home-empty">{{ 'home.recent.loading' | translate }}</p></div>
       } @else if (recentState.status === 'error') {
-        <div class="home-panel"><p class="home-empty">Não foi possível carregar as partidas recentes.</p></div>
+        <div class="home-panel"><p class="home-empty">{{ 'home.recent.error' | translate }}</p></div>
       } @else {
-        <div class="home-panel"><p class="home-empty">Nenhuma partida registrada nesta temporada.</p></div>
+        <div class="home-panel"><p class="home-empty">{{ 'home.recent.empty' | translate }}</p></div>
       }
     }
   </section>
 
   <section class="home-player-cta" aria-labelledby="player-area-title">
-    <div><span class="home-label home-label--orange">PLAYER AREA</span><h2 id="player-area-title">Área do Jogador</h2><p>Seu perfil, identidade e histórico competitivo HSC.</p></div>
-    <a class="home-action home-action--orange" routerLink="/area-do-jogador">{{ playerAreaLabel() }}</a>
+    <div><span class="home-label home-label--orange">{{ 'home.playerArea.eyebrow' | translate }}</span><h2 id="player-area-title">{{ 'home.playerArea.title' | translate }}</h2><p>{{ 'home.playerArea.description' | translate }}</p></div>
+    <a class="home-action home-action--orange" routerLink="/area-do-jogador">{{ playerAreaLabelKey() | translate }}</a>
   </section>
 
   @if (newsState$ | async; as newsSectionState) {
     @if (newsSectionState.status === 'ready') {
       <section class="home-section" aria-labelledby="news-title">
-        <div class="home-section__heading"><span class="home-label home-label--cyan">HSC WIRE</span><h2 id="news-title">NOTÍCIAS HSC</h2></div>
+        <div class="home-section__heading"><span class="home-label home-label--cyan">{{ 'home.news.eyebrow' | translate }}</span><h2 id="news-title">{{ 'home.news.title' | translate }}</h2></div>
         <div class="home-news-grid">
           @for (item of newsSectionState.data; track item.slug) {
             <a class="home-news-card" [routerLink]="['/news', item.slug]">
@@ -167,7 +167,7 @@
                 @if (formatDate(item.publishedAt); as date) { <time>{{ date }}</time> }
                 <h3>{{ item.title }}</h3>
                 @if (item.excerpt) { <p>{{ item.excerpt }}</p> }
-                <span>Ler notícia →</span>
+                <span>{{ 'home.news.readMore' | translate }}</span>
               </div>
             </a>
           }

@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import type { PlayerAccountSummary } from '../../player/domain/player-account.model';
@@ -71,7 +73,14 @@ describe('PlayerCs2ReadinessPanel', () => {
   }
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [PlayerCs2ReadinessPanel] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [PlayerCs2ReadinessPanel],
+      providers: [provideTranslateService()],
+    }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', READINESS_SERVER_ACCESS_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', READINESS_SERVER_ACCESS_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
     fixture = TestBed.createComponent(PlayerCs2ReadinessPanel);
   });
 
@@ -122,7 +131,7 @@ describe('PlayerCs2ReadinessPanel', () => {
     render({
       serverAccess: { ok: true, authorized: false, reason: 'membership_required' },
     });
-    expect(fixture.nativeElement.textContent).toContain('Membership HSC necessário');
+    expect(fixture.nativeElement.textContent).toContain('Associação HSC necessária');
     expect(fixture.nativeElement.textContent).not.toContain('Acesso liberado');
 
     render({ serverAccess: null, serverAccessState: 'unavailable' });
@@ -136,10 +145,25 @@ describe('PlayerCs2ReadinessPanel', () => {
       membership: membership('active'),
       serverAccess: { ok: true, authorized: false, reason: 'membership_required' },
     });
-    expect(fixture.nativeElement.textContent).toContain('Membership HSC necessário');
+    expect(fixture.nativeElement.textContent).toContain('Associação HSC necessária');
     expect(fixture.nativeElement.textContent).not.toContain('Acesso liberado');
 
     render({ account: account(false, false), membership: null, serverAccess: allowedAccess });
     expect(fixture.nativeElement.textContent).toContain('Acesso liberado');
   });
+
+  it('switches only the Server Access mapper status to en-US at runtime', async () => {
+    render({ serverAccess: allowedAccess });
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Access granted');
+    expect(text).toContain('Conta HSC');
+    expect(text).not.toContain('playerArea.serverAccess.authorized.status');
+  });
 });
+
+const READINESS_SERVER_ACCESS_TRANSLATIONS = {
+  'pt-BR': { playerArea: { serverAccess: { authorized: { status: 'Acesso liberado' }, reasons: { membershipRequired: { status: 'Associação HSC necessária' } } } } },
+  'en-US': { playerArea: { serverAccess: { authorized: { status: 'Access granted' }, reasons: { membershipRequired: { status: 'HSC Membership required' } } } } },
+} as const;

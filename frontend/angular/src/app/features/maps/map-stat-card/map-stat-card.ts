@@ -1,16 +1,19 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import type { MapSummary } from '../domain/map.model';
 
 @Component({
   selector: 'app-map-stat-card',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './map-stat-card.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-stat-card.css',
 })
 export class MapStatCard {
+  private readonly localeService = inject(LocaleService);
   readonly map = input.required<MapSummary>();
   readonly highlight = input<boolean>(false);
   readonly totalMapAppearances = input<number>(0);
@@ -34,15 +37,15 @@ export class MapStatCard {
     return `url("map-images/${name}.png")`;
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
       return value;
     }
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

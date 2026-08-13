@@ -2,8 +2,8 @@
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <section class="analytics-loading" aria-label="Carregando Competitive Analytics">
-          <span class="analytics-eyebrow">Carregando analytics</span>
+        <section class="analytics-loading" [attr.aria-label]="'bunker.accessibility.loading' | translate">
+          <span class="analytics-eyebrow">{{ 'bunker.states.loading.eyebrow' | translate }}</span>
           <div class="analytics-skeleton analytics-skeleton--title"></div>
           <div class="analytics-skeleton"></div>
           <div class="analytics-skeleton analytics-skeleton--short"></div>
@@ -12,8 +12,8 @@
 
       @case ('error') {
         <app-empty-state
-          title="Competitive Analytics indisponível"
-          description="Não foi possível carregar sua sessão de jogador agora."
+          [title]="'bunker.states.failure.title' | translate"
+          [description]="'bunker.states.failure.description' | translate"
         />
       }
 
@@ -26,50 +26,50 @@
           <div class="analytics-hero__identity">
             <app-player-avatar
               [imageUrl]="vm.player.avatarMedium"
-              [displayName]="vm.player.displayName ?? 'Jogador HSC'"
+              [displayName]="vm.player.displayName ?? ('bunker.labels.playerFallback' | translate)"
               accent="cyan"
             />
             <div>
-              <span class="analytics-eyebrow">Competitive Analytics</span>
+              <span class="analytics-eyebrow">{{ 'bunker.header.productName' | translate }}</span>
               <h1>{{ vm.player.displayName }}</h1>
               <span class="analytics-hero__steam">STEAMID {{ vm.player.steamId64 || '—' }}</span>
             </div>
           </div>
           <div class="analytics-hero__context">
-            <span>Contexto atual</span>
-            <strong>{{ vm.summary.currentSeason?.name || 'Season indisponível' }}</strong>
+            <span>{{ 'bunker.header.currentContext' | translate }}</span>
+            <strong>{{ vm.summary.currentSeason?.name || ('bunker.season.unavailable' | translate) }}</strong>
           </div>
-          <a class="analytics-action" routerLink="/area-do-jogador">Área do Jogador</a>
+          <a class="analytics-action" routerLink="/area-do-jogador">{{ 'bunker.actions.playerArea' | translate }}</a>
         </header>
 
         @if (vm.summaryState === 'error') {
           <section class="analytics-partial" role="status">
-            <span class="analytics-eyebrow">Dados competitivos</span>
-            <h2>Resumo temporariamente indisponível</h2>
-            <p>Sua identidade continua conectada. Tente novamente mais tarde para carregar os analytics.</p>
+            <span class="analytics-eyebrow">{{ 'bunker.states.partial.eyebrow' | translate }}</span>
+            <h2>{{ 'bunker.states.partial.title' | translate }}</h2>
+            <p>{{ 'bunker.states.partial.description' | translate }}</p>
           </section>
         } @else {
-          <section class="season-context" aria-label="Contexto da temporada atual">
+          <section class="season-context" [attr.aria-label]="'bunker.accessibility.seasonContext' | translate">
             <div>
-              <span>Season</span>
+              <span>{{ 'bunker.season.label' | translate }}</span>
               <strong>{{ vm.summary.currentSeason?.name || '—' }}</strong>
               <small>{{ vm.summary.currentSeason?.slug || '—' }}</small>
             </div>
             <div>
-              <span>Status</span>
+              <span>{{ 'bunker.season.status' | translate }}</span>
               <strong [class.season-context__active]="vm.summary.currentSeason?.status === 'active'">
                 {{ vm.summary.currentSeason?.status || '—' }}
               </strong>
             </div>
             <div>
-              <span>Período</span>
+              <span>{{ 'bunker.season.period' | translate }}</span>
               <strong>
                 {{ formatDate(vm.summary.currentSeason?.scope?.startAt) }} —
                 {{ formatDate(vm.summary.currentSeason?.scope?.endAt) }}
               </strong>
             </div>
             <div>
-              <span>Atualizado</span>
+              <span>{{ 'bunker.season.updated' | translate }}</span>
               <strong>{{ formatDateTime(vm.summary.seasonPlayer?.generatedAt) }}</strong>
             </div>
           </section>
@@ -77,10 +77,10 @@
           <section class="analytics-section" aria-labelledby="competitive-overview-title">
             <div class="analytics-heading">
               <div>
-                <span class="analytics-eyebrow">Visão geral</span>
-                <h2 id="competitive-overview-title">Perfil competitivo geral</h2>
+                <span class="analytics-eyebrow">{{ 'bunker.sections.overview.eyebrow' | translate }}</span>
+                <h2 id="competitive-overview-title">{{ 'bunker.sections.overview.title' | translate }}</h2>
               </div>
-              <p>Histórico lifetime publicado pelo pipeline competitivo.</p>
+              <p>{{ 'bunker.sections.overview.description' | translate }}</p>
             </div>
 
             @if (vm.summary.competitiveProfile?.lifetime; as lifetime) {
@@ -88,7 +88,7 @@
                 <article class="metric-card metric-card--cyan">
                   <span>K/D</span>
                   <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
-                  <small>Lifetime · valor canônico</small>
+                  <small>{{ 'bunker.sections.overview.canonicalLifetime' | translate }}</small>
                   @if (vm.summary.seasonPlayer?.timeline; as timeline) {
                     <app-competitive-metric-sparkline
                       [values]="canonicalTrend(timeline, 'kdRatio')"
@@ -97,7 +97,7 @@
                 </article>
 
                 <article class="metric-card metric-card--radial">
-                  <span>Win Rate</span>
+                  <span>{{ 'bunker.labels.winRate' | translate }}</span>
                   <app-competitive-win-rate-chart [value]="lifetime.winRate" />
                   <small>Lifetime · {{ formatRate(lifetime.winRate) }}</small>
                 </article>
@@ -105,7 +105,7 @@
                 <article class="metric-card metric-card--orange">
                   <span>Impact</span>
                   <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
-                  <small>Lifetime · valor canônico</small>
+                  <small>{{ 'bunker.sections.overview.canonicalLifetime' | translate }}</small>
                   @if (vm.summary.seasonPlayer?.timeline; as timeline) {
                     <app-competitive-metric-sparkline
                       [values]="canonicalTrend(timeline, 'impactRating')"
@@ -115,25 +115,25 @@
                 </article>
               </div>
 
-              <dl class="metrics-matrix" aria-label="Métricas lifetime">
+              <dl class="metrics-matrix" [attr.aria-label]="'bunker.accessibility.lifetimeMetrics' | translate">
                 <div><dt>Score</dt><dd>{{ formatDecimal(lifetime.score, 2) }}</dd></div>
                 <div><dt>ADR</dt><dd>{{ formatDecimal(lifetime.adr, 1) }}</dd></div>
-                <div><dt>Maps</dt><dd>{{ formatInteger(lifetime.mapsPlayed) }}</dd></div>
-                <div><dt>Wins</dt><dd>{{ formatInteger(lifetime.wins) }}</dd></div>
-                <div><dt>Losses</dt><dd>{{ formatInteger(lifetime.losses) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.maps' | translate }}</dt><dd>{{ formatInteger(lifetime.mapsPlayed) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.wins' | translate }}</dt><dd>{{ formatInteger(lifetime.wins) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.losses' | translate }}</dt><dd>{{ formatInteger(lifetime.losses) }}</dd></div>
                 <div><dt>Rounds</dt><dd>{{ formatInteger(lifetime.roundsPlayed) }}</dd></div>
-                <div><dt>Kills</dt><dd>{{ formatInteger(lifetime.kills) }}</dd></div>
-                <div><dt>Deaths</dt><dd>{{ formatInteger(lifetime.deaths) }}</dd></div>
-                <div><dt>Assists</dt><dd>{{ formatInteger(lifetime.assists) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.kills' | translate }}</dt><dd>{{ formatInteger(lifetime.kills) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.deaths' | translate }}</dt><dd>{{ formatInteger(lifetime.deaths) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.assists' | translate }}</dt><dd>{{ formatInteger(lifetime.assists) }}</dd></div>
                 <div><dt>HS%</dt><dd>{{ formatRate(lifetime.headshotPct) }}</dd></div>
-                <div><dt>Accuracy</dt><dd>{{ formatRate(lifetime.accuracy) }}</dd></div>
-                <div><dt>Util/R</dt><dd>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.accuracy' | translate }}</dt><dd>{{ formatRate(lifetime.accuracy) }}</dd></div>
+                <div><dt>{{ 'bunker.labels.utilityPerRound' | translate }}</dt><dd>{{ formatDecimal(lifetime.utilityDmgPerRound, 1) }}</dd></div>
                 <div><dt>Entry WR</dt><dd>{{ formatRate(lifetime.entryWinRate) }}</dd></div>
               </dl>
             } @else {
               <div class="analytics-empty">
-                <strong>Perfil competitivo geral ainda indisponível.</strong>
-                <p>Nenhuma métrica lifetime foi publicada para este jogador.</p>
+                <strong>{{ 'bunker.states.empty.lifetimeTitle' | translate }}</strong>
+                <p>{{ 'bunker.states.empty.lifetimeDescription' | translate }}</p>
               </div>
             }
           </section>
@@ -143,10 +143,10 @@
               <section class="analytics-section trend-section" aria-labelledby="impact-trend-title">
                 <div class="analytics-heading">
                   <div>
-                    <span class="analytics-eyebrow">Performance trend</span>
-                    <h2 id="impact-trend-title">Evolução de Impacto</h2>
+                    <span class="analytics-eyebrow">{{ 'bunker.sections.impactTrend.eyebrow' | translate }}</span>
+                    <h2 id="impact-trend-title">{{ 'bunker.sections.impactTrend.title' | translate }}</h2>
                   </div>
-                  <p>Sequência sazonal na ordem publicada, sem score composto ou seleção de extremos.</p>
+                  <p>{{ 'bunker.sections.impactTrend.description' | translate }}</p>
                 </div>
                 <app-competitive-impact-trend-chart [timeline]="timeline" />
               </section>
@@ -157,10 +157,10 @@
             <section class="analytics-section" aria-labelledby="map-performance-title">
               <div class="analytics-heading">
                 <div>
-                  <span class="analytics-eyebrow">Map pool</span>
-                  <h2 id="map-performance-title">Performance por mapa</h2>
+                  <span class="analytics-eyebrow">{{ 'bunker.sections.maps.eyebrow' | translate }}</span>
+                  <h2 id="map-performance-title">{{ 'bunker.sections.maps.title' | translate }}</h2>
                 </div>
-                <p>Win Rate e métricas sazonais na ordem fornecida pelo BunkerSummary.</p>
+                <p>{{ 'bunker.sections.maps.description' | translate }}</p>
               </div>
 
               @if (seasonPlayer.byMap.length > 0) {
@@ -168,33 +168,33 @@
                   <div class="chart-panel">
                     <app-competitive-map-winrate-chart [maps]="seasonPlayer.byMap" />
                   </div>
-                  <div class="map-table" role="table" aria-label="Performance sazonal por mapa">
+                  <div class="map-table" role="table" [attr.aria-label]="'bunker.accessibility.mapPerformance' | translate">
                     <div class="map-table__row map-table__head" role="row">
-                      <span role="columnheader">Mapa</span><span role="columnheader">Jogos</span>
-                      <span role="columnheader">V</span><span role="columnheader">D</span>
-                      <span role="columnheader">WR</span><span role="columnheader">K/D</span>
+                      <span role="columnheader">{{ 'bunker.labels.map' | translate }}</span><span role="columnheader">{{ 'bunker.labels.games' | translate }}</span>
+                      <span role="columnheader">{{ 'bunker.labels.winShort' | translate }}</span><span role="columnheader">{{ 'bunker.labels.lossShort' | translate }}</span>
+                      <span role="columnheader">{{ 'bunker.labels.winPct' | translate }}</span><span role="columnheader">K/D</span>
                       <span role="columnheader">ADR</span><span role="columnheader">Impact</span>
-                      <span role="columnheader">HS%</span><span role="columnheader">Entry</span>
+                      <span role="columnheader">HS%</span><span role="columnheader">{{ 'bunker.labels.entry' | translate }}</span>
                     </div>
                     @for (map of seasonPlayer.byMap; track map.mapName ?? $index) {
                       <div class="map-table__row" role="row">
-                        <strong role="cell" data-label="Mapa">{{ map.mapName || '—' }}</strong>
-                        <span role="cell" data-label="Jogos">{{ formatInteger(map.mapsPlayed) }}</span>
-                        <span role="cell" data-label="V">{{ formatInteger(map.wins) }}</span>
-                        <span role="cell" data-label="D">{{ formatInteger(map.losses) }}</span>
-                        <span role="cell" data-label="WR">{{ formatRate(map.winRate) }}</span>
+                        <strong role="cell" [attr.data-label]="'bunker.labels.map' | translate">{{ map.mapName || '—' }}</strong>
+                        <span role="cell" [attr.data-label]="'bunker.labels.games' | translate">{{ formatInteger(map.mapsPlayed) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.winShort' | translate">{{ formatInteger(map.wins) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.lossShort' | translate">{{ formatInteger(map.losses) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.winPct' | translate">{{ formatRate(map.winRate) }}</span>
                         <span role="cell" data-label="K/D">{{ formatDecimal(map.kdRatio, 2) }}</span>
                         <span role="cell" data-label="ADR">{{ formatDecimal(map.adr, 1) }}</span>
                         <span role="cell" data-label="Impact">{{ formatDecimal(map.impactRating, 2) }}</span>
                         <span role="cell" data-label="HS%">{{ formatRate(map.headshotPct) }}</span>
-                        <span role="cell" data-label="Entry">{{ formatRate(map.entryWinRate) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.entry' | translate">{{ formatRate(map.entryWinRate) }}</span>
                       </div>
                     }
                   </div>
                 </div>
               } @else {
                 <div class="analytics-empty analytics-empty--compact">
-                  <strong>Performance por mapa ainda indisponível.</strong>
+                  <strong>{{ 'bunker.states.empty.maps' | translate }}</strong>
                 </div>
               }
             </section>
@@ -204,22 +204,22 @@
             <section class="analytics-section" aria-labelledby="combat-profile-title">
               <div class="analytics-heading">
                 <div>
-                  <span class="analytics-eyebrow">Combat profile</span>
-                  <h2 id="combat-profile-title">Perfil de combate</h2>
+                  <span class="analytics-eyebrow">{{ 'bunker.sections.combat.eyebrow' | translate }}</span>
+                  <h2 id="combat-profile-title">{{ 'bunker.sections.combat.title' | translate }}</h2>
                 </div>
-                <p>Conversão de clutch e contadores lifetime publicados.</p>
+                <p>{{ 'bunker.sections.combat.description' | translate }}</p>
               </div>
               <div class="combat-grid">
                 <article class="combat-card">
-                  <span class="analytics-eyebrow">Clutch performance</span>
+                  <span class="analytics-eyebrow">{{ 'bunker.sections.combat.clutchEyebrow' | translate }}</span>
                   <div class="clutch-table">
-                    <div class="clutch-row clutch-row--head"><span>Clutch</span><span>Sucesso</span><span>Conversão</span></div>
+                    <div class="clutch-row clutch-row--head"><span>Clutch</span><span>{{ 'bunker.labels.success' | translate }}</span><span>{{ 'bunker.labels.conversion' | translate }}</span></div>
                     <div class="clutch-row"><strong>1v1</strong><span>{{ formatInteger(lifetime.v1Wins) }}/{{ formatInteger(lifetime.v1Count) }}</span><strong>{{ formatRate(lifetime.v1WinRate) }}</strong></div>
                     <div class="clutch-row"><strong>1v2</strong><span>{{ formatInteger(lifetime.v2Wins) }}/{{ formatInteger(lifetime.v2Count) }}</span><strong>{{ formatRate(lifetime.v2WinRate) }}</strong></div>
                   </div>
                 </article>
                 <article class="combat-card combat-card--orange">
-                  <span class="analytics-eyebrow">Multi-kill profile</span>
+                  <span class="analytics-eyebrow">{{ 'bunker.sections.combat.multiKillEyebrow' | translate }}</span>
                   <app-competitive-multikill-chart [stats]="lifetime" />
                 </article>
               </div>
@@ -231,10 +231,10 @@
               <section class="analytics-section" aria-labelledby="recent-maps-title">
                 <div class="analytics-heading">
                   <div>
-                    <span class="analytics-eyebrow">Recent maps</span>
-                    <h2 id="recent-maps-title">Mapas recentes</h2>
+                    <span class="analytics-eyebrow">{{ 'bunker.sections.recent.eyebrow' | translate }}</span>
+                    <h2 id="recent-maps-title">{{ 'bunker.sections.recent.title' | translate }}</h2>
                   </div>
-                  <p>Resultados e métricas canônicas na sequência recebida.</p>
+                  <p>{{ 'bunker.sections.recent.description' | translate }}</p>
                 </div>
                 <div class="recent-maps">
                   @for (map of recentMaps; track $index) {
@@ -251,7 +251,7 @@
                         <div><dt>Impact</dt><dd>{{ formatDecimal(map.impactRating, 2) }}</dd></div>
                         <div><dt>T1/T2</dt><dd>{{ recentMapTeamScore(map) }}</dd></div>
                         <div><dt>K-D-A</dt><dd>{{ formatInteger(map.kills) }}-{{ formatInteger(map.deaths) }}-{{ formatInteger(map.assists) }}</dd></div>
-                        <div><dt>Util</dt><dd>{{ formatInteger(map.utilityDamage) }}</dd></div>
+                        <div><dt>{{ 'bunker.labels.utility' | translate }}</dt><dd>{{ formatInteger(map.utilityDamage) }}</dd></div>
                       </dl>
                     </article>
                   }
@@ -265,10 +265,10 @@
               <section class="analytics-section" aria-labelledby="timeline-title">
                 <div class="analytics-heading">
                   <div>
-                    <span class="analytics-eyebrow">Events</span>
-                    <h2 id="timeline-title">Timeline da temporada</h2>
+                    <span class="analytics-eyebrow">{{ 'bunker.sections.timeline.eyebrow' | translate }}</span>
+                    <h2 id="timeline-title">{{ 'bunker.sections.timeline.title' | translate }}</h2>
                   </div>
-                  <p>Eventos competitivos preservados na ordem original.</p>
+                  <p>{{ 'bunker.sections.timeline.description' | translate }}</p>
                 </div>
                 <div class="event-timeline">
                   @for (event of timeline; track $index) {
@@ -295,7 +295,7 @@
 
           <div class="analytics-return">
             <a class="analytics-action analytics-action--primary" routerLink="/area-do-jogador">
-              Voltar para Área do Jogador
+              {{ 'bunker.actions.backToPlayerArea' | translate }}
             </a>
           </div>
         }

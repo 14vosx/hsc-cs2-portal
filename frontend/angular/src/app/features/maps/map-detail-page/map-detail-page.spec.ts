@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router, type ParamMap } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -57,6 +58,7 @@ describe('MapDetailPage', () => {
       imports: [MapDetailPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: MapsApiService, useValue: mapsApiMock },
         {
           provide: ActivatedRoute,
@@ -64,6 +66,10 @@ describe('MapDetailPage', () => {
         },
       ],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { mapDetail: { states: { notFound: { title: 'Mapa não encontrado' }, error: { pageTitle: 'Erro ao carregar mapa' } }, backToMaps: '← Voltar para mapas', hero: { updated: 'Dados atualizados' }, history: { emptyMessage: 'Este mapa ainda não possui partidas recentes no histórico.' }, counts: { appearances: { other: '{{ count }} aparições registradas' }, rounds: { other: '{{ count }} rounds' } }, relativeDate: {}, snapshot: {}, fallbacks: {} }, mapRecentMatches: { ariaLabel: 'Partidas recentes do mapa', match: 'Partida #{{ id }}', scoreAriaLabel: 'Placar do mapa: {{ score }}', winner: 'Vencedor', series: 'Série', viewMatch: 'Ver partida', fallbacks: { date: 'Sem data', series: 'Série não informada', team: 'Time não informado', winner: 'Sem vencedor' } } });
+    translate.setTranslation('en-US', { mapDetail: { states: {}, backToMaps: '← Back to maps', hero: {}, history: {}, counts: {}, relativeDate: {}, snapshot: {}, fallbacks: {} }, mapRecentMatches: { ariaLabel: 'Recent matches on this map', match: 'Match #{{ id }}', scoreAriaLabel: 'Map score: {{ score }}', winner: 'Winner', series: 'Series', viewMatch: 'View match', fallbacks: { date: 'No date', series: 'Series unavailable', team: 'Team unavailable', winner: 'No winner' } } });
+    void translate.use('pt-BR');
   });
 
   const createComponent = () => {

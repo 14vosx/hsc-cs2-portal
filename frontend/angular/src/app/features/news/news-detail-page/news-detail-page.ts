@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   catchError,
   distinctUntilChanged,
@@ -11,10 +12,12 @@ import {
   of,
   startWith,
   Subject,
+  Subscription,
   switchMap,
   tap,
 } from 'rxjs';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { NewsArticleBody } from '../components/news-article-body/news-article-body';
 import { NewsApiService } from '../data-access/news-api.service';
@@ -33,19 +36,26 @@ type NewsDetailVm =
 
 @Component({
   selector: 'app-news-detail-page',
-  imports: [AsyncPipe, RouterLink, NewsArticleBody, PageState],
+  imports: [AsyncPipe, RouterLink, NewsArticleBody, PageState, TranslatePipe],
   templateUrl: './news-detail-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-detail-page.css',
 })
 export class NewsDetailPage implements OnDestroy {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly newsApi = inject(NewsApiService);
   private readonly title = inject(Title);
+  private readonly translate = inject(TranslateService);
   private readonly reload$ = new Subject<void>();
 
   private readonly previousDocumentTitle = this.title.getTitle();
-  private readonly newsDocumentTitle = 'HSC — News';
+  private articleTitleActive = false;
+  private readonly documentTitleSubscription: Subscription = this.translate
+    .stream('newsDetail.documentTitle')
+    .subscribe((title) => {
+      if (!this.articleTitleActive) this.title.setTitle(title);
+    });
 
   private readonly failedImageUrl = signal<string | null>(null);
 
@@ -55,7 +65,7 @@ export class NewsDetailPage implements OnDestroy {
       this.route.paramMap.pipe(
         map((params) => params.get('slug')?.trim() ?? ''),
         distinctUntilChanged(),
-        tap(() => this.title.setTitle(this.newsDocumentTitle)),
+        tap(() => { this.articleTitleActive = false; }),
         switchMap((slug) => {
           if (!slug) {
             return of({ state: 'not-found' } satisfies NewsDetailVm);
@@ -63,6 +73,7 @@ export class NewsDetailPage implements OnDestroy {
 
           return this.newsApi.getNewsArticle(slug).pipe(
             map((article): NewsDetailVm => {
+              this.articleTitleActive = true;
               this.title.setTitle(`HSC — ${article.title}`);
               return { state: 'ready', article };
             }),
@@ -85,12 +96,13 @@ export class NewsDetailPage implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.documentTitleSubscription.unsubscribe();
     this.title.setTitle(this.previousDocumentTitle);
   }
 
-  protected formatDate(value: string | null): string {
+  protected formatDate(value: string | null): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
 
     const date = new Date(value);
@@ -99,7 +111,7 @@ export class NewsDetailPage implements OnDestroy {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

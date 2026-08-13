@@ -1,8 +1,10 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { MatchesApiService } from './data-access/matches-api.service';
@@ -25,12 +27,13 @@ type MatchesVm =
 
 @Component({
   selector: 'app-matches-page',
-  imports: [AsyncPipe, PageState, RouterLink, StatusBadge],
+  imports: [AsyncPipe, PageState, RouterLink, StatusBadge, TranslatePipe],
   templateUrl: './matches-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './matches-page.css',
 })
 export class MatchesPage {
+  private readonly localeService = inject(LocaleService);
   private readonly matchesApi = inject(MatchesApiService);
   private readonly reload$ = new Subject<void>();
   private readonly knownMapImages = new Set([
@@ -161,8 +164,8 @@ export class MatchesPage {
     return match.maps[0];
   }
 
-  protected primaryMapName(match: MatchSummary): string {
-    return this.primaryMap(match)?.name || 'Mapa não informado';
+  protected primaryMapName(match: MatchSummary): string | null {
+    return this.primaryMap(match)?.name || null;
   }
 
   protected mapBackgroundImage(match: MatchSummary): string {
@@ -172,8 +175,8 @@ export class MatchesPage {
       : 'none';
   }
 
-  protected teamName(name: string | null): string {
-    return name || 'Time não informado';
+  protected teamName(name: string | null): string | null {
+    return name || null;
   }
 
   protected scoreLabel(score: number | null): number | string {
@@ -207,9 +210,9 @@ export class MatchesPage {
     return hours > 0 ? `${hours}h ${String(minutes).padStart(2, '0')}min` : `${minutes} min`;
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data disponível';
+      return null;
     }
 
     const date = new Date(value);
@@ -217,7 +220,7 @@ export class MatchesPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -226,7 +229,7 @@ export class MatchesPage {
     }).format(date);
   }
 
-  protected matchDate(match: MatchSummary): string {
+  protected matchDate(match: MatchSummary): string | null {
     return this.formatDate(match.endedAt || match.startedAt);
   }
 }

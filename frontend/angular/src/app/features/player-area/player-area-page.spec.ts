@@ -2,7 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
-import { of, Subject, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BunkerApiService } from '../bunker/data-access/bunker-api.service';
@@ -14,6 +15,7 @@ import { PlayerIdentityLinkApiService } from '../player/data-access/player-ident
 import { PlayerSelfApiService } from '../player/data-access/player-self-api.service';
 import { PlayerServerAccessApiService } from '../player/data-access/player-server-access-api.service';
 import { PlayerAreaPage } from './player-area-page';
+import { PlayerAccountSecurityPanel } from '../player-account-security/player-account-security-panel/player-account-security-panel';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import type { PlayerSession } from '../../core/session/player-session.model';
 
@@ -74,6 +76,7 @@ describe('PlayerAreaPage athlete dashboard', () => {
       imports: [PlayerAreaPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: PlayerIdentityApiService, useValue: identityApi }, { provide: PlayerSelfApiService, useValue: selfApi },
         { provide: BunkerApiService, useValue: bunkerApi }, { provide: PlayerAuthApiService, useValue: authApi },
         { provide: PlayerEmailAuthApiService, useValue: { login: vi.fn(), register: vi.fn(), requestPasswordReset: vi.fn() } },
@@ -83,6 +86,10 @@ describe('PlayerAreaPage athlete dashboard', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({}), queryParams: {} } } },
       ],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', AREA_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', AREA_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
     fixture = TestBed.createComponent(PlayerAreaPage);
     router = TestBed.inject(Router);
     vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -121,7 +128,7 @@ describe('PlayerAreaPage athlete dashboard', () => {
   it('does not claim access when the server decision is negative', async () => {
     serverAccessApi.getServerAccess.mockReturnValue(of({ ok: true, authorized: false, reason: 'membership_required' }));
     const text = (await render()).textContent ?? '';
-    expect(text).toContain('Membership HSC necessário');
+    expect(text).toContain('Associação HSC necessária');
     expect(text).not.toContain('Acesso liberado');
   });
 
@@ -236,6 +243,44 @@ describe('PlayerAreaPage athlete dashboard', () => {
     expect(selfApi.getAccount).not.toHaveBeenCalled();
   });
 
+  it('switches locale at runtime while preserving identity, domain and competitive values', async () => {
+    const native = await render();
+    click(native, 'Editar perfil / configurações');
+    const readiness = native.querySelector<HTMLElement>('.readiness-strip')!;
+    const ptText = native.textContent ?? '';
+    expect(readiness.getAttribute('aria-label')).toBe('Prontidão dos servidores HSC');
+    expect(ptText).toContain('0,55');
+    expect(ptText).toContain('46,3%');
+    const callsBeforeSwitch = {
+      identity: identityApi.getCurrentIdentity.mock.calls.length,
+      account: selfApi.getAccount.mock.calls.length,
+      profile: selfApi.getProfile.mock.calls.length,
+      membership: selfApi.getMembership.mock.calls.length,
+      summary: bunkerApi.getSummary.mock.calls.length,
+    };
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+    const text = native.textContent ?? '';
+    expect(text).toContain('Profile and account');
+    expect(text).toContain('Player HSC');
+    expect(text).toContain('player@example.test');
+    expect(text).toContain('76561198000000001');
+    expect(text).toContain('hsc-member');
+    expect(text).toContain('Rifler');
+    expect(text).toContain('Mirage');
+    expect(text).toContain('Season 02');
+    expect(text).toContain('0.55');
+    expect(text).toContain('46.3%');
+    expect(text).not.toContain('0,55');
+    expect(readiness.getAttribute('aria-label')).toBe('HSC Server Readiness');
+    expect(native.querySelector('a[href="/players/player-hsc"]')).toBeTruthy();
+    expect(identityApi.getCurrentIdentity).toHaveBeenCalledTimes(callsBeforeSwitch.identity);
+    expect(selfApi.getAccount).toHaveBeenCalledTimes(callsBeforeSwitch.account);
+    expect(selfApi.getProfile).toHaveBeenCalledTimes(callsBeforeSwitch.profile);
+    expect(selfApi.getMembership).toHaveBeenCalledTimes(callsBeforeSwitch.membership);
+    expect(bunkerApi.getSummary).toHaveBeenCalledTimes(callsBeforeSwitch.summary);
+  });
+
   it('synchronizes the global session when Player Area confirms authentication', async () => {
     await render();
     expect(playerSession.load).toHaveBeenCalledTimes(1);
@@ -342,4 +387,67 @@ describe('PlayerAreaPage athlete dashboard', () => {
     serverAccessApi.getServerAccess.mockReturnValue(throwError(() => new HttpErrorResponse({ status })));
     expect((await render()).textContent).toContain('Entre para acessar sua área');
   });
+
+  it.each([
+    ['success', 'success'],
+    ['identity_conflict', 'error'],
+    ['already_linked', 'error'],
+    ['unavailable', 'error'],
+    ['failed', 'error'],
+  ] as const)('transports steamLink=%s with semantic notice kind %s', async (result, kind) => {
+    const route = TestBed.inject(ActivatedRoute) as unknown as { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap>; queryParams: Record<string, string> } };
+    route.snapshot.queryParamMap = convertToParamMap({ steamLink: result });
+    route.snapshot.queryParams = { steamLink: result };
+    const native = await render();
+    click(native, 'Editar perfil / configurações');
+    const panel = fixture.debugElement.query(By.directive(PlayerAccountSecurityPanel)).componentInstance as PlayerAccountSecurityPanel;
+    expect(panel.steamNoticeKind()).toBe(kind);
+    expect(panel.steamNotice()).toBeTruthy();
+  });
+
+  it('does not transport a notice for an unknown steamLink result', async () => {
+    const route = TestBed.inject(ActivatedRoute) as unknown as { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap>; queryParams: Record<string, string> } };
+    route.snapshot.queryParamMap = convertToParamMap({ steamLink: 'unknown' });
+    route.snapshot.queryParams = { steamLink: 'unknown' };
+    const native = await render();
+    click(native, 'Editar perfil / configurações');
+    const panel = fixture.debugElement.query(By.directive(PlayerAccountSecurityPanel)).componentInstance as PlayerAccountSecurityPanel;
+    expect(panel.steamNoticeKind()).toBeNull();
+    expect(panel.steamNotice()).toBeNull();
+  });
 });
+
+const areaDictionary = (english: boolean) => ({
+  playerArea: {
+    header: { eyebrow: english ? 'HSC Members' : 'HSC Membros', title: english ? 'Player Area' : 'Área do Jogador' },
+    states: { loading: { description: english ? 'Loading account, profile, and Membership.' : 'Carregando conta, perfil e associação HSC.', message: english ? 'Loading your Player Area...' : 'Carregando sua Área do Jogador...' }, error: { title: english ? 'Player Area unavailable' : 'Área do Jogador indisponível', description: english ? 'Could not load your account.' : 'Não foi possível carregar sua conta HSC agora.' } },
+    gateway: { description: english ? 'Your HSC account brings together your profile, CS2 identity, statistics, and Membership.' : 'Sua conta HSC centraliza perfil, identidade CS2, estatísticas personalizadas e associação.', accessMark: 'PLAYER ACCESS', benefits: { title: english ? 'Your HSC competitive space' : 'Seu espaço competitivo HSC', profile: { title: 'Perfil HSC', description: 'Sua identidade dentro da comunidade.' }, identity: { title: 'Identidade CS2', description: 'Conecte sua conta à Steam quando aplicável.' }, stats: { title: 'Estatísticas', description: 'Acompanhe sua atividade competitiva quando disponível.' }, membership: { title: english ? 'Membership' : 'Associação', description: 'Consulte o estado da sua relação com o HSC.' } } },
+    hero: { preferredMap: english ? 'Preferred map · {{ value }}' : 'Mapa preferido · {{ value }}', sessionConnected: english ? 'Session connected' : 'Sessão conectada' },
+    settings: { eyebrow: english ? 'Settings' : 'Configurações', title: english ? 'Profile and account' : 'Perfil e conta' },
+    profile: { eyebrow: 'Perfil', title: 'Seu perfil HSC', name: 'Nome', joinedAt: 'No HSC desde', visibility: { label: 'Visibilidade', public: 'Visível para membros HSC', private: 'Privado' } },
+    membership: { title: english ? 'Your Membership' : 'Sua associação', plan: 'Plano', start: 'Início', validUntil: 'Validade', empty: 'Sem associação HSC cadastrada.', status: { none: 'Sem associação HSC', inactive: 'Associação inativa', active: english ? 'Active Membership' : 'Associação ativa', suspended: 'Associação suspensa', expired: 'Associação expirada', cancelled: 'Associação cancelada' } },
+    serverAccess: { readiness: english ? 'HSC Server Readiness' : 'Prontidão dos servidores HSC', unavailable: { status: 'Verificação indisponível', description: '' }, authorized: { status: english ? 'Access granted' : 'Acesso liberado', description: '' }, reasons: { steamIdentityNotLinked: { status: 'Steam necessária', description: '' }, accountDisabled: { status: 'Acesso indisponível', description: '' }, membershipRequired: { status: english ? 'HSC Membership required' : 'Associação HSC necessária', description: '' }, membershipInactive: { status: 'Associação inativa', description: '' }, membershipSuspended: { status: 'Associação suspensa', description: '' }, membershipExpired: { status: 'Associação expirada', description: '' }, membershipCancelled: { status: 'Associação cancelada', description: '' } } },
+    competitive: { available: 'Disponíveis', steamRequired: 'Vínculo Steam necessário', error: 'O resumo competitivo está temporariamente indisponível. Seu perfil e sua conta continuam acessíveis.', seasonPerformance: 'Season performance', updatedAt: 'Atualizado em', registeredMaps: { one: '{{ count }} mapa registrado nesta temporada.', other: '{{ count }} mapas registrados nesta temporada.' }, noSeasonStats: { title: 'Esta temporada ainda não possui estatísticas competitivas para você.', description: 'Assim que houver dados competitivos nesta temporada, eles aparecerão aqui.' }, lifetime: { eyebrow: 'Histórico HSC', title: 'Perfil Competitivo Geral', description: 'Seu histórico competitivo no HSC.', empty: 'Seu perfil competitivo ainda não possui histórico disponível.' }, combat: { title: 'Combat Breakdown', clutchPerformance: 'Clutch Performance', success: 'Success', conversion: 'Conversion', multiKill: 'Multi-kill Counters' } },
+    metrics: { winRate: 'Win Rate', mapsPlayed: 'Maps Played', wins: 'Wins', losses: 'Losses', rounds: 'Rounds', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', accuracy: 'Accuracy', utilityPerRound: 'Util / R' },
+    account: { ariaLabel: 'Identidades e associação', membership: english ? 'Membership' : 'Associação', email: { label: 'E-mail', notLinked: 'Não vinculado', pendingVerification: 'Vinculado · verificação pendente', verified: 'Vinculado e verificado' }, steam: { linked: 'Vinculada', notLinked: 'Não vinculada' } },
+    actions: { closeSettings: 'Fechar configurações', editSettings: 'Editar perfil / configurações', editProfile: 'Editar perfil', viewPublicProfile: 'Ver perfil público', signingOut: 'Saindo...', signOut: 'Sair', manageAccount: 'Gerenciar conta', fullCompetitiveAnalysis: 'Ver análise competitiva completa' },
+    notices: { profileUpdated: 'Perfil atualizado.', avatarUpdated: 'Avatar atualizado.', avatarRemoved: 'Avatar removido.', bannerUpdated: 'Banner atualizado.', bannerRemoved: 'Banner removido.', logoutFailed: 'Não foi possível encerrar a sessão. Tente novamente.' },
+    steamLink: { results: { success: 'Steam vinculada com sucesso.', identityConflict: 'Conflito Steam.', alreadyLinked: 'Steam já vinculada.', unavailable: 'Steam indisponível.', failed: 'Falha ao vincular Steam.' } },
+  },
+  playerAuth: AUTH_CHILD_TRANSLATIONS[english ? 'en-US' : 'pt-BR'].playerAuth,
+  playerAccount: {
+    security: { eyebrow: 'Conta e segurança', title: 'Identidades de acesso', active: 'Conta ativa' },
+    email: { label: 'E-mail', verified: 'Vinculado e verificado', pendingVerification: 'Vinculado · verificação pendente', notLinked: 'Nenhum e-mail vinculado.', link: 'Vincular e-mail' },
+    passwordReset: { action: 'Redefinir senha', pending: 'Enviando...', success: 'Solicitação recebida.' },
+    steam: { linked: 'Vinculada', notLinked: 'Nenhuma conta Steam vinculada.', link: 'Vincular Steam' },
+    validation: { emailRequired: 'Informe seu e-mail.', passwordRequired: 'Informe uma senha.', confirmPasswordRequired: 'Confirme a senha.', invalidEmail: 'E-mail inválido.', passwordLength: 'Senha inválida.', passwordMismatch: 'As senhas não coincidem.' },
+    emailLink: { request: { password: 'Senha', confirmPassword: 'Confirmar senha', passwordHint: 'Use de 10 a 128 caracteres.', pending: 'Enviando solicitação...', sending: 'Enviando...', cancel: 'Cancelar', submit: 'Enviar confirmação', success: 'Solicitação recebida.', errors: { generic: 'Falha no vínculo.', invalidSession: 'Sessão expirada.', accountDisabled: 'Conta indisponível.', tooManyRequests: 'Muitas tentativas.', unavailable: 'Vínculo indisponível.' } } },
+  },
+});
+
+const AUTH_CHILD_TRANSLATIONS = {
+  'pt-BR': { playerAuth: { eyebrow: 'Conta HSC', headings: { registration: 'Crie sua conta', resetRequest: 'Redefina sua senha', login: 'Entre para acessar sua área' }, notices: { received: 'Solicitação recebida' }, fields: { email: 'E-mail', password: 'Senha', displayName: 'Nome de exibição', optional: '(opcional)' }, hints: { passwordLength: 'Use de 10 a 128 caracteres.' }, validation: { emailRequired: 'Informe seu e-mail.', passwordRequired: 'Informe sua senha.', passwordLength: 'A senha deve ter entre 10 e 128 caracteres.' }, registration: { success: 'Cadastro recebido.' }, resetRequest: { success: 'Reset solicitado.' }, alternative: 'ou', actions: { pending: 'Aguarde...', createAccount: 'Criar conta', sendInstructions: 'Enviar instruções', login: 'Entrar', forgotPassword: 'Esqueci minha senha', backToLogin: 'Voltar para entrar', loginWithSteam: 'Entrar com Steam' } } },
+  'en-US': { playerAuth: { eyebrow: 'HSC Account', headings: { registration: 'Create account', resetRequest: 'Reset password', login: 'Sign in to access your area' }, notices: { received: 'Request received' }, fields: { email: 'Email', password: 'Password', displayName: 'Display name', optional: '(optional)' }, hints: { passwordLength: 'Use 10 to 128 characters.' }, validation: { emailRequired: 'Enter email.', passwordRequired: 'Enter password.', passwordLength: 'Invalid password.' }, registration: { success: 'Registration received.' }, resetRequest: { success: 'Reset requested.' }, alternative: 'or', actions: { pending: 'Please wait...', createAccount: 'Create account', sendInstructions: 'Send instructions', login: 'Sign in', forgotPassword: 'Forgot password', backToLogin: 'Back to sign in', loginWithSteam: 'Sign in with Steam' } } },
+} as const;
+
+const AREA_TRANSLATIONS = { 'pt-BR': areaDictionary(false), 'en-US': areaDictionary(true) } as const;

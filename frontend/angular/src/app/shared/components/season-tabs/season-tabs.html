@@ -1,4 +1,4 @@
-<nav class="season-tabs" aria-label="Navegação da Season">
+<nav class="season-tabs" [attr.aria-label]="'seasons.tabs.ariaLabel' | translate">
   @for (tab of tabs; track tab.id) {
     <a
       class="season-tabs__item"
@@ -6,7 +6,7 @@
       [attr.aria-current]="tab.id === activeTab ? 'page' : null"
       [routerLink]="tabLink(tab.id)"
     >
-      {{ tab.label }}
+      {{ tab.labelKey | translate }}
     </a>
   }
 </nav>

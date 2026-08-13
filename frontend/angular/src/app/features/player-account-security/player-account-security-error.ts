@@ -22,14 +22,14 @@ export function mapSteamLinkResult(result: string | null): string | null {
 
 export function mapEmailLinkRequestError(error: unknown): string {
   if (!(error instanceof HttpErrorResponse) || error instanceof PlayerIdentityLinkContractError) {
-    return 'Não foi possível solicitar o vínculo agora. Tente novamente.';
+    return 'playerAccount.emailLink.request.errors.generic';
   }
   const code = readCode(error.error);
-  if (error.status === 401 && code === 'invalid_session') return 'Sua sessão expirou. Entre novamente.';
-  if (error.status === 403 && code === 'player_account_disabled') return 'Esta conta está indisponível para acesso.';
-  if (error.status === 429) return 'Muitas tentativas. Aguarde alguns instantes e tente novamente.';
-  if (error.status === 501 && code === 'player_email_auth_unavailable') return 'O vínculo por e-mail está temporariamente indisponível.';
-  return 'Não foi possível solicitar o vínculo agora. Tente novamente.';
+  if (error.status === 401 && code === 'invalid_session') return 'playerAccount.emailLink.request.errors.invalidSession';
+  if (error.status === 403 && code === 'player_account_disabled') return 'playerAccount.emailLink.request.errors.accountDisabled';
+  if (error.status === 429) return 'playerAccount.emailLink.request.errors.tooManyRequests';
+  if (error.status === 501 && code === 'player_email_auth_unavailable') return 'playerAccount.emailLink.request.errors.unavailable';
+  return 'playerAccount.emailLink.request.errors.generic';
 }
 
 export type EmailLinkConfirmationErrorState =
@@ -45,12 +45,12 @@ export function mapEmailLinkConfirmationError(error: unknown): {
 } {
   if (error instanceof HttpErrorResponse) {
     const code = readCode(error.error);
-    if (error.status === 400 && code === 'invalid_link_intent') return { state: 'invalid', message: 'Link de vínculo inválido ou expirado.' };
-    if (error.status === 409 && code === 'identity_conflict') return { state: 'conflict', message: 'Este e-mail já está vinculado a outra conta HSC.' };
-    if (error.status === 403 && code === 'player_account_disabled') return { state: 'disabled', message: 'Esta conta está indisponível para acesso.' };
-    if (error.status === 501 && code === 'player_email_auth_unavailable') return { state: 'unavailable', message: 'O vínculo por e-mail está temporariamente indisponível.' };
+    if (error.status === 400 && code === 'invalid_link_intent') return { state: 'invalid', message: 'playerAccount.emailLink.confirmation.errors.invalid' };
+    if (error.status === 409 && code === 'identity_conflict') return { state: 'conflict', message: 'playerAccount.emailLink.confirmation.errors.conflict' };
+    if (error.status === 403 && code === 'player_account_disabled') return { state: 'disabled', message: 'playerAccount.emailLink.confirmation.errors.disabled' };
+    if (error.status === 501 && code === 'player_email_auth_unavailable') return { state: 'unavailable', message: 'playerAccount.emailLink.confirmation.errors.unavailable' };
   }
-  return { state: 'error', message: 'Não foi possível concluir o vínculo agora. Tente novamente mais tarde.' };
+  return { state: 'error', message: 'playerAccount.emailLink.confirmation.errors.generic' };
 }
 
 function readCode(body: unknown): string | null {

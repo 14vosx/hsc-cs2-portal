@@ -2,7 +2,7 @@
   <a
     class="news-card__link"
     [routerLink]="['/news', item().slug]"
-    [attr.aria-label]="'Ler notícia: ' + item().title"
+    [attr.aria-label]="'newsCard.accessibility.read' | translate: { title: item().title }"
   >
     <div class="news-card__media">
       @if (showImage()) {
@@ -16,7 +16,7 @@
       } @else {
         <div class="news-card__media-fallback" aria-hidden="true">
           <span>HSC</span>
-          <small>News / Editorial</small>
+          <small>{{ 'newsCard.fallback.mediaLabel' | translate }}</small>
         </div>
       }
       <span class="news-card__media-index" aria-hidden="true">HSC // NEWS</span>
@@ -27,7 +27,7 @@
         class="news-card__date"
         [attr.datetime]="item().publishedAt"
       >
-        {{ formatDate(item().publishedAt) }}
+        {{ formatDate(item().publishedAt) || ('newsCard.fallback.date' | translate) }}
       </time>
 
       <h2 class="news-card__title">
@@ -41,7 +41,7 @@
       }
 
       <span class="news-card__cta">
-        Ler publicação
+        {{ 'newsCard.readMore' | translate }}
         <span aria-hidden="true">→</span>
       </span>
     </div>

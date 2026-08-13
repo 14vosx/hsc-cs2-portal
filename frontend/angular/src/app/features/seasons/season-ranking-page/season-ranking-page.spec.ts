@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,6 +11,7 @@ import { SeasonRankingApiService } from '../data-access/season-ranking-api.servi
 import type { SeasonRanking, SeasonRankingPlayer, SeasonRankingSeason } from '../domain/season-ranking.model';
 import { SeasonPodium } from '../season-podium/season-podium';
 import { SeasonRankingPage } from './season-ranking-page';
+import { installSeasonsTranslations } from '../../../testing/seasons-i18n.fixture';
 
 class TestableSeasonRankingPage extends SeasonRankingPage {
   get publicVm$() {
@@ -122,7 +124,7 @@ describe('SeasonRankingPage', () => {
     players: [mockPlayer1, mockPlayer2],
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     paramMap$ = new BehaviorSubject<ParamMap>(convertToParamMap({}));
     mockSeasonRankingApi = {
       getRanking: vi.fn<SeasonRankingApiService['getRanking']>().mockReturnValue(of({ kind: 'available', ranking: mockRanking })),
@@ -131,11 +133,13 @@ describe('SeasonRankingPage', () => {
     TestBed.configureTestingModule({
       imports: [SeasonRankingPage],
       providers: [
+        provideTranslateService({ fallbackLang: 'pt-BR' }),
         TestableSeasonRankingPage,
         { provide: ActivatedRoute, useValue: { paramMap: paramMap$.asObservable() } },
         { provide: SeasonRankingApiService, useValue: mockSeasonRankingApi },
       ],
     });
+    await installSeasonsTranslations(TestBed.inject(TranslateService));
   });
 
   it('creates the component', () => {
@@ -376,5 +380,22 @@ describe('SeasonRankingPage', () => {
     const pageState = fixture.debugElement.query(By.directive(PageState));
     expect(pageState).toBeTruthy();
     expect(pageState.componentInstance.actionLabel()).toBe('Tentar novamente');
+  });
+
+  it('switches ranking presentation at runtime while preserving search, domain data, and requests', async () => {
+    const translate = TestBed.inject(TranslateService);
+    const fixture = TestBed.createComponent(SeasonRankingPage); fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    input.value = 'fall'; input.dispatchEvent(new Event('input')); fixture.detectChanges();
+    const calls = mockSeasonRankingApi.getRanking.mock.calls.length;
+    expect(fixture.nativeElement.textContent).toContain('Classificação'); expect(input.placeholder).toBe('Nome do jogador'); expect(fixture.nativeElement.textContent).toContain('Pos.'); expect(fixture.nativeElement.textContent).toContain('Temporada ativa'); expect(fixture.nativeElement.textContent).toContain('Elegível');
+    await translate.use('en-US').toPromise(); fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Leaderboard'); expect(input.placeholder).toBe('Player name'); expect(text).toContain('Rank'); expect(text).toContain('Active season'); expect(text).toContain('Eligible');
+    for (const value of ['Summer 2026', 'Fallen', 'Score', 'Impact', 'K/D', 'ADR', 'HS%', '98.40']) expect(text).toContain(value);
+    expect(input.value).toBe('fall'); expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(calls);
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
+    expect(Array.from(rows, (row) => row.textContent ?? '')).toEqual([expect.stringContaining('Fallen')]);
+    expect(fixture.nativeElement.querySelector('.season-ranking__mobile-list')?.getAttribute('aria-label')).toBe('Full season leaderboard');
   });
 });

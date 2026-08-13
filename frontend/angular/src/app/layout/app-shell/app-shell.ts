@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { filter } from 'rxjs';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 
@@ -25,6 +26,7 @@ import { AppSidebar } from '../app-sidebar/app-sidebar';
     AppSidebar,
     AppFooter,
     CdkTrapFocus,
+    TranslatePipe,
   ],
   templateUrl: './app-shell.html',
   changeDetection: ChangeDetectionStrategy.Eager,

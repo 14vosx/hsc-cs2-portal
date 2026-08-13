@@ -7,23 +7,23 @@
     (submit)="onSubmit($event)"
   >
     <div class="player-profile-editor__header">
-      <span class="player-profile-editor__eyebrow">Edição de Perfil</span>
-      <h2 class="player-profile-editor__title">Editar seu perfil HSC</h2>
+      <span class="player-profile-editor__eyebrow">{{ 'playerProfile.editor.eyebrow' | translate }}</span>
+      <h2 class="player-profile-editor__title">{{ 'playerProfile.editor.title' | translate }}</h2>
       <p class="player-profile-editor__description">
-        Atualize suas informações visíveis para a comunidade HSC.
+        {{ 'playerProfile.editor.description' | translate }}
       </p>
     </div>
 
     @if (serverError() && !serverError()?.targetField) {
       <div class="player-profile-editor__server-error" role="alert">
-        {{ serverError()?.message }}
+        {{ serverError()!.message | translate }}
       </div>
     }
 
     <div class="player-profile-editor__grid">
       <div class="player-profile-editor__field">
         <label for="editor-displayName" class="player-profile-editor__label">
-          Nome de exibição <span class="player-profile-editor__required">*</span>
+          {{ 'playerProfile.fields.displayName' | translate }} <span class="player-profile-editor__required">*</span>
         </label>
         <input
           id="editor-displayName"
@@ -35,12 +35,12 @@
         />
         @if (serverError()?.targetField === 'displayName') {
           <div id="editor-displayName-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         } @else if (profileForm.displayName().touched() && profileForm.displayName().errors().length > 0) {
           <div id="editor-displayName-error" class="player-profile-editor__error" role="alert">
             @for (err of profileForm.displayName().errors(); track err.kind) {
-              <p>{{ err.message ?? 'Nome de exibição inválido.' }}</p>
+              <p>{{ (err.message ?? 'playerProfile.validation.displayNameInvalid') | translate }}</p>
             }
           </div>
         }
@@ -48,7 +48,7 @@
 
       <div class="player-profile-editor__field">
         <label for="editor-slug" class="player-profile-editor__label">
-          Endereço do perfil (slug) <span class="player-profile-editor__required">*</span>
+          {{ 'playerProfile.fields.slug' | translate }} <span class="player-profile-editor__required">*</span>
         </label>
         <input
           id="editor-slug"
@@ -59,23 +59,23 @@
           aria-describedby="editor-slug-error editor-slug-help"
         />
         <span id="editor-slug-help" class="player-profile-editor__help">
-          Usado para identificar seu perfil no HSC (ex: meu-apelido).
+          {{ 'playerProfile.fields.slugHelp' | translate }}
         </span>
         @if (serverError()?.targetField === 'slug') {
           <div id="editor-slug-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         } @else if (profileForm.slug().touched() && profileForm.slug().errors().length > 0) {
           <div id="editor-slug-error" class="player-profile-editor__error" role="alert">
             @for (err of profileForm.slug().errors(); track err.kind) {
-              <p>{{ err.message ?? 'Slug inválido.' }}</p>
+              <p>{{ (err.message ?? 'playerProfile.validation.slugInvalid') | translate }}</p>
             }
           </div>
         }
       </div>
 
       <div class="player-profile-editor__field player-profile-editor__field--full">
-        <label for="editor-bio" class="player-profile-editor__label">Biografia</label>
+        <label for="editor-bio" class="player-profile-editor__label">{{ 'playerProfile.fields.bio' | translate }}</label>
         <textarea
           id="editor-bio"
           rows="3"
@@ -86,12 +86,12 @@
         ></textarea>
         @if (serverError()?.targetField === 'bio') {
           <div id="editor-bio-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         } @else if (profileForm.bio().touched() && profileForm.bio().errors().length > 0) {
           <div id="editor-bio-error" class="player-profile-editor__error" role="alert">
             @for (err of profileForm.bio().errors(); track err.kind) {
-              <p>{{ err.message ?? 'Biografia inválida.' }}</p>
+              <p>{{ (err.message ?? 'playerProfile.validation.bioInvalid') | translate }}</p>
             }
           </div>
         }
@@ -103,19 +103,19 @@
           id="editor-discordHandle"
           type="text"
           class="player-profile-editor__input"
-          placeholder="ex: usuario#0000 ou usuario"
+          [placeholder]="'playerProfile.fields.discordPlaceholder' | translate"
           [formField]="profileForm.discordHandle"
           [attr.aria-invalid]="(profileForm.discordHandle().invalid() && profileForm.discordHandle().touched()) || serverError()?.targetField === 'discordHandle'"
           aria-describedby="editor-discordHandle-error"
         />
         @if (serverError()?.targetField === 'discordHandle') {
           <div id="editor-discordHandle-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         } @else if (profileForm.discordHandle().touched() && profileForm.discordHandle().errors().length > 0) {
           <div id="editor-discordHandle-error" class="player-profile-editor__error" role="alert">
             @for (err of profileForm.discordHandle().errors(); track err.kind) {
-              <p>{{ err.message ?? 'Handle do Discord inválido.' }}</p>
+              <p>{{ (err.message ?? 'playerProfile.validation.discordInvalid') | translate }}</p>
             }
           </div>
         }
@@ -123,7 +123,7 @@
 
       <div class="player-profile-editor__field">
         <label for="editor-visibility" class="player-profile-editor__label">
-          Visibilidade do perfil <span class="player-profile-editor__required">*</span>
+          {{ 'playerProfile.fields.visibility' | translate }} <span class="player-profile-editor__required">*</span>
         </label>
         <select
           id="editor-visibility"
@@ -132,18 +132,18 @@
           [attr.aria-invalid]="serverError()?.targetField === 'visibility'"
           [attr.aria-describedby]="serverError()?.targetField === 'visibility' ? 'editor-visibility-error' : null"
         >
-          <option value="private">Privado (apenas você)</option>
-          <option value="public">Visível para membros HSC</option>
+          <option value="private">{{ 'playerProfile.visibility.private' | translate }}</option>
+          <option value="public">{{ 'playerProfile.visibility.public' | translate }}</option>
         </select>
         @if (serverError()?.targetField === 'visibility') {
           <div id="editor-visibility-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         }
       </div>
 
       <div class="player-profile-editor__field">
-        <label for="editor-preferredRole" class="player-profile-editor__label">Função preferida</label>
+        <label for="editor-preferredRole" class="player-profile-editor__label">{{ 'playerProfile.fields.preferredRole' | translate }}</label>
         <select
           id="editor-preferredRole"
           class="player-profile-editor__select"
@@ -151,20 +151,20 @@
           [attr.aria-invalid]="serverError()?.targetField === 'preferredRole'"
           [attr.aria-describedby]="serverError()?.targetField === 'preferredRole' ? 'editor-preferredRole-error' : null"
         >
-          <option value="">Nenhuma selecionada</option>
+          <option value="">{{ 'playerProfile.roles.none' | translate }}</option>
           @for (role of roleOptions; track role.key) {
-            <option [value]="role.key">{{ role.label }}</option>
+            <option [value]="role.key">{{ 'playerProfile.roles.' + role.key | translate }}</option>
           }
         </select>
         @if (serverError()?.targetField === 'preferredRole') {
           <div id="editor-preferredRole-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         }
       </div>
 
       <div class="player-profile-editor__field">
-        <label for="editor-preferredMap" class="player-profile-editor__label">Mapa preferido</label>
+        <label for="editor-preferredMap" class="player-profile-editor__label">{{ 'playerProfile.fields.preferredMap' | translate }}</label>
         <select
           id="editor-preferredMap"
           class="player-profile-editor__select"
@@ -172,14 +172,14 @@
           [attr.aria-invalid]="serverError()?.targetField === 'preferredMap'"
           [attr.aria-describedby]="serverError()?.targetField === 'preferredMap' ? 'editor-preferredMap-error' : null"
         >
-          <option value="">Nenhum selecionado</option>
+          <option value="">{{ 'playerProfile.maps.none' | translate }}</option>
           @for (map of mapOptions; track map.key) {
             <option [value]="map.key">{{ map.label }}</option>
           }
         </select>
         @if (serverError()?.targetField === 'preferredMap') {
           <div id="editor-preferredMap-error" class="player-profile-editor__error" role="alert">
-            <p>{{ serverError()?.message }}</p>
+            <p>{{ serverError()!.message | translate }}</p>
           </div>
         }
       </div>
@@ -192,7 +192,7 @@
         [disabled]="savePending()"
         (click)="onCancel()"
       >
-        Cancelar
+        {{ 'playerProfile.editor.cancel' | translate }}
       </button>
 
       <button
@@ -200,7 +200,7 @@
         class="player-profile-editor__button player-profile-editor__button--primary"
         [disabled]="savePending()"
       >
-        {{ savePending() ? 'Salvando...' : 'Salvar perfil' }}
+        {{ (savePending() ? 'playerProfile.editor.saving' : 'playerProfile.editor.save') | translate }}
       </button>
     </div>
   </form>

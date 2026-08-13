@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { BunkerAuthCard } from './bunker-auth-card';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -10,7 +12,13 @@ describe('BunkerAuthCard', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [BunkerAuthCard],
+      providers: [provideTranslateService()],
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { bunker: { auth: { eyebrow: 'Conta Steam', title: 'Entre para acessar o Competitive Analytics', description: 'Entre com Steam para validar sua sessão de jogador.', action: 'Entrar com Steam' } } });
+    translate.setTranslation('en-US', { bunker: { auth: { eyebrow: 'Steam Account', title: 'Sign in to access Competitive Analytics', description: 'Sign in with Steam to validate your player session.', action: 'Sign in with Steam' } } });
+    await firstValueFrom(translate.use('pt-BR'));
 
     fixture = TestBed.createComponent(BunkerAuthCard);
     component = fixture.componentInstance;
@@ -84,5 +92,14 @@ describe('BunkerAuthCard', () => {
 
   it('9. não importa serviços ou DTOs', () => {
     expect(BunkerAuthCard).toBeDefined();
+  });
+
+  it('10. troca somente a apresentação ao mudar para en-US', async () => {
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a');
+    expect(link?.textContent?.trim()).toBe('Sign in with Steam');
+    expect(link?.getAttribute('href')).toBe('https://example.com/steam/login');
   });
 });

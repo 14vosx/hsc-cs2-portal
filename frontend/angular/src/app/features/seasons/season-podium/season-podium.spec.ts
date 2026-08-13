@@ -1,7 +1,11 @@
+import { TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { describe, expect, it } from 'vitest';
+import { eligibilityLabel, podiumPlacementLabel } from '../season-ui';
 
 import type { SeasonRankingPlayer } from '../domain/season-ranking.model';
 import { SeasonPodium, type PodiumPlayer } from './season-podium';
+import { installSeasonsTranslations } from '../../../testing/seasons-i18n.fixture';
 
 class TestableSeasonPodium extends SeasonPodium {
   publicPodiumPlayers() { return this.podiumPlayers(); }
@@ -42,6 +46,30 @@ function createPlayer(overrides: Partial<SeasonRankingPlayer> = {}): SeasonRanki
 }
 
 describe('SeasonPodium', () => {
+  it('uses locale-neutral semantic presentation descriptors', () => {
+    expect(podiumPlacementLabel(createPlayer()).translationKey).toBe('seasons.podium.placement.first');
+    expect(eligibilityLabel(createPlayer()).translationKey).toBe('seasons.shared.eligibility.eligible');
+  });
+
+  it('switches rendered placement, eligibility, record, and fallback without mutating inputs', async () => {
+    TestBed.configureTestingModule({ imports: [SeasonPodium], providers: [provideTranslateService()] });
+    const translate = TestBed.inject(TranslateService);
+    await installSeasonsTranslations(translate);
+    const fixture = TestBed.createComponent(SeasonPodium);
+    const players = [createPlayer({ name: 'Real Player', steamId64: '76561198000000001' }), createPlayer({ name: null, steamId64: '76561198000000002', prizeRank: 2, prizeEligible: false })];
+    fixture.componentInstance.players = players;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Primeiro lugar');
+    expect(fixture.nativeElement.textContent).toContain('Elegível');
+    expect(fixture.nativeElement.textContent).toContain('V/D');
+    expect(fixture.nativeElement.textContent).toContain('Sem nome');
+    await translate.use('en-US').toPromise(); fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('First place'); expect(text).toContain('Eligible'); expect(text).toContain('W/L'); expect(text).toContain('Unnamed player');
+    expect(text).toContain('Real Player'); expect(text).toContain('95.40');
+    expect(fixture.componentInstance.players).toBe(players);
+    expect(players.map((player) => player.steamId64)).toEqual(['76561198000000001', '76561198000000002']);
+  });
   it('accepts SeasonRankingPlayer values', () => {
     const component = new SeasonPodium();
     component.players = [createPlayer()];

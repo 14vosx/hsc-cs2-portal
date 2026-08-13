@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MapsApiService, MapsContractError } from './data-access/maps-api.service';
@@ -30,9 +31,14 @@ describe('MapsPage', () => {
       imports: [MapsPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: MapsApiService, useValue: mapsApiMock },
       ],
     });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { maps: { states: { header: { title: 'Rotação de mapas' }, loading: { message: 'Sincronizando a rotação de mapas.' }, error: { title: 'Mapas indisponíveis' }, empty: { message: 'Nenhum mapa foi publicado.' }, filteredEmpty: { message: 'A busca atual não encontrou mapas na rotação.' } }, hero: { title: 'Rotação de mapas', updated: 'Dados atualizados' }, overview: { maps: 'Mapas', appearances: 'Aparições' }, featured: { progressAriaLabel: '{{ map }}: {{ percent }} de participação na rotação' }, distribution: { progressAriaLabel: '{{ map }}: {{ percent }} de participação na rotação' }, counts: { appearances: { one: '{{ count }} aparição', other: '{{ count }} aparições' } }, relativeDate: { otherDays: 'há {{ days }} dias' }, catalog: {}, fallbacks: {} }, mapStatCard: {} });
+    translate.setTranslation('en-US', { maps: { hero: { title: 'Map rotation' }, overview: { maps: 'Maps' }, catalog: { searchLabel: 'Search map', sortLabel: 'Sort by' } }, mapStatCard: {} });
+    void translate.use('pt-BR');
   });
 
   const createComponent = () => {
@@ -201,6 +207,28 @@ describe('MapsPage', () => {
     component['sortBy'].set('name');
     fixture.detectChanges();
 
+    expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
+  });
+
+  it('troca o locale da data na mesma instância sem refetch ou reordenar mapas', async () => {
+    const maps = [
+      createMockMap('de_nuke'),
+      createMockMap('de_mirage'),
+      createMockMap('de_dust2'),
+    ];
+    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
+    createComponent();
+
+    const ptDate = (fixture.nativeElement as HTMLElement).querySelector('.maps-page__snapshot time')?.textContent?.trim();
+    const publishedOrder = component['visibleMaps'](maps).map((map) => map.name);
+
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    const enDate = (fixture.nativeElement as HTMLElement).querySelector('.maps-page__snapshot time')?.textContent?.trim();
+    expect(enDate).not.toBe(ptDate);
+    expect(component['visibleMaps'](maps).map((map) => map.name)).toEqual(publishedOrder);
+    expect(publishedOrder).toEqual(['de_nuke', 'de_mirage', 'de_dust2']);
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
   });
 

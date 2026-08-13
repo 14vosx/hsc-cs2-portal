@@ -1,30 +1,30 @@
 <section class="season-maps">
-  <a class="season-maps__back" routerLink="/seasons">← Todas as temporadas</a>
+  <a class="season-maps__back" routerLink="/seasons">← {{ 'seasons.shared.back' | translate }}</a>
 
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-state type="loading" title="Carregando mapas..." message="Buscando estatísticas dos mapas da Season." />
+        <app-page-state type="loading" [title]="'seasons.maps.states.loadingTitle' | translate" [message]="'seasons.maps.states.loadingMessage' | translate" />
       }
 
       @case ('season-unavailable') {
-        <app-page-state type="empty" title="Season não encontrada" message="A Season solicitada não está disponível no histórico do Portal CS2." actionLabel="Voltar para Seasons" (actionClick)="goBack()" />
+        <app-page-state type="empty" [title]="'seasons.maps.states.unavailableTitle' | translate" [message]="'seasons.maps.states.unavailableMessage' | translate" [actionLabel]="'seasons.maps.states.back' | translate" (actionClick)="goBack()" />
       }
 
       @case ('error') {
-        <app-page-state type="error" title="Mapas indisponíveis" message="Não foi possível carregar os mapas da Season no momento." actionLabel="Tentar novamente" (actionClick)="retry()" />
+        <app-page-state type="error" [title]="'seasons.maps.states.errorTitle' | translate" [message]="'seasons.maps.states.errorMessage' | translate" [actionLabel]="'seasons.maps.states.retry' | translate" (actionClick)="retry()" />
       }
 
       @case ('ready') {
         <header class="season-maps__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
           <div class="season-maps__hero-copy">
-            <span class="season-maps__eyebrow">Season map pool</span>
-            <h1>{{ vm.data.season.name || vm.data.season.slug || 'Temporada HSC' }}</h1>
-            <p>{{ vm.data.season.description || 'Mapas disputados no recorte publicado desta Season.' }}</p>
+            <span class="season-maps__eyebrow">{{ 'seasons.maps.hero.eyebrow' | translate }}</span>
+            <h1>{{ vm.data.season.name || vm.data.season.slug || ('seasons.shared.fallbacks.season' | translate) }}</h1>
+            <p>{{ vm.data.season.description || ('seasons.maps.hero.description' | translate) }}</p>
             <div class="season-maps__hero-meta">
-              <app-status-badge [label]="seasonStatusLabel(vm.data.season.status)" [tone]="seasonStatusTone(vm.data.season.status)" />
-              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) }}</span>
-              <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
+              @let status = seasonStatusLabel(vm.data.season.status); <app-status-badge [label]="status.translationKey ? (status.translationKey | translate) : (status.raw ?? '')" [tone]="seasonStatusTone(vm.data.season.status)" />
+              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) || ('seasons.shared.date.short' | translate) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) || ('seasons.shared.date.short' | translate) }}</span>
+              <span>{{ 'seasons.shared.updatedAt' | translate }} {{ formatDate(vm.data.generatedAt) || ('seasons.shared.date.short' | translate) }}</span>
             </div>
           </div>
           <span class="season-maps__hero-mark" aria-hidden="true">HSC</span>
@@ -32,34 +32,34 @@
 
         <app-season-tabs [seasonSlug]="vm.data.season.slug" activeTab="maps" />
 
-        <section class="season-maps__snapshot" aria-label="Resumo dos mapas da Season">
-          <article><span>Partidas</span><strong>{{ vm.data.summary.matches }}</strong></article>
-          <article><span>Mapas</span><strong>{{ vm.data.summary.maps }}</strong></article>
-          <article><span>Rounds</span><strong>{{ vm.data.summary.rounds }}</strong></article>
-          <article><span>Jogadores</span><strong>{{ vm.data.summary.players }}</strong></article>
-          <article><span>Mapas distintos</span><strong>{{ vm.data.computed.distinctMaps }}</strong></article>
-          <article class="season-maps__snapshot-date"><span>Último mapa</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) }}</strong></article>
+        <section class="season-maps__snapshot" [attr.aria-label]="'seasons.maps.summary.ariaLabel' | translate">
+          <article><span>{{ 'seasons.shared.matches' | translate }}</span><strong>{{ vm.data.summary.matches }}</strong></article>
+          <article><span>{{ 'seasons.shared.maps' | translate }}</span><strong>{{ vm.data.summary.maps }}</strong></article>
+          <article><span>{{ 'seasons.shared.rounds' | translate }}</span><strong>{{ vm.data.summary.rounds }}</strong></article>
+          <article><span>{{ 'seasons.shared.players' | translate }}</span><strong>{{ vm.data.summary.players }}</strong></article>
+          <article><span>{{ 'seasons.maps.summary.distinct' | translate }}</span><strong>{{ vm.data.computed.distinctMaps }}</strong></article>
+          <article class="season-maps__snapshot-date"><span>{{ 'seasons.maps.summary.lastMap' | translate }}</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) || ('seasons.shared.date.short' | translate) }}</strong></article>
         </section>
 
         <section class="season-maps__pool" aria-labelledby="season-map-pool-title">
           <header class="season-maps__section-heading">
-            <div><span>Map pool da Season</span><h2 id="season-map-pool-title">Mapas da Season</h2></div>
-            <p>Mapas disputados nesta Season, com métricas publicadas e acesso ao detalhe global.</p>
+            <div><span>{{ 'seasons.maps.pool.eyebrow' | translate }}</span><h2 id="season-map-pool-title">{{ 'seasons.maps.pool.title' | translate }}</h2></div>
+            <p>{{ 'seasons.maps.pool.description' | translate }}</p>
           </header>
 
           <div class="season-maps__controls">
             <label class="season-maps__field">
-              <span>Buscar mapa</span>
-              <input type="search" placeholder="Ex.: de_mirage" [value]="searchTerm()" (input)="updateSearch($event)" />
+              <span>{{ 'seasons.maps.search.label' | translate }}</span>
+              <input type="search" [placeholder]="'seasons.maps.search.placeholder' | translate" [value]="searchTerm()" (input)="updateSearch($event)" />
             </label>
             <label class="season-maps__field">
-              <span>Ordenar por</span>
+              <span>{{ 'seasons.maps.search.sortLabel' | translate }}</span>
               <select [value]="sortBy()" (change)="updateSort($event)">
-                <option value="published">Ordem oficial (publicada)</option>
-                <option value="matches">Mais partidas</option>
-                <option value="rounds">Mais rounds</option>
-                <option value="lastPlayed">Último uso</option>
-                <option value="name">Nome (A–Z)</option>
+                <option value="published">{{ 'seasons.maps.sort.published' | translate }}</option>
+                <option value="matches">{{ 'seasons.maps.sort.matches' | translate }}</option>
+                <option value="rounds">{{ 'seasons.maps.sort.rounds' | translate }}</option>
+                <option value="lastPlayed">{{ 'seasons.maps.sort.lastPlayed' | translate }}</option>
+                <option value="name">{{ 'seasons.maps.sort.name' | translate }}</option>
               </select>
             </label>
           </div>
@@ -70,21 +70,21 @@
               @for (mapSummary of maps; track mapSummary.name) {
                 <article class="season-map-card" [style.--map-bg]="mapBackgroundImage(mapSummary.name)">
                   <header class="season-map-card__header">
-                    <span>Mapa</span>
+                    <span>{{ 'seasons.maps.card.map' | translate }}</span>
                     <h3>{{ mapSummary.name }}</h3>
                   </header>
                   <dl class="season-map-card__stats">
-                    <div><dt>Partidas</dt><dd>{{ mapSummary.matches }}</dd></div>
-                    <div><dt>Rounds</dt><dd>{{ mapSummary.rounds }}</dd></div>
-                    <div><dt>Média de rounds</dt><dd>{{ formatAvg(mapSummary.averageRoundsPerMatch) }}</dd></div>
-                    <div><dt>Último uso</dt><dd>{{ formatDate(mapSummary.lastPlayedAt) }}</dd></div>
+                    <div><dt>{{ 'seasons.shared.matches' | translate }}</dt><dd>{{ mapSummary.matches }}</dd></div>
+                    <div><dt>{{ 'seasons.shared.rounds' | translate }}</dt><dd>{{ mapSummary.rounds }}</dd></div>
+                    <div><dt>{{ 'seasons.maps.card.averageRounds' | translate }}</dt><dd>{{ formatAvg(mapSummary.averageRoundsPerMatch) }}</dd></div>
+                    <div><dt>{{ 'seasons.maps.card.lastUsed' | translate }}</dt><dd>{{ formatDate(mapSummary.lastPlayedAt) || ('seasons.shared.date.short' | translate) }}</dd></div>
                   </dl>
-                  <a [routerLink]="['/maps', mapSummary.name]">Ver mapa <span aria-hidden="true">→</span></a>
+                  <a [routerLink]="['/maps', mapSummary.name]">{{ 'seasons.maps.card.view' | translate }} <span aria-hidden="true">→</span></a>
                 </article>
               }
             </div>
           } @else {
-            <app-page-state type="empty" title="Nenhum mapa encontrado" message="A busca atual não encontrou mapas nesta Season." />
+            <app-page-state type="empty" [title]="'seasons.maps.states.searchEmptyTitle' | translate" [message]="'seasons.maps.states.searchEmptyMessage' | translate" />
           }
         </section>
       }
@@ -92,13 +92,13 @@
       @case ('empty') {
         <header class="season-maps__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
           <div class="season-maps__hero-copy">
-            <span class="season-maps__eyebrow">Season map pool</span>
-            <h1>{{ vm.data.season.name || vm.data.season.slug || 'Temporada HSC' }}</h1>
-            <p>{{ vm.data.season.description || 'Mapas disputados no recorte publicado desta Season.' }}</p>
+            <span class="season-maps__eyebrow">{{ 'seasons.maps.hero.eyebrow' | translate }}</span>
+            <h1>{{ vm.data.season.name || vm.data.season.slug || ('seasons.shared.fallbacks.season' | translate) }}</h1>
+            <p>{{ vm.data.season.description || ('seasons.maps.hero.description' | translate) }}</p>
             <div class="season-maps__hero-meta">
-              <app-status-badge [label]="seasonStatusLabel(vm.data.season.status)" [tone]="seasonStatusTone(vm.data.season.status)" />
-              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) }}</span>
-              <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
+              @let status = seasonStatusLabel(vm.data.season.status); <app-status-badge [label]="status.translationKey ? (status.translationKey | translate) : (status.raw ?? '')" [tone]="seasonStatusTone(vm.data.season.status)" />
+              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) || ('seasons.shared.date.short' | translate) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) || ('seasons.shared.date.short' | translate) }}</span>
+              <span>{{ 'seasons.shared.updatedAt' | translate }} {{ formatDate(vm.data.generatedAt) || ('seasons.shared.date.short' | translate) }}</span>
             </div>
           </div>
           <span class="season-maps__hero-mark" aria-hidden="true">HSC</span>
@@ -106,21 +106,21 @@
 
         <app-season-tabs [seasonSlug]="vm.data.season.slug" activeTab="maps" />
 
-        <section class="season-maps__snapshot" aria-label="Resumo dos mapas da Season">
-          <article><span>Partidas</span><strong>{{ vm.data.summary.matches }}</strong></article>
-          <article><span>Mapas</span><strong>{{ vm.data.summary.maps }}</strong></article>
-          <article><span>Rounds</span><strong>{{ vm.data.summary.rounds }}</strong></article>
-          <article><span>Jogadores</span><strong>{{ vm.data.summary.players }}</strong></article>
-          <article><span>Mapas distintos</span><strong>{{ vm.data.computed.distinctMaps }}</strong></article>
-          <article class="season-maps__snapshot-date"><span>Último mapa</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) }}</strong></article>
+        <section class="season-maps__snapshot" [attr.aria-label]="'seasons.maps.summary.ariaLabel' | translate">
+          <article><span>{{ 'seasons.shared.matches' | translate }}</span><strong>{{ vm.data.summary.matches }}</strong></article>
+          <article><span>{{ 'seasons.shared.maps' | translate }}</span><strong>{{ vm.data.summary.maps }}</strong></article>
+          <article><span>{{ 'seasons.shared.rounds' | translate }}</span><strong>{{ vm.data.summary.rounds }}</strong></article>
+          <article><span>{{ 'seasons.shared.players' | translate }}</span><strong>{{ vm.data.summary.players }}</strong></article>
+          <article><span>{{ 'seasons.maps.summary.distinct' | translate }}</span><strong>{{ vm.data.computed.distinctMaps }}</strong></article>
+          <article class="season-maps__snapshot-date"><span>{{ 'seasons.maps.summary.lastMap' | translate }}</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) || ('seasons.shared.date.short' | translate) }}</strong></article>
         </section>
 
         <section class="season-maps__pool" aria-labelledby="season-map-pool-title">
           <header class="season-maps__section-heading">
-            <div><span>Map pool da Season</span><h2 id="season-map-pool-title">Mapas da Season</h2></div>
-            <p>Mapas disputados nesta Season, com métricas publicadas e acesso ao detalhe global.</p>
+            <div><span>{{ 'seasons.maps.pool.eyebrow' | translate }}</span><h2 id="season-map-pool-title">{{ 'seasons.maps.pool.title' | translate }}</h2></div>
+            <p>{{ 'seasons.maps.pool.description' | translate }}</p>
           </header>
-          <app-page-state type="empty" title="Nenhum mapa na Season" message="O recorte publicado não retornou mapas válidos para esta Season." />
+          <app-page-state type="empty" [title]="'seasons.maps.states.emptyTitle' | translate" [message]="'seasons.maps.states.emptyMessage' | translate" />
         </section>
       }
     }

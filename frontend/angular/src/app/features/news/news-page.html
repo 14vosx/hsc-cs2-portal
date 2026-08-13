@@ -2,20 +2,20 @@
   @if (vm$ | async; as vm) {
     <header class="news-page__hero">
       <div class="news-page__hero-copy">
-        <span class="news-page__eyebrow">HSC Newsroom</span>
-        <h1>Notícias do <span>clube</span></h1>
-        <p>Comunicados, bastidores e atualizações da comunidade CS2 HSC.</p>
+        <span class="news-page__eyebrow">{{ 'news.hero.eyebrow' | translate }}</span>
+        <h1>{{ 'news.hero.titleStart' | translate }} <span>{{ 'news.hero.titleEmphasis' | translate }}</span></h1>
+        <p>{{ 'news.hero.description' | translate }}</p>
 
         <div class="news-page__transmission" aria-hidden="true">
           <span></span>
-          Editorial transmission board
+          {{ 'news.hero.board' | translate }}
         </div>
       </div>
 
       @if (vm.state === 'ready') {
-        <div class="news-page__count" aria-label="Total de publicações">
-          <span>Feed editorial</span>
-          <strong>{{ publicationCountLabel(vm.count) }}</strong>
+        <div class="news-page__count" [attr.aria-label]="'news.count.ariaLabel' | translate">
+          <span>{{ 'news.count.label' | translate }}</span>
+          <strong>{{ publicationCountKey(vm.count) | translate: { count: vm.count } }}</strong>
         </div>
       }
     </header>
@@ -24,17 +24,17 @@
       @case ('loading') {
         <app-page-state
           type="loading"
-          title="Carregando notícias..."
-          message="Sincronizando as publicações editoriais do HSC."
+          [title]="'news.states.loading.title' | translate"
+          [message]="'news.states.loading.message' | translate"
         />
       }
 
       @case ('error') {
         <app-page-state
           type="error"
-          title="News indisponível"
-          message="Não foi possível carregar as publicações neste momento."
-          actionLabel="Tentar novamente"
+          [title]="'news.states.error.title' | translate"
+          [message]="'news.states.error.message' | translate"
+          [actionLabel]="'news.states.error.retry' | translate"
           (actionClick)="retry()"
         />
       }
@@ -42,16 +42,16 @@
       @case ('empty') {
         <app-page-state
           type="empty"
-          title="Nenhuma notícia publicada"
-          message="As próximas mensagens do clube aparecerão por aqui."
+          [title]="'news.states.empty.title' | translate"
+          [message]="'news.states.empty.message' | translate"
         />
       }
 
       @case ('ready') {
         <section class="news-page__feed" aria-labelledby="news-feed-title">
           <div class="news-page__feed-heading">
-            <span>Editorial feed</span>
-            <h2 id="news-feed-title">Publicações</h2>
+            <span>{{ 'news.feed.eyebrow' | translate }}</span>
+            <h2 id="news-feed-title">{{ 'news.feed.title' | translate }}</h2>
           </div>
 
           <div class="news-page__grid">

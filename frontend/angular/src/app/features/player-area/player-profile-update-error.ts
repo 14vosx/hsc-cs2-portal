@@ -17,14 +17,14 @@ export function mapPlayerProfileServerError(error: unknown): MappedProfileError 
   if (!(error instanceof HttpErrorResponse)) {
     return {
       code: 'unknown_error',
-      message: 'Ocorreu um erro ao salvar o perfil. Tente novamente.',
+      message: 'playerProfile.errors.unknown',
     };
   }
 
   if (error.status === 401) {
     return {
       code: 'unauthorized',
-      message: 'Sua sessão expirou. Faça login novamente.',
+      message: 'playerProfile.errors.unauthorized',
     };
   }
 
@@ -58,89 +58,88 @@ export function mapPlayerProfileServerError(error: unknown): MappedProfileError 
       return {
         targetField: 'slug',
         code: 'slug_unavailable',
-        message: 'Este endereço de perfil já está em uso por outro jogador.',
+        message: 'playerProfile.errors.slugUnavailable',
       };
     case 'slug_reserved':
       return {
         targetField: 'slug',
         code: 'slug_reserved',
-        message: 'Este endereço de perfil é reservado e não pode ser utilizado.',
+        message: 'playerProfile.errors.slugReserved',
       };
     case 'invalid_slug':
       return {
         targetField: 'slug',
         code: 'invalid_slug',
-        message: 'Endereço de perfil (slug) inválido.',
+        message: 'playerProfile.errors.invalidSlug',
       };
     case 'public_profile_requires_custom_slug':
       return {
         targetField: 'slug',
         code: 'public_profile_requires_custom_slug',
-        message:
-          'Para tornar o perfil visível para membros HSC, você precisa escolher um endereço de perfil personalizado.',
+        message: 'playerProfile.errors.publicProfileRequiresCustomSlug',
       };
     case 'invalid_display_name':
       return {
         targetField: 'displayName',
         code: 'invalid_display_name',
-        message: 'Nome de exibição inválido.',
+        message: 'playerProfile.errors.invalidDisplayName',
       };
     case 'invalid_bio':
       return {
         targetField: 'bio',
         code: 'invalid_bio',
-        message: 'Biografia excede o limite ou contém caracteres inválidos.',
+        message: 'playerProfile.errors.invalidBio',
       };
     case 'invalid_discord_handle':
       return {
         targetField: 'discordHandle',
         code: 'invalid_discord_handle',
-        message: 'Handle do Discord inválido.',
+        message: 'playerProfile.errors.invalidDiscordHandle',
       };
     case 'invalid_preferred_role':
       return {
         targetField: 'preferredRole',
         code: 'invalid_preferred_role',
-        message: 'Função preferida inválida.',
+        message: 'playerProfile.errors.invalidPreferredRole',
       };
     case 'invalid_preferred_map':
       return {
         targetField: 'preferredMap',
         code: 'invalid_preferred_map',
-        message: 'Mapa preferido inválido.',
+        message: 'playerProfile.errors.invalidPreferredMap',
       };
     case 'invalid_visibility':
       return {
         targetField: 'visibility',
         code: 'invalid_visibility',
-        message: 'Opção de visibilidade inválida.',
+        message: 'playerProfile.errors.invalidVisibility',
       };
     case 'profile_media_must_be_uploaded':
       return {
         code: 'profile_media_must_be_uploaded',
-        message: 'Mídia do perfil precisa ser enviada.',
+        message: 'playerProfile.errors.profileMediaMustBeUploaded',
       };
     case 'player_account_disabled':
       return {
         code: 'player_account_disabled',
-        message: 'Sua conta HSC está desativada.',
+        message: 'playerProfile.errors.accountDisabled',
       };
     case 'csrf_origin_required':
     case 'csrf_origin_forbidden':
       return {
         code,
-        message: 'Requisição não autorizada pelo servidor (origem inválida).',
+        message: 'playerProfile.errors.csrfOriginInvalid',
       };
     default:
       if (error.status === 403) {
         return {
           code: code || 'forbidden',
-          message: 'Ação não permitida para a sua conta.',
+          message: 'playerProfile.errors.forbidden',
         };
       }
       return {
         code: code || 'server_error',
-        message: 'Não foi possível salvar as alterações no perfil. Tente novamente.',
+        message: 'playerProfile.errors.server',
       };
   }
 }

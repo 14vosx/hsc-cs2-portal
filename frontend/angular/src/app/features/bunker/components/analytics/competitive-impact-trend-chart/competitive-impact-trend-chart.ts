@@ -1,6 +1,8 @@
 import 'apexcharts/line';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type {
   ApexAxisChartSeries,
@@ -16,7 +18,9 @@ import type {
 } from 'apexcharts';
 
 import type { BunkerTimelineItem } from '../../../domain/bunker.model';
+import { LocaleService } from '../../../../../core/i18n/locale.service';
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
@@ -43,13 +47,18 @@ interface ImpactPoint {
       [stroke]="stroke"
       [tooltip]="tooltip()"
       [xaxis]="xaxis"
-      [yaxis]="yaxis"
+      [yaxis]="yaxis()"
     />
   `,
   styles: `:host { display: block; min-width: 0; } apx-chart-core { width: 100%; }`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveImpactTrendChart {
+  private readonly localeService = inject(LocaleService);
+  private readonly translate = inject(TranslateService);
+  private readonly mapUnavailable = toSignal(this.translate.stream(analyticsChartTranslationKeys.mapUnavailable), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.mapUnavailable),
+  });
   readonly timeline = input<readonly BunkerTimelineItem[]>([]);
 
   protected readonly points = computed<readonly ImpactPoint[]>(() =>
@@ -75,11 +84,14 @@ export class CompetitiveImpactTrendChart {
     name: 'Impact',
     data: this.points().map((point) => ({ x: point.timestamp, y: point.value })),
   }] satisfies ApexAxisChartSeries));
-  protected readonly tooltip = computed<ApexTooltip>(() => ({
-    enabled: true,
-    theme: 'dark',
-    custom: (options: ApexTooltipCustomOpts) => this.tooltipContent(options.dataPointIndex),
-  }));
+  protected readonly tooltip = computed<ApexTooltip>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      enabled: true,
+      theme: 'dark',
+      custom: (options: ApexTooltipCustomOpts) => this.tooltipContent(options.dataPointIndex, locale),
+    };
+  });
   protected readonly chart: ApexChart = {
     type: 'area',
     height: 310,
@@ -112,29 +124,32 @@ export class CompetitiveImpactTrendChart {
     axisBorder: { color: 'rgba(193, 203, 210, 0.12)' },
     axisTicks: { color: 'rgba(193, 203, 210, 0.12)' },
   };
-  protected readonly yaxis: ApexYAxis = {
-    labels: {
-      formatter: (value) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value),
-      style: { colors: ['#6f7d89'], fontFamily: analyticsFontFamily },
-    },
-  };
+  protected readonly yaxis = computed<ApexYAxis>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      labels: {
+        formatter: (value) => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value),
+        style: { colors: ['#6f7d89'], fontFamily: analyticsFontFamily },
+      },
+    };
+  });
 
-  private tooltipContent(index: number): string {
+  private tooltipContent(index: number, locale: string): string {
     const point = this.points()[index];
 
     if (!point) {
       return '';
     }
 
-    const date = new Intl.DateTimeFormat('pt-BR', {
+    const date = new Intl.DateTimeFormat(locale, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     }).format(new Date(point.timestamp));
-    const map = escapeHtml(point.mapName || 'Mapa não informado');
+    const map = escapeHtml(point.mapName || this.mapUnavailable());
     const impact = point.value === null
       ? '—'
-      : new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(point.value);
+      : new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(point.value);
 
     return `<div class="competitive-chart-tooltip"><strong>${map}</strong><span>${date}</span><b>Impact ${impact}</b></div>`;
   }

@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import {
   catchError,
   combineLatest,
@@ -14,6 +15,7 @@ import {
   switchMap,
 } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import {
@@ -32,18 +34,18 @@ type PlayerPublicProfilePageState =
   | { readonly state: 'loading' }
   | { readonly state: 'ready'; readonly profile: PlayerPublicProfile }
   | { readonly state: 'unauthenticated' }
-  | { readonly state: 'forbidden' }
   | { readonly state: 'unavailable' }
   | { readonly state: 'failure' };
 
 @Component({
   selector: 'app-player-public-profile-page',
-  imports: [AsyncPipe, PageState],
+  imports: [AsyncPipe, PageState, TranslatePipe],
   templateUrl: './player-public-profile-page.html',
   styleUrl: './player-public-profile-page.css',
   changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class PlayerPublicProfilePage {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly publicProfileApi = inject(PlayerPublicProfileApiService);
   private readonly playerAuthApi = inject(PlayerAuthApiService);
@@ -84,7 +86,7 @@ export class PlayerPublicProfilePage {
   }
 
   protected formatJoinedAt(value: string): string {
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -97,10 +99,7 @@ function toFailureState(error: unknown): PlayerPublicProfilePageState {
     if (error.status === 401) {
       return { state: 'unauthenticated' };
     }
-    if (error.status === 403) {
-      return { state: 'forbidden' };
-    }
-    if (error.status === 404) {
+    if (error.status === 403 || error.status === 404) {
       return { state: 'unavailable' };
     }
   }

@@ -1,4 +1,5 @@
 import { Component, inject, input, output, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
 import { mapPlayerEmailAuthError } from '../player-email-auth-error';
@@ -9,6 +10,7 @@ type AuthPanelMode = 'login' | 'registration' | 'reset-request';
 @Component({
   selector: 'app-player-email-auth-panel',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './player-email-auth-panel.html',
   styleUrl: './player-email-auth-panel.css',
 })
@@ -56,7 +58,7 @@ export class PlayerEmailAuthPanel {
 
     const email = this.email().trim();
     if (!email) {
-      this.error.set('Informe seu e-mail.');
+      this.setLocalError('playerAuth.validation.emailRequired');
       return;
     }
 
@@ -67,11 +69,11 @@ export class PlayerEmailAuthPanel {
 
     const password = this.password();
     if (!password) {
-      this.error.set('Informe sua senha.');
+      this.setLocalError('playerAuth.validation.passwordRequired');
       return;
     }
     if (this.mode() === 'registration' && !isValidPlayerPassword(password)) {
-      this.error.set('A senha deve ter entre 10 e 128 caracteres.');
+      this.setLocalError('playerAuth.validation.passwordLength');
       return;
     }
 
@@ -94,9 +96,7 @@ export class PlayerEmailAuthPanel {
       .subscribe({
         next: () => {
           this.pending.set(false);
-          this.success.set(
-            'Cadastro recebido. Se este endereço puder ser utilizado, enviaremos as instruções de verificação por e-mail.',
-          );
+          this.success.set('playerAuth.registration.success');
         },
         error: (error: unknown) => this.finishWithError(error, 'registration'),
       });
@@ -108,7 +108,7 @@ export class PlayerEmailAuthPanel {
     this.emailAuthApi.requestPasswordReset({ email }).subscribe({
       next: () => {
         this.pending.set(false);
-        this.success.set('Se a conta estiver apta, enviaremos instruções para redefinir a senha.');
+        this.success.set('playerAuth.resetRequest.success');
       },
       error: (error: unknown) => this.finishWithError(error, 'reset-request'),
     });
@@ -116,10 +116,15 @@ export class PlayerEmailAuthPanel {
 
   private finishWithError(error: unknown, operation: 'login' | 'registration' | 'reset-request'): void {
     this.pending.set(false);
-    this.error.set(mapPlayerEmailAuthError(error, operation));
+    const presentation = mapPlayerEmailAuthError(error, operation);
+    this.error.set(presentation.messageKey);
   }
 
   private clearError(): void {
     if (this.error()) this.error.set(null);
+  }
+
+  private setLocalError(key: string): void {
+    this.error.set(key);
   }
 }

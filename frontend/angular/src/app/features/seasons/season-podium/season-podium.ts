@@ -1,4 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
+import { eligibilityLabel, podiumPlacementLabel } from '../season-ui';
 
 export interface PodiumPlayer {
   rank?: number;
@@ -24,6 +26,7 @@ export interface PodiumPlayer {
 @Component({
   selector: 'app-season-podium',
   templateUrl: './season-podium.html',
+  imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './season-podium.css',
 })
@@ -59,30 +62,9 @@ export class SeasonPodium {
       .join('');
   }
 
-  protected eligibilityLabel(player: PodiumPlayer): 'Elegível' | 'Em progresso' | 'Indefinido' {
-    if (player.prizeEligible === true) {
-      return 'Elegível';
-    }
+  protected eligibilityLabel = eligibilityLabel;
 
-    if (player.prizeEligible === false) {
-      return 'Em progresso';
-    }
-
-    return 'Indefinido';
-  }
-
-  protected podiumPlacementLabel(player: PodiumPlayer): string {
-    switch (player.prizeRank ?? player.rank) {
-      case 1:
-        return 'Primeiro lugar';
-      case 2:
-        return 'Segundo lugar';
-      case 3:
-        return 'Terceiro lugar';
-      default:
-        return 'Top da Season';
-    }
-  }
+  protected podiumPlacementLabel = podiumPlacementLabel;
 
   protected podiumPlayers(): PodiumPlayer[] {
     const top = (this.players ?? []).slice(0, 3);

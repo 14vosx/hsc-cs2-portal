@@ -2,6 +2,8 @@ import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -21,6 +23,21 @@ describe('VerifyEmailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     token = 'a'.repeat(64);
+  });
+
+  it('switches locale on the same pending verification without changing semantics', async () => {
+    api.verify.mockReturnValue(new Subject());
+    await create();
+    const translate = TestBed.inject(TranslateService);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Confirmando e-mail');
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Confirming email');
+    expect(text).not.toContain('playerAuth.');
+    expect(text).not.toContain(token);
+    expect(api.verify).toHaveBeenCalledTimes(1);
+    expect(navigateByUrl).not.toHaveBeenCalled();
   });
 
   it('does not request verification for a missing or malformed token', async () => {
@@ -70,6 +87,12 @@ describe('VerifyEmailPage', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Não foi possível confirmar');
     expect(text).not.toContain('Tentar novamente');
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+    const englishText = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(englishText).toContain('This account is unavailable for access.');
+    expect(englishText).not.toContain('Try again');
+    expect(api.verify).toHaveBeenCalledTimes(1);
   });
 
   it('handles malformed success generically and permits retry', async () => {
@@ -95,6 +118,7 @@ describe('VerifyEmailPage', () => {
       imports: [VerifyEmailPage],
       providers: [
         provideRouter([]),
+        provideTranslateService(),
         { provide: PlayerEmailAuthApiService, useValue: api },
         { provide: Location, useValue: location },
         {
@@ -103,6 +127,10 @@ describe('VerifyEmailPage', () => {
         },
       ],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', VERIFY_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', VERIFY_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
     navigateByUrl = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     fixture = TestBed.createComponent(VerifyEmailPage);
     fixture.detectChanges();
@@ -110,3 +138,21 @@ describe('VerifyEmailPage', () => {
     fixture.detectChanges();
   }
 });
+
+const verifyDictionary = (english: boolean) => ({ playerAuth: {
+  errors: {
+    generic: english ? 'Could not complete the operation right now.' : 'Não foi possível concluir a operação agora.',
+    accountDisabled: english ? 'This account is unavailable for access.' : 'Esta conta está indisponível para acesso.',
+  },
+  verifyEmail: {
+    workspace: { eyebrow: 'HSC Account Security', title: english ? 'Identity verification' : 'Verificação de identidade', lead: english ? 'Confirming your email.' : 'Confirmando seu e-mail.' },
+    protocol: { ariaLabel: english ? 'Identity verification protocol' : 'Protocolo de verificação', secureLink: { title: english ? 'Secure link' : 'Link seguro', description: english ? 'Use the sent link.' : 'Use o link enviado.' }, verification: { title: english ? 'Verification' : 'Verificação', description: english ? 'HSC validates it.' : 'A HSC valida.' }, access: { title: english ? 'Access' : 'Acesso', description: english ? 'Continue to Player Area.' : 'Continue para a Área do Jogador.' } },
+    loading: { eyebrow: english ? 'Verification in progress' : 'Verificação em andamento', title: english ? 'Confirming email' : 'Confirmando e-mail', message: english ? 'Validating your email.' : 'Estamos validando seu endereço de e-mail.' },
+    success: { eyebrow: english ? 'Identity confirmed' : 'Identidade confirmada', title: english ? 'Email verified' : 'E-mail verificado', message: english ? 'Address confirmed.' : 'Endereço confirmado.', navigationPending: english ? 'Entering Player Area...' : 'Entrando na Área do Jogador...' },
+    invalid: { eyebrow: english ? 'Verification link' : 'Link de verificação', title: english ? 'Link unavailable' : 'Link indisponível' },
+    error: { eyebrow: english ? 'Verification interrupted' : 'Verificação interrompida', title: english ? 'Could not confirm' : 'Não foi possível confirmar' },
+    errors: { invalidLink: english ? 'The verification link is invalid or expired.' : 'Link de verificação inválido ou expirado.' },
+    actions: { backToLogin: english ? 'Back to sign in' : 'Voltar para entrar', retry: english ? 'Try again' : 'Tentar novamente' },
+  },
+} });
+const VERIFY_TRANSLATIONS = { 'pt-BR': verifyDictionary(false), 'en-US': verifyDictionary(true) } as const;

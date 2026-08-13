@@ -1,14 +1,18 @@
 import 'apexcharts/line';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type { ApexAxisChartSeries, ApexChart, ApexFill, ApexStroke, ApexTooltip } from 'ng-apexcharts';
 
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
 } from '../analytics-chart-presentation';
+import { LocaleService } from '../../../../../core/i18n/locale.service';
 
 @Component({
   selector: 'app-competitive-metric-sparkline',
@@ -21,7 +25,7 @@ import {
         [colors]="colors()"
         [fill]="fill"
         [stroke]="stroke"
-        [tooltip]="tooltip"
+        [tooltip]="tooltip()"
       />
     }
   `,
@@ -29,12 +33,17 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMetricSparkline {
+  private readonly localeService = inject(LocaleService);
+  private readonly translate = inject(TranslateService);
+  private readonly valueLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.value), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.value),
+  });
   readonly values = input<readonly (number | null)[]>([]);
   readonly color = input<'cyan' | 'orange'>('cyan');
 
   protected readonly hasData = computed(() => this.values().some((value) => value !== null));
   protected readonly series = computed(() => axisSeriesForChartCore([
-    { name: 'Valor', data: [...this.values()] },
+    { name: this.valueLabel(), data: [...this.values()] },
   ] satisfies ApexAxisChartSeries));
   protected readonly colors = computed(() => [
     this.color() === 'orange' ? '#f37b21' : '#32d1ff',
@@ -54,11 +63,14 @@ export class CompetitiveMetricSparkline {
     gradient: { shadeIntensity: 0.25, opacityFrom: 0.38, opacityTo: 0.02, stops: [0, 100] },
   };
   protected readonly stroke: ApexStroke = { curve: 'smooth', width: 2 };
-  protected readonly tooltip: ApexTooltip = {
-    enabled: true,
-    theme: 'dark',
-    x: { show: false },
-    y: { formatter: (value) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(value) },
-    marker: { show: false },
-  };
+  protected readonly tooltip = computed<ApexTooltip>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      enabled: true,
+      theme: 'dark',
+      x: { show: false },
+      y: { formatter: (value) => new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value) },
+      marker: { show: false },
+    };
+  });
 }

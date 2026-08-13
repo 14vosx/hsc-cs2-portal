@@ -1,26 +1,26 @@
-<section class="media-editor" aria-label="Mídia do perfil">
+<section class="media-editor" [attr.aria-label]="'playerProfile.media.ariaLabel' | translate">
   <div class="media-section" data-testid="avatar-section">
     <div class="section-heading">
       <div>
-        <h3>Avatar</h3>
-        <p>Imagem exibida junto ao seu perfil.</p>
+        <h3>{{ 'playerProfile.media.avatar.title' | translate }}</h3>
+        <p>{{ 'playerProfile.media.avatar.description' | translate }}</p>
       </div>
       @if (avatarPending()) {
-        <span class="pending" role="status">Processando...</span>
+        <span class="pending" role="status">{{ 'playerProfile.media.processing' | translate }}</span>
       }
     </div>
 
     <div class="avatar-preview">
       @if (avatarPreviewUrl() || profile().avatarUrl; as avatarUrl) {
-        <img [src]="avatarUrl" alt="Prévia do avatar do perfil" />
+        <img [src]="avatarUrl" [alt]="'playerProfile.media.avatar.previewAlt' | translate" />
       } @else {
-        <span>Sem avatar</span>
+        <span>{{ 'playerProfile.media.avatar.empty' | translate }}</span>
       }
     </div>
 
     <div class="controls">
       <label class="file-action" [class.disabled]="avatarPending()">
-        Selecionar avatar
+        {{ 'playerProfile.media.avatar.select' | translate }}
         <input
           #avatarInput
           type="file"
@@ -30,47 +30,47 @@
         />
       </label>
       <button type="button" [disabled]="!avatarFile() || avatarPending()" (click)="submitAvatar()">
-        Enviar avatar
+        {{ 'playerProfile.media.avatar.upload' | translate }}
       </button>
       @if (avatarFile()) {
         <button type="button" [disabled]="avatarPending()" (click)="cancelAvatarSelection()">
-          Cancelar seleção
+          {{ 'playerProfile.media.cancelSelection' | translate }}
         </button>
       }
       @if (profile().avatarUrl) {
         <button type="button" [disabled]="avatarPending()" (click)="avatarRemove.emit()">
-          Remover avatar
+          {{ 'playerProfile.media.avatar.remove' | translate }}
         </button>
       }
     </div>
 
     @if (avatarError(); as error) {
-      <p class="error" role="alert">{{ error }}</p>
+      <p class="error" role="alert">{{ error | translate }}</p>
     }
   </div>
 
   <div class="media-section" data-testid="banner-section">
     <div class="section-heading">
       <div>
-        <h3>Banner</h3>
-        <p>Imagem horizontal de destaque do perfil.</p>
+        <h3>{{ 'playerProfile.media.banner.title' | translate }}</h3>
+        <p>{{ 'playerProfile.media.banner.description' | translate }}</p>
       </div>
       @if (bannerPending()) {
-        <span class="pending" role="status">Processando...</span>
+        <span class="pending" role="status">{{ 'playerProfile.media.processing' | translate }}</span>
       }
     </div>
 
     <div class="banner-preview">
       @if (bannerPreviewUrl() || profile().bannerUrl; as bannerUrl) {
-        <img [src]="bannerUrl" alt="Prévia do banner do perfil" />
+        <img [src]="bannerUrl" [alt]="'playerProfile.media.banner.previewAlt' | translate" />
       } @else {
-        <span>Sem banner</span>
+        <span>{{ 'playerProfile.media.banner.empty' | translate }}</span>
       }
     </div>
 
     <div class="controls">
       <label class="file-action" [class.disabled]="bannerPending()">
-        Selecionar banner
+        {{ 'playerProfile.media.banner.select' | translate }}
         <input
           #bannerInput
           type="file"
@@ -80,22 +80,22 @@
         />
       </label>
       <button type="button" [disabled]="!bannerFile() || bannerPending()" (click)="submitBanner()">
-        Enviar banner
+        {{ 'playerProfile.media.banner.upload' | translate }}
       </button>
       @if (bannerFile()) {
         <button type="button" [disabled]="bannerPending()" (click)="cancelBannerSelection()">
-          Cancelar seleção
+          {{ 'playerProfile.media.cancelSelection' | translate }}
         </button>
       }
       @if (profile().bannerUrl) {
         <button type="button" [disabled]="bannerPending()" (click)="bannerRemove.emit()">
-          Remover banner
+          {{ 'playerProfile.media.banner.remove' | translate }}
         </button>
       }
     </div>
 
     @if (bannerError(); as error) {
-      <p class="error" role="alert">{{ error }}</p>
+      <p class="error" role="alert">{{ error | translate }}</p>
     }
   </div>
 </section>

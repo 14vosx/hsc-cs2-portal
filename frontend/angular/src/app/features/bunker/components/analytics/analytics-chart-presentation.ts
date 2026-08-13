@@ -2,6 +2,13 @@ import type { ApexAxisChartSeries, ApexNonAxisChartSeries } from 'ng-apexcharts'
 
 export const analyticsFontFamily = '"Chakra Petch", ui-sans-serif, system-ui, sans-serif';
 
+export const analyticsChartTranslationKeys = {
+  value: 'bunker.charts.value',
+  winRate: 'bunker.charts.winRate',
+  occurrences: 'bunker.charts.occurrences',
+  mapUnavailable: 'bunker.charts.mapUnavailable',
+} as const;
+
 export function chartAnimationsEnabled(): boolean {
   return !(
     typeof window !== 'undefined' &&
@@ -18,14 +25,14 @@ export function rateToPercent(value: number | null): number | null {
   return value > 1 ? value : value * 100;
 }
 
-export function formatRate(value: number | null): string {
+export function formatRate(value: number | null, locale: string): string {
   const percent = rateToPercent(value);
 
   if (percent === null) {
     return '—';
   }
 
-  return new Intl.NumberFormat('pt-BR', {
+  return new Intl.NumberFormat(locale, {
     style: 'percent',
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,

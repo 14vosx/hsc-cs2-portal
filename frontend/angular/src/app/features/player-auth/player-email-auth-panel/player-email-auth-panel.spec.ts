@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { of, Subject, throwError } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
@@ -22,8 +23,12 @@ describe('PlayerEmailAuthPanel', () => {
     api.requestPasswordReset.mockReturnValue(of({ ok: true, message: 'generic' }));
     await TestBed.configureTestingModule({
       imports: [PlayerEmailAuthPanel],
-      providers: [{ provide: PlayerEmailAuthApiService, useValue: api }],
+      providers: [provideTranslateService(), { provide: PlayerEmailAuthApiService, useValue: api }],
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', AUTH_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', AUTH_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
     fixture = TestBed.createComponent(PlayerEmailAuthPanel);
     fixture.componentRef.setInput('steamLoginUrl', '/player/auth/steam/start');
     fixture.detectChanges();
@@ -130,6 +135,46 @@ describe('PlayerEmailAuthPanel', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Entre para acessar sua área');
   });
 
+  it('switches locale at runtime without changing form values or making an API request', async () => {
+    clickButton('Criar conta');
+    setInput('player-auth-email', 'player@example.test');
+    setInput('player-auth-password', 'password-10');
+    setInput('player-auth-display-name', 'Player CS2');
+    const element = fixture.nativeElement as HTMLElement;
+    const steamHref = element.querySelector<HTMLAnchorElement>('a')?.getAttribute('href');
+    const translate = TestBed.inject(TranslateService);
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect(element.textContent).toContain('Create your account');
+    expect(element.querySelector<HTMLInputElement>('#player-auth-email')?.value).toBe('player@example.test');
+    expect(element.querySelector<HTMLInputElement>('#player-auth-password')?.value).toBe('password-10');
+    expect(element.querySelector<HTMLInputElement>('#player-auth-display-name')?.value).toBe('Player CS2');
+    expect(element.querySelector<HTMLAnchorElement>('a')?.getAttribute('href')).toBe(steamHref);
+    expect(api.login).not.toHaveBeenCalled();
+    expect(api.register).not.toHaveBeenCalled();
+  });
+
+  it('translates a mapped error across locale changes without changing auth state', async () => {
+    api.login.mockReturnValue(throwError(() => new HttpErrorResponse({
+      status: 401,
+      error: { error: 'invalid_credentials' },
+    })));
+    setInput('player-auth-email', 'Player@example.test');
+    setInput('player-auth-password', 'exact-password');
+    submit();
+    const host = fixture.nativeElement as HTMLElement;
+    const steamHref = host.querySelector<HTMLAnchorElement>('a')!.getAttribute('href');
+    expect(host.textContent).toContain('E-mail ou senha inválidos.');
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+    expect(host.textContent).toContain('Invalid email or password.');
+    expect(host.querySelector<HTMLInputElement>('#player-auth-email')?.value).toBe('Player@example.test');
+    expect(host.querySelector<HTMLInputElement>('#player-auth-password')?.value).toBe('exact-password');
+    expect(host.querySelector<HTMLAnchorElement>('a')?.getAttribute('href')).toBe(steamHref);
+    expect(api.login).toHaveBeenCalledTimes(1);
+    expect(api.login).toHaveBeenCalledWith({ email: 'Player@example.test', password: 'exact-password' });
+  });
+
   function setInput(id: string, value: string): void {
     const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(`#${id}`)!;
     input.value = value;
@@ -149,3 +194,8 @@ describe('PlayerEmailAuthPanel', () => {
     fixture.detectChanges();
   }
 });
+
+const AUTH_TRANSLATIONS = {
+  'pt-BR': { playerAuth: { eyebrow: 'Conta HSC', headings: { registration: 'Crie sua conta', resetRequest: 'Redefina sua senha', login: 'Entre para acessar sua área' }, notices: { received: 'Solicitação recebida' }, fields: { email: 'E-mail', password: 'Senha', displayName: 'Nome de exibição', optional: '(opcional)' }, hints: { passwordLength: 'Use de 10 a 128 caracteres.' }, validation: { emailRequired: 'Informe seu e-mail.', passwordRequired: 'Informe sua senha.', passwordLength: 'A senha deve ter entre 10 e 128 caracteres.' }, errors: { invalidCredentials: 'E-mail ou senha inválidos.', emailNotVerified: 'Seu e-mail ainda precisa ser verificado antes do acesso.', invalidDisplayName: 'Informe um nome de exibição válido.' }, registration: { success: 'Cadastro recebido. Se este endereço puder ser utilizado, enviaremos as instruções de verificação por e-mail.' }, resetRequest: { success: 'Se a conta estiver apta, enviaremos instruções para redefinir a senha.' }, alternative: 'ou', actions: { pending: 'Aguarde...', createAccount: 'Criar conta', sendInstructions: 'Enviar instruções', login: 'Entrar', forgotPassword: 'Esqueci minha senha', backToLogin: 'Voltar para entrar', loginWithSteam: 'Entrar com Steam' } } },
+  'en-US': { playerAuth: { eyebrow: 'HSC Account', headings: { registration: 'Create your account', resetRequest: 'Reset your password', login: 'Sign in to access your area' }, notices: { received: 'Request received' }, fields: { email: 'Email', password: 'Password', displayName: 'Display name', optional: '(optional)' }, hints: { passwordLength: 'Use 10 to 128 characters.' }, validation: { emailRequired: 'Enter your email.', passwordRequired: 'Enter your password.', passwordLength: 'The password must be between 10 and 128 characters.' }, errors: { invalidCredentials: 'Invalid email or password.', emailNotVerified: 'Your email still needs verification.', invalidDisplayName: 'Enter a valid display name.' }, registration: { success: 'Registration received.' }, resetRequest: { success: 'Reset instructions sent.' }, alternative: 'or', actions: { pending: 'Please wait...', createAccount: 'Create account', sendInstructions: 'Send instructions', login: 'Sign in', forgotPassword: 'Forgot my password', backToLogin: 'Back to sign in', loginWithSteam: 'Sign in with Steam' } } },
+} as const;

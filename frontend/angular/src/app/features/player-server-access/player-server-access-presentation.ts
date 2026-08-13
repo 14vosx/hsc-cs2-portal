@@ -15,16 +15,16 @@ export function presentServerAccess(
 ): ServerAccessPresentation {
   if (!available || !access) {
     return {
-      status: 'Verificação indisponível',
-      description: 'Não foi possível verificar o acesso aos servidores agora.',
+      status: 'playerArea.serverAccess.unavailable.status',
+      description: 'playerArea.serverAccess.unavailable.description',
       authorized: false,
     };
   }
 
   if (access.authorized) {
     return {
-      status: 'Acesso liberado',
-      description: 'Sua conta está apta para acessar os servidores HSC.',
+      status: 'playerArea.serverAccess.authorized.status',
+      description: 'playerArea.serverAccess.authorized.description',
       authorized: true,
     };
   }
@@ -40,32 +40,32 @@ function deniedServerAccessPresentation(
     Omit<ServerAccessPresentation, 'authorized'>
   > = {
     steam_identity_not_linked: {
-      status: 'Steam necessária',
-      description: 'Vincule sua Steam em Conta e Segurança para habilitar o acesso.',
+      status: 'playerArea.serverAccess.reasons.steamIdentityNotLinked.status',
+      description: 'playerArea.serverAccess.reasons.steamIdentityNotLinked.description',
     },
     player_account_disabled: {
-      status: 'Acesso indisponível',
-      description: 'O acesso aos servidores não está disponível para esta conta.',
+      status: 'playerArea.serverAccess.reasons.accountDisabled.status',
+      description: 'playerArea.serverAccess.reasons.accountDisabled.description',
     },
     membership_required: {
-      status: 'Membership HSC necessário',
-      description: 'É necessário ter um Membership HSC efetivo para acessar os servidores.',
+      status: 'playerArea.serverAccess.reasons.membershipRequired.status',
+      description: 'playerArea.serverAccess.reasons.membershipRequired.description',
     },
     membership_inactive: {
-      status: 'Membership inativo',
-      description: 'Seu Membership HSC não está ativo para acesso aos servidores.',
+      status: 'playerArea.serverAccess.reasons.membershipInactive.status',
+      description: 'playerArea.serverAccess.reasons.membershipInactive.description',
     },
     membership_suspended: {
-      status: 'Membership suspenso',
-      description: 'Seu Membership HSC está suspenso para acesso aos servidores.',
+      status: 'playerArea.serverAccess.reasons.membershipSuspended.status',
+      description: 'playerArea.serverAccess.reasons.membershipSuspended.description',
     },
     membership_expired: {
-      status: 'Membership expirado',
-      description: 'Seu Membership HSC expirou e não libera acesso aos servidores.',
+      status: 'playerArea.serverAccess.reasons.membershipExpired.status',
+      description: 'playerArea.serverAccess.reasons.membershipExpired.description',
     },
     membership_cancelled: {
-      status: 'Membership cancelado',
-      description: 'Seu Membership HSC foi cancelado e não libera acesso aos servidores.',
+      status: 'playerArea.serverAccess.reasons.membershipCancelled.status',
+      description: 'playerArea.serverAccess.reasons.membershipCancelled.description',
     },
   };
   return { ...presentations[reason], authorized: false };

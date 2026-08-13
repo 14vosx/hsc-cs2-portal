@@ -1,6 +1,8 @@
 import 'apexcharts/bar';
 
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 import { ChartCoreComponent } from 'ng-apexcharts';
 import type {
   ApexAxisChartSeries,
@@ -14,7 +16,9 @@ import type {
 } from 'ng-apexcharts';
 
 import type { BunkerMapPerformance } from '../../../domain/bunker.model';
+import { LocaleService } from '../../../../../core/i18n/locale.service';
 import {
+  analyticsChartTranslationKeys,
   analyticsFontFamily,
   axisSeriesForChartCore,
   chartAnimationsEnabled,
@@ -42,10 +46,15 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CompetitiveMapWinrateChart {
+  private readonly localeService = inject(LocaleService);
+  private readonly translate = inject(TranslateService);
+  private readonly winRateLabel = toSignal(this.translate.stream(analyticsChartTranslationKeys.winRate), {
+    initialValue: this.translate.instant(analyticsChartTranslationKeys.winRate),
+  });
   readonly maps = input<readonly BunkerMapPerformance[]>([]);
 
   protected readonly series = computed(() => axisSeriesForChartCore([{
-    name: 'Win Rate',
+    name: this.winRateLabel(),
     data: this.maps().map((map) => rateToPercent(map.winRate)),
   }] satisfies ApexAxisChartSeries));
   protected readonly yaxis: ApexYAxis = {
@@ -53,13 +62,19 @@ export class CompetitiveMapWinrateChart {
       style: { colors: ['#a2afb8'], fontFamily: analyticsFontFamily },
     },
   };
-  protected readonly tooltip = computed<ApexTooltip>(() => ({
-    enabled: true,
-    theme: 'dark',
-    y: {
-      formatter: (_value, options) => formatRate(this.maps()[options?.dataPointIndex ?? -1]?.winRate ?? null),
-    },
-  }));
+  protected readonly tooltip = computed<ApexTooltip>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      enabled: true,
+      theme: 'dark',
+      y: {
+        formatter: (_value, options) => formatRate(
+          this.maps()[options?.dataPointIndex ?? -1]?.winRate ?? null,
+          locale,
+        ),
+      },
+    };
+  });
   protected readonly chart: ApexChart = {
     type: 'bar',
     height: 300,
@@ -78,16 +93,19 @@ export class CompetitiveMapWinrateChart {
   protected readonly plotOptions: ApexPlotOptions = {
     bar: { horizontal: true, borderRadius: 4, barHeight: '48%' },
   };
-  protected readonly xaxis = computed<ApexXAxis>(() => ({
-    categories: this.maps().map((map) => map.mapName || '—'),
-    min: 0,
-    max: 100,
-    tickAmount: 4,
-    labels: {
-      formatter: (value) => `${Number(value).toLocaleString('pt-BR')}%`,
-      style: { colors: '#6f7d89', fontFamily: analyticsFontFamily },
-    },
-    axisBorder: { color: 'rgba(193, 203, 210, 0.12)' },
-    axisTicks: { color: 'rgba(193, 203, 210, 0.12)' },
-  }));
+  protected readonly xaxis = computed<ApexXAxis>(() => {
+    const locale = this.localeService.currentLocale();
+    return {
+      categories: this.maps().map((map) => map.mapName || '—'),
+      min: 0,
+      max: 100,
+      tickAmount: 4,
+      labels: {
+        formatter: (value) => `${Number(value).toLocaleString(locale)}%`,
+        style: { colors: '#6f7d89', fontFamily: analyticsFontFamily },
+      },
+      axisBorder: { color: 'rgba(193, 203, 210, 0.12)' },
+      axisTicks: { color: 'rgba(193, 203, 210, 0.12)' },
+    };
+  });
 }

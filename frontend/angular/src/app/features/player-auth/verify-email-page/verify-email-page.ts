@@ -1,6 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { PlayerEmailAuthApiService } from '../../player/data-access/player-email-auth-api.service';
 import { mapPlayerEmailAuthError } from '../player-email-auth-error';
@@ -11,7 +12,7 @@ type VerificationState = 'loading' | 'invalid' | 'error' | 'success';
 @Component({
   selector: 'app-verify-email-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './verify-email-page.html',
   styleUrl: './verify-email-page.css',
 })
@@ -22,7 +23,7 @@ export class VerifyEmailPage implements OnInit {
   private readonly emailAuthApi = inject(PlayerEmailAuthApiService);
 
   protected readonly state = signal<VerificationState>('loading');
-  protected readonly message = signal('Verificando seu e-mail...');
+  protected readonly messageKey = signal('playerAuth.verifyEmail.loading.message');
   protected readonly retryable = signal(false);
   private token: string | null = null;
   private attempted = false;
@@ -31,7 +32,7 @@ export class VerifyEmailPage implements OnInit {
     const token = this.route.snapshot.queryParamMap.get('token')?.trim() ?? null;
     if (!isValidPlayerEmailToken(token)) {
       this.state.set('invalid');
-      this.message.set('Link de verificação inválido ou expirado.');
+      this.messageKey.set('playerAuth.verifyEmail.errors.invalidLink');
       return;
     }
 
@@ -44,21 +45,21 @@ export class VerifyEmailPage implements OnInit {
     if (!this.token || this.attempted) return;
     this.attempted = true;
     this.state.set('loading');
-    this.message.set('Verificando seu e-mail...');
+    this.messageKey.set('playerAuth.verifyEmail.loading.message');
     this.retryable.set(false);
 
     this.emailAuthApi.verify({ token: this.token }).subscribe({
       next: () => {
         this.state.set('success');
-        this.message.set('E-mail verificado. Entrando na Área do Jogador...');
+        this.messageKey.set('playerAuth.verifyEmail.success.navigationPending');
         void this.router.navigateByUrl('/area-do-jogador');
       },
       error: (error: unknown) => {
-        const message = mapPlayerEmailAuthError(error, 'verification');
-        this.state.set(message.startsWith('Link de verificação') ? 'invalid' : 'error');
-        this.message.set(message);
+        const presentation = mapPlayerEmailAuthError(error, 'verification');
+        this.state.set(presentation.kind === 'invalid-verification-link' ? 'invalid' : 'error');
+        this.messageKey.set(presentation.messageKey);
         this.retryable.set(
-          this.state() === 'error' && !message.startsWith('Esta conta está indisponível'),
+          this.state() === 'error' && presentation.kind !== 'account-disabled',
         );
       },
     });

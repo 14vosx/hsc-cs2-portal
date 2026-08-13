@@ -1,10 +1,10 @@
 <app-ui-card>
   <div class="bunker-auth-card">
-    <span class="bunker-auth-card__eyebrow">Conta Steam</span>
-    <h2 class="bunker-auth-card__title">Entre para acessar o Competitive Analytics</h2>
+    <span class="bunker-auth-card__eyebrow">{{ 'bunker.auth.eyebrow' | translate }}</span>
+    <h2 class="bunker-auth-card__title">{{ 'bunker.auth.title' | translate }}</h2>
     <p class="bunker-auth-card__description">
-      Entre com Steam para validar sua sessão de jogador e carregar seus dados competitivos quando disponíveis.
+      {{ 'bunker.auth.description' | translate }}
     </p>
-    <a class="bunker-auth-card__cta" [href]="steamLoginUrl()">Entrar com Steam</a>
+    <a class="bunker-auth-card__cta" [href]="steamLoginUrl()">{{ 'bunker.auth.action' | translate }}</a>
   </div>
 </app-ui-card>

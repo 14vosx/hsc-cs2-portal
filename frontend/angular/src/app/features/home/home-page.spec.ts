@@ -1,6 +1,8 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import { HomeApiService } from './data-access/home-api.service';
@@ -14,6 +16,8 @@ import { HomePage } from './home-page';
 describe('HomePage', () => {
   let fixture: ComponentFixture<HomePage>;
   let homeApi: { getHomeSeasonMetrics: ReturnType<typeof vi.fn>; getRecentMatches: ReturnType<typeof vi.fn>; getHomeNews: ReturnType<typeof vi.fn> };
+  let translate: TranslateService;
+  const sessionState = signal<ReturnType<PlayerSessionService['state']>>({ status: 'anonymous' });
 
   const seasonReady: HomeSeasonState = {
     status: 'ready' as const,
@@ -38,8 +42,13 @@ describe('HomePage', () => {
     homeApi = { getHomeSeasonMetrics: vi.fn(), getRecentMatches: vi.fn(), getHomeNews: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [HomePage],
-      providers: [provideRouter([]), { provide: HomeApiService, useValue: homeApi }, { provide: PlayerSessionService, useValue: { state: () => ({ status: 'anonymous' }) } }],
+      providers: [provideRouter([]), provideTranslateService(), { provide: HomeApiService, useValue: homeApi }, { provide: PlayerSessionService, useValue: { state: sessionState } }],
     }).compileComponents();
+    sessionState.set({ status: 'anonymous' });
+    translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', { home: { hero: { active: 'TEMPORADA • ATIVA', metricsAriaLabel: 'Métricas da temporada', players: 'Jogadores', matches: 'Partidas', maps: 'Mapas', viewRanking: 'Ver ranking', viewSeason: 'Ver temporada', leaderAriaLabel: 'Líder da temporada', leaderLabel: 'LÍDER DA TEMPORADA', wins: 'Vitórias' }, now: { eyebrow: 'ACONTECENDO AGORA', title: 'HSC AGORA', latestMatch: 'ÚLTIMA PARTIDA', details: 'Ver detalhes →', matchesError: 'Partidas temporariamente indisponíveis.', topThree: 'TOP 3', newsLabel: 'NOTÍCIAS HSC', readNews: 'Ler notícia →' }, recent: { eyebrow: 'CENTRAL DE PARTIDAS', title: 'PARTIDAS RECENTES' }, playerArea: { eyebrow: 'ÁREA DO JOGADOR', title: 'Área do Jogador', description: 'Seu perfil, identidade e histórico competitivo HSC.', actions: { open: 'Abrir Área do Jogador', signIn: 'Entrar / Acessar', fallback: 'Área do Jogador' } }, news: { eyebrow: 'HSC WIRE', title: 'NOTÍCIAS HSC', readMore: 'Ler notícia →' }, points: 'pts' } });
+    translate.setTranslation('en-US', { home: { hero: { active: 'SEASON • ACTIVE', metricsAriaLabel: 'Season metrics', players: 'Players', matches: 'Matches', maps: 'Maps', viewRanking: 'View ranking', viewSeason: 'View season', leaderAriaLabel: 'Season leader', leaderLabel: 'SEASON LEADER', wins: 'Wins' }, now: { eyebrow: 'HAPPENING NOW', title: 'HSC NOW', latestMatch: 'LATEST MATCH', details: 'View details →', matchesError: 'Matches are temporarily unavailable.', topThree: 'TOP 3', newsLabel: 'HSC NEWS', readNews: 'Read news →' }, recent: { eyebrow: 'MATCH CENTER', title: 'RECENT MATCHES' }, playerArea: { eyebrow: 'PLAYER AREA', title: 'Player Area', description: 'Your HSC profile, identity, and competitive history.', actions: { open: 'Open Player Area', signIn: 'Sign in / Access', fallback: 'Player Area' } }, news: { eyebrow: 'HSC WIRE', title: 'HSC NEWS', readMore: 'Read news →' }, points: 'pts' } });
+    await firstValueFrom(translate.use('pt-BR'));
   });
 
   function render(
@@ -111,5 +120,41 @@ describe('HomePage', () => {
     expect(native.textContent).not.toContain('Áreas do Portal');
     expect(native.querySelector('.home-page__shortcuts-grid')).toBeNull();
     expect(native.textContent).not.toContain('COMUNICADO OFICIAL');
+  });
+
+  it('switches representative Home copy and aria labels without changing domain data or links', async () => {
+    const native = render();
+    const links = Array.from(native.querySelectorAll('.home-hero__actions a')).map((link) => link.getAttribute('href'));
+    expect(native.textContent).toContain('TEMPORADA • ATIVA');
+    expect(native.querySelector('.home-hero__metrics')?.getAttribute('aria-label')).toBe('Métricas da temporada');
+
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect(native.textContent).toContain('SEASON • ACTIVE');
+    expect(native.textContent).toContain('HSC NOW');
+    expect(native.querySelector('.home-hero__metrics')?.getAttribute('aria-label')).toBe('Season metrics');
+    expect(native.textContent).toContain('Temporada Alpha');
+    expect(native.textContent).toContain('Leader');
+    expect(native.textContent).toContain('HSC One');
+    expect(native.textContent).toContain('Comunicado Real');
+    expect(Array.from(native.querySelectorAll('.home-hero__actions a')).map((link) => link.getAttribute('href'))).toEqual(links);
+  });
+
+  it('localizes the anonymous Player Area CTA', async () => {
+    const native = render();
+    expect(native.querySelector('.home-player-cta a')?.textContent?.trim()).toBe('Entrar / Acessar');
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect(native.querySelector('.home-player-cta a')?.textContent?.trim()).toBe('Sign in / Access');
+  });
+
+  it('localizes the authenticated Player Area CTA without changing session state', async () => {
+    sessionState.set({ status: 'authenticated', displayName: 'Player HSC', steamId64: '1', avatarMedium: null });
+    const native = render();
+    expect(native.querySelector('.home-player-cta a')?.textContent?.trim()).toBe('Abrir Área do Jogador');
+    await firstValueFrom(translate.use('en-US'));
+    fixture.detectChanges();
+    expect(native.querySelector('.home-player-cta a')?.textContent?.trim()).toBe('Open Player Area');
+    expect(sessionState().status).toBe('authenticated');
   });
 });

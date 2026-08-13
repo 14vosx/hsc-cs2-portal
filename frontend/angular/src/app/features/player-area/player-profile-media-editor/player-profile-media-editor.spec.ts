@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PlayerProfile } from '../../player/domain/player-profile.model';
@@ -34,7 +36,13 @@ describe('PlayerProfileMediaEditor', () => {
 
     await TestBed.configureTestingModule({
       imports: [PlayerProfileMediaEditor],
+      providers: [provideTranslateService()],
     }).compileComponents();
+
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('pt-BR', MEDIA_TRANSLATIONS['pt-BR']);
+    translate.setTranslation('en-US', MEDIA_TRANSLATIONS['en-US']);
+    await firstValueFrom(translate.use('pt-BR'));
 
     fixture = TestBed.createComponent(PlayerProfileMediaEditor);
     fixture.componentRef.setInput('profile', profile);
@@ -133,8 +141,8 @@ describe('PlayerProfileMediaEditor', () => {
   });
 
   it('mostra erros de avatar e banner como alertas nas áreas corretas', () => {
-    fixture.componentRef.setInput('avatarError', 'Falha no avatar');
-    fixture.componentRef.setInput('bannerError', 'Falha no banner');
+    fixture.componentRef.setInput('avatarError', 'playerProfile.media.errors.avatarTest');
+    fixture.componentRef.setInput('bannerError', 'playerProfile.media.errors.bannerTest');
     fixture.detectChanges();
 
     expect(section('avatar-section').querySelector('[role="alert"]')?.textContent).toContain(
@@ -157,6 +165,27 @@ describe('PlayerProfileMediaEditor', () => {
 
     fixture.destroy();
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:banner.webp');
+  });
+
+  it('switches locale while preserving File identity, URLs, pending state and output semantics', async () => {
+    const file = new File(['avatar'], 'canonical-avatar.webp', { type: 'image/webp' });
+    const uploaded: File[] = [];
+    fixture.componentInstance.avatarUpload.subscribe((value) => uploaded.push(value));
+    fixture.componentRef.setInput('bannerPending', true);
+    selectFile('avatar-section', file);
+
+    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.media-editor')?.getAttribute('aria-label')).toBe('Profile media');
+    expect(section('avatar-section').querySelector('img')?.getAttribute('src')).toBe('blob:canonical-avatar.webp');
+    expect(section('avatar-section').querySelector('img')?.getAttribute('alt')).toBe('Profile avatar preview');
+    expect(section('banner-section').querySelector('img')?.getAttribute('src')).toBe('/media/banner.webp');
+    expect(fileInput('banner-section').disabled).toBe(true);
+    clickButton('avatar-section', 'Upload avatar');
+    expect(uploaded).toEqual([file]);
+    expect(uploaded[0]).toBe(file);
   });
 
   function section(testId: string): HTMLElement {
@@ -188,3 +217,11 @@ describe('PlayerProfileMediaEditor', () => {
     fixture.detectChanges();
   }
 });
+
+const mediaTranslations = (english: boolean) => ({ playerProfile: { media: {
+  ariaLabel: english ? 'Profile media' : 'Mídia do perfil', processing: english ? 'Processing...' : 'Processando...', cancelSelection: english ? 'Cancel selection' : 'Cancelar seleção',
+  avatar: { title: 'Avatar', description: english ? 'Image displayed with your profile.' : 'Imagem exibida junto ao seu perfil.', previewAlt: english ? 'Profile avatar preview' : 'Prévia do avatar do perfil', empty: english ? 'No avatar' : 'Sem avatar', select: english ? 'Select avatar' : 'Selecionar avatar', upload: english ? 'Upload avatar' : 'Enviar avatar', remove: english ? 'Remove avatar' : 'Remover avatar' },
+  banner: { title: 'Banner', description: english ? 'Horizontal profile highlight image.' : 'Imagem horizontal de destaque do perfil.', previewAlt: english ? 'Profile banner preview' : 'Prévia do banner do perfil', empty: english ? 'No banner' : 'Sem banner', select: english ? 'Select banner' : 'Selecionar banner', upload: english ? 'Upload banner' : 'Enviar banner', remove: english ? 'Remove banner' : 'Remover banner' },
+  errors: { avatarTest: 'Falha no avatar', bannerTest: 'Falha no banner' },
+} } });
+const MEDIA_TRANSLATIONS = { 'pt-BR': mediaTranslations(false), 'en-US': mediaTranslations(true) } as const;

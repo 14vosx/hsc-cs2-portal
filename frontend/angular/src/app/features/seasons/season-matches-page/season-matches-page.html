@@ -1,30 +1,30 @@
 <section class="season-matches">
-  <a class="season-matches__back" routerLink="/seasons">← Todas as temporadas</a>
+  <a class="season-matches__back" routerLink="/seasons">← {{ 'seasons.shared.back' | translate }}</a>
 
   @if (vm$ | async; as vm) {
     @switch (vm.state) {
       @case ('loading') {
-        <app-page-state type="loading" title="Carregando partidas..." message="Buscando histórico de partidas da Season." />
+        <app-page-state type="loading" [title]="'seasons.matches.states.loadingTitle' | translate" [message]="'seasons.matches.states.loadingMessage' | translate" />
       }
 
       @case ('season-unavailable') {
-        <app-page-state type="empty" title="Season não encontrada" message="A Season solicitada não está disponível no histórico do Portal CS2." actionLabel="Voltar para Seasons" (actionClick)="goBack()" />
+        <app-page-state type="empty" [title]="'seasons.matches.states.unavailableTitle' | translate" [message]="'seasons.matches.states.unavailableMessage' | translate" [actionLabel]="'seasons.matches.states.back' | translate" (actionClick)="goBack()" />
       }
 
       @case ('error') {
-        <app-page-state type="error" title="Partidas indisponíveis" message="Não foi possível carregar as partidas da Season no momento." actionLabel="Tentar novamente" (actionClick)="retry()" />
+        <app-page-state type="error" [title]="'seasons.matches.states.errorTitle' | translate" [message]="'seasons.matches.states.errorMessage' | translate" [actionLabel]="'seasons.matches.states.retry' | translate" (actionClick)="retry()" />
       }
 
       @case ('ready') {
         <header class="season-matches__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
           <div class="season-matches__hero-copy">
-            <span class="season-matches__eyebrow">Season match log</span>
-            <h1>{{ vm.data.season.name || vm.data.season.slug || 'Temporada HSC' }}</h1>
-            <p>{{ vm.data.season.description || 'Histórico competitivo oficial desta Season.' }}</p>
+            <span class="season-matches__eyebrow">{{ 'seasons.matches.hero.eyebrow' | translate }}</span>
+            <h1>{{ vm.data.season.name || vm.data.season.slug || ('seasons.shared.fallbacks.season' | translate) }}</h1>
+            <p>{{ vm.data.season.description || ('seasons.matches.hero.description' | translate) }}</p>
             <div class="season-matches__hero-meta">
-              <app-status-badge [label]="seasonStatusLabel(vm.data.season.status)" [tone]="seasonStatusTone(vm.data.season.status)" />
-              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) }}</span>
-              <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
+              @let status = seasonStatusLabel(vm.data.season.status); <app-status-badge [label]="status.translationKey ? (status.translationKey | translate) : (status.raw ?? '')" [tone]="seasonStatusTone(vm.data.season.status)" />
+              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) || ('seasons.shared.date.short' | translate) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) || ('seasons.shared.date.short' | translate) }}</span>
+              <span>{{ 'seasons.shared.updatedAt' | translate }} {{ formatDate(vm.data.generatedAt) || ('seasons.shared.date.short' | translate) }}</span>
             </div>
           </div>
           <span class="season-matches__hero-mark" aria-hidden="true">HSC</span>
@@ -32,26 +32,26 @@
 
         <app-season-tabs [seasonSlug]="vm.data.season.slug" activeTab="matches" />
 
-        <section class="season-matches__snapshot" aria-label="Resumo das partidas da Season">
-          <article><span>Partidas</span><strong>{{ vm.data.summary.matches }}</strong></article>
-          <article><span>Mapas</span><strong>{{ vm.data.summary.maps }}</strong></article>
-          <article><span>Rounds</span><strong>{{ vm.data.summary.rounds }}</strong></article>
-          <article><span>Jogadores</span><strong>{{ vm.data.summary.players }}</strong></article>
-          <article class="season-matches__snapshot-date"><span>Último mapa</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) }}</strong></article>
+        <section class="season-matches__snapshot" [attr.aria-label]="'seasons.matches.summary.ariaLabel' | translate">
+          <article><span>{{ 'seasons.shared.matches' | translate }}</span><strong>{{ vm.data.summary.matches }}</strong></article>
+          <article><span>{{ 'seasons.shared.maps' | translate }}</span><strong>{{ vm.data.summary.maps }}</strong></article>
+          <article><span>{{ 'seasons.shared.rounds' | translate }}</span><strong>{{ vm.data.summary.rounds }}</strong></article>
+          <article><span>{{ 'seasons.shared.players' | translate }}</span><strong>{{ vm.data.summary.players }}</strong></article>
+          <article class="season-matches__snapshot-date"><span>{{ 'seasons.matches.summary.lastMap' | translate }}</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) || ('seasons.shared.date.short' | translate) }}</strong></article>
         </section>
 
         <section class="season-matches__history" aria-labelledby="season-match-history-title">
           <header class="season-matches__section-heading">
-            <div><span>Partidas</span><h2 id="season-match-history-title">Histórico da Season</h2></div>
-            <p>Confrontos publicados nesta temporada, na ordem oficial.</p>
+            <div><span>{{ 'seasons.matches.history.eyebrow' | translate }}</span><h2 id="season-match-history-title">{{ 'seasons.matches.history.title' | translate }}</h2></div>
+            <p>{{ 'seasons.matches.history.description' | translate }}</p>
           </header>
 
-          <div class="season-matches__feed" aria-label="Feed de partidas da Season">
+          <div class="season-matches__feed" [attr.aria-label]="'seasons.matches.history.feedAriaLabel' | translate">
             @for (match of vm.data.matches; track match.id) {
               <article class="season-matches__match">
                 <header class="season-matches__match-header">
                   <div class="season-matches__match-id">
-                    <span>Match</span>
+                    <span>{{ 'seasons.matches.match.label' | translate }}</span>
                     <strong>#{{ match.id }}</strong>
                   </div>
                   <div class="season-matches__match-meta">
@@ -62,31 +62,31 @@
 
                 <div class="season-matches__scoreboard">
                   <div class="season-matches__team season-matches__team--one" [class.is-winner]="match.winner !== null && match.winner === match.team1.name">
-                    <div><strong>{{ match.team1.name || 'Time não informado' }}</strong>@if (match.winner !== null && match.winner === match.team1.name) { <small>Vencedor</small> }</div>
+                    <div><strong>{{ match.team1.name || ('seasons.shared.fallbacks.team' | translate) }}</strong>@if (match.winner !== null && match.winner === match.team1.name) { <small>{{ 'seasons.matches.match.winner' | translate }}</small> }</div>
                     <b>{{ match.team1.score }}</b>
                   </div>
                   <span class="season-matches__versus">VS</span>
                   <div class="season-matches__team season-matches__team--two" [class.is-winner]="match.winner !== null && match.winner === match.team2.name">
                     <b>{{ match.team2.score }}</b>
-                    <div><strong>{{ match.team2.name || 'Time não informado' }}</strong>@if (match.winner !== null && match.winner === match.team2.name) { <small>Vencedor</small> }</div>
+                    <div><strong>{{ match.team2.name || ('seasons.shared.fallbacks.team' | translate) }}</strong>@if (match.winner !== null && match.winner === match.team2.name) { <small>{{ 'seasons.matches.match.winner' | translate }}</small> }</div>
                   </div>
                 </div>
 
                 <div class="season-matches__match-context">
-                  @if (match.winner) { <span>Vencedor <strong>{{ match.winner }}</strong></span> }
-                  <span><strong>{{ match.seasonMapCount }}</strong> mapas na Season</span>
-                  <span><strong>{{ match.seasonRounds }}</strong> rounds válidos</span>
+                  @if (match.winner) { <span>{{ 'seasons.matches.match.winner' | translate }} <strong>{{ match.winner }}</strong></span> }
+                  <span>{{ (match.seasonMapCount === 1 ? 'seasons.matches.counts.maps.one' : 'seasons.matches.counts.maps.other') | translate: { count: match.seasonMapCount } }}</span>
+                  <span>{{ (match.seasonRounds === 1 ? 'seasons.matches.counts.rounds.one' : 'seasons.matches.counts.rounds.other') | translate: { count: match.seasonRounds } }}</span>
                 </div>
 
                 @if (match.maps.length) {
-                  <div class="season-matches__maps" aria-label="Mapas do confronto">
+                  <div class="season-matches__maps" [attr.aria-label]="'seasons.matches.match.mapsAriaLabel' | translate">
                     @for (map of match.maps; track map.mapNumber) {
-                      <span>{{ map.name || 'Mapa não informado' }} · {{ map.team1Score }} × {{ map.team2Score }}</span>
+                      <span>{{ map.name || ('seasons.shared.fallbacks.map' | translate) }} · {{ map.team1Score }} × {{ map.team2Score }}</span>
                     }
                   </div>
                 }
 
-                <a class="season-matches__cta" [routerLink]="['/matches', match.id]">Ver relatório <span aria-hidden="true">→</span></a>
+                <a class="season-matches__cta" [routerLink]="['/matches', match.id]">{{ 'seasons.matches.match.report' | translate }} <span aria-hidden="true">→</span></a>
               </article>
             }
           </div>
@@ -96,13 +96,13 @@
       @case ('empty') {
         <header class="season-matches__hero" [style.--season-cover]="seasonCoverStyle(vm.data.season.coverImageUrl)">
           <div class="season-matches__hero-copy">
-            <span class="season-matches__eyebrow">Season match log</span>
-            <h1>{{ vm.data.season.name || vm.data.season.slug || 'Temporada HSC' }}</h1>
-            <p>{{ vm.data.season.description || 'Histórico competitivo oficial desta Season.' }}</p>
+            <span class="season-matches__eyebrow">{{ 'seasons.matches.hero.eyebrow' | translate }}</span>
+            <h1>{{ vm.data.season.name || vm.data.season.slug || ('seasons.shared.fallbacks.season' | translate) }}</h1>
+            <p>{{ vm.data.season.description || ('seasons.matches.hero.description' | translate) }}</p>
             <div class="season-matches__hero-meta">
-              <app-status-badge [label]="seasonStatusLabel(vm.data.season.status)" [tone]="seasonStatusTone(vm.data.season.status)" />
-              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) }}</span>
-              <span>Atualizado em {{ formatDate(vm.data.generatedAt) }}</span>
+              @let status = seasonStatusLabel(vm.data.season.status); <app-status-badge [label]="status.translationKey ? (status.translationKey | translate) : (status.raw ?? '')" [tone]="seasonStatusTone(vm.data.season.status)" />
+              <span>{{ formatSeasonBoundaryDate(vm.data.season.startAt) || ('seasons.shared.date.short' | translate) }} — {{ formatSeasonBoundaryDate(vm.data.season.endAt) || ('seasons.shared.date.short' | translate) }}</span>
+              <span>{{ 'seasons.shared.updatedAt' | translate }} {{ formatDate(vm.data.generatedAt) || ('seasons.shared.date.short' | translate) }}</span>
             </div>
           </div>
           <span class="season-matches__hero-mark" aria-hidden="true">HSC</span>
@@ -110,20 +110,20 @@
 
         <app-season-tabs [seasonSlug]="vm.data.season.slug" activeTab="matches" />
 
-        <section class="season-matches__snapshot" aria-label="Resumo das partidas da Season">
-          <article><span>Partidas</span><strong>{{ vm.data.summary.matches }}</strong></article>
-          <article><span>Mapas</span><strong>{{ vm.data.summary.maps }}</strong></article>
-          <article><span>Rounds</span><strong>{{ vm.data.summary.rounds }}</strong></article>
-          <article><span>Jogadores</span><strong>{{ vm.data.summary.players }}</strong></article>
-          <article class="season-matches__snapshot-date"><span>Último mapa</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) }}</strong></article>
+        <section class="season-matches__snapshot" [attr.aria-label]="'seasons.matches.summary.ariaLabel' | translate">
+          <article><span>{{ 'seasons.shared.matches' | translate }}</span><strong>{{ vm.data.summary.matches }}</strong></article>
+          <article><span>{{ 'seasons.shared.maps' | translate }}</span><strong>{{ vm.data.summary.maps }}</strong></article>
+          <article><span>{{ 'seasons.shared.rounds' | translate }}</span><strong>{{ vm.data.summary.rounds }}</strong></article>
+          <article><span>{{ 'seasons.shared.players' | translate }}</span><strong>{{ vm.data.summary.players }}</strong></article>
+          <article class="season-matches__snapshot-date"><span>{{ 'seasons.matches.summary.lastMap' | translate }}</span><strong>{{ formatDate(vm.data.summary.lastMapEndedAt) || ('seasons.shared.date.short' | translate) }}</strong></article>
         </section>
 
         <section class="season-matches__history" aria-labelledby="season-match-history-title">
           <header class="season-matches__section-heading">
-            <div><span>Partidas</span><h2 id="season-match-history-title">Histórico da Season</h2></div>
-            <p>Confrontos publicados nesta temporada, na ordem oficial.</p>
+            <div><span>{{ 'seasons.matches.history.eyebrow' | translate }}</span><h2 id="season-match-history-title">{{ 'seasons.matches.history.title' | translate }}</h2></div>
+            <p>{{ 'seasons.matches.history.description' | translate }}</p>
           </header>
-          <app-page-state type="empty" title="Nenhuma partida na Season" message="O recorte publicado não retornou partidas válidas para esta Season." />
+          <app-page-state type="empty" [title]="'seasons.matches.states.emptyTitle' | translate" [message]="'seasons.matches.states.emptyMessage' | translate" />
         </section>
       }
     }

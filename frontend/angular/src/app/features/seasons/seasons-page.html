@@ -1,9 +1,9 @@
 <section class="seasons-page">
   <header class="seasons-page__hero hsc-tactical-grid">
     <div>
-      <span class="seasons-page__eyebrow">Temporadas HSC</span>
-      <h1>Circuito <em>competitivo HSC</em></h1>
-      <p>Temporada atual, histórico competitivo e ranking em um só lugar.</p>
+      <span class="seasons-page__eyebrow">{{ 'seasons.index.hero.eyebrow' | translate }}</span>
+      <h1>{{ 'seasons.index.hero.titleStart' | translate }} <em>{{ 'seasons.index.hero.titleEmphasis' | translate }}</em></h1>
+      <p>{{ 'seasons.index.hero.description' | translate }}</p>
     </div>
     <div class="seasons-page__hero-mark" aria-hidden="true">S</div>
   </header>
@@ -12,15 +12,15 @@
     @switch (vm.state) {
       @case ('loading') {
         <div class="seasons-page__state" role="status">
-          <span>Arquivo competitivo</span>
-          <p>Carregando temporadas...</p>
+          <span>{{ 'seasons.index.states.loadingEyebrow' | translate }}</span>
+          <p>{{ 'seasons.index.states.loading' | translate }}</p>
         </div>
       }
 
       @case ('error') {
         <app-empty-state
-          title="Temporadas indisponíveis"
-          description="Não foi possível carregar as temporadas neste momento."
+          [title]="'seasons.index.states.errorTitle' | translate"
+          [description]="'seasons.index.states.errorMessage' | translate"
         />
       }
 
@@ -33,28 +33,28 @@
               [style.--season-cover]="seasonCoverImage(activeSeason)"
             >
               <div class="active-season__content">
-                <span class="seasons-page__eyebrow seasons-page__eyebrow--orange">Temporada ativa</span>
-                <h2>{{ activeSeason.name || activeSeason.slug || 'Temporada HSC' }}</h2>
-                <p>{{ activeSeason.description || 'Temporada competitiva HSC.' }}</p>
+                <span class="seasons-page__eyebrow seasons-page__eyebrow--orange">{{ 'seasons.index.active.label' | translate }}</span>
+                <h2>{{ activeSeason.name || activeSeason.slug || ('seasons.shared.fallbacks.season' | translate) }}</h2>
+                <p>{{ activeSeason.description || ('seasons.index.fallbacks.description' | translate) }}</p>
 
                 <div class="active-season__period">
-                  <span>Período</span>
-                  <strong>{{ formatSeasonBoundaryDate(activeSeason.start_at) }} <i>até</i> {{ formatSeasonBoundaryDate(activeSeason.end_at) }}</strong>
+                  <span>{{ 'seasons.shared.period' | translate }}</span>
+                  <strong>{{ formatSeasonBoundaryDate(activeSeason.start_at) || ('seasons.shared.date.open' | translate) }} <i>{{ 'seasons.shared.until' | translate }}</i> {{ formatSeasonBoundaryDate(activeSeason.end_at) || ('seasons.shared.date.open' | translate) }}</strong>
                 </div>
 
                 <div class="active-season__actions">
-                  <a class="season-action season-action--primary" routerLink="/seasons/current">Entrar na temporada</a>
-                  <a class="season-action season-action--secondary" routerLink="/seasons/current/ranking">Ver ranking <span aria-hidden="true">→</span></a>
+                  <a class="season-action season-action--primary" routerLink="/seasons/current">{{ 'seasons.index.actions.enter' | translate }}</a>
+                  <a class="season-action season-action--secondary" routerLink="/seasons/current/ranking">{{ 'seasons.index.actions.ranking' | translate }} <span aria-hidden="true">→</span></a>
                 </div>
               </div>
 
               <dl class="active-season__metrics">
-                <div><dt>Partidas</dt><dd>{{ formatMetric(activeSeason.summary?.matches) }}</dd></div>
-                <div><dt>Mapas</dt><dd>{{ formatMetric(activeSeason.summary?.maps) }}</dd></div>
-                <div><dt>Rounds</dt><dd>{{ formatMetric(activeSeason.summary?.rounds) }}</dd></div>
-                <div><dt>Jogadores</dt><dd>{{ formatMetric(activeSeason.summary?.players) }}</dd></div>
+                <div><dt>{{ 'seasons.shared.matches' | translate }}</dt><dd>{{ formatMetric(activeSeason.summary?.matches) }}</dd></div>
+                <div><dt>{{ 'seasons.shared.maps' | translate }}</dt><dd>{{ formatMetric(activeSeason.summary?.maps) }}</dd></div>
+                <div><dt>{{ 'seasons.shared.rounds' | translate }}</dt><dd>{{ formatMetric(activeSeason.summary?.rounds) }}</dd></div>
+                <div><dt>{{ 'seasons.shared.players' | translate }}</dt><dd>{{ formatMetric(activeSeason.summary?.players) }}</dd></div>
                 @if (activeSeason.summary?.lastMapEndedAt; as lastMapEndedAt) {
-                  <div class="active-season__last-activity"><dt>Última atividade</dt><dd>{{ formatDate(lastMapEndedAt) }}</dd></div>
+                  <div class="active-season__last-activity"><dt>{{ 'seasons.shared.lastActivity' | translate }}</dt><dd>{{ formatDate(lastMapEndedAt) || ('seasons.shared.date.open' | translate) }}</dd></div>
                 }
               </dl>
             </article>
@@ -64,10 +64,10 @@
             <section class="seasons-archive" aria-labelledby="seasons-archive-title">
               <header class="seasons-archive__heading">
                 <div>
-                  <span class="seasons-page__eyebrow">Arquivo competitivo</span>
-                  <h2 id="seasons-archive-title">Histórico de temporadas</h2>
+                  <span class="seasons-page__eyebrow">{{ 'seasons.index.archive.eyebrow' | translate }}</span>
+                  <h2 id="seasons-archive-title">{{ 'seasons.index.archive.title' | translate }}</h2>
                 </div>
-                <p>Consulte as temporadas publicadas pelo HSC.</p>
+                <p>{{ 'seasons.index.archive.description' | translate }}</p>
               </header>
 
               <div class="seasons-archive__grid">
@@ -78,26 +78,26 @@
                     [style.--season-cover]="seasonCoverImage(season)"
                   >
                     <header>
-                      @if (season.status) { <span>{{ season.status }}</span> }
-                      <h3>{{ season.name || season.slug || 'Temporada HSC' }}</h3>
+                      @if (season.status) { @let status = seasonStatusLabel(season.status); <span>{{ status.translationKey ? (status.translationKey | translate) : status.raw }}</span> }
+                      <h3>{{ season.name || season.slug || ('seasons.shared.fallbacks.season' | translate) }}</h3>
                     </header>
 
-                    <p>{{ season.description || 'Temporada competitiva HSC.' }}</p>
+                    <p>{{ season.description || ('seasons.index.fallbacks.description' | translate) }}</p>
 
                     <dl class="season-card__period">
-                      <div><dt>Período</dt><dd>{{ formatSeasonBoundaryDate(season.start_at) }} <span>até</span> {{ formatSeasonBoundaryDate(season.end_at) }}</dd></div>
+                      <div><dt>{{ 'seasons.shared.period' | translate }}</dt><dd>{{ formatSeasonBoundaryDate(season.start_at) || ('seasons.shared.date.open' | translate) }} <span>{{ 'seasons.shared.until' | translate }}</span> {{ formatSeasonBoundaryDate(season.end_at) || ('seasons.shared.date.open' | translate) }}</dd></div>
                     </dl>
 
                     <dl class="season-card__metrics">
-                      <div><dt>Partidas</dt><dd>{{ formatMetric(season.summary?.matches) }}</dd></div>
-                      <div><dt>Mapas</dt><dd>{{ formatMetric(season.summary?.maps) }}</dd></div>
-                      <div><dt>Rounds</dt><dd>{{ formatMetric(season.summary?.rounds) }}</dd></div>
-                      <div><dt>Jogadores</dt><dd>{{ formatMetric(season.summary?.players) }}</dd></div>
+                      <div><dt>{{ 'seasons.shared.matches' | translate }}</dt><dd>{{ formatMetric(season.summary?.matches) }}</dd></div>
+                      <div><dt>{{ 'seasons.shared.maps' | translate }}</dt><dd>{{ formatMetric(season.summary?.maps) }}</dd></div>
+                      <div><dt>{{ 'seasons.shared.rounds' | translate }}</dt><dd>{{ formatMetric(season.summary?.rounds) }}</dd></div>
+                      <div><dt>{{ 'seasons.shared.players' | translate }}</dt><dd>{{ formatMetric(season.summary?.players) }}</dd></div>
                     </dl>
 
                     <footer>
-                      <a [routerLink]="seasonLink(season, vm.activeSeasonSlug)">Ver temporada <span aria-hidden="true">→</span></a>
-                      <a [routerLink]="rankingLink(season, vm.activeSeasonSlug)">Ver ranking <span aria-hidden="true">→</span></a>
+                      <a [routerLink]="seasonLink(season, vm.activeSeasonSlug)">{{ 'seasons.index.actions.season' | translate }} <span aria-hidden="true">→</span></a>
+                      <a [routerLink]="rankingLink(season, vm.activeSeasonSlug)">{{ 'seasons.index.actions.ranking' | translate }} <span aria-hidden="true">→</span></a>
                     </footer>
                   </article>
                 }
@@ -106,8 +106,8 @@
           }
         } @else {
           <app-empty-state
-            title="Nenhuma temporada disponível"
-            description="As temporadas oficiais do clube aparecerão por aqui."
+            [title]="'seasons.index.states.emptyTitle' | translate"
+            [description]="'seasons.index.states.emptyMessage' | translate"
           />
         }
       }

@@ -1,8 +1,10 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../core/i18n/locale.service';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { MapsApiService } from './data-access/maps-api.service';
 import type { MapSummary } from './domain/map.model';
@@ -21,6 +23,7 @@ interface MapsReadyVm {
 }
 
 type MapsVm = MapsReadyVm | { state: 'loading' } | { state: 'error' } | { state: 'empty' };
+interface RelativeDateDescriptor { readonly key: string; readonly params: { readonly days?: number }; }
 
 @Component({
   selector: 'app-maps-page',
@@ -29,12 +32,14 @@ type MapsVm = MapsReadyVm | { state: 'loading' } | { state: 'error' } | { state:
     RouterLink,
     PageState,
     MapStatCard,
+    TranslatePipe,
   ],
   templateUrl: './maps-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './maps-page.css',
 })
 export class MapsPage {
+  private readonly localeService = inject(LocaleService);
   private readonly mapsApi = inject(MapsApiService);
   private readonly reload$ = new Subject<void>();
 
@@ -132,9 +137,9 @@ export class MapsPage {
     });
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data disponível';
+      return null;
     }
 
     const date = new Date(value);
@@ -143,7 +148,7 @@ export class MapsPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -172,15 +177,15 @@ export class MapsPage {
     return knownMaps.has(name) ? `url("map-images/${name}.png")` : 'none';
   }
 
-  protected relativeDate(value: string | null | undefined, generatedAt: string): string {
+  protected relativeDate(value: string | null | undefined, generatedAt: string): RelativeDateDescriptor {
     const played = value ? new Date(value).getTime() : Number.NaN;
     const snapshot = new Date(generatedAt).getTime();
     if (Number.isNaN(played) || Number.isNaN(snapshot)) {
-      return 'Sem recência disponível';
+      return { key: 'maps.relativeDate.unavailable', params: {} };
     }
     const days = Math.max(0, Math.floor((snapshot - played) / 86_400_000));
-    if (days === 0) return 'no dia da atualização';
-    if (days === 1) return 'há 1 dia';
-    return `há ${days} dias`;
+    if (days === 0) return { key: 'maps.relativeDate.sameDay', params: {} };
+    if (days === 1) return { key: 'maps.relativeDate.oneDay', params: {} };
+    return { key: 'maps.relativeDate.otherDays', params: { days } };
   }
 }

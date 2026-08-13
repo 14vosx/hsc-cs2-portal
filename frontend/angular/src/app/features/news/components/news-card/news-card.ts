@@ -1,16 +1,19 @@
-import { Component, computed, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
+import { LocaleService } from '../../../../core/i18n/locale.service';
 import type { NewsSummary } from '../../domain/news.model';
 
 @Component({
   selector: 'app-news-card',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslatePipe],
   templateUrl: './news-card.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-card.css',
 })
 export class NewsCard {
+  private readonly localeService = inject(LocaleService);
   readonly item = input.required<NewsSummary>();
 
   private readonly failedImageUrl = signal<string | null>(null);
@@ -35,9 +38,9 @@ export class NewsCard {
     }
   }
 
-  protected formatDate(value: string | null): string {
+  protected formatDate(value: string | null): string | null {
     if (!value) {
-      return 'Sem data';
+      return null;
     }
 
     const date = new Date(value);
@@ -46,7 +49,7 @@ export class NewsCard {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

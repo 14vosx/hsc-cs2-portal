@@ -2,8 +2,10 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
 
+import { LocaleService } from '../../../core/i18n/locale.service';
 import { PageHeader } from '../../../shared/components/page-header/page-header';
 import { PageState } from '../../../shared/components/page-state/page-state';
 import { MapsApiService } from '../data-access/maps-api.service';
@@ -20,6 +22,7 @@ type MapDetailVm =
   | { state: 'loading' }
   | { state: 'not-found' }
   | { state: 'error' };
+interface RelativeDateDescriptor { readonly key: string; readonly params: { readonly days?: number }; }
 
 @Component({
   selector: 'app-map-detail-page',
@@ -29,12 +32,14 @@ type MapDetailVm =
     PageHeader,
     PageState,
     MapRecentMatchTable,
+    TranslatePipe,
   ],
   templateUrl: './map-detail-page.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './map-detail-page.css',
 })
 export class MapDetailPage {
+  private readonly localeService = inject(LocaleService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly mapsApi = inject(MapsApiService);
@@ -85,9 +90,9 @@ export class MapDetailPage {
     this.router.navigate(['/maps']);
   }
 
-  protected formatDate(value?: string | null): string {
+  protected formatDate(value?: string | null): string | null {
     if (!value) {
-      return 'Sem data disponível';
+      return null;
     }
 
     const date = new Date(value);
@@ -96,7 +101,7 @@ export class MapDetailPage {
       return value;
     }
 
-    return new Intl.DateTimeFormat('pt-BR', {
+    return new Intl.DateTimeFormat(this.localeService.currentLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -119,15 +124,15 @@ export class MapDetailPage {
     return `url("map-images/${name}.png")`;
   }
 
-  protected relativeDate(value: string | null | undefined, generatedAt: string): string {
+  protected relativeDate(value: string | null | undefined, generatedAt: string): RelativeDateDescriptor {
     const played = value ? new Date(value).getTime() : Number.NaN;
     const snapshot = new Date(generatedAt).getTime();
     if (Number.isNaN(played) || Number.isNaN(snapshot)) {
-      return 'Sem recência disponível';
+      return { key: 'mapDetail.relativeDate.unavailable', params: {} };
     }
     const days = Math.max(0, Math.floor((snapshot - played) / 86_400_000));
-    if (days === 0) return 'no dia da atualização';
-    if (days === 1) return 'há 1 dia';
-    return `há ${days} dias`;
+    if (days === 0) return { key: 'mapDetail.relativeDate.sameDay', params: {} };
+    if (days === 1) return { key: 'mapDetail.relativeDate.oneDay', params: {} };
+    return { key: 'mapDetail.relativeDate.otherDays', params: { days } };
   }
 }

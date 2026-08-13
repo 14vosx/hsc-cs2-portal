@@ -1,11 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter, type ParamMap } from '@angular/router';
+import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SeasonMatchesApiService } from '../data-access/season-matches-api.service';
 import type { SeasonMatches } from '../domain/season-matches.model';
 import { SeasonMatchesPage } from './season-matches-page';
+import { installSeasonsTranslations } from '../../../testing/seasons-i18n.fixture';
 
 const createMockSeasonMatches = (slug = 'season-1'): SeasonMatches => ({
   generatedAt: '2026-08-04T12:00:00Z',
@@ -70,7 +72,7 @@ describe('SeasonMatchesPage', () => {
   let seasonMatchesApiMock: { getMatches: ReturnType<typeof vi.fn> };
   let paramMapSubject: BehaviorSubject<ParamMap>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     seasonMatchesApiMock = {
       getMatches: vi.fn(),
     };
@@ -79,6 +81,7 @@ describe('SeasonMatchesPage', () => {
     TestBed.configureTestingModule({
       imports: [SeasonMatchesPage],
       providers: [
+        provideTranslateService({ fallbackLang: 'pt-BR' }),
         provideRouter([]),
         { provide: SeasonMatchesApiService, useValue: seasonMatchesApiMock },
         {
@@ -87,6 +90,7 @@ describe('SeasonMatchesPage', () => {
         },
       ],
     });
+    await installSeasonsTranslations(TestBed.inject(TranslateService));
   });
 
   const createComponent = () => {
@@ -107,6 +111,24 @@ describe('SeasonMatchesPage', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Season 1');
     expect(el.textContent).toContain('#101');
+  });
+
+  it('switches match chrome at runtime without changing published match data or refetching', async () => {
+    const data = createMockSeasonMatches('season-1');
+    seasonMatchesApiMock.getMatches.mockReturnValue(of({ kind: 'available', matches: data }));
+    const translate = TestBed.inject(TranslateService);
+    createComponent();
+    const calls = seasonMatchesApiMock.getMatches.mock.calls.length;
+    const links = fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+    const hrefs = Array.from(links, (link) => link.getAttribute('href'));
+    expect(fixture.nativeElement.textContent).toContain('Partida'); expect(fixture.nativeElement.textContent).toContain('Vencedor'); expect(fixture.nativeElement.textContent).toContain('Histórico da temporada');
+    await translate.use('en-US').toPromise(); fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Match'); expect(text).toContain('Winner'); expect(text).toContain('Season history');
+    for (const value of ['VS', data.matches[0].seriesType!, data.matches[0].team1.name, data.matches[0].team2.name, data.matches[0].winner!, data.matches[0].maps[0].name, String(data.matches[0].id), String(data.matches[0].team1.score), String(data.matches[0].team2.score)]) expect(text).toContain(value);
+    const localizedLinks = fixture.nativeElement.querySelectorAll('a') as NodeListOf<HTMLAnchorElement>;
+    expect(Array.from(localizedLinks, (link) => link.getAttribute('href'))).toEqual(hrefs);
+    expect(seasonMatchesApiMock.getMatches).toHaveBeenCalledTimes(calls);
   });
 
   it('passa null para o serviço no recorte /seasons/current/matches (slug ausente)', () => {
@@ -145,7 +167,7 @@ describe('SeasonMatchesPage', () => {
     expect(entries[0].textContent).toContain('Team D');
     expect(entries[0].textContent).toContain('Vencedor Team D');
     expect(entries[0].textContent).toContain('BO1');
-    expect(entries[0].textContent).toContain('1 mapas na Season');
+    expect(entries[0].textContent).toContain('1 mapa na temporada');
     expect(entries[0].textContent).toContain('22 rounds válidos');
     expect(entries[0].querySelector('.season-matches__team--one b')?.textContent).toContain('0');
     expect(entries[0].querySelector('.season-matches__team--two b')?.textContent).toContain('1');
@@ -158,7 +180,7 @@ describe('SeasonMatchesPage', () => {
     createComponent();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Season não encontrada');
+    expect(el.textContent).toContain('Temporada não encontrada');
   });
 
   it('exibe estado empty localizado na seção quando a Season não possui partidas', () => {
@@ -170,7 +192,7 @@ describe('SeasonMatchesPage', () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Season 1');
-    expect(el.textContent).toContain('Nenhuma partida na Season');
+    expect(el.textContent).toContain('Nenhuma partida na temporada');
   });
 
   it('exibe estado error para falhas genéricas da requisição', () => {
