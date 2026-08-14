@@ -277,7 +277,7 @@ function normalizeSeasonPlayerRecentMap(item: unknown): BunkerRecentMap | null {
       ownDataProperty(item, 'startTime') ??
       ownDataProperty(item, 'start_time'),
   );
-  const matchId = optionalTrimmedString(
+  const matchId = optionalIdentifier(
     ownDataProperty(item, 'matchId') ?? ownDataProperty(item, 'matchid'),
   );
   const mapNumber = optionalNumber(
@@ -404,7 +404,7 @@ function normalizeSeasonPlayerTimelineItem(item: unknown): BunkerTimelineItem | 
       ownDataProperty(item, 'mapname') ??
       ownDataProperty(item, 'map'),
   );
-  const matchId = optionalTrimmedString(
+  const matchId = optionalIdentifier(
     ownDataProperty(item, 'matchId') ?? ownDataProperty(item, 'matchid'),
   );
   const mapNumber = optionalNumber(
@@ -599,6 +599,19 @@ function optionalTrimmedString(value: unknown): string | null {
   return null;
 }
 
+function optionalIdentifier(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed || null;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
 function optionalNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
@@ -615,6 +628,18 @@ function optionalNumber(value: unknown): number | null {
 function optionalBoolean(value: unknown): boolean | null {
   if (typeof value === 'boolean') {
     return value;
+  }
+
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true;
+    }
+
+    if (value === 0) {
+      return false;
+    }
+
+    return null;
   }
 
   if (typeof value === 'string') {

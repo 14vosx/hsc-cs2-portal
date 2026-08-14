@@ -399,6 +399,90 @@ describe('normalizeBunkerSummary', () => {
       expect(result?.seasonPlayer?.recentMaps[4].isWin).toBe(false);
     });
 
+    it('normaliza somente 0 e 1 numéricos de isWin no payload do ETL', () => {
+      const result = normalizeBunkerSummary({
+        seasonPlayer: {
+          recentMaps: [
+            {
+              matchid: 123,
+              mapnumber: 0,
+              start_time: '2026-08-07T11:30:00Z',
+              mapname: 'de_mirage',
+              team: 'team1',
+              winner: 'team1',
+              isWin: 1,
+              team1_score: 13,
+              team2_score: 10,
+              result: 'win',
+              outcome: 'win',
+              score: '13-10',
+              kdRatio: 1.42,
+              adr: 87.3,
+              impactRating: 1.234,
+            },
+            { mapname: 'de_ancient', isWin: 0 },
+            { mapname: 'de_anubis', isWin: 2 },
+          ],
+        },
+      });
+
+      expect(result?.seasonPlayer?.recentMaps[0]).toMatchObject({
+        matchId: '123',
+        mapNumber: 0,
+        startedAt: '2026-08-07T11:30:00Z',
+        mapName: 'de_mirage',
+        team: 'team1',
+        winner: 'team1',
+        isWin: true,
+        team1Score: 13,
+        team2Score: 10,
+        result: 'win',
+        outcome: 'win',
+        score: '13-10',
+        kdRatio: 1.42,
+        adr: 87.3,
+        impactRating: 1.234,
+      });
+      expect(result?.seasonPlayer?.recentMaps[1].isWin).toBe(false);
+      expect(result?.seasonPlayer?.recentMaps[2].isWin).toBeNull();
+    });
+
+    it('normaliza matchid string-or-number sem aceitar números inválidos', () => {
+      const result = normalizeBunkerSummary({
+        seasonPlayer: {
+          recentMaps: [
+            { mapname: 'de_mirage', matchid: 123 },
+            { mapname: 'de_ancient', matchid: '456' },
+            { mapname: 'de_anubis', matchid: ' 789 ' },
+            { mapname: 'de_inferno', matchid: 12.5 },
+            { mapname: 'de_nuke', matchid: Number.NaN },
+          ],
+          timeline: [
+            {
+              matchid: 123,
+              mapnumber: 0,
+              start_time: '2026-08-07T11:30:00Z',
+              mapname: 'de_mirage',
+            },
+          ],
+        },
+      });
+
+      expect(result?.seasonPlayer?.recentMaps.map((map) => map.matchId)).toEqual([
+        '123',
+        '456',
+        '789',
+        null,
+        null,
+      ]);
+      expect(result?.seasonPlayer?.timeline[0]).toMatchObject({
+        matchId: '123',
+        mapNumber: 0,
+        at: '2026-08-07T11:30:00Z',
+        mapName: 'de_mirage',
+      });
+    });
+
     it('aceita aliases snake_case na entrada mas gera estritamente propriedades camelCase sem duplicações snake_case', () => {
       const result = normalizeBunkerSummary({
         seasonPlayer: {
