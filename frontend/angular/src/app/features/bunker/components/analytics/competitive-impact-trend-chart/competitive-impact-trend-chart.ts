@@ -28,8 +28,10 @@ import {
 } from '../analytics-chart-presentation';
 
 interface ImpactPoint {
-  readonly timestamp: number;
+  readonly position: number;
+  readonly at: string | null;
   readonly mapName: string | null;
+  readonly matchId: string | null;
   readonly value: number | null;
 }
 
@@ -39,7 +41,7 @@ interface ImpactPoint {
   template: `
     <apx-chart-core
       [series]="series()"
-      [chart]="chart"
+      [chart]="chart()"
       [colors]="colors"
       [fill]="fill"
       [grid]="grid"
@@ -60,29 +62,20 @@ export class CompetitiveImpactTrendChart {
     initialValue: this.translate.instant(analyticsChartTranslationKeys.mapUnavailable),
   });
   readonly timeline = input<readonly BunkerTimelineItem[]>([]);
+  readonly animate = input(true);
 
   protected readonly points = computed<readonly ImpactPoint[]>(() =>
-    this.timeline().flatMap((item) => {
-      if (!item.at) {
-        return [];
-      }
-
-      const timestamp = new Date(item.at).getTime();
-
-      if (!Number.isFinite(timestamp)) {
-        return [];
-      }
-
-      return [{
-        timestamp,
-        mapName: item.mapName,
-        value: isFiniteNumber(item.impactRating) ? item.impactRating : null,
-      }];
-    }),
+    this.timeline().map((item, index) => ({
+      position: index + 1,
+      at: item.at,
+      mapName: item.mapName,
+      matchId: item.matchId,
+      value: isFiniteNumber(item.impactRating) ? item.impactRating : null,
+    })),
   );
   protected readonly series = computed(() => axisSeriesForChartCore([{
     name: 'Impact',
-    data: this.points().map((point) => ({ x: point.timestamp, y: point.value })),
+    data: this.points().map((point) => ({ x: point.position, y: point.value })),
   }] satisfies ApexAxisChartSeries));
   protected readonly tooltip = computed<ApexTooltip>(() => {
     const locale = this.localeService.currentLocale();
@@ -92,15 +85,15 @@ export class CompetitiveImpactTrendChart {
       custom: (options: ApexTooltipCustomOpts) => this.tooltipContent(options.dataPointIndex, locale),
     };
   });
-  protected readonly chart: ApexChart = {
+  protected readonly chart = computed<ApexChart>(() => ({
     type: 'area',
     height: 310,
     background: 'transparent',
     fontFamily: analyticsFontFamily,
-    animations: { enabled: chartAnimationsEnabled(), speed: 480 },
+    animations: { enabled: this.animate() && chartAnimationsEnabled(), speed: 480 },
     toolbar: { show: false },
     zoom: { enabled: false },
-  };
+  }));
   protected readonly colors = ['#32d1ff'];
   protected readonly fill: ApexFill = {
     type: 'gradient',
@@ -119,8 +112,12 @@ export class CompetitiveImpactTrendChart {
   };
   protected readonly stroke: ApexStroke = { curve: 'smooth', width: 2.5 };
   protected readonly xaxis: ApexXAxis = {
-    type: 'datetime',
-    labels: { style: { colors: '#6f7d89', fontFamily: analyticsFontFamily } },
+    type: 'numeric',
+    decimalsInFloat: 0,
+    labels: {
+      formatter: (value) => `${Math.round(Number(value))}`,
+      style: { colors: '#6f7d89', fontFamily: analyticsFontFamily },
+    },
     axisBorder: { color: 'rgba(193, 203, 210, 0.12)' },
     axisTicks: { color: 'rgba(193, 203, 210, 0.12)' },
   };
@@ -141,11 +138,7 @@ export class CompetitiveImpactTrendChart {
       return '';
     }
 
-    const date = new Intl.DateTimeFormat(locale, {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(new Date(point.timestamp));
+    const date = formatTimelineDate(point.at, locale);
     const map = escapeHtml(point.mapName || this.mapUnavailable());
     const impact = point.value === null
       ? '—'
@@ -153,6 +146,23 @@ export class CompetitiveImpactTrendChart {
 
     return `<div class="competitive-chart-tooltip"><strong>${map}</strong><span>${date}</span><b>Impact ${impact}</b></div>`;
   }
+}
+
+function formatTimelineDate(value: string | null, locale: string): string {
+  if (!value) {
+    return '—';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return escapeHtml(value);
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
 }
 
 function escapeHtml(value: string): string {

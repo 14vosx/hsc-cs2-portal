@@ -1,0 +1,33 @@
+:host { display: block; }
+.analytics-header { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(24px, 4vw, 56px); align-items: center; overflow: hidden; min-height: 156px; padding: clamp(24px, 3.5vw, 38px); color: var(--color-text-main); background: linear-gradient(105deg, rgba(50, 209, 255, .1), rgba(11, 16, 21, .94) 46%, rgba(243, 123, 33, .045)); border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-panel); }
+.analytics-header::after { position: absolute; inset: 0; background-image: linear-gradient(rgba(193, 203, 210, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(193, 203, 210, .035) 1px, transparent 1px); background-size: 44px 44px; pointer-events: none; content: ''; }
+.analytics-header > * { position: relative; z-index: 1; }
+.analytics-header__identity { display: flex; min-width: 0; align-items: center; gap: var(--space-5); }
+.analytics-header__identity app-player-avatar { flex: 0 0 auto; --player-avatar-size: 96px; }
+.analytics-header__player { min-width: 0; }
+.analytics-header__eyebrow { color: var(--color-accent-cyan); font-family: var(--font-display); font-size: .65rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
+.analytics-header h1 { overflow: hidden; margin: 5px 0 0; font-size: clamp(2rem, 4vw, 3rem); line-height: .95; letter-spacing: -.025em; text-overflow: ellipsis; white-space: nowrap; }
+.analytics-header__steam-id { display: block; margin-top: var(--space-2); color: var(--color-text-muted); font-family: var(--font-mono); font-size: .68rem; letter-spacing: .08em; }
+.analytics-header__controls { display: flex; align-items: end; justify-content: flex-end; gap: var(--space-3); }
+.analytics-header__back { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: var(--space-2); padding: 0 var(--space-4); color: var(--color-text-main); background: color-mix(in oklch, var(--color-surface-strong) 90%, transparent); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); font-family: var(--font-display); font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-decoration: none; text-transform: uppercase; white-space: nowrap; transition: color 180ms ease, border-color 180ms ease, background 180ms ease; }
+.analytics-header__back:hover { color: var(--color-accent-cyan); background: var(--color-accent-cyan-soft); border-color: var(--color-accent-cyan-border); }
+.analytics-header__back:focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 3px; }
+
+@container (max-width: 860px) {
+  .analytics-header { grid-template-columns: minmax(0, 1fr); }
+  .analytics-header__controls { justify-content: flex-start; }
+}
+
+@container (max-width: 560px) {
+  .analytics-header { min-height: 0; padding: var(--space-5); }
+  .analytics-header__identity { align-items: flex-start; gap: var(--space-4); }
+  .analytics-header__identity app-player-avatar { --player-avatar-size: 68px; }
+  .analytics-header h1 { overflow-wrap: anywhere; font-size: 1.8rem; white-space: normal; }
+  .analytics-header__steam-id { overflow-wrap: anywhere; }
+  .analytics-header__controls { align-items: stretch; flex-direction: column; }
+  .analytics-header__controls app-bunker-context-selector, .analytics-header__back { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-header__back { transition: none; }
+}

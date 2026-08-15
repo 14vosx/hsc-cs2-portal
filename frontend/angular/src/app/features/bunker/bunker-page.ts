@@ -1,30 +1,29 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, catchError, map, of, shareReplay, startWith, switchMap } from 'rxjs';
 
 import { LocaleService } from '../../core/i18n/locale.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
-import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import type { PlayerIdentity } from '../player/domain/player-identity.model';
+import { BunkerAnalyticsHeader } from './components/bunker-analytics-header/bunker-analytics-header';
 import { BunkerAuthCard } from './components/bunker-auth-card/bunker-auth-card';
-import { CompetitiveImpactTrendChart } from './components/analytics/competitive-impact-trend-chart/competitive-impact-trend-chart';
-import { CompetitiveMapWinrateChart } from './components/analytics/competitive-map-winrate-chart/competitive-map-winrate-chart';
-import { CompetitiveMetricSparkline } from './components/analytics/competitive-metric-sparkline/competitive-metric-sparkline';
-import { CompetitiveMultikillChart } from './components/analytics/competitive-multikill-chart/competitive-multikill-chart';
-import { CompetitiveWinRateChart } from './components/analytics/competitive-win-rate-chart/competitive-win-rate-chart';
-import { BunkerApiService } from './data-access/bunker-api.service';
+import { BunkerCombatPanel } from './components/bunker-combat-panel/bunker-combat-panel';
+import { BunkerMatchHistoryPanel } from './components/bunker-match-history-panel/bunker-match-history-panel';
+import { BunkerMapsPanel } from './components/bunker-maps-panel/bunker-maps-panel';
+import { BunkerOverviewPanel } from './components/bunker-overview-panel/bunker-overview-panel';
+import { BunkerSectionNav } from './components/bunker-section-nav/bunker-section-nav';
 import type {
-  BunkerMapPerformance,
-  BunkerPlayerStats,
-  BunkerRecentMap,
-  BunkerSummary,
-  BunkerTimelineItem,
-} from './domain/bunker.model';
+  AnalyticsContext,
+  AnalyticsTab,
+  SelectedAnalyticsData,
+} from './bunker-analytics.types';
+import { BunkerMotionRegistry } from './motion/bunker-motion-registry';
+import { BunkerApiService } from './data-access/bunker-api.service';
+import type { BunkerSummary } from './domain/bunker.model';
 
 type BunkerSummaryState = 'ready' | 'error';
 
@@ -55,29 +54,30 @@ const unavailableBunkerSummary: BunkerSummary = {
   standalone: true,
   imports: [
     AsyncPipe,
-    RouterLink,
     TranslatePipe,
     EmptyState,
-    PlayerAvatar,
+    BunkerAnalyticsHeader,
     BunkerAuthCard,
-    CompetitiveWinRateChart,
-    CompetitiveMetricSparkline,
-    CompetitiveImpactTrendChart,
-    CompetitiveMapWinrateChart,
-    CompetitiveMultikillChart,
+    BunkerCombatPanel,
+    BunkerMatchHistoryPanel,
+    BunkerMapsPanel,
+    BunkerOverviewPanel,
+    BunkerSectionNav,
   ],
   templateUrl: './bunker-page.html',
   styleUrl: './bunker-page.css',
   changeDetection: ChangeDetectionStrategy.Eager,
+  providers: [BunkerMotionRegistry],
 })
 export class BunkerPage {
   private readonly localeService = inject(LocaleService);
   private readonly playerIdentityApi = inject(PlayerIdentityApiService);
   private readonly bunkerApi = inject(BunkerApiService);
   private readonly playerAuthApi = inject(PlayerAuthApiService);
-  private readonly translate = inject(TranslateService);
 
   protected readonly steamLoginUrl = this.playerAuthApi.steamLoginUrl;
+  protected readonly activeTab = signal<AnalyticsTab>('overview');
+  protected readonly analyticsContext = signal<AnalyticsContext>('season');
   protected readonly vm$: Observable<BunkerVm> = this.loadVm().pipe(
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -149,82 +149,40 @@ export class BunkerPage {
     return textOrFallback(value);
   }
 
-  protected recentMapResult(item: BunkerRecentMap): string {
-    if (item.isWin === true) {
-      return this.translate.instant('bunker.results.win');
+  protected selectTab(tab: AnalyticsTab): void {
+    this.activeTab.set(tab);
+  }
+
+  protected selectAnalyticsContext(context: AnalyticsContext): void {
+    this.analyticsContext.set(context);
+  }
+
+  protected selectedAnalyticsData(summary: BunkerSummary): SelectedAnalyticsData | null {
+    if (this.analyticsContext() === 'season') {
+      const season = summary.seasonPlayer;
+
+      return season
+        ? {
+            summary: season.summary,
+            periods: season.periods,
+            byMap: season.byMap,
+            recentMaps: season.recentMaps,
+            timeline: season.timeline,
+          }
+        : null;
     }
 
-    if (item.isWin === false) {
-      return this.translate.instant('bunker.results.loss');
-    }
+    const lifetime = summary.competitiveProfile;
 
-    return item.outcome || item.result || '—';
-  }
-
-  protected recentMapTone(item: BunkerRecentMap): string {
-    if (item.isWin === true) {
-      return 'is-win';
-    }
-
-    if (item.isWin === false) {
-      return 'is-loss';
-    }
-
-    return '';
-  }
-
-  protected recentMapTeamScore(item: BunkerRecentMap): string {
-    if (!isFiniteNumber(item.team1Score) || !isFiniteNumber(item.team2Score)) {
-      return '—';
-    }
-
-    return `${this.formatInteger(item.team1Score)} x ${this.formatInteger(item.team2Score)}`;
-  }
-
-  protected timelineOutcomeClass(result: string | null): string {
-    if (result === 'win') {
-      return 'is-win';
-    }
-
-    if (result === 'loss') {
-      return 'is-loss';
-    }
-
-    return '';
-  }
-
-  protected canonicalTrend(
-    timeline: readonly BunkerTimelineItem[],
-    metric: 'kdRatio' | 'impactRating',
-  ): readonly (number | null)[] {
-    return timeline.map((item) => {
-      const value = item[metric];
-      return isFiniteNumber(value) ? value : null;
-    });
-  }
-
-  protected hasImpactTrend(timeline: readonly BunkerTimelineItem[]): boolean {
-    return timeline.some((item) => Boolean(parseDate(item.at)) && isFiniteNumber(item.impactRating));
-  }
-
-  protected periodEntries(
-    periods: Readonly<Record<string, BunkerPlayerStats>>,
-  ): readonly (readonly [string, BunkerPlayerStats])[] {
-    return Object.entries(periods);
-  }
-
-  protected displayedMaps(maps: readonly BunkerMapPerformance[]): readonly BunkerMapPerformance[] {
-    return maps.length <= 6 ? maps : maps.slice(0, 6);
-  }
-
-  protected displayedRecentMaps(maps: readonly BunkerRecentMap[]): readonly BunkerRecentMap[] {
-    return maps.length <= 5 ? maps : maps.slice(0, 5);
-  }
-
-  protected displayedTimeline(
-    timeline: readonly BunkerTimelineItem[],
-  ): readonly BunkerTimelineItem[] {
-    return timeline.length <= 8 ? timeline : timeline.slice(0, 8);
+    return lifetime
+      ? {
+          summary: lifetime.lifetime,
+          periods: lifetime.periods,
+          byMap: lifetime.byMap,
+          recentMaps: lifetime.recentMaps,
+          timeline: lifetime.timeline,
+        }
+      : null;
   }
 
   private loadVm(): Observable<BunkerVm> {

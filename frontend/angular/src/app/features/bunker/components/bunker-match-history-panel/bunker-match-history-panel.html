@@ -1,0 +1,144 @@
+@if (recentMaps(); as matches) {
+  @if (matches.length > 0) {
+    <section class="match-explorer" [attr.aria-label]="'bunker.matchHistory.ariaLabel' | translate">
+      <section class="recent-form" [attr.aria-label]="'bunker.matchHistory.form' | translate">
+        <header><span>{{ 'bunker.matchHistory.form' | translate }}</span></header>
+        <div class="recent-form__sequence">
+          @for (match of recentFormMatches(); track matchStableKey(match)) {
+            <span [class.is-win]="resultOf(match) === 'win'" [class.is-loss]="resultOf(match) === 'loss'" [attr.data-result]="resultOf(match) ?? 'neutral'" [attr.aria-label]="resultLabel(match)">{{ resultShortLabel(match) }}</span>
+          }
+        </div>
+      </section>
+
+      <div class="match-master-detail">
+        <section class="match-index" [attr.aria-label]="'bunker.matchHistory.list' | translate">
+          <header><span>{{ 'bunker.matchHistory.matches' | translate }}</span></header>
+          <div class="match-index__filters">
+            <label>
+              <span>{{ 'bunker.matchHistory.labels.map' | translate }}</span>
+              <select [value]="mapFilter()" (change)="selectMapFilter($any($event.target).value)">
+                <option value="all">{{ 'bunker.matchHistory.filters.allMaps' | translate }}</option>
+                @for (mapName of mapOptions(); track mapName) { <option [value]="mapName">{{ displayMapName(mapName) }}</option> }
+              </select>
+            </label>
+            <label>
+              <span>{{ 'bunker.matchHistory.labels.result' | translate }}</span>
+              <select [value]="resultFilter()" (change)="selectResultFilter($any($event.target).value)">
+                <option value="all">{{ 'bunker.matchHistory.filters.allResults' | translate }}</option>
+                <option value="win">{{ 'bunker.matchHistory.filters.wins' | translate }}</option>
+                <option value="loss">{{ 'bunker.matchHistory.filters.losses' | translate }}</option>
+              </select>
+            </label>
+          </div>
+
+          @if (filteredMatches().length > 0) {
+            <div class="match-index__list" role="listbox">
+              @for (match of filteredMatches(); track matchStableKey(match)) {
+                <button type="button" role="option" [attr.aria-selected]="isSelected(match)" (click)="selectMatch(match)">
+                  <time>{{ formatDate(match.startedAt) }}</time>
+                  <strong>{{ displayMapName(match.mapName) }}</strong>
+                  <span>{{ textOrFallback(match.score) }}</span>
+                  <b [class.is-win]="resultOf(match) === 'win'" [class.is-loss]="resultOf(match) === 'loss'">{{ resultLabel(match) }}</b>
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="match-filter-empty" role="status">{{ 'bunker.matchHistory.filters.empty' | translate }}</p>
+          }
+        </section>
+
+        <div class="match-detail">
+          @if (selectedMatch(); as match) {
+            <section class="match-hero" [attr.aria-label]="'bunker.matchHistory.hero' | translate">
+              @if (mapImage(match.mapName); as imageUrl) { <img class="match-hero__image" [src]="imageUrl" alt="" /> }
+              <div class="match-hero__content">
+                <div class="match-hero__identity">
+                  <span>{{ 'bunker.matchHistory.labels.map' | translate }}</span>
+                  <h2>{{ displayMapName(match.mapName) }}</h2>
+                  <time>{{ formatDate(match.startedAt, true) }}</time>
+                </div>
+                <div class="match-hero__outcome">
+                  <span>{{ 'bunker.matchHistory.labels.result' | translate }}</span>
+                  <strong [class.is-win]="resultOf(match) === 'win'" [class.is-loss]="resultOf(match) === 'loss'">{{ resultLabel(match) }}</strong>
+                  <b>{{ textOrFallback(match.score) }}</b>
+                </div>
+              </div>
+            </section>
+
+            <section class="analytics-dossier" [class.is-reveal-alternate]="detailRevealAlternate()" [attr.aria-label]="'bunker.matchHistory.dossier' | translate">
+              <section class="analytics-column analytics-column--performance">
+                <header><span>{{ 'bunker.matchHistory.performance' | translate }}</span></header>
+                <app-competitive-kda-chart [kills]="match.kills" [deaths]="match.deaths" [assists]="match.assists" />
+                <dl class="analytics-values analytics-values--three">
+                  <div><dt>{{ 'bunker.matchHistory.labels.kills' | translate }}</dt><dd>{{ formatInteger(match.kills) }}</dd></div>
+                  <div><dt>{{ 'bunker.matchHistory.labels.deaths' | translate }}</dt><dd>{{ formatInteger(match.deaths) }}</dd></div>
+                  <div><dt>{{ 'bunker.matchHistory.labels.assists' | translate }}</dt><dd>{{ formatInteger(match.assists) }}</dd></div>
+                </dl>
+                <dl class="analytics-values analytics-values--three analytics-values--primary">
+                  <div><dt>{{ 'bunker.matchHistory.labels.kd' | translate }}</dt><dd>{{ formatDecimal(match.kdRatio, 2) }}</dd></div>
+                  <div><dt>{{ 'bunker.matchHistory.labels.adr' | translate }}</dt><dd>{{ formatDecimal(match.adr, 1) }}</dd></div>
+                  <div><dt>{{ 'bunker.matchHistory.labels.impact' | translate }}</dt><dd>{{ formatDecimal(match.impactRating, 2) }}</dd></div>
+                </dl>
+              </section>
+
+              <section class="analytics-column analytics-column--details">
+                <header><span>{{ 'bunker.matchHistory.details' | translate }}</span></header>
+                <dl class="analytics-values analytics-values--stacked">
+                  <div><dt>{{ 'bunker.matchHistory.labels.damage' | translate }}</dt><dd>{{ formatInteger(match.damage) }}</dd></div>
+                  <div><dt>{{ 'bunker.matchHistory.labels.rounds' | translate }}</dt><dd>{{ formatInteger(match.rounds) }}</dd></div>
+                  <div><dt>{{ 'bunker.matchHistory.labels.utilityDamage' | translate }}</dt><dd>{{ formatInteger(match.utilityDamage) }}</dd></div>
+                </dl>
+              </section>
+
+              <section class="analytics-column analytics-column--situational">
+                <header><span>{{ 'bunker.matchHistory.situational' | translate }}</span></header>
+                <section class="analytics-subsection">
+                  <h3>{{ 'bunker.matchHistory.entry' | translate }}</h3>
+                  <div class="attempt-line">
+                    <strong>{{ formatInteger(match.entryWins) }} / {{ formatInteger(match.entryCount) }}</strong>
+                    <div class="attempt-pips" aria-hidden="true">
+                      @for (pip of attemptPips(match.entryCount); track $index) { <span [class.is-won]="isWonPip(pip, match.entryWins)"></span> }
+                    </div>
+                  </div>
+                </section>
+                <section class="analytics-subsection">
+                  <h3>{{ 'bunker.matchHistory.clutch' | translate }}</h3>
+                  <div class="clutch-lines">
+                    <div><span>1v1</span><strong>{{ formatInteger(match.v1Wins) }} / {{ formatInteger(match.v1Count) }}</strong></div>
+                    <div><span>1v2</span><strong>{{ formatInteger(match.v2Wins) }} / {{ formatInteger(match.v2Count) }}</strong></div>
+                  </div>
+                </section>
+                <section class="analytics-subsection">
+                  <h3>{{ 'bunker.matchHistory.multikill' | translate }}</h3>
+                  @switch (multikillState(match)) {
+                    @case ('positive') {
+                      <div class="multikill-positive">
+                        @for (item of positiveMultikills(match); track item.label) { <span><b>{{ item.label }}</b> ×{{ item.value }}</span> }
+                      </div>
+                    }
+                    @case ('zero') { <p>{{ 'bunker.matchHistory.multikillStates.zero' | translate }}</p> }
+                    @default { <p>{{ 'bunker.matchHistory.multikillStates.unavailable' | translate }}</p> }
+                  }
+                </section>
+                <section class="analytics-subsection">
+                  <h3>{{ 'bunker.matchHistory.aimStats' | translate }}</h3>
+                  <dl class="aim-values">
+                    <div><dt>{{ 'bunker.matchHistory.labels.headshotKills' | translate }}</dt><dd>{{ formatInteger(match.headShotKills) }}</dd></div>
+                    <div><dt>{{ 'bunker.matchHistory.labels.shotsOnTarget' | translate }}</dt><dd>{{ formatInteger(match.shotsOnTargetTotal) }}</dd></div>
+                    <div><dt>{{ 'bunker.matchHistory.labels.shotsFired' | translate }}</dt><dd>{{ formatInteger(match.shotsFiredTotal) }}</dd></div>
+                  </dl>
+                </section>
+              </section>
+            </section>
+          } @else {
+            <section class="match-filter-empty match-filter-empty--detail" role="status"><p>{{ 'bunker.matchHistory.filters.empty' | translate }}</p></section>
+          }
+        </div>
+      </div>
+    </section>
+  } @else {
+    <section class="match-history-empty" role="status"><p>{{ 'bunker.matchHistory.empty' | translate }}</p></section>
+  }
+} @else {
+  <section class="match-history-empty" role="status"><p>{{ 'bunker.matchHistory.empty' | translate }}</p></section>
+}

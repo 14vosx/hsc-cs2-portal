@@ -24,7 +24,7 @@ describe('AppFooter', () => {
 
   it('should render institutional text without development language', () => {
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('High Skill Community');
+    expect(text).toContain('HASH SMOKE CLUB');
     expect(text).not.toMatch(/Next|Angular|Lego|Foundation/i);
   });
 });

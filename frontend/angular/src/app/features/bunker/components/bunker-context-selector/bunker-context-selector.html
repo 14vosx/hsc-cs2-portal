@@ -1,0 +1,13 @@
+<label class="context-selector">
+  <span>{{ 'bunker.contextSelector.label' | translate }}</span>
+  <select
+    [attr.aria-label]="'bunker.contextSelector.ariaLabel' | translate"
+    [value]="context()"
+    (change)="handleChange($event)"
+  >
+    <option value="season">
+      {{ seasonName() || ('bunker.contextSelector.currentSeason' | translate) }}
+    </option>
+    <option value="lifetime">{{ 'bunker.contextSelector.lifetime' | translate }}</option>
+  </select>
+</label>

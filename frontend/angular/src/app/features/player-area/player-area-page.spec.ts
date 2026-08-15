@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +21,6 @@ import type { PlayerSession } from '../../core/session/player-session.model';
 
 describe('PlayerAreaPage athlete dashboard', () => {
   let fixture: ComponentFixture<PlayerAreaPage>;
-  let router: Router;
   const identityApi = { getCurrentIdentity: vi.fn() };
   const selfApi = {
     getAccount: vi.fn(), getProfile: vi.fn(), getMembership: vi.fn(), updateProfile: vi.fn(),
@@ -91,8 +90,6 @@ describe('PlayerAreaPage athlete dashboard', () => {
     translate.setTranslation('en-US', AREA_TRANSLATIONS['en-US']);
     await firstValueFrom(translate.use('pt-BR'));
     fixture = TestBed.createComponent(PlayerAreaPage);
-    router = TestBed.inject(Router);
-    vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
   });
 
   async function render(): Promise<HTMLElement> {
@@ -219,14 +216,15 @@ describe('PlayerAreaPage athlete dashboard', () => {
     expect(native.textContent).not.toContain('COPY IP');
   });
 
-  it('preserves profile, media, account, membership, public profile and logout in settings', async () => {
+  it('preserves profile, media, account, membership and public profile in settings', async () => {
     const native = await render();
     click(native, 'Editar perfil / configurações');
     expect(native.querySelector('app-player-profile-media-editor')).toBeTruthy();
     expect(native.querySelector('app-player-account-security-panel')).toBeTruthy();
     expect(native.textContent).toContain('Sua associação');
     expect(native.querySelector('a[href="/players/player-hsc"]')).toBeTruthy();
-    expect(native.textContent).toContain('Sair');
+    expect(native.textContent).toContain('Fechar');
+    expect(native.textContent).not.toContain('Sair');
     click(native, 'Editar perfil');
     expect(native.querySelector('app-player-profile-editor')).toBeTruthy();
   });
@@ -318,21 +316,27 @@ describe('PlayerAreaPage athlete dashboard', () => {
     expect(native.querySelector('.athlete-hero')).toBeTruthy();
   });
 
-  it('uses global logout and clears the authenticated Player Area after success', async () => {
+  it('closes settings through the Fechar affordance without requesting logout', async () => {
     const native = await render();
     click(native, 'Editar perfil / configurações');
     expect(native.querySelector('#player-settings')).toBeTruthy();
-    click(native, 'Sair');
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(playerSession.logout).toHaveBeenCalledTimes(1);
-    expect(globalSessionState.status).toBe('anonymous');
-    expect(native.textContent).toContain('Entre para acessar sua área');
+    expect(native.textContent).not.toContain('Sair');
+
+    click(native, 'Fechar');
+
     expect(native.querySelector('#player-settings')).toBeNull();
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/area-do-jogador', {
-      replaceUrl: true,
-    });
+    expect(playerSession.logout).not.toHaveBeenCalled();
     expect(authApi.logout).not.toHaveBeenCalled();
+  });
+
+  it('keeps Fechar configurações on the same close behavior', async () => {
+    const native = await render();
+    click(native, 'Editar perfil / configurações');
+
+    click(native, 'Fechar configurações');
+
+    expect(native.querySelector('#player-settings')).toBeNull();
+    expect(playerSession.logout).not.toHaveBeenCalled();
   });
 
   it('reacts to a successful global logout while Player Area is already loaded', async () => {
@@ -344,43 +348,6 @@ describe('PlayerAreaPage athlete dashboard', () => {
 
     expect(native.textContent).toContain('Entre para acessar sua área');
     expect(native.querySelector('#player-settings')).toBeNull();
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
-  });
-
-  it('keeps the authenticated dashboard and route when logout fails', async () => {
-    globalSessionState = {
-      status: 'authenticated',
-      displayName: 'Player HSC',
-      steamId64: '76561198000000001',
-      avatarMedium: null,
-    };
-    playerSession.logout.mockImplementation((...callbacks) => callbacks[1]?.());
-    const native = await render();
-    click(native, 'Editar perfil / configurações');
-    click(native, 'Sair');
-
-    expect(globalSessionState.status).toBe('authenticated');
-    expect(native.querySelector('.athlete-hero')).toBeTruthy();
-    expect(native.querySelector('#player-settings')).toBeTruthy();
-    expect(native.textContent).toContain('Não foi possível encerrar a sessão.');
-    expect(router.navigateByUrl).not.toHaveBeenCalled();
-  });
-
-  it('does not request logout twice while the first request is pending', async () => {
-    playerSession.logout.mockImplementation(() => undefined);
-    const native = await render();
-    click(native, 'Editar perfil / configurações');
-    const logoutButton = Array.from(native.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Sair',
-    );
-    expect(logoutButton).toBeTruthy();
-
-    logoutButton?.click();
-    logoutButton?.click();
-    fixture.detectChanges();
-
-    expect(playerSession.logout).toHaveBeenCalledTimes(1);
-    expect(logoutButton?.textContent).toContain('Saindo...');
   });
 
   it.each([401, 403])('keeps Server Access HTTP %s unauthenticated', async (status) => {
@@ -430,8 +397,8 @@ const areaDictionary = (english: boolean) => ({
     competitive: { available: 'Disponíveis', steamRequired: 'Vínculo Steam necessário', error: 'O resumo competitivo está temporariamente indisponível. Seu perfil e sua conta continuam acessíveis.', seasonPerformance: 'Season performance', updatedAt: 'Atualizado em', registeredMaps: { one: '{{ count }} mapa registrado nesta temporada.', other: '{{ count }} mapas registrados nesta temporada.' }, noSeasonStats: { title: 'Esta temporada ainda não possui estatísticas competitivas para você.', description: 'Assim que houver dados competitivos nesta temporada, eles aparecerão aqui.' }, lifetime: { eyebrow: 'Histórico HSC', title: 'Perfil Competitivo Geral', description: 'Seu histórico competitivo no HSC.', empty: 'Seu perfil competitivo ainda não possui histórico disponível.' }, combat: { title: 'Combat Breakdown', clutchPerformance: 'Clutch Performance', success: 'Success', conversion: 'Conversion', multiKill: 'Multi-kill Counters' } },
     metrics: { winRate: 'Win Rate', mapsPlayed: 'Maps Played', wins: 'Wins', losses: 'Losses', rounds: 'Rounds', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', accuracy: 'Accuracy', utilityPerRound: 'Util / R' },
     account: { ariaLabel: 'Identidades e associação', membership: english ? 'Membership' : 'Associação', email: { label: 'E-mail', notLinked: 'Não vinculado', pendingVerification: 'Vinculado · verificação pendente', verified: 'Vinculado e verificado' }, steam: { linked: 'Vinculada', notLinked: 'Não vinculada' } },
-    actions: { closeSettings: 'Fechar configurações', editSettings: 'Editar perfil / configurações', editProfile: 'Editar perfil', viewPublicProfile: 'Ver perfil público', signingOut: 'Saindo...', signOut: 'Sair', manageAccount: 'Gerenciar conta', fullCompetitiveAnalysis: 'Ver análise competitiva completa' },
-    notices: { profileUpdated: 'Perfil atualizado.', avatarUpdated: 'Avatar atualizado.', avatarRemoved: 'Avatar removido.', bannerUpdated: 'Banner atualizado.', bannerRemoved: 'Banner removido.', logoutFailed: 'Não foi possível encerrar a sessão. Tente novamente.' },
+    actions: { close: english ? 'Close' : 'Fechar', closeSettings: english ? 'Close settings' : 'Fechar configurações', editSettings: 'Editar perfil / configurações', editProfile: 'Editar perfil', viewPublicProfile: 'Ver perfil público', manageAccount: 'Gerenciar conta', fullCompetitiveAnalysis: 'Ver análise competitiva completa' },
+    notices: { profileUpdated: 'Perfil atualizado.', avatarUpdated: 'Avatar atualizado.', avatarRemoved: 'Avatar removido.', bannerUpdated: 'Banner atualizado.', bannerRemoved: 'Banner removido.' },
     steamLink: { results: { success: 'Steam vinculada com sucesso.', identityConflict: 'Conflito Steam.', alreadyLinked: 'Steam já vinculada.', unavailable: 'Steam indisponível.', failed: 'Falha ao vincular Steam.' } },
   },
   playerAuth: AUTH_CHILD_TRANSLATIONS[english ? 'en-US' : 'pt-BR'].playerAuth,

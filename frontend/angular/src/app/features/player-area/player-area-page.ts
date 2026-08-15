@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   BehaviorSubject,
   Observable,
@@ -110,7 +110,6 @@ export class PlayerAreaPage implements OnInit {
   private readonly authApi = inject(PlayerAuthApiService);
   private readonly serverAccessApi = inject(PlayerServerAccessApiService);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly destroyRef = inject(DestroyRef);
   private readonly playerSession = inject(PlayerSessionService);
@@ -118,8 +117,6 @@ export class PlayerAreaPage implements OnInit {
   protected readonly steamLoginUrl = this.authApi.steamLoginUrl;
   protected readonly steamLinkUrl = this.authApi.steamLinkUrl;
 
-  protected readonly logoutPending = signal(false);
-  protected readonly logoutFailed = signal(false);
   protected readonly settingsOpen = signal(false);
 
   protected readonly isEditingProfile = signal(false);
@@ -144,7 +141,7 @@ export class PlayerAreaPage implements OnInit {
   constructor() {
     this.playerSession.signedOut$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.handleSuccessfulLogout(this.logoutPending()));
+      .subscribe(() => this.handleSuccessfulLogout());
   }
 
   ngOnInit(): void {
@@ -322,20 +319,6 @@ export class PlayerAreaPage implements OnInit {
     if (!map) return '—';
     const found = PREFERRED_MAPS.find((m) => m.key === map);
     return found ? found.label : map;
-  }
-
-  protected logout(): void {
-    if (this.logoutPending()) {
-      return;
-    }
-
-    this.logoutPending.set(true);
-    this.logoutFailed.set(false);
-
-    this.playerSession.logout(undefined, () => {
-      this.logoutFailed.set(true);
-      this.logoutPending.set(false);
-    });
   }
 
   protected onEmailAuthenticated(): void {
@@ -517,10 +500,8 @@ export class PlayerAreaPage implements OnInit {
     target.set(mapped.message);
   }
 
-  private handleSuccessfulLogout(navigate: boolean): void {
+  private handleSuccessfulLogout(): void {
     this.settingsOpen.set(false);
-    this.logoutPending.set(false);
-    this.logoutFailed.set(false);
     this.isEditingProfile.set(false);
     this.savePending.set(false);
     this.saveError.set(null);
@@ -532,10 +513,6 @@ export class PlayerAreaPage implements OnInit {
     this.bannerPending.set(false);
     this.clearMediaErrors();
     this.reload$.next('signed-out');
-
-    if (navigate) {
-      void this.router.navigateByUrl('/area-do-jogador', { replaceUrl: true });
-    }
   }
 
   private loadVm(action: PlayerAreaReloadAction): Observable<PlayerAreaVm> {
