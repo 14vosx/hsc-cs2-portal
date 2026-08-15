@@ -10,6 +10,11 @@ export interface BunkerCurrentSeason {
   readonly scope: BunkerSeasonScope | null;
 }
 
+export interface BunkerSeasonArtifactSeason {
+  readonly slug: string | null;
+  readonly scope: BunkerSeasonScope | null;
+}
+
 export interface BunkerPlayerStats {
   readonly mapsPlayed: number | null;
   readonly matchesPlayed: number | null;
@@ -125,7 +130,9 @@ export interface BunkerSeasonPlayer {
   readonly name: string | null;
   readonly steamId64: string | null;
   readonly generatedAt: string | null;
+  readonly season: BunkerSeasonArtifactSeason | null;
   readonly summary: BunkerPlayerStats | null;
+  readonly periods: Readonly<Record<string, BunkerPlayerStats>>;
   readonly byMap: readonly BunkerMapPerformance[];
   readonly recentMaps: readonly BunkerRecentMap[];
   readonly timeline: readonly BunkerTimelineItem[];
@@ -138,6 +145,10 @@ export interface BunkerCompetitiveProfile {
   readonly avatarMedium: string | null;
   readonly steamProfileUrl: string | null;
   readonly lifetime: BunkerPlayerStats | null;
+  readonly periods: Readonly<Record<string, BunkerPlayerStats>>;
+  readonly byMap: readonly BunkerMapPerformance[];
+  readonly recentMaps: readonly BunkerRecentMap[];
+  readonly timeline: readonly BunkerTimelineItem[];
 }
 
 export interface BunkerSummary {

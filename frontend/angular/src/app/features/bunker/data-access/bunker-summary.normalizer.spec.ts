@@ -164,6 +164,10 @@ describe('normalizeBunkerSummary', () => {
         avatarMedium: 'https://example.test/player-avatar.jpg',
         steamProfileUrl: 'https://steamcommunity.com/profiles/76561198000000999',
         lifetime: null,
+        periods: {},
+        byMap: [],
+        recentMaps: [],
+        timeline: [],
       });
     });
   });
@@ -317,7 +321,7 @@ describe('normalizeBunkerSummary', () => {
       expect(result?.seasonPlayer?.byMap[0].mapName).toBe('de_dust2');
     });
 
-    it('limita o número de mapas em até 6', () => {
+    it('preserva todos os mapas válidos no contrato normalizado', () => {
       const result = normalizeBunkerSummary({
         seasonPlayer: {
           byMap: [
@@ -332,8 +336,8 @@ describe('normalizeBunkerSummary', () => {
         },
       });
 
-      expect(result?.seasonPlayer?.byMap).toHaveLength(6);
-      expect(result?.seasonPlayer?.byMap[5].mapName).toBe('map6');
+      expect(result?.seasonPlayer?.byMap).toHaveLength(7);
+      expect(result?.seasonPlayer?.byMap[6].mapName).toBe('map7');
     });
 
     it('retorna array vazio quando byMap não for um array', () => {
@@ -542,7 +546,7 @@ describe('normalizeBunkerSummary', () => {
       expect('shots_on_target_total' in map).toBe(false);
     });
 
-    it('limita o número de mapas recentes em até 5', () => {
+    it('preserva todos os mapas recentes válidos no contrato normalizado', () => {
       const result = normalizeBunkerSummary({
         seasonPlayer: {
           recentMaps: [
@@ -556,8 +560,8 @@ describe('normalizeBunkerSummary', () => {
         },
       });
 
-      expect(result?.seasonPlayer?.recentMaps).toHaveLength(5);
-      expect(result?.seasonPlayer?.recentMaps[4].matchId).toBe('m5');
+      expect(result?.seasonPlayer?.recentMaps).toHaveLength(6);
+      expect(result?.seasonPlayer?.recentMaps[5].matchId).toBe('m6');
     });
   });
 
@@ -580,7 +584,7 @@ describe('normalizeBunkerSummary', () => {
       expect(result?.seasonPlayer?.timeline[1].event).toBe('match_loss');
     });
 
-    it('limita a timeline em até 8 itens', () => {
+    it('preserva todos os itens válidos da timeline no contrato normalizado', () => {
       const result = normalizeBunkerSummary({
         seasonPlayer: {
           timeline: [
@@ -597,12 +601,164 @@ describe('normalizeBunkerSummary', () => {
         },
       });
 
-      expect(result?.seasonPlayer?.timeline).toHaveLength(8);
-      expect(result?.seasonPlayer?.timeline[7].matchId).toBe('t8');
+      expect(result?.seasonPlayer?.timeline).toHaveLength(9);
+      expect(result?.seasonPlayer?.timeline[8].matchId).toBe('t9');
     });
   });
 
-  describe('H. Segurança e robustez', () => {
+  describe('H. Perfil competitivo permanente', () => {
+    it('preserva lifetime, períodos e coleções detalhadas sem misturá-los com Season', () => {
+      const result = normalizeBunkerSummary({
+        competitiveProfile: {
+          lifetime: { kdRatio: '1.25', adr: 82.4, impactRating: 1.08, score: 901 },
+          periods: {
+            '7d': { kdRatio: 1.4, adr: 88, score: 120 },
+            '30d': { winRate: 0.6, impactRating: 1.12 },
+          },
+          byMap: [{ mapName: 'de_mirage', kdRatio: 1.31, adr: 84.2 }],
+          recentMaps: [{ matchId: 'history-1', result: 'win', score: '13-9', kdRatio: 1.5 }],
+          timeline: [{ matchId: 'history-1', result: 'win', score: '13-9', impactRating: 1.2 }],
+        },
+        seasonPlayer: {
+          periods: {
+            '7d': { kdRatio: 0.91, adr: 71 },
+            seasonCustom: { winRate: 0.4 },
+            invalid: { kdRatio: 'invalid' },
+          },
+          byMap: [{ mapName: 'de_nuke' }],
+          recentMaps: [{ matchId: 'season-1' }],
+          timeline: [{ matchId: 'season-1' }],
+        },
+      });
+
+      expect(result?.competitiveProfile?.lifetime).toMatchObject({
+        kdRatio: 1.25,
+        adr: 82.4,
+        impactRating: 1.08,
+        score: 901,
+      });
+      expect(result?.competitiveProfile?.periods['7d']).toMatchObject({
+        kdRatio: 1.4,
+        adr: 88,
+        score: 120,
+      });
+      expect(result?.competitiveProfile?.periods['30d']).toMatchObject({
+        winRate: 0.6,
+        impactRating: 1.12,
+      });
+      expect(result?.competitiveProfile?.byMap[0].mapName).toBe('de_mirage');
+      expect(result?.competitiveProfile?.recentMaps[0]).toMatchObject({
+        matchId: 'history-1',
+        result: 'win',
+        score: '13-9',
+        kdRatio: 1.5,
+      });
+      expect(result?.competitiveProfile?.timeline[0]).toMatchObject({
+        matchId: 'history-1',
+        result: 'win',
+        score: '13-9',
+        impactRating: 1.2,
+      });
+      expect(result?.seasonPlayer?.byMap[0].mapName).toBe('de_nuke');
+      expect(result?.seasonPlayer?.periods['7d']).toMatchObject({ kdRatio: 0.91, adr: 71 });
+      expect(result?.seasonPlayer?.periods['seasonCustom']).toMatchObject({ winRate: 0.4 });
+      expect(result?.seasonPlayer?.periods['invalid']).toBeUndefined();
+      expect(result?.competitiveProfile?.periods['7d'].kdRatio).toBe(1.4);
+      expect(result?.seasonPlayer?.periods['7d'].kdRatio).toBe(0.91);
+    });
+
+    it('descarta períodos inválidos, preserva os válidos e normaliza coleções ausentes', () => {
+      const result = normalizeBunkerSummary({
+        competitiveProfile: {
+          generatedAt: '2026-08-14T10:00:00Z',
+          periods: {
+            '7d': { kdRatio: 1.1 },
+            '30d': { kdRatio: 'invalid' },
+            empty: {},
+            malformed: 'invalid',
+          },
+        },
+      });
+
+      expect(Object.keys(result?.competitiveProfile?.periods ?? {})).toEqual(['7d']);
+      expect(result?.competitiveProfile?.byMap).toEqual([]);
+      expect(result?.competitiveProfile?.recentMaps).toEqual([]);
+      expect(result?.competitiveProfile?.timeline).toEqual([]);
+    });
+
+    it('normaliza seasonPlayer sem periods como objeto vazio', () => {
+      const result = normalizeBunkerSummary({ seasonPlayer: { name: 'Season Player' } });
+
+      expect(result?.seasonPlayer?.periods).toEqual({});
+      expect(result?.seasonPlayer?.season).toBeNull();
+    });
+
+    it('mantém seasonPlayer com identidade e somente períodos válidos', () => {
+      const result = normalizeBunkerSummary({
+        seasonPlayer: {
+          name: 'Season Player',
+          steamid64: '76561198000000001',
+          periods: { '7d': { kdRatio: 1.03 } },
+        },
+      });
+
+      expect(result?.seasonPlayer).not.toBeNull();
+      expect(result?.seasonPlayer?.periods['7d'].kdRatio).toBe(1.03);
+      expect(result?.seasonPlayer?.byMap).toEqual([]);
+      expect(result?.seasonPlayer?.recentMaps).toEqual([]);
+      expect(result?.seasonPlayer?.timeline).toEqual([]);
+    });
+
+    it('preserva slug e scope do contexto de Season do artifact', () => {
+      const result = normalizeBunkerSummary({
+        seasonPlayer: {
+          season: {
+            slug: 'artifact-season',
+            scope: { startAt: '2026-04-01', endAt: '2026-09-30' },
+          },
+        },
+      });
+
+      expect(result?.seasonPlayer?.season).toEqual({
+        slug: 'artifact-season',
+        scope: { startAt: '2026-04-01', endAt: '2026-09-30' },
+      });
+    });
+
+    it('normaliza season do artifact inválida como null e preserva slug sem scope', () => {
+      const invalid = normalizeBunkerSummary({
+        seasonPlayer: { name: 'Season Player', season: { slug: ' ', scope: 'invalid' } },
+      });
+      const slugOnly = normalizeBunkerSummary({
+        seasonPlayer: { season: { slug: 'artifact-season' } },
+      });
+
+      expect(invalid?.seasonPlayer?.season).toBeNull();
+      expect(slugOnly?.seasonPlayer?.season).toEqual({ slug: 'artifact-season', scope: null });
+    });
+
+    it('mantém currentSeason e seasonPlayer.season diferentes e independentes', () => {
+      const result = normalizeBunkerSummary({
+        currentSeason: {
+          slug: 'authoritative-season',
+          name: 'Season atual',
+          status: 'active',
+          scope: { startAt: '2026-07-01', endAt: '2026-12-31' },
+        },
+        seasonPlayer: {
+          season: {
+            slug: 'artifact-season',
+            scope: { startAt: '2026-04-01', endAt: '2026-09-30' },
+          },
+        },
+      });
+
+      expect(result?.currentSeason?.slug).toBe('authoritative-season');
+      expect(result?.seasonPlayer?.season?.slug).toBe('artifact-season');
+    });
+  });
+
+  describe('I. Segurança e robustez', () => {
     it('não consome propriedades herdadas do protótipo', () => {
       const prototype = { status: 'inherited-status', seasonFirst: true };
       const input = Object.create(prototype);
@@ -659,7 +815,7 @@ describe('normalizeBunkerSummary', () => {
     });
   });
 
-  describe('I. Pureza arquitetural (Inspeção Estática)', () => {
+  describe('J. Pureza arquitetural (Inspeção Estática)', () => {
     it('comprova por inspeção estática que os arquivos de produção não contêm imports proibidos ou acesso ao DOM', () => {
       const normalizerPath = path.join(__dirname, 'bunker-summary.normalizer.ts');
       const modelPath = path.resolve(__dirname, '../domain/bunker.model.ts');

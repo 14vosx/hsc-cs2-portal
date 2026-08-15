@@ -4,6 +4,7 @@ import type {
   BunkerMapPerformance,
   BunkerPlayerStats,
   BunkerRecentMap,
+  BunkerSeasonArtifactSeason,
   BunkerSeasonPlayer,
   BunkerSummary,
   BunkerTimelineItem,
@@ -101,6 +102,10 @@ function normalizeCompetitiveProfile(
   const profile = isRecord(competitiveProfile) ? competitiveProfile : {};
   const player = isRecord(responsePlayer) ? responsePlayer : {};
   const lifetime = normalizeCompetitiveLifetime(ownDataProperty(profile, 'lifetime'));
+  const periods = normalizePlayerPeriods(ownDataProperty(profile, 'periods'));
+  const byMap = normalizePlayerByMap(ownDataProperty(profile, 'byMap'));
+  const recentMaps = normalizePlayerRecentMaps(ownDataProperty(profile, 'recentMaps'));
+  const timeline = normalizePlayerTimeline(ownDataProperty(profile, 'timeline'));
 
   const steamId64 = optionalTrimmedString(
     ownDataProperty(profile, 'steamid64') ??
@@ -125,7 +130,11 @@ function normalizeCompetitiveProfile(
     !name &&
     !avatarMedium &&
     !steamProfileUrl &&
-    !lifetime
+    !lifetime &&
+    Object.keys(periods).length === 0 &&
+    byMap.length === 0 &&
+    recentMaps.length === 0 &&
+    timeline.length === 0
   ) {
     return null;
   }
@@ -137,7 +146,40 @@ function normalizeCompetitiveProfile(
     avatarMedium,
     steamProfileUrl,
     lifetime,
+    periods,
+    byMap,
+    recentMaps,
+    timeline,
   };
+}
+
+function normalizePlayerPeriods(
+  periods: unknown,
+): Readonly<Record<string, BunkerPlayerStats>> {
+  if (!isRecord(periods)) {
+    return {};
+  }
+
+  const normalized: Record<string, BunkerPlayerStats> = {};
+
+  let keys: string[];
+
+  try {
+    keys = Object.keys(periods);
+  } catch {
+    return {};
+  }
+
+  for (const rawKey of keys) {
+    const key = rawKey.trim();
+    const stats = normalizeCompetitiveLifetime(ownDataProperty(periods, rawKey));
+
+    if (key && stats) {
+      normalized[key] = stats;
+    }
+  }
+
+  return normalized;
 }
 
 function normalizeCompetitiveLifetime(lifetime: unknown): BunkerPlayerStats | null {
@@ -164,18 +206,22 @@ function normalizeSeasonPlayer(seasonPlayer: unknown): BunkerSeasonPlayer | null
     ownDataProperty(seasonPlayer, 'steamid64') ?? ownDataProperty(seasonPlayer, 'steamId64'),
   );
   const generatedAt = optionalTrimmedString(ownDataProperty(seasonPlayer, 'generatedAt'));
+  const season = normalizeSeasonArtifactSeason(ownDataProperty(seasonPlayer, 'season'));
   const summary = normalizeSeasonPlayerSummary(ownDataProperty(seasonPlayer, 'summary'));
-  const byMap = normalizeSeasonPlayerByMap(ownDataProperty(seasonPlayer, 'byMap'));
-  const recentMaps = normalizeSeasonPlayerRecentMaps(
+  const periods = normalizePlayerPeriods(ownDataProperty(seasonPlayer, 'periods'));
+  const byMap = normalizePlayerByMap(ownDataProperty(seasonPlayer, 'byMap'));
+  const recentMaps = normalizePlayerRecentMaps(
     ownDataProperty(seasonPlayer, 'recentMaps'),
   );
-  const timeline = normalizeSeasonPlayerTimeline(ownDataProperty(seasonPlayer, 'timeline'));
+  const timeline = normalizePlayerTimeline(ownDataProperty(seasonPlayer, 'timeline'));
 
   if (
     !name &&
     !steamId64 &&
     !generatedAt &&
+    !season &&
     !summary &&
+    Object.keys(periods).length === 0 &&
     byMap.length === 0 &&
     recentMaps.length === 0 &&
     timeline.length === 0
@@ -187,29 +233,53 @@ function normalizeSeasonPlayer(seasonPlayer: unknown): BunkerSeasonPlayer | null
     name,
     steamId64,
     generatedAt,
+    season,
     summary,
+    periods,
     byMap,
     recentMaps,
     timeline,
   };
 }
 
+function normalizeSeasonArtifactSeason(season: unknown): BunkerSeasonArtifactSeason | null {
+  if (!isRecord(season)) {
+    return null;
+  }
+
+  const slug = optionalTrimmedString(ownDataProperty(season, 'slug'));
+  const rawScope = ownDataProperty(season, 'scope');
+  const scopeRecord = isRecord(rawScope) ? rawScope : null;
+  const startAt = scopeRecord
+    ? optionalTrimmedString(ownDataProperty(scopeRecord, 'startAt'))
+    : null;
+  const endAt = scopeRecord
+    ? optionalTrimmedString(ownDataProperty(scopeRecord, 'endAt'))
+    : null;
+  const scope = startAt || endAt ? { startAt, endAt } : null;
+
+  if (!slug && !scope) {
+    return null;
+  }
+
+  return { slug, scope };
+}
+
 function normalizeSeasonPlayerSummary(summary: unknown): BunkerPlayerStats | null {
   return normalizeCompetitiveLifetime(summary);
 }
 
-function normalizeSeasonPlayerByMap(byMap: unknown): readonly BunkerMapPerformance[] {
+function normalizePlayerByMap(byMap: unknown): readonly BunkerMapPerformance[] {
   if (!Array.isArray(byMap)) {
     return [];
   }
 
   return byMap
-    .map((item) => normalizeSeasonPlayerMap(item))
-    .filter((item): item is BunkerMapPerformance => item !== null)
-    .slice(0, 6);
+    .map((item) => normalizePlayerMap(item))
+    .filter((item): item is BunkerMapPerformance => item !== null);
 }
 
-function normalizeSeasonPlayerMap(item: unknown): BunkerMapPerformance | null {
+function normalizePlayerMap(item: unknown): BunkerMapPerformance | null {
   if (!isRecord(item)) {
     return null;
   }
@@ -251,18 +321,17 @@ function normalizeSeasonPlayerMap(item: unknown): BunkerMapPerformance | null {
   return mapPerformance;
 }
 
-function normalizeSeasonPlayerRecentMaps(recentMaps: unknown): readonly BunkerRecentMap[] {
+function normalizePlayerRecentMaps(recentMaps: unknown): readonly BunkerRecentMap[] {
   if (!Array.isArray(recentMaps)) {
     return [];
   }
 
   return recentMaps
-    .map((item) => normalizeSeasonPlayerRecentMap(item))
-    .filter((item): item is BunkerRecentMap => item !== null)
-    .slice(0, 5);
+    .map((item) => normalizePlayerRecentMap(item))
+    .filter((item): item is BunkerRecentMap => item !== null);
 }
 
-function normalizeSeasonPlayerRecentMap(item: unknown): BunkerRecentMap | null {
+function normalizePlayerRecentMap(item: unknown): BunkerRecentMap | null {
   if (!isRecord(item)) {
     return null;
   }
@@ -373,18 +442,17 @@ function normalizeSeasonPlayerRecentMap(item: unknown): BunkerRecentMap | null {
   return recentMap;
 }
 
-function normalizeSeasonPlayerTimeline(timeline: unknown): readonly BunkerTimelineItem[] {
+function normalizePlayerTimeline(timeline: unknown): readonly BunkerTimelineItem[] {
   if (!Array.isArray(timeline)) {
     return [];
   }
 
   return timeline
-    .map((item) => normalizeSeasonPlayerTimelineItem(item))
-    .filter((item): item is BunkerTimelineItem => item !== null)
-    .slice(0, 8);
+    .map((item) => normalizePlayerTimelineItem(item))
+    .filter((item): item is BunkerTimelineItem => item !== null);
 }
 
-function normalizeSeasonPlayerTimelineItem(item: unknown): BunkerTimelineItem | null {
+function normalizePlayerTimelineItem(item: unknown): BunkerTimelineItem | null {
   if (!isRecord(item)) {
     return null;
   }

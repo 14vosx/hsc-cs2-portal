@@ -19,6 +19,8 @@ import { CompetitiveMultikillChart } from './components/analytics/competitive-mu
 import { CompetitiveWinRateChart } from './components/analytics/competitive-win-rate-chart/competitive-win-rate-chart';
 import { BunkerApiService } from './data-access/bunker-api.service';
 import type {
+  BunkerMapPerformance,
+  BunkerPlayerStats,
   BunkerRecentMap,
   BunkerSummary,
   BunkerTimelineItem,
@@ -203,6 +205,26 @@ export class BunkerPage {
 
   protected hasImpactTrend(timeline: readonly BunkerTimelineItem[]): boolean {
     return timeline.some((item) => Boolean(parseDate(item.at)) && isFiniteNumber(item.impactRating));
+  }
+
+  protected periodEntries(
+    periods: Readonly<Record<string, BunkerPlayerStats>>,
+  ): readonly (readonly [string, BunkerPlayerStats])[] {
+    return Object.entries(periods);
+  }
+
+  protected displayedMaps(maps: readonly BunkerMapPerformance[]): readonly BunkerMapPerformance[] {
+    return maps.length <= 6 ? maps : maps.slice(0, 6);
+  }
+
+  protected displayedRecentMaps(maps: readonly BunkerRecentMap[]): readonly BunkerRecentMap[] {
+    return maps.length <= 5 ? maps : maps.slice(0, 5);
+  }
+
+  protected displayedTimeline(
+    timeline: readonly BunkerTimelineItem[],
+  ): readonly BunkerTimelineItem[] {
+    return timeline.length <= 8 ? timeline : timeline.slice(0, 8);
   }
 
   private loadVm(): Observable<BunkerVm> {

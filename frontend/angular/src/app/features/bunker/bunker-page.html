@@ -89,7 +89,7 @@
                   <span>K/D</span>
                   <strong>{{ formatDecimal(lifetime.kdRatio, 2) }}</strong>
                   <small>{{ 'bunker.sections.overview.canonicalLifetime' | translate }}</small>
-                  @if (vm.summary.seasonPlayer?.timeline; as timeline) {
+                  @if (vm.summary.competitiveProfile?.timeline; as timeline) {
                     <app-competitive-metric-sparkline
                       [values]="canonicalTrend(timeline, 'kdRatio')"
                     />
@@ -106,7 +106,7 @@
                   <span>Impact</span>
                   <strong>{{ formatDecimal(lifetime.impactRating, 2) }}</strong>
                   <small>{{ 'bunker.sections.overview.canonicalLifetime' | translate }}</small>
-                  @if (vm.summary.seasonPlayer?.timeline; as timeline) {
+                  @if (vm.summary.competitiveProfile?.timeline; as timeline) {
                     <app-competitive-metric-sparkline
                       [values]="canonicalTrend(timeline, 'impactRating')"
                       color="orange"
@@ -138,6 +138,152 @@
             }
           </section>
 
+          @if (vm.summary.competitiveProfile; as profile) {
+            <section class="analytics-section lifetime-history" aria-labelledby="lifetime-history-title">
+              <div class="analytics-heading">
+                <div>
+                  <span class="analytics-eyebrow">{{ 'bunker.sections.history.eyebrow' | translate }}</span>
+                  <h2 id="lifetime-history-title">{{ 'bunker.sections.history.title' | translate }}</h2>
+                  <small>{{ 'bunker.sections.history.updated' | translate }} · {{ formatDateTime(profile.generatedAt) }}</small>
+                </div>
+                <p>{{ 'bunker.sections.history.description' | translate }}</p>
+              </div>
+
+              @if (periodEntries(profile.periods); as periods) {
+                @if (periods.length > 0) {
+                  <div class="period-grid" [attr.aria-label]="'bunker.accessibility.lifetimePeriods' | translate">
+                    @for (period of periods; track period[0]) {
+                      <article class="period-card">
+                        <span>{{ period[0] }}</span>
+                        <dl>
+                          <div><dt>K/D</dt><dd>{{ formatDecimal(period[1].kdRatio, 2) }}</dd></div>
+                          <div><dt>ADR</dt><dd>{{ formatDecimal(period[1].adr, 1) }}</dd></div>
+                          <div><dt>Impact</dt><dd>{{ formatDecimal(period[1].impactRating, 2) }}</dd></div>
+                          <div><dt>{{ 'bunker.labels.winRate' | translate }}</dt><dd>{{ formatRate(period[1].winRate) }}</dd></div>
+                        </dl>
+                      </article>
+                    }
+                  </div>
+                }
+              }
+
+              <h3>{{ 'bunker.sections.history.mapsTitle' | translate }}</h3>
+              @if (profile.byMap.length > 0) {
+                <div class="map-performance">
+                  <div class="chart-panel">
+                    <app-competitive-map-winrate-chart [maps]="displayedMaps(profile.byMap)" />
+                  </div>
+                  <div class="map-table" role="table" [attr.aria-label]="'bunker.accessibility.lifetimeMapPerformance' | translate">
+                    <div class="map-table__row map-table__head" role="row">
+                      <span role="columnheader">{{ 'bunker.labels.map' | translate }}</span><span role="columnheader">{{ 'bunker.labels.games' | translate }}</span>
+                      <span role="columnheader">{{ 'bunker.labels.winShort' | translate }}</span><span role="columnheader">{{ 'bunker.labels.lossShort' | translate }}</span>
+                      <span role="columnheader">{{ 'bunker.labels.winPct' | translate }}</span><span role="columnheader">K/D</span>
+                      <span role="columnheader">ADR</span><span role="columnheader">Impact</span>
+                      <span role="columnheader">HS%</span><span role="columnheader">{{ 'bunker.labels.entry' | translate }}</span>
+                    </div>
+                    @for (map of displayedMaps(profile.byMap); track map.mapName ?? $index) {
+                      <div class="map-table__row" role="row">
+                        <strong role="cell" [attr.data-label]="'bunker.labels.map' | translate">{{ map.mapName || '—' }}</strong>
+                        <span role="cell" [attr.data-label]="'bunker.labels.games' | translate">{{ formatInteger(map.mapsPlayed) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.winShort' | translate">{{ formatInteger(map.wins) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.lossShort' | translate">{{ formatInteger(map.losses) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.winPct' | translate">{{ formatRate(map.winRate) }}</span>
+                        <span role="cell" data-label="K/D">{{ formatDecimal(map.kdRatio, 2) }}</span>
+                        <span role="cell" data-label="ADR">{{ formatDecimal(map.adr, 1) }}</span>
+                        <span role="cell" data-label="Impact">{{ formatDecimal(map.impactRating, 2) }}</span>
+                        <span role="cell" data-label="HS%">{{ formatRate(map.headshotPct) }}</span>
+                        <span role="cell" [attr.data-label]="'bunker.labels.entry' | translate">{{ formatRate(map.entryWinRate) }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="analytics-empty analytics-empty--compact">
+                  <strong>{{ 'bunker.states.empty.historicalMaps' | translate }}</strong>
+                </div>
+              }
+
+              @if (profile.recentMaps.length > 0) {
+                <h3>{{ 'bunker.sections.history.recentTitle' | translate }}</h3>
+                <div class="recent-maps lifetime-recent-maps">
+                  @for (map of displayedRecentMaps(profile.recentMaps); track $index) {
+                    <article class="recent-map" [class.is-win]="map.isWin === true" [class.is-loss]="map.isWin === false">
+                      <div class="recent-map__identity">
+                        <span [class]="recentMapTone(map)">{{ recentMapResult(map) }}</span>
+                        <strong>{{ map.mapName || '—' }}</strong>
+                        <small>{{ formatDate(map.startedAt) }}</small>
+                      </div>
+                      <strong class="recent-map__score">{{ textOrFallback(map.score) }}</strong>
+                      <dl>
+                        <div><dt>K/D</dt><dd>{{ formatDecimal(map.kdRatio, 2) }}</dd></div>
+                        <div><dt>ADR</dt><dd>{{ formatDecimal(map.adr, 1) }}</dd></div>
+                        <div><dt>Impact</dt><dd>{{ formatDecimal(map.impactRating, 2) }}</dd></div>
+                      </dl>
+                    </article>
+                  }
+                </div>
+              }
+
+              @if (profile.timeline.length > 0) {
+                <h3>{{ 'bunker.sections.history.timelineTitle' | translate }}</h3>
+                <div class="event-timeline lifetime-timeline">
+                  @for (event of displayedTimeline(profile.timeline); track $index) {
+                    <article class="timeline-event">
+                      <span class="timeline-event__marker" aria-hidden="true"></span>
+                      <div>
+                        <div class="timeline-event__heading">
+                          <div><small>{{ formatDate(event.at) }}</small><strong>{{ event.mapName || '—' }}</strong></div>
+                          <span [class]="timelineOutcomeClass(event.result)">{{ event.result || '—' }}</span>
+                        </div>
+                        <dl>
+                          <div><dt>Score</dt><dd>{{ event.score || '—' }}</dd></div>
+                          <div><dt>K/D</dt><dd>{{ formatDecimal(event.kdRatio, 2) }}</dd></div>
+                          <div><dt>ADR</dt><dd>{{ formatDecimal(event.adr, 1) }}</dd></div>
+                          <div><dt>Impact</dt><dd>{{ formatDecimal(event.impactRating, 2) }}</dd></div>
+                        </dl>
+                      </div>
+                    </article>
+                  }
+                </div>
+              }
+            </section>
+          }
+
+          <div class="domain-divider" role="separator">
+            <span class="analytics-eyebrow">{{ 'bunker.sections.seasonDomain.eyebrow' | translate }}</span>
+            <strong>{{ 'bunker.sections.seasonDomain.title' | translate }}</strong>
+            <p>{{ 'bunker.sections.seasonDomain.description' | translate }}</p>
+          </div>
+
+          @if (vm.summary.seasonPlayer; as seasonPlayer) {
+            @if (periodEntries(seasonPlayer.periods); as periods) {
+              @if (periods.length > 0) {
+                <section class="analytics-section season-periods" aria-labelledby="season-periods-title">
+                  <div class="analytics-heading">
+                    <div>
+                      <span class="analytics-eyebrow">{{ 'bunker.sections.seasonPeriods.eyebrow' | translate }}</span>
+                      <h2 id="season-periods-title">{{ 'bunker.sections.seasonPeriods.title' | translate }}</h2>
+                    </div>
+                    <p>{{ 'bunker.sections.seasonPeriods.description' | translate }}</p>
+                  </div>
+                  <div class="period-grid" [attr.aria-label]="'bunker.accessibility.seasonPeriods' | translate">
+                    @for (period of periods; track period[0]) {
+                      <article class="period-card">
+                        <span>{{ period[0] }}</span>
+                        <dl>
+                          <div><dt>K/D</dt><dd>{{ formatDecimal(period[1].kdRatio, 2) }}</dd></div>
+                          <div><dt>ADR</dt><dd>{{ formatDecimal(period[1].adr, 1) }}</dd></div>
+                          <div><dt>Impact</dt><dd>{{ formatDecimal(period[1].impactRating, 2) }}</dd></div>
+                          <div><dt>{{ 'bunker.labels.winRate' | translate }}</dt><dd>{{ formatRate(period[1].winRate) }}</dd></div>
+                        </dl>
+                      </article>
+                    }
+                  </div>
+                </section>
+              }
+            }
+          }
+
           @if (vm.summary.seasonPlayer?.timeline; as timeline) {
             @if (timeline.length > 0 && hasImpactTrend(timeline)) {
               <section class="analytics-section trend-section" aria-labelledby="impact-trend-title">
@@ -166,7 +312,7 @@
               @if (seasonPlayer.byMap.length > 0) {
                 <div class="map-performance">
                   <div class="chart-panel">
-                    <app-competitive-map-winrate-chart [maps]="seasonPlayer.byMap" />
+                    <app-competitive-map-winrate-chart [maps]="displayedMaps(seasonPlayer.byMap)" />
                   </div>
                   <div class="map-table" role="table" [attr.aria-label]="'bunker.accessibility.mapPerformance' | translate">
                     <div class="map-table__row map-table__head" role="row">
@@ -176,7 +322,7 @@
                       <span role="columnheader">ADR</span><span role="columnheader">Impact</span>
                       <span role="columnheader">HS%</span><span role="columnheader">{{ 'bunker.labels.entry' | translate }}</span>
                     </div>
-                    @for (map of seasonPlayer.byMap; track map.mapName ?? $index) {
+                    @for (map of displayedMaps(seasonPlayer.byMap); track map.mapName ?? $index) {
                       <div class="map-table__row" role="row">
                         <strong role="cell" [attr.data-label]="'bunker.labels.map' | translate">{{ map.mapName || '—' }}</strong>
                         <span role="cell" [attr.data-label]="'bunker.labels.games' | translate">{{ formatInteger(map.mapsPlayed) }}</span>
@@ -237,7 +383,7 @@
                   <p>{{ 'bunker.sections.recent.description' | translate }}</p>
                 </div>
                 <div class="recent-maps">
-                  @for (map of recentMaps; track $index) {
+                  @for (map of displayedRecentMaps(recentMaps); track $index) {
                     <article class="recent-map" [class.is-win]="map.isWin === true" [class.is-loss]="map.isWin === false">
                       <div class="recent-map__identity">
                         <span [class]="recentMapTone(map)">{{ recentMapResult(map) }}</span>
@@ -271,7 +417,7 @@
                   <p>{{ 'bunker.sections.timeline.description' | translate }}</p>
                 </div>
                 <div class="event-timeline">
-                  @for (event of timeline; track $index) {
+                  @for (event of displayedTimeline(timeline); track $index) {
                     <article class="timeline-event">
                       <span class="timeline-event__marker" aria-hidden="true"></span>
                       <div>
