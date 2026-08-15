@@ -4,26 +4,30 @@
 
 O `hsc-cs2-portal` é a experiência pública/player-facing de Counter-Strike 2 do ecossistema HSC.
 
-A aplicação apresenta dados competitivos produzidos pelo pipeline do HSC, incluindo rankings, partidas, mapas e Seasons. Também concentra experiências ligadas à identidade do jogador, como autenticação, perfil público, Área do Jogador e Bunker.
+A aplicação apresenta dados competitivos, incluindo rankings, partidas, mapas e Seasons. Também concentra experiências ligadas à identidade do jogador, como autenticação, perfil público, Área do Jogador e Bunker.
 
-O Portal não gera os dados competitivos, não persiste identidades e não executa operações administrativas. Essas responsabilidades pertencem, respectivamente, ao pipeline/Static API v2, à Auth API e ao Backoffice.
+O Portal não gera analytics competitivos, não persiste identidades e não executa operações administrativas. Essas responsabilidades pertencem, respectivamente, ao ETL upstream, à Auth API e ao Backoffice.
 
 ## Fluxo no ecossistema
 
 ```mermaid
 flowchart LR
     M[MatchZy / fontes CS2] --> E[hsc-cs2-etl]
-    E --> S[Static API v2]
+    E --> S[Static API v2 / dados públicos]
     S --> P[hsc-cs2-portal]
 
+    E --> A[hsc-auth-api]
+
     J[Jogador] --> P
-    P --> A[hsc-auth-api]
-    A --> I[Identidade / sessão / perfil / acesso]
+    P --> A
+    A --> I[Conta / sessão / identidades / Membership / Server Access / Player Analytics]
 
     P --> V[UI pública + Área do Jogador / Bunker]
 ```
 
-O Portal lê artefatos públicos da Static API v2 para a experiência competitiva e usa a Auth API para operações dependentes da identidade e sessão do jogador. Regras de negócio pertencentes a esses serviços não devem ser reimplementadas no frontend.
+Superfícies públicas leem os dados correspondentes da Static API v2. Superfícies autenticadas usam a Auth API como autoridade consumida para conta, sessão, identidades, Membership, Server Access e Player Analytics/Bunker aceitos. O ETL produz os cálculos competitivos upstream; o Portal não executa ETL nem acessa seus artefatos internos.
+
+O frontend seleciona, filtra quando permitido, formata e apresenta dados publicados. Regras de negócio e cálculos pertencentes aos serviços upstream não devem ser reimplementados no Portal.
 
 ## Capacidades funcionais
 
@@ -36,7 +40,7 @@ O Portal é responsável por:
 - apresentar perfis públicos de jogadores;
 - oferecer autenticação e gerenciamento player-facing da conta;
 - renderizar a Área do Jogador e o Bunker;
-- apresentar dados de perfil competitivo disponibilizados pelas fontes do ecossistema.
+- apresentar Player Analytics nos contextos Season e Lifetime sem fallback cruzado.
 
 ## Glossário
 
@@ -44,7 +48,7 @@ O Portal é responsável por:
 Recorte competitivo definido pelo HSC. O frontend apresenta os dados e relações fornecidos pelas APIs, sem inferir pertencimento ou recalcular resultados.
 
 **Player Bunker**  
-Superfície autenticada de estatísticas e contexto competitivo do jogador dentro do Portal.
+Superfície autenticada de Player Analytics dentro do Portal. Usa um contexto global Season ou Lifetime e apresenta os dados publicados sem criar classificações ou métricas competitivas locais.
 
 **Área do Jogador**  
 Conjunto de experiências autenticadas para conta, perfil, identidade, segurança e acesso do jogador.
@@ -53,10 +57,14 @@ Conjunto de experiências autenticadas para conta, perfil, identidade, seguranç
 Mecanismo usado para autenticação ou vínculo de identidade Steam. A validação e a sessão pertencem à Auth API, não ao frontend.
 
 **Competitive Profile**  
-Visão de identidade e desempenho competitivo disponibilizada para apresentação no Portal, podendo combinar contexto de Season e informações agregadas fornecidas pelas APIs.
+Visão Lifetime do desempenho competitivo disponibilizada para apresentação no Portal. Não deve ser usada como fallback para dados ausentes de Season, nem o inverso.
 
 **Static API v2**  
-Conjunto de artefatos públicos de leitura gerados pelo pipeline de dados do CS2 e consumidos pelo Portal.
+Fonte de dados públicos de leitura consumida pelas superfícies correspondentes do Portal.
 
 **Auth API**  
-Serviço responsável pelos fluxos de identidade, autenticação, sessão, perfis e demais regras server-side relacionadas ao jogador.
+Autoridade consumida pelas superfícies autenticadas para conta, autenticação, sessão, identidades, perfis, Membership, Server Access e Player Analytics/Bunker aceitos.
+
+**ETL**
+
+Pipeline responsável por produzir e calcular analytics competitivos upstream. Seus artefatos internos não são consumidos diretamente pelo Portal.

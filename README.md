@@ -1,14 +1,16 @@
 # HSC CS2 Portal
 
-Portal público/player-facing do ecossistema HSC para jogadores de Counter-Strike 2. A aplicação Angular apresenta rankings, partidas, mapas, Seasons, notícias, perfis públicos e a Área do Jogador, incluindo o Bunker e fluxos de autenticação da conta.
+Portal público/player-facing do ecossistema HSC para Counter-Strike 2. A aplicação reúne Home, Ranking, Partidas, Mapas, Seasons, Notícias, perfis públicos, autenticação e Área do Jogador.
 
-Este repositório contém a experiência web do jogador. Ele **não** é a `hsc-auth-api`, não é o `hsc-cs2-etl` e não é o Backoffice administrativo.
+O Bunker oferece Player Analytics nos contextos Season atual e Lifetime, organizados em Visão Geral, Clutch + Multi-kill, Mapas e Histórico de Partidas.
+
+A aplicação principal está em `frontend/angular/` e usa Angular 22, TypeScript, ngx-translate e ApexCharts onde visualizações analíticas são necessárias.
 
 ## Desenvolvimento local
 
 ### Pré-requisitos
 
-- Node.js 22 ou versão compatível com Angular 22.
+- Node.js em versão compatível com Angular 22.
 - npm compatível com o `package-lock.json` do projeto.
 - Angular CLI global não é obrigatório; o CLI local é instalado por `npm ci`.
 
@@ -33,19 +35,26 @@ Para desenvolvimento integrado com as APIs configuradas no proxy:
 npm run start:proxy
 ```
 
-Também é possível usar diretamente o CLI local:
+## Validação
 
 ```bash
-npx ng serve
+npm run lint
+npm test -- --watch=false
+npm run build
+git diff --check
 ```
 
-Consulte [`docs/setup.md`](docs/setup.md) para configuração e validação detalhadas.
+Execute os comandos a partir de `frontend/angular/`, exceto o gate Git quando precisar validar o repositório completo.
 
-## Variáveis de ambiente
+## Fronteiras
 
-| NOME_DA_VAR | DESCRIÇÃO |
-| --- | --- |
-| — | O frontend não consome variáveis de ambiente de build atualmente; as origens usadas em desenvolvimento são definidas pelos paths da aplicação e pelo proxy local. |
+- O Portal é a camada web de experiência e apresentação.
+- A Auth API responde por autenticação e pela autoridade consumida nas superfícies player autenticadas.
+- O ETL produz os cálculos e analytics competitivos upstream.
+- A Static API v2 fornece dados CS2 às superfícies públicas que já a consomem.
+- O Backoffice administra o ecossistema e está fora deste repositório.
+
+O Portal não executa ETL, não acessa seus artefatos internos e não inventa dados ou regras competitivas. O frontend não consome `.env.local` ou variáveis próprias de build atualmente; integrações locais usam paths relativos e o proxy do Angular CLI.
 
 Nunca registre segredos, cookies, tokens ou chaves em arquivos versionados ou documentação.
 
