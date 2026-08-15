@@ -310,8 +310,8 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     const element = render([known]);
     expect(element.textContent).toContain('MIRAGE');
     expect(known.mapName).toBe('de_mirage');
-    expect(harness().mapImage('de_mirage')).toBe('/map-images/de_mirage.png');
-    expect(element.querySelector('[aria-label="Partida selecionada"] img')?.getAttribute('src')).toBe('/map-images/de_mirage.png');
+    expect(harness().mapImage('de_mirage')).toBe('map-images/de_mirage.png');
+    expect(element.querySelector('[aria-label="Partida selecionada"] img')?.getAttribute('src')).toBe('map-images/de_mirage.png');
 
     const unknownElement = render([recentMap({ mapName: 'de_cache' })]);
     expect(harness().mapImage('de_cache')).toBeNull();
