@@ -100,9 +100,9 @@ describe('BunkerMapsPanel Map Explorer', () => {
 
   it('resolve somente assets locais conhecidos e mantém fallback para mapa desconhecido', () => {
     const element = render([mapPerformance({ mapName: 'de_mirage' }), mapPerformance({ mapName: 'de_cache' })]);
-    expect(harness().mapImage('de_mirage')).toBe('/map-images/de_mirage.png');
+    expect(harness().mapImage('de_mirage')).toBe('map-images/de_mirage.png');
     expect(harness().mapImage('de_cache')).toBeNull();
-    expect(selectorButtons(element)[0].querySelector('img')?.getAttribute('src')).toBe('/map-images/de_mirage.png');
+    expect(selectorButtons(element)[0].querySelector('img')?.getAttribute('src')).toBe('map-images/de_mirage.png');
     expect(selectorButtons(element)[1].querySelector('img')).toBeNull();
   });
 
