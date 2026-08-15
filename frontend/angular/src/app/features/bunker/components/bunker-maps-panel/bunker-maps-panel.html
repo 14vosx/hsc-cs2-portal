@@ -1,0 +1,117 @@
+@if (byMap(); as publishedMaps) {
+  @if (publishedMaps.length > 0) {
+    <section class="map-explorer" [attr.aria-label]="'bunker.maps.ariaLabel' | translate">
+      <nav class="map-selector" [attr.aria-label]="'bunker.maps.selector' | translate">
+        @for (map of publishedMaps; track map.mapName) {
+          <button
+            type="button"
+            [attr.aria-pressed]="selectedMap()?.mapName === map.mapName"
+            (click)="selectMap(map.mapName)"
+          >
+            @if (mapImage(map.mapName); as imageUrl) {
+              <img [src]="imageUrl" alt="" />
+            } @else {
+              <span class="map-selector__fallback" aria-hidden="true"></span>
+            }
+            <strong>{{ displayMapName(map.mapName) }}</strong>
+          </button>
+        }
+      </nav>
+
+      @if (selectedMap(); as map) {
+        <section class="map-hero" [attr.aria-label]="displayMapName(map.mapName)">
+          @if (mapImage(map.mapName); as imageUrl) {
+            <img class="map-hero__image" [src]="imageUrl" alt="" />
+          }
+          <div class="map-hero__content">
+            <header class="map-hero__header">
+              <div><span>{{ 'bunker.maps.eyebrow' | translate }}</span><h2>{{ displayMapName(map.mapName) }}</h2></div>
+              <strong>{{ formatVolume(map.mapsPlayed) }}</strong>
+            </header>
+
+            <p class="map-hero__record">
+              <b class="is-win">{{ formatInteger(map.wins) }}W</b><span>/</span><b class="is-loss">{{ formatInteger(map.losses) }}L</b>
+            </p>
+
+            <div class="map-hero__win-rate">
+              <div><span>{{ 'bunker.maps.metrics.winRate' | translate }}</span><strong>{{ formatRate(map.winRate) }}</strong></div>
+              <span role="meter" aria-valuemin="0" aria-valuemax="1" [attr.aria-valuenow]="hasRate(map.winRate) ? map.winRate : null">
+                @if (hasRate(map.winRate)) { <span [style.width]="rateWidth(map.winRate)"></span> }
+              </span>
+            </div>
+
+            <dl class="map-hero__metrics">
+              <div><dt>{{ 'bunker.maps.metrics.kd' | translate }}</dt><dd>{{ formatDecimal(map.kdRatio, 2) }}</dd></div>
+              <div><dt>{{ 'bunker.maps.metrics.adr' | translate }}</dt><dd>{{ formatDecimal(map.adr, 1) }}</dd></div>
+              <div><dt>{{ 'bunker.maps.metrics.impact' | translate }}</dt><dd>{{ formatDecimal(map.impactRating, 2) }}</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section class="map-dossier" [attr.aria-label]="'bunker.maps.fundamentals.title' | translate">
+          <header><span>{{ 'bunker.maps.fundamentals.title' | translate }}</span></header>
+          <dl class="map-dossier__grid">
+            <div><dt>{{ 'bunker.maps.metrics.headshotPct' | translate }}</dt><dd>{{ formatHumanPercent(map.headshotPct) }}</dd></div>
+            <div><dt>{{ 'bunker.maps.metrics.accuracy' | translate }}</dt><dd>{{ formatRate(map.accuracy) }}</dd></div>
+            <div><dt>{{ 'bunker.maps.metrics.entryWinRate' | translate }}</dt><dd>{{ formatRate(map.entryWinRate) }}</dd></div>
+            <div><dt>{{ 'bunker.maps.metrics.utilityPerRound' | translate }}</dt><dd>{{ formatDecimal(map.utilityDmgPerRound, 1) }}</dd></div>
+          </dl>
+        </section>
+
+        <div class="map-secondary">
+          <section class="map-strip" [attr.aria-label]="'bunker.maps.volume.title' | translate">
+            <header><span>{{ 'bunker.maps.volume.title' | translate }}</span></header>
+            <dl>
+              <div><dt>{{ 'bunker.maps.metrics.kills' | translate }}</dt><dd>{{ formatInteger(map.kills) }}</dd></div>
+              <div><dt>{{ 'bunker.maps.metrics.deaths' | translate }}</dt><dd>{{ formatInteger(map.deaths) }}</dd></div>
+              <div><dt>{{ 'bunker.maps.metrics.assists' | translate }}</dt><dd>{{ formatInteger(map.assists) }}</dd></div>
+              <div><dt>{{ 'bunker.maps.metrics.rounds' | translate }}</dt><dd>{{ formatInteger(map.roundsPlayed) }}</dd></div>
+            </dl>
+          </section>
+
+          <section class="map-strip" [attr.aria-label]="'bunker.maps.multikills' | translate">
+            <header><span>{{ 'bunker.maps.multikills' | translate }}</span></header>
+            <dl>
+              <div><dt>2K</dt><dd>{{ formatInteger(map.enemy2ks) }}</dd></div>
+              <div><dt>3K</dt><dd>{{ formatInteger(map.enemy3ks) }}</dd></div>
+              <div><dt>4K</dt><dd>{{ formatInteger(map.enemy4ks) }}</dd></div>
+              <div><dt>5K</dt><dd>{{ formatInteger(map.enemy5ks) }}</dd></div>
+            </dl>
+          </section>
+        </div>
+
+        <section class="map-recent" [attr.aria-label]="'bunker.maps.recent.title' | translate">
+          <header><span>{{ 'bunker.maps.recent.title' | translate }}</span></header>
+          @if (selectedRecentMaps().length > 0) {
+            <div class="map-recent__columns" role="row">
+              <span role="columnheader">{{ 'bunker.maps.recent.date' | translate }}</span>
+              <span role="columnheader">{{ 'bunker.maps.recent.score' | translate }}</span>
+              <span role="columnheader">{{ 'bunker.maps.recent.result' | translate }}</span>
+              <span role="columnheader">{{ 'bunker.maps.metrics.kd' | translate }}</span>
+              <span role="columnheader">{{ 'bunker.maps.metrics.adr' | translate }}</span>
+              <span role="columnheader">{{ 'bunker.maps.metrics.impact' | translate }}</span>
+            </div>
+            <div class="map-recent__list" role="list">
+              @for (recent of selectedRecentMaps(); track matchStableKey(recent)) {
+                <article role="listitem">
+                  <time>{{ formatDate(recent.startedAt) }}</time>
+                  <strong>{{ recent.score || '—' }}</strong>
+                  <b [class.is-win]="resultOf(recent) === 'win'" [class.is-loss]="resultOf(recent) === 'loss'">{{ resultLabel(recent) }}</b>
+                  <span>{{ 'bunker.maps.metrics.kd' | translate }} <strong>{{ formatDecimal(recent.kdRatio, 2) }}</strong></span>
+                  <span>{{ 'bunker.maps.metrics.adr' | translate }} <strong>{{ formatDecimal(recent.adr, 1) }}</strong></span>
+                  <span>{{ 'bunker.maps.metrics.impact' | translate }} <strong>{{ formatDecimal(recent.impactRating, 2) }}</strong></span>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="map-recent__empty" role="status">{{ 'bunker.maps.recent.empty' | translate }}</p>
+          }
+        </section>
+      }
+    </section>
+  } @else {
+    <section class="maps-empty" role="status"><p>{{ 'bunker.maps.empty' | translate }}</p></section>
+  }
+} @else {
+  <section class="maps-empty" role="status"><p>{{ 'bunker.maps.empty' | translate }}</p></section>
+}

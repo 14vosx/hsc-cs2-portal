@@ -1,0 +1,24 @@
+@let playerName = displayName() || ('bunker.labels.playerFallback' | translate);
+
+<header class="analytics-header" [attr.aria-label]="'bunker.header.ariaLabel' | translate">
+  <div class="analytics-header__identity">
+    <app-player-avatar [imageUrl]="avatarMedium()" [displayName]="playerName" accent="cyan" />
+    <div class="analytics-header__player">
+      <span class="analytics-header__eyebrow">{{ 'bunker.header.productName' | translate }}</span>
+      <h1>{{ playerName }}</h1>
+      <span class="analytics-header__steam-id">STEAMID {{ steamId64() || '—' }}</span>
+    </div>
+  </div>
+
+  <div class="analytics-header__controls">
+    <app-bunker-context-selector
+      [context]="context()"
+      [seasonName]="seasonName()"
+      (contextChange)="contextChange.emit($event)"
+    />
+    <a class="analytics-header__back" routerLink="/area-do-jogador">
+      <span aria-hidden="true">←</span>
+      {{ 'bunker.actions.backToPlayerArea' | translate }}
+    </a>
+  </div>
+</header>

@@ -1,23 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, input } from '@angular/core';
+import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom, of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 
 import { PlayerAuthApiService } from '../player/data-access/player-auth-api.service';
 import { PlayerIdentityApiService } from '../player/data-access/player-identity-api.service';
 import type { PlayerIdentity } from '../player/domain/player-identity.model';
 import { BunkerPage } from './bunker-page';
-import { CompetitiveImpactTrendChart } from './components/analytics/competitive-impact-trend-chart/competitive-impact-trend-chart';
-import { CompetitiveMapWinrateChart } from './components/analytics/competitive-map-winrate-chart/competitive-map-winrate-chart';
-import { CompetitiveMetricSparkline } from './components/analytics/competitive-metric-sparkline/competitive-metric-sparkline';
-import { CompetitiveMultikillChart } from './components/analytics/competitive-multikill-chart/competitive-multikill-chart';
-import { CompetitiveWinRateChart } from './components/analytics/competitive-win-rate-chart/competitive-win-rate-chart';
+import { BunkerCombatPanel } from './components/bunker-combat-panel/bunker-combat-panel';
+import { BunkerMatchHistoryPanel } from './components/bunker-match-history-panel/bunker-match-history-panel';
+import { BunkerMapsPanel } from './components/bunker-maps-panel/bunker-maps-panel';
+import { BunkerOverviewPanel } from './components/bunker-overview-panel/bunker-overview-panel';
+import type { AnalyticsContext, SelectedAnalyticsData } from './bunker-analytics.types';
 import { BunkerApiService } from './data-access/bunker-api.service';
 import type {
   BunkerMapPerformance,
@@ -28,214 +26,121 @@ import type {
 } from './domain/bunker.model';
 
 const BUNKER_TRANSLATIONS = {
-  'pt-BR': {
-    shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } },
-    bunker: {
-      header: { productName: 'Competitive Analytics', currentContext: 'Contexto atual' },
-      states: { loading: { eyebrow: 'Carregando analytics' }, failure: { title: 'Competitive Analytics indisponível', description: 'Falha global.' }, partial: { eyebrow: 'Dados competitivos', title: 'Resumo temporariamente indisponível', description: 'Falha parcial.' }, empty: { lifetimeTitle: 'Perfil competitivo geral ainda indisponível.', lifetimeDescription: 'Nenhuma métrica lifetime foi publicada.', maps: 'Performance por mapa ainda indisponível.', historicalMaps: 'Histórico por mapa ainda indisponível.' } },
-      auth: { eyebrow: 'Conta Steam', title: 'Entre para acessar o Competitive Analytics', description: 'Entre com Steam para validar sua sessão.', action: 'Entrar com Steam' },
-      season: { label: 'Season', status: 'Status', period: 'Período', updated: 'Atualizado', unavailable: 'Season indisponível' },
-      sections: { overview: { eyebrow: 'Visão geral', title: 'Perfil competitivo geral', description: 'Histórico lifetime.', canonicalLifetime: 'Lifetime · valor canônico' }, history: { eyebrow: 'Histórico competitivo permanente', title: 'Trajetória lifetime', description: 'Histórico independente.', updated: 'Perfil atualizado', mapsTitle: 'Desempenho histórico por mapa', recentTitle: 'Mapas recentes do histórico', timelineTitle: 'Timeline permanente' }, seasonDomain: { eyebrow: 'Recorte competitivo', title: 'Season atual', description: 'Dados exclusivos da Season.' }, seasonPeriods: { eyebrow: 'Recortes da Season', title: 'Janelas da Season', description: 'Recortes recentes dentro da Season ativa.' }, impactTrend: { eyebrow: 'Tendência de performance', title: 'Evolução de Impacto', description: 'Sequência sazonal.' }, maps: { eyebrow: 'Map pool', title: 'Performance por mapa', description: 'Métricas sazonais.' }, combat: { eyebrow: 'Perfil de combate', title: 'Perfil de combate', description: 'Contadores publicados.', clutchEyebrow: 'Performance de clutch', multiKillEyebrow: 'Perfil de multi-kill' }, recent: { eyebrow: 'Mapas recentes', title: 'Mapas recentes', description: 'Resultados canônicos.' }, timeline: { eyebrow: 'Eventos', title: 'Timeline da temporada', description: 'Eventos competitivos.' } },
-      charts: { value: 'Valor', winRate: 'Win Rate', occurrences: 'Ocorrências', mapUnavailable: 'Mapa não informado' },
-      labels: { playerFallback: 'Jogador HSC', winRate: 'Win Rate', maps: 'Mapas', wins: 'Vitórias', losses: 'Derrotas', kills: 'Abates', deaths: 'Mortes', assists: 'Assistências', accuracy: 'Precisão', utilityPerRound: 'Util/R', map: 'Mapa', games: 'Jogos', winShort: 'V', lossShort: 'D', winPct: 'Vit%', entry: 'Entrada', success: 'Sucesso', conversion: 'Conversão', utility: 'Utilidade' },
+  shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } },
+  bunker: {
+    header: {
+      ariaLabel: 'Cabeçalho dos analytics do jogador',
+      productName: 'Competitive Analytics',
+    },
+    contextSelector: {
+      label: 'Contexto',
+      ariaLabel: 'Contexto dos analytics',
+      currentSeason: 'Season atual',
+      lifetime: 'Lifetime',
+    },
+    navigation: {
+      ariaLabel: 'Navegação analítica',
+      overview: 'Visão Geral',
+      combat: 'Clutch + Multi-kill',
+      maps: 'Mapas',
+      matches: 'Histórico de Partidas',
+    },
+    overview: {
+      ariaLabel: 'Visão geral',
+      primary: { ariaLabel: 'Métricas principais', eyebrow: 'Métricas principais' },
+      trend: { eyebrow: 'Performance recente', title: 'Evolução de Impacto', empty: 'Sem dados de impacto.' },
+      fundamentals: { ariaLabel: 'Fundamentos', eyebrow: 'Fundamentos' },
+      metrics: { impact: 'Impact', kd: 'K/D', winRate: 'Win Rate', adr: 'ADR', headshotPct: 'HS%', accuracy: 'Accuracy', entryWinRate: 'Entry Win Rate', utilityPerRound: 'Utility / Round', totalRounds: 'Total Rounds' },
+      descriptions: { adr: 'Dano médio', headshotPct: 'Precisão de cabeça', accuracy: 'Tiros no alvo', entryWinRate: 'Conversão', utilityPerRound: 'Utilitário', totalRounds: 'Rounds' },
+      empty: 'Sem estatísticas disponíveis para este contexto.',
+    },
+    combat: {
+      ariaLabel: 'Clutch e multi-kill', eyebrow: 'Clutch + Multi-kill',
+      clutch: { title: 'Desempenho em Clutches', situation: 'Situação', success: 'Sucesso', rate: 'Taxa' },
+      multikill: { title: 'Distribuição de Multi-kills', zero: 'Nenhum multi-kill registrado.', empty: 'Dados de multi-kill indisponíveis.', incomplete: 'Dados de multi-kill incompletos.' },
+      empty: 'Sem estatísticas de combate disponíveis para este contexto.',
+    },
+    maps: {
+      ariaLabel: 'Desempenho por mapa', eyebrow: 'Desempenho por mapa', selector: 'Selecionar mapa', map: 'Mapa',
+      volume: { title: 'Volume competitivo', one: '{{ count }} partida', other: '{{ count }} partidas' },
+      fundamentals: { title: 'Fundamentos neste mapa' }, multikills: 'Multi-kills',
+      metrics: { winRate: 'Win Rate', kd: 'K/D', adr: 'ADR', impact: 'Impact', headshotPct: 'HS%', accuracy: 'Accuracy', entryWinRate: 'Entry Win Rate', utilityPerRound: 'Utility / Round', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', rounds: 'Rounds' },
+      recent: { title: 'Partidas recentes neste mapa', empty: 'Nenhuma partida recente deste mapa disponível no contexto.' },
       results: { win: 'Vitória', loss: 'Derrota' },
-      actions: { playerArea: 'Área do Jogador', backToPlayerArea: 'Voltar para Área do Jogador' },
-      accessibility: { loading: 'Carregando Competitive Analytics', seasonContext: 'Contexto da temporada atual', lifetimeMetrics: 'Métricas lifetime', lifetimePeriods: 'Períodos lifetime', seasonPeriods: 'Períodos da Season', lifetimeMapPerformance: 'Performance histórica', mapPerformance: 'Performance sazonal por mapa' },
+      empty: 'Sem desempenho por mapa disponível para este contexto.',
     },
-  },
-  'en-US': {
-    shared: { playerAvatar: { alt: '{{displayName}} avatar' } },
-    bunker: {
-      header: { productName: 'Competitive Analytics', currentContext: 'Current context' },
-      states: { loading: { eyebrow: 'Loading analytics' }, failure: { title: 'Competitive Analytics unavailable', description: 'Global failure.' }, partial: { eyebrow: 'Competitive data', title: 'Summary temporarily unavailable', description: 'Partial failure.' }, empty: { lifetimeTitle: 'Overall competitive profile is not available yet.', lifetimeDescription: 'No lifetime metrics have been published.', maps: 'Map performance is not available yet.', historicalMaps: 'Historical map performance is not available.' } },
-      auth: { eyebrow: 'Steam Account', title: 'Sign in to access Competitive Analytics', description: 'Sign in with Steam to validate your session.', action: 'Sign in with Steam' },
-      season: { label: 'Season', status: 'Status', period: 'Period', updated: 'Updated', unavailable: 'Season unavailable' },
-      sections: { overview: { eyebrow: 'Overview', title: 'Overall Competitive Profile', description: 'Lifetime history.', canonicalLifetime: 'Lifetime · canonical value' }, history: { eyebrow: 'Permanent competitive history', title: 'Lifetime journey', description: 'Independent history.', updated: 'Profile updated', mapsTitle: 'Historical map performance', recentTitle: 'Recent historical maps', timelineTitle: 'Permanent timeline' }, seasonDomain: { eyebrow: 'Competitive snapshot', title: 'Current Season', description: 'Season-only data.' }, seasonPeriods: { eyebrow: 'Season snapshots', title: 'Season windows', description: 'Recent windows within the active Season.' }, impactTrend: { eyebrow: 'Performance trend', title: 'Impact Trend', description: 'Season sequence.' }, maps: { eyebrow: 'Map pool', title: 'Map Performance', description: 'Season metrics.' }, combat: { eyebrow: 'Combat profile', title: 'Combat Profile', description: 'Published counters.', clutchEyebrow: 'Clutch performance', multiKillEyebrow: 'Multi-kill profile' }, recent: { eyebrow: 'Recent maps', title: 'Recent Maps', description: 'Canonical results.' }, timeline: { eyebrow: 'Events', title: 'Season Timeline', description: 'Competitive events.' } },
-      charts: { value: 'Value', winRate: 'Win Rate', occurrences: 'Occurrences', mapUnavailable: 'Map unavailable' },
-      labels: { playerFallback: 'HSC Player', winRate: 'Win Rate', maps: 'Maps', wins: 'Wins', losses: 'Losses', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', accuracy: 'Accuracy', utilityPerRound: 'Util/R', map: 'Map', games: 'Games', winShort: 'W', lossShort: 'L', winPct: 'Win%', entry: 'Entry', success: 'Success', conversion: 'Conversion', utility: 'Util' },
-      results: { win: 'Win', loss: 'Loss' },
-      actions: { playerArea: 'Player Area', backToPlayerArea: 'Back to Player Area' },
-      accessibility: { loading: 'Loading Competitive Analytics', seasonContext: 'Current season context', lifetimeMetrics: 'Lifetime metrics', lifetimePeriods: 'Lifetime periods', seasonPeriods: 'Season periods', lifetimeMapPerformance: 'Historical performance', mapPerformance: 'Season map performance' },
+    matchHistory: {
+      ariaLabel: 'Histórico de Partidas', form: 'Forma recente', matches: 'Partidas', list: 'Lista de partidas',
+      hero: 'Partida selecionada', dossier: 'Detalhes da performance individual',
+      performance: 'Performance principal', details: 'Detalhes da partida', situational: 'Performance situacional',
+      entry: 'Entry', clutch: 'Clutch', multikill: 'Multi-kill', aimStats: 'Aim Stats',
+      filters: { allMaps: 'Todos os mapas', allResults: 'Todos os resultados', wins: 'Vitórias', losses: 'Derrotas', empty: 'Nenhuma partida encontrada com os filtros selecionados.' },
+      multikillStates: { zero: 'Nenhum multi-kill registrado nesta partida.', unavailable: 'Multi-kills indisponíveis para esta partida.' },
+      labels: { date: 'Data', map: 'Mapa', score: 'Placar', result: 'Resultado', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', kd: 'K/D', adr: 'ADR', impact: 'Impact', damage: 'Damage', rounds: 'Rounds', utilityDamage: 'Utility Damage', headshotKills: 'Headshot Kills', shotsOnTarget: 'Tiros no alvo', shotsFired: 'Tiros disparados', entries: 'Entradas' },
+      results: { win: 'Vitória', loss: 'Derrota', winShort: 'V', lossShort: 'D' },
+      empty: 'Sem partidas recentes disponíveis para este contexto.',
     },
+    charts: { occurrences: 'Ocorrências' },
+    states: {
+      loading: { eyebrow: 'Carregando analytics' },
+      failure: { title: 'Competitive Analytics indisponível', description: 'Falha global.' },
+      partial: { eyebrow: 'Dados competitivos', title: 'Resumo temporariamente indisponível', description: 'Falha parcial.' },
+    },
+    auth: { eyebrow: 'Conta Steam', title: 'Entre', description: 'Entre com Steam.', action: 'Entrar com Steam' },
+    labels: { playerFallback: 'Jogador HSC' },
+    actions: { backToPlayerArea: 'Voltar para Área do Jogador' },
+    accessibility: { loading: 'Carregando Competitive Analytics' },
   },
 } as const;
 
-@Component({
-  selector: 'app-competitive-win-rate-chart',
-  standalone: true,
-  template: '',
-})
-class WinRateChartStub {
-  readonly value = input<number | null>(null);
-}
-
-@Component({
-  selector: 'app-competitive-metric-sparkline',
-  standalone: true,
-  template: '',
-})
-class MetricSparklineStub {
-  readonly values = input<readonly (number | null)[]>([]);
-  readonly color = input<'cyan' | 'orange'>('cyan');
-}
-
-@Component({
-  selector: 'app-competitive-impact-trend-chart',
-  standalone: true,
-  template: '',
-})
-class ImpactTrendChartStub {
-  readonly timeline = input<readonly BunkerTimelineItem[]>([]);
-}
-
-@Component({
-  selector: 'app-competitive-map-winrate-chart',
-  standalone: true,
-  template: '',
-})
-class MapWinrateChartStub {
-  readonly maps = input<readonly BunkerMapPerformance[]>([]);
-}
-
-@Component({
-  selector: 'app-competitive-multikill-chart',
-  standalone: true,
-  template: '2K 3K 4K 5K',
-})
-class MultikillChartStub {
-  readonly stats = input.required<BunkerPlayerStats>();
-}
-
-function createPlayerIdentity(overrides: Partial<PlayerIdentity> = {}): PlayerIdentity {
+function createPlayerIdentity(): PlayerIdentity {
   return {
     displayName: 'L4VOSX',
     steamId64: '76561198000000000',
     avatarMedium: 'https://example.com/avatar.jpg',
     steamProfileUrl: 'https://steamcommunity.com/id/lavosx',
-    ...overrides,
   };
 }
 
-function createStats(overrides: Partial<BunkerPlayerStats> = {}): BunkerPlayerStats {
+function createStats(value: number): BunkerPlayerStats {
   return {
-    mapsPlayed: 84,
-    matchesPlayed: 80,
-    wins: 45,
-    losses: 35,
-    winRate: 0.5625,
-    kdRatio: 1.08,
-    adr: 78.4,
-    impactRating: 1.03,
-    kills: 1432,
-    deaths: 1326,
-    assists: 411,
-    roundsPlayed: 1920,
-    headshotPct: 0.487,
-    accuracy: 0.219,
-    utilityDmgPerRound: 8.7,
-    killsPerRound: 0.746,
-    assistsPerRound: 0.214,
-    deathsPerRound: 0.691,
-    entryWinRate: 0.524,
-    v1Count: 38,
-    v1Wins: 21,
-    v1WinRate: 0.553,
-    v2Count: 61,
-    v2Wins: 29,
-    v2WinRate: 0.475,
-    enemy2ks: 186,
-    enemy3ks: 47,
-    enemy4ks: 12,
-    enemy5ks: 2,
-    sampleWeight: 84,
-    score: 1.12,
-    ...overrides,
+    mapsPlayed: value, matchesPlayed: value, wins: value, losses: value, winRate: value,
+    kdRatio: value, adr: value, impactRating: value, kills: value, deaths: value,
+    assists: value, roundsPlayed: value, headshotPct: value, accuracy: value,
+    utilityDmgPerRound: value, killsPerRound: value, assistsPerRound: value,
+    deathsPerRound: value, entryWinRate: value, v1Count: value, v1Wins: value,
+    v1WinRate: value, v2Count: value, v2Wins: value, v2WinRate: value,
+    enemy2ks: value, enemy3ks: value, enemy4ks: value, enemy5ks: value,
+    sampleWeight: value, score: value,
   };
 }
 
-function createMapPerformance(overrides: Partial<BunkerMapPerformance> = {}): BunkerMapPerformance {
+function createMapPerformance(mapName: string): BunkerMapPerformance {
   return {
-    mapName: 'de_inferno',
-    mapsPlayed: 4,
-    matchesPlayed: 4,
-    wins: 3,
-    losses: 1,
-    winRate: 0.75,
-    kdRatio: 1.12,
-    adr: 82.4,
-    impactRating: 1.11,
-    roundsPlayed: 92,
-    kills: 74,
-    deaths: 66,
-    assists: 19,
-    headshotPct: 0.48,
-    accuracy: 0.22,
-    utilityDmgPerRound: 8.2,
-    entryWinRate: 0.58,
-    enemy2ks: 8,
-    enemy3ks: 2,
-    enemy4ks: 1,
-    enemy5ks: 0,
-    ...overrides,
+    mapName, mapsPlayed: 1, matchesPlayed: 1, wins: 1, losses: 0, winRate: 1,
+    kdRatio: 1, adr: 1, impactRating: 1, roundsPlayed: 1, kills: 1, deaths: 1,
+    assists: 1, headshotPct: 1, accuracy: 1, utilityDmgPerRound: 1,
+    entryWinRate: 1, enemy2ks: 1, enemy3ks: 1, enemy4ks: 1, enemy5ks: 1,
   };
 }
 
-function createRecentMap(overrides: Partial<BunkerRecentMap> = {}): BunkerRecentMap {
+function createRecentMap(matchId: string): BunkerRecentMap {
   return {
-    mapName: 'de_mirage',
-    startedAt: '2026-08-01T12:00:00Z',
-    matchId: 'recent-1',
-    mapNumber: 1,
-    result: '13-11',
-    outcome: 'win',
-    score: '13-11',
-    team: 'team1',
-    winner: 'team1',
-    isWin: true,
-    team1Score: 13,
-    team2Score: 11,
-    rounds: 24,
-    damage: 2000,
-    utilityDamage: 300,
-    headShotKills: 10,
-    entryCount: 4,
-    entryWins: 3,
-    v1Count: 1,
-    v1Wins: 1,
-    v2Count: 0,
-    v2Wins: 0,
-    enemy2ks: 3,
-    enemy3ks: 1,
-    enemy4ks: 0,
-    enemy5ks: 0,
-    shotsFiredTotal: 500,
-    shotsOnTargetTotal: 110,
-    kills: 20,
-    deaths: 15,
-    assists: 5,
-    kdRatio: 1.33,
-    adr: 83.3,
-    impactRating: 1.2,
-    ...overrides,
+    mapName: 'de_mirage', startedAt: '2026-08-01T12:00:00Z', matchId, mapNumber: 1,
+    result: 'win', outcome: 'win', score: '13-10', team: 'team1', winner: 'team1',
+    isWin: true, team1Score: 13, team2Score: 10, rounds: 23, damage: 1,
+    utilityDamage: 1, headShotKills: 1, entryCount: 1, entryWins: 1, v1Count: 1,
+    v1Wins: 1, v2Count: 1, v2Wins: 1, enemy2ks: 1, enemy3ks: 1, enemy4ks: 1,
+    enemy5ks: 1, shotsFiredTotal: 1, shotsOnTargetTotal: 1, kills: 1, deaths: 1,
+    assists: 1, kdRatio: 1, adr: 1, impactRating: 1,
   };
 }
 
-function createTimelineItem(overrides: Partial<BunkerTimelineItem> = {}): BunkerTimelineItem {
+function createTimelineItem(matchId: string): BunkerTimelineItem {
   return {
-    at: '2026-08-01T12:00:00Z',
-    event: 'map_completed',
-    mapName: 'de_mirage',
-    matchId: 'timeline-1',
-    mapNumber: 1,
-    result: 'win',
-    score: '13-11',
-    kills: 20,
-    deaths: 15,
-    assists: 5,
-    kdRatio: 1.33,
-    adr: 83.3,
-    impactRating: 1.2,
-    ...overrides,
+    at: '2026-08-01T12:00:00Z', event: 'map_completed', mapName: 'de_mirage',
+    matchId, mapNumber: 1, result: 'win', score: '13-10', kills: 1, deaths: 1,
+    assists: 1, kdRatio: 1, adr: 1, impactRating: 1,
   };
 }
 
@@ -251,77 +156,45 @@ function createBunkerSummary(overrides: Partial<BunkerSummary> = {}): BunkerSumm
       scope: { startAt: '2026-04-01', endAt: '2026-09-30' },
     },
     seasonPlayer: {
-      name: 'L4VOSX',
+      name: 'Season Player',
       steamId64: '76561198000000000',
       generatedAt: '2026-08-11T20:00:00Z',
-      season: null,
-      summary: createStats({ mapsPlayed: 12, wins: 6, losses: 6, winRate: 0.5 }),
-      periods: {},
-      byMap: [
-        createMapPerformance({ mapName: 'de_nuke', mapsPlayed: 2, wins: 1, losses: 1, winRate: 0.5 }),
-        createMapPerformance({ mapName: 'de_inferno', mapsPlayed: 4, wins: 3, losses: 1, winRate: 0.75 }),
-      ],
-      recentMaps: [
-        createRecentMap({ mapName: 'de_mirage', matchId: 'recent-1', startedAt: '2026-08-01T12:00:00Z' }),
-        createRecentMap({
-          mapName: 'de_ancient',
-          matchId: 'recent-2',
-          startedAt: '2026-08-02T12:00:00Z',
-          score: '8-13',
-          result: '8-13',
-          outcome: 'loss',
-          isWin: false,
-          team1Score: 8,
-          team2Score: 13,
-        }),
-      ],
-      timeline: [
-        createTimelineItem({
-          at: '2026-07-01T12:00:00Z',
-          mapName: 'de_vertigo',
-          matchId: 'timeline-1',
-          impactRating: 0.9,
-          kdRatio: 0.95,
-        }),
-        createTimelineItem({
-          at: '2026-07-02T12:00:00Z',
-          mapName: 'de_mirage',
-          matchId: 'timeline-2',
-          impactRating: 1.2,
-          kdRatio: 1.33,
-        }),
-      ],
+      season: { slug: 'artifact-season', scope: null },
+      summary: createStats(1),
+      periods: { seasonPeriod: createStats(2) },
+      byMap: [createMapPerformance('season-map')],
+      recentMaps: [createRecentMap('season-recent')],
+      timeline: [createTimelineItem('season-timeline')],
     },
     competitiveProfile: {
       generatedAt: '2026-08-11T20:00:00Z',
       steamId64: '76561198000000000',
-      name: 'L4VOSX',
-      avatarMedium: 'https://example.com/avatar.jpg',
-      steamProfileUrl: 'https://steamcommunity.com/id/lavosx',
-      lifetime: createStats(),
-      periods: {},
-      byMap: [],
-      recentMaps: [],
-      timeline: [],
+      name: 'Lifetime Player',
+      avatarMedium: null,
+      steamProfileUrl: null,
+      lifetime: createStats(10),
+      periods: { lifetimePeriod: createStats(20) },
+      byMap: [createMapPerformance('lifetime-map')],
+      recentMaps: [createRecentMap('lifetime-recent')],
+      timeline: [createTimelineItem('lifetime-timeline')],
     },
     ...overrides,
   };
 }
 
-function normalizedText(element: Element | HTMLElement): string {
-  return (element.textContent ?? '').replace(/\s+/g, ' ').trim();
+interface BunkerPageHarness {
+  readonly analyticsContext: WritableSignal<AnalyticsContext>;
+  selectedAnalyticsData(summary: BunkerSummary): SelectedAnalyticsData | null;
 }
 
 describe('BunkerPage Competitive Analytics', () => {
   let fixture: ComponentFixture<BunkerPage>;
   let playerIdentityApiMock: { getCurrentIdentity: ReturnType<typeof vi.fn> };
   let bunkerApiMock: { getSummary: ReturnType<typeof vi.fn> };
-  let playerAuthApiMock: { steamLoginUrl: string };
 
   beforeEach(async () => {
     playerIdentityApiMock = { getCurrentIdentity: vi.fn() };
     bunkerApiMock = { getSummary: vi.fn() };
-    playerAuthApiMock = { steamLoginUrl: 'https://example.com/steam/login' };
 
     await TestBed.configureTestingModule({
       imports: [BunkerPage],
@@ -330,542 +203,389 @@ describe('BunkerPage Competitive Analytics', () => {
         provideTranslateService(),
         { provide: PlayerIdentityApiService, useValue: playerIdentityApiMock },
         { provide: BunkerApiService, useValue: bunkerApiMock },
-        { provide: PlayerAuthApiService, useValue: playerAuthApiMock },
+        { provide: PlayerAuthApiService, useValue: { steamLoginUrl: 'https://example.com/steam/login' } },
       ],
-    })
-      .overrideComponent(BunkerPage, {
-        remove: {
-          imports: [
-            CompetitiveWinRateChart,
-            CompetitiveMetricSparkline,
-            CompetitiveImpactTrendChart,
-            CompetitiveMapWinrateChart,
-            CompetitiveMultikillChart,
-          ],
-        },
-        add: {
-          imports: [
-            WinRateChartStub,
-            MetricSparklineStub,
-            ImpactTrendChartStub,
-            MapWinrateChartStub,
-            MultikillChartStub,
-          ],
-        },
-      })
-      .compileComponents();
+    }).compileComponents();
+
     const translate = TestBed.inject(TranslateService);
-    translate.setTranslation('pt-BR', BUNKER_TRANSLATIONS['pt-BR']);
-    translate.setTranslation('en-US', BUNKER_TRANSLATIONS['en-US']);
+    translate.setTranslation('pt-BR', BUNKER_TRANSLATIONS);
     await firstValueFrom(translate.use('pt-BR'));
   });
 
   function render(summary: BunkerSummary = createBunkerSummary()): HTMLElement {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
     bunkerApiMock.getSummary.mockReturnValue(of(summary));
-
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
-
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('1. renderiza loading antes da identidade responder', () => {
-    const identity$ = new Subject<PlayerIdentity | null>();
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(identity$);
+  function harness(): BunkerPageHarness {
+    return fixture.componentInstance as unknown as BunkerPageHarness;
+  }
 
+  function contextSelect(element: HTMLElement): HTMLSelectElement {
+    return element.querySelector('app-bunker-context-selector select') as HTMLSelectElement;
+  }
+
+  function selectContext(element: HTMLElement, context: AnalyticsContext): void {
+    contextSelect(element).value = context;
+    contextSelect(element).dispatchEvent(new Event('change'));
+  }
+
+  it('renderiza loading antes da identidade responder', () => {
+    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(new Subject<PlayerIdentity | null>());
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
-
     expect((fixture.nativeElement as HTMLElement).querySelector('.analytics-loading')).toBeTruthy();
   });
 
-  it('2. identidade null renderiza BunkerAuthCard e não chama BunkerApiService', () => {
+  it('identidade null renderiza autenticação sem buscar o summary', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(null));
-
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('app-bunker-auth-card')).toBeTruthy();
-    expect(compiled.querySelector('app-bunker-auth-card a')?.getAttribute('href')).toBe(
-      'https://example.com/steam/login',
-    );
+    expect(compiled.querySelector('app-bunker-auth-card a')?.getAttribute('href')).toBe('https://example.com/steam/login');
     expect(bunkerApiMock.getSummary).not.toHaveBeenCalled();
   });
 
-  it('3. identidade autenticada chama BunkerApiService.getSummary() uma vez', () => {
-    render();
-
+  it('identidade autenticada busca o summary uma vez e preserva a identidade', () => {
+    const compiled = render();
     expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
     expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
+    expect(compiled.querySelector('app-bunker-analytics-header h1')?.textContent).toContain('L4VOSX');
+    expect(compiled.querySelector('.analytics-header__steam-id')?.textContent).toContain('76561198000000000');
   });
 
-  it('4. renderiza header de analytics com identidade, season e retorno para Área do Jogador', () => {
-    const compiled = render();
-
-    expect(compiled.querySelector('.analytics-hero h1')?.textContent?.trim()).toBe('L4VOSX');
-    expect(compiled.textContent).toContain('STEAMID 76561198000000000');
-    expect(compiled.textContent).toContain('Season 02');
-    expect(compiled.querySelector<HTMLAnchorElement>('a.analytics-action')?.getAttribute('href')).toBe(
-      '/area-do-jogador',
-    );
-  });
-
-  it('5. erro de identidade 401 renderiza autenticação e não chama BunkerApiService', () => {
+  it('erro autenticacional de identidade renderiza autenticação', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 401 })),
     );
-
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
-
     expect((fixture.nativeElement as HTMLElement).querySelector('app-bunker-auth-card')).toBeTruthy();
     expect(bunkerApiMock.getSummary).not.toHaveBeenCalled();
   });
 
-  it('6. erro de identidade não autenticacional renderiza erro global', () => {
+  it('erro não autenticacional de identidade renderiza erro global', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 500 })),
     );
-
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
-
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'Competitive Analytics indisponível',
-    );
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Competitive Analytics indisponível');
   });
 
-  it('7. erro do BunkerSummary preserva identidade autenticada e exibe fallback parcial', () => {
+  it('erro do summary preserva identidade e exibe fallback parcial', () => {
     playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
     bunkerApiMock.getSummary.mockReturnValue(throwError(() => new Error('Summary error')));
-
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.analytics-hero h1')?.textContent?.trim()).toBe('L4VOSX');
-    expect(compiled.querySelector('app-empty-state')).toBeNull();
+    expect(compiled.querySelector('app-bunker-analytics-header h1')?.textContent).toContain('L4VOSX');
     expect(compiled.textContent).toContain('Resumo temporariamente indisponível');
+    expect(compiled.querySelector('[role="tablist"]')).toBeNull();
   });
 
-  it('8. lifetime alimenta visão geral com valores canônicos', () => {
+  it('inicia em Overview e mantém somente o painel ativo montado', () => {
     const compiled = render();
-
-    expect(compiled.textContent).toContain('Perfil competitivo geral');
-    expect(compiled.textContent).toContain('1,08');
-    expect(compiled.textContent).toContain('78,4');
-    expect(compiled.textContent).toContain('1.432');
-    expect(compiled.textContent).toContain('48,7%');
-    expect(compiled.textContent).toContain('21,9%');
+    expect(compiled.querySelectorAll('[role="tabpanel"]')).toHaveLength(1);
+    expect(compiled.querySelector('[role="tabpanel"]')?.id).toBe('bunker-panel-overview');
   });
 
-  it('9. Win Rate radial recebe somente lifetime.winRate canônico', () => {
-    render();
-
-    const chart = fixture.debugElement.query(By.directive(WinRateChartStub))
-      .componentInstance as WinRateChartStub;
-
-    expect(chart.value()).toBe(0.5625);
-  });
-
-  it('10. sparklines usam sequência canônica da timeline e preservam null', () => {
-    const base = createBunkerSummary();
-    const competitiveProfile = base.competitiveProfile
-      ? {
-          ...base.competitiveProfile,
-          timeline: [
-            createTimelineItem({ kdRatio: 0.88, impactRating: 0.91 }),
-            createTimelineItem({ kdRatio: null, impactRating: null }),
-            createTimelineItem({ kdRatio: 1.22, impactRating: 1.31 }),
-          ],
-        }
-      : null;
-
-    render(createBunkerSummary({ competitiveProfile }));
-
-    const sparklines = fixture.debugElement.queryAll(By.directive(MetricSparklineStub));
-    const kdSparkline = sparklines[0].componentInstance as MetricSparklineStub;
-    const impactSparkline = sparklines[1].componentInstance as MetricSparklineStub;
-
-    expect(kdSparkline.values()).toEqual([0.88, null, 1.22]);
-    expect(impactSparkline.values()).toEqual([0.91, null, 1.31]);
-  });
-
-  it('11. trend de impacto preserva timeline publicada e não usa ADR/KD como fallback', () => {
-    const base = createBunkerSummary();
-    const timeline = [
-      createTimelineItem({ at: '2026-07-01T12:00:00Z', impactRating: null, adr: 99.9, kdRatio: 9.99 }),
-      createTimelineItem({ at: '2026-07-02T12:00:00Z', impactRating: null, adr: 88.8, kdRatio: 8.88 }),
-    ];
-    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, timeline } : null;
-
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-
-    expect(fixture.debugElement.query(By.directive(ImpactTrendChartStub))).toBeNull();
-    expect(compiled.textContent).not.toContain('Performance trend');
-  });
-
-  it('12. tabela e chart de mapas preservam ordem do BunkerSummary', () => {
-    const base = createBunkerSummary();
-    const byMap = [
-      createMapPerformance({ mapName: 'de_ancient', winRate: 0.4 }),
-      createMapPerformance({ mapName: 'de_anubis', winRate: 0.6 }),
-      createMapPerformance({ mapName: 'de_nuke', winRate: 0.5 }),
-    ];
-    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, byMap } : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-
-    const rowNames = Array.from(
-      compiled.querySelectorAll<HTMLElement>('.map-table__row:not(.map-table__head) strong[data-label="Mapa"]'),
-    ).map((cell) => cell.textContent?.trim());
-    const chart = fixture.debugElement.query(By.directive(MapWinrateChartStub))
-      .componentInstance as MapWinrateChartStub;
-
-    expect(rowNames).toEqual(['de_ancient', 'de_anubis', 'de_nuke']);
-    expect(chart.maps()).toEqual(byMap);
-  });
-
-  it('13. winRate null em mapa permanece ausência visual e não recebe tone/ranking', () => {
-    const base = createBunkerSummary();
-    const seasonPlayer = base.seasonPlayer
-      ? { ...base.seasonPlayer, byMap: [createMapPerformance({ mapName: 'de_cache', winRate: null })] }
-      : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-    const winRateCell = compiled.querySelector('[data-label="Vit%"]');
-
-    expect(winRateCell?.textContent?.trim()).toBe('—');
-    expect(compiled.textContent).not.toContain(['Aten', 'ção'].join(''));
-  });
-
-  it('14. combat profile usa clutch e multi-kill lifetime publicados', () => {
-    render();
-
-    const multikill = fixture.debugElement.query(By.directive(MultikillChartStub))
-      .componentInstance as MultikillChartStub;
-
-    expect(multikill.stats().enemy2ks).toBe(186);
-    expect(multikill.stats().enemy5ks).toBe(2);
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('21/38');
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('55,3%');
-  });
-
-  it('15. mapas recentes preservam ordem e usam placar direto por time', () => {
+  it('analyticsContext inicia em Season', () => {
     const compiled = render();
-    const recentNames = Array.from(compiled.querySelectorAll<HTMLElement>('.recent-map__identity strong'))
-      .map((cell) => cell.textContent?.trim());
-
-    expect(recentNames).toEqual(['de_mirage', 'de_ancient']);
-    expect(compiled.textContent).toContain('13 x 11');
-    expect(compiled.textContent).toContain('300');
+    expect(harness().analyticsContext()).toBe('season');
+    expect(contextSelect(compiled).value).toBe('season');
   });
 
-  it('16. mapas recentes não calculam K/D ou ADR a partir de kills/deaths/damage/rounds', () => {
-    const base = createBunkerSummary();
-    const recentMaps = [
-      createRecentMap({
-        kills: 20,
-        deaths: 5,
-        damage: 2000,
-        rounds: 20,
-        kdRatio: null,
-        adr: null,
-        impactRating: null,
-      }),
-    ];
-    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, recentMaps } : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-    const rowText = normalizedText(compiled.querySelector('.recent-map') ?? compiled);
+  it('Season selecionada resolve somente as cinco fontes de seasonPlayer', () => {
+    const summary = createBunkerSummary();
+    render(summary);
+    const selected = harness().selectedAnalyticsData(summary);
 
-    expect(rowText).toContain('K/D—');
-    expect(rowText).toContain('ADR—');
-    expect(rowText).not.toContain('4,00');
-    expect(rowText).not.toContain('100,0');
+    expect(selected?.summary).toBe(summary.seasonPlayer?.summary);
+    expect(selected?.periods).toBe(summary.seasonPlayer?.periods);
+    expect(selected?.byMap).toBe(summary.seasonPlayer?.byMap);
+    expect(selected?.recentMaps).toBe(summary.seasonPlayer?.recentMaps);
+    expect(selected?.timeline).toBe(summary.seasonPlayer?.timeline);
   });
 
-  it('17. timeline textual preserva ordem e campos canônicos publicados', () => {
-    const compiled = render();
-    const eventNames = Array.from(compiled.querySelectorAll<HTMLElement>('.timeline-event__heading strong'))
-      .map((cell) => cell.textContent?.trim());
+  it('Overview recebe somente summary e timeline do domínio Season selecionado', () => {
+    const summary = createBunkerSummary();
+    render(summary);
+    const overview = fixture.debugElement.query(By.directive(BunkerOverviewPanel)).componentInstance as BunkerOverviewPanel;
 
-    expect(eventNames).toEqual(['de_vertigo', 'de_mirage']);
-    expect(compiled.textContent).toContain('Timeline da temporada');
-    expect(compiled.textContent).toContain('13-11');
+    expect(overview.summary()).toBe(summary.seasonPlayer?.summary);
+    expect(overview.timeline()).toBe(summary.seasonPlayer?.timeline);
+    expect(overview.context()).toBe('season');
   });
 
-  it('18. lifetime ausente renderiza estado vazio curto sem fabricar chart gigante', () => {
+  it('Lifetime selecionado resolve somente as cinco fontes de competitiveProfile', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    fixture.detectChanges();
+    const selected = harness().selectedAnalyticsData(summary);
+
+    expect(selected?.summary).toBe(summary.competitiveProfile?.lifetime);
+    expect(selected?.periods).toBe(summary.competitiveProfile?.periods);
+    expect(selected?.byMap).toBe(summary.competitiveProfile?.byMap);
+    expect(selected?.recentMaps).toBe(summary.competitiveProfile?.recentMaps);
+    expect(selected?.timeline).toBe(summary.competitiveProfile?.timeline);
+  });
+
+  it('Overview troca para o domínio Lifetime sem fallback cruzado', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    fixture.detectChanges();
+    const overview = fixture.debugElement.query(By.directive(BunkerOverviewPanel)).componentInstance as BunkerOverviewPanel;
+
+    expect(overview.summary()).toBe(summary.competitiveProfile?.lifetime);
+    expect(overview.timeline()).toBe(summary.competitiveProfile?.timeline);
+    expect(overview.context()).toBe('lifetime');
+  });
+
+  it('Season ausente não usa dados Lifetime como fallback', () => {
+    const summary = createBunkerSummary({ seasonPlayer: null });
+    const compiled = render(summary);
+    expect(harness().selectedAnalyticsData(summary)).toBeNull();
+    expect(compiled.textContent).toContain('Sem estatísticas disponíveis para este contexto.');
+  });
+
+  it('Lifetime ausente não usa dados Season como fallback', () => {
+    const summary = createBunkerSummary({ competitiveProfile: null });
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    fixture.detectChanges();
+    expect(harness().selectedAnalyticsData(summary)).toBeNull();
+    const overview = fixture.debugElement.query(By.directive(BunkerOverviewPanel)).componentInstance as BunkerOverviewPanel;
+    expect(overview.summary()).toBeNull();
+    expect(overview.timeline()).toEqual([]);
+  });
+
+  it('currentSeason é a autoridade visual do label sazonal', () => {
     const summary = createBunkerSummary({
-      competitiveProfile: {
-        generatedAt: '2026-08-11T20:00:00Z',
-        steamId64: '76561198000000000',
-        name: 'L4VOSX',
-        avatarMedium: null,
-        steamProfileUrl: null,
-        lifetime: null,
-        periods: {},
-        byMap: [],
-        recentMaps: [],
-        timeline: [],
-      },
+      currentSeason: { slug: 'visual-season', name: 'Season Visual', status: 'active', scope: null },
     });
     const compiled = render(summary);
-
-    expect(compiled.textContent).toContain('Perfil competitivo geral ainda indisponível.');
-    expect(fixture.debugElement.query(By.directive(WinRateChartStub))).toBeNull();
-    expect(fixture.debugElement.query(By.directive(MultikillChartStub))).toBeNull();
+    expect(contextSelect(compiled).options[0].textContent?.trim()).toBe('Season Visual');
+    expect(contextSelect(compiled).options[0].textContent).not.toContain('artifact-season');
   });
 
-  it('19. byMap vazio exibe mensagem compacta', () => {
-    const base = createBunkerSummary();
-    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, byMap: [] } : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-
-    expect(compiled.textContent).toContain('Performance por mapa ainda indisponível.');
-    expect(fixture.debugElement.query(By.directive(MapWinrateChartStub))).toBeNull();
+  it('nome ausente de currentSeason usa somente o fallback visual da label', () => {
+    const summary = createBunkerSummary({ currentSeason: null });
+    const compiled = render(summary);
+    expect(contextSelect(compiled).options[0].textContent?.trim()).toBe('Season atual');
+    expect(harness().selectedAnalyticsData(summary)?.summary).toBe(summary.seasonPlayer?.summary);
   });
 
-  it('20. sem recentMaps e sem timeline omite seções dependentes', () => {
-    const base = createBunkerSummary();
-    const seasonPlayer = base.seasonPlayer
-      ? { ...base.seasonPlayer, recentMaps: [], timeline: [] }
-      : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-
-    expect(compiled.textContent).not.toContain('Mapas recentes');
-    expect(compiled.textContent).not.toContain('Timeline da temporada');
-    expect(fixture.debugElement.query(By.directive(ImpactTrendChartStub))).toBeNull();
-  });
-
-  it('21. remove conceitos antigos de ranking/highlight do layout', () => {
+  it('troca global de contexto não provoca novo fetch', () => {
     const compiled = render();
-    const text = compiled.textContent ?? '';
-
-    expect(text).not.toContain(['Mais', ' jogado'].join(''));
-    expect(text).not.toContain(['Melhor', ' ADR'].join(''));
-    expect(text).not.toContain(['Melhor', ' WR'].join(''));
-    expect(text).not.toContain(['Aten', 'ção'].join(''));
-    expect(text).not.toContain(['5K', ' / ', 'ACE'].join(''));
-  });
-
-  it('22. inspeção estática confirma ausência dos métodos derivados removidos', () => {
-    const tsPath = path.resolve(__dirname, 'bunker-page.ts');
-    const htmlPath = path.resolve(__dirname, 'bunker-page.html');
-    const tsContent = fs.readFileSync(tsPath, 'utf-8');
-    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-    const combined = `${tsContent}\n${htmlContent}`;
-
-    expect(combined).not.toContain(['recentMap', 'Kd'].join(''));
-    expect(combined).not.toContain(['recentMap', 'Adr'].join(''));
-    expect(combined).not.toContain(['recentMap', 'HsPct'].join(''));
-    expect(combined).not.toContain(['recentMap', 'Accuracy'].join(''));
-    expect(combined).not.toContain(['mostPlayed', 'Map'].join(''));
-    expect(combined).not.toContain(['bestAdr', 'Map'].join(''));
-    expect(combined).not.toContain(['bestWinRate', 'Map'].join(''));
-    expect(combined).not.toContain(['attention', 'Map'].join(''));
-    expect(combined).not.toContain(['bestTimeline', 'Item'].join(''));
-    expect(combined).not.toContain(['worstTimeline', 'Item'].join(''));
-    expect(combined).not.toContain(['timelineSparkline', 'Points'].join(''));
-    expect(combined).not.toContain(['rateTone', 'Class'].join(''));
-  });
-
-  it('23. inspeção estática confirma que o dashboard não reutiliza componentes antigos da página', () => {
-    const htmlPath = path.resolve(__dirname, 'bunker-page.html');
-    const htmlContent = fs.readFileSync(htmlPath, 'utf-8');
-
-    expect(htmlContent).not.toContain(['app', 'bunker', 'player', 'header'].join('-'));
-    expect(htmlContent).not.toContain(['app', 'bunker', 'season', 'info'].join('-'));
-    expect(htmlContent).not.toContain(['app', 'bunker', 'section', 'nav'].join('-'));
-    expect(htmlContent).toContain('app-competitive-win-rate-chart');
-    expect(htmlContent).toContain('app-competitive-map-winrate-chart');
-    expect(htmlContent).toContain('app-competitive-impact-trend-chart');
-  });
-
-  it('24. troca pt-BR por en-US na mesma instância sem refetch ou alteração competitiva', async () => {
-    const summary = createBunkerSummary();
-    playerIdentityApiMock.getCurrentIdentity.mockReturnValue(of(createPlayerIdentity()));
-    bunkerApiMock.getSummary.mockReturnValue(of(summary));
-
-    fixture = TestBed.createComponent(BunkerPage);
+    selectContext(compiled, 'lifetime');
     fixture.detectChanges();
-
-    const ptText = normalizedText(fixture.nativeElement as HTMLElement);
-    const actualWinRateFixture = TestBed.createComponent(CompetitiveWinRateChart);
-    actualWinRateFixture.componentRef.setInput('value', 0.5625);
-    const actualWinRate = actualWinRateFixture.componentInstance;
-    const tooltipFormatter = () => {
-      const tooltipY = actualWinRate['tooltip']().y;
-      expect(Array.isArray(tooltipY)).toBe(false);
-      return tooltipY && !Array.isArray(tooltipY) ? tooltipY.formatter : undefined;
-    };
-    const ptFormatter = tooltipFormatter();
-    expect(ptFormatter).toBeDefined();
-    const ptChartRate = ptFormatter?.(56.25, {} as never);
-    const winRate = fixture.debugElement.query(By.directive(WinRateChartStub)).componentInstance as WinRateChartStub;
-    const sparklines = fixture.debugElement.queryAll(By.directive(MetricSparklineStub));
-    const impact = fixture.debugElement.query(By.directive(ImpactTrendChartStub)).componentInstance as ImpactTrendChartStub;
-    const maps = fixture.debugElement.query(By.directive(MapWinrateChartStub)).componentInstance as MapWinrateChartStub;
-    const multikill = fixture.debugElement.query(By.directive(MultikillChartStub)).componentInstance as MultikillChartStub;
-    const canonicalInputs = {
-      winRate: winRate.value(),
-      sparklines: sparklines.map((item) => [...(item.componentInstance as MetricSparklineStub).values()]),
-      timeline: impact.timeline(),
-      maps: maps.maps(),
-      multikill: multikill.stats(),
-    };
-
-    expect(ptText).toContain('Visão geral');
-    expect(ptText).toContain('Vitória');
-    expect(ptText).toContain('Derrota');
-    expect(ptText).toContain('Vit%');
-    expect(ptText).toContain('1.432');
-    expect(ptText).toContain('48,7%');
-
-    await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
-    fixture.detectChanges();
-
-    const enText = normalizedText(fixture.nativeElement as HTMLElement);
-    expect(enText).toContain('Overview');
-    expect(enText).toContain('Win');
-    expect(enText).toContain('Loss');
-    expect(enText).toContain('Win%');
-    expect(enText).toContain('Competitive Analytics');
-    expect(enText).toContain('L4VOSX');
-    expect(enText).toContain('76561198000000000');
-    expect(enText).toContain('Season 02');
-    expect(enText).toContain('de_nuke');
-    expect(enText).toContain('de_inferno');
-    expect(enText).toContain('de_mirage');
-    expect(enText).toContain('K/D');
-    expect(enText).toContain('ADR');
-    expect(enText).toContain('Impact');
-    expect(enText).toContain('1v1');
-    expect(enText).toContain('1v2');
-    expect(enText).toContain('2K 3K 4K 5K');
-    expect(enText).toContain('1,432');
-    expect(enText).toContain('48.7%');
-    expect(enText).not.toContain('1.432');
-    const enFormatter = tooltipFormatter();
-    expect(enFormatter).toBeDefined();
-    expect(enFormatter?.(56.25, {} as never)).toBe('56.3%');
-    expect(enFormatter?.(56.25, {} as never)).not.toBe(ptChartRate);
-
-    expect(winRate.value()).toBe(canonicalInputs.winRate);
-    expect(sparklines.map((item) => (item.componentInstance as MetricSparklineStub).values()))
-      .toEqual(canonicalInputs.sparklines);
-    expect(impact.timeline()).toBe(canonicalInputs.timeline);
-    expect(maps.maps()).toBe(canonicalInputs.maps);
-    expect(multikill.stats()).toBe(canonicalInputs.multikill);
-    expect(maps.maps().map((map) => map.mapName)).toEqual(['de_nuke', 'de_inferno']);
-    expect(summary.seasonPlayer?.recentMaps.map((map) => map.mapName)).toEqual(['de_mirage', 'de_ancient']);
-    expect(summary.seasonPlayer?.timeline.map((event) => event.mapName)).toEqual(['de_vertigo', 'de_mirage']);
-    expect(summary.competitiveProfile?.lifetime?.kdRatio).toBe(1.08);
-    expect(summary.seasonPlayer?.timeline[0].impactRating).toBe(0.9);
-    expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
+    expect(harness().analyticsContext()).toBe('lifetime');
     expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
   });
 
-  it('25. mantém histórico lifetime visível durante transição sem seasonPlayer', () => {
-    const base = createBunkerSummary();
-    const competitiveProfile = base.competitiveProfile
-      ? {
-          ...base.competitiveProfile,
-          periods: { '7d': createStats({ kdRatio: 1.42 }) },
-          byMap: [createMapPerformance({ mapName: 'de_history' })],
-          recentMaps: [createRecentMap({ mapName: 'de_history_recent' })],
-          timeline: [createTimelineItem({ mapName: 'de_history_timeline' })],
-        }
-      : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer: null, competitiveProfile }));
-
-    expect(compiled.textContent).toContain('Trajetória lifetime');
-    expect(compiled.textContent).toContain('de_history');
-    expect(compiled.textContent).toContain('de_history_recent');
-    expect(compiled.textContent).toContain('de_history_timeline');
-    expect(compiled.textContent).toContain('Season atual');
-    expect(compiled.querySelector('.lifetime-history')).not.toBeNull();
+  it('troca de tab não altera analyticsContext', () => {
+    const compiled = render();
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
+    fixture.detectChanges();
+    expect(harness().analyticsContext()).toBe('season');
   });
 
-  it('26. renderiza Lifetime e Season como domínios distintos sem fallback cruzado', () => {
-    const base = createBunkerSummary();
-    const competitiveProfile = base.competitiveProfile
-      ? { ...base.competitiveProfile, byMap: [createMapPerformance({ mapName: 'de_lifetime' })] }
-      : null;
-    const seasonPlayer = base.seasonPlayer
-      ? { ...base.seasonPlayer, byMap: [createMapPerformance({ mapName: 'de_season' })] }
-      : null;
-    const compiled = render(createBunkerSummary({ competitiveProfile, seasonPlayer }));
+  it('contexto selecionado permanece ao navegar para outra tab', () => {
+    const compiled = render();
+    selectContext(compiled, 'lifetime');
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat')?.click();
+    fixture.detectChanges();
 
-    const lifetimeSection = compiled.querySelector('.lifetime-history');
-    expect(lifetimeSection?.textContent).toContain('de_lifetime');
-    expect(lifetimeSection?.textContent).not.toContain('de_season');
-    expect(compiled.textContent).toContain('Histórico competitivo permanente');
-    expect(compiled.textContent).toContain('Season atual');
-    expect(compiled.textContent).toContain('de_season');
+    expect(harness().analyticsContext()).toBe('lifetime');
+    expect(contextSelect(compiled).value).toBe('lifetime');
+    expect(compiled.querySelector('[role="tabpanel"]')?.id).toBe('bunker-panel-combat');
   });
 
-  it('27. limita coleções apenas na apresentação e mantém o resumo recebido intacto', () => {
-    const base = createBunkerSummary();
-    const byMap = Array.from({ length: 7 }, (_, index) =>
-      createMapPerformance({ mapName: `history-${index + 1}` }),
-    );
-    const competitiveProfile = base.competitiveProfile
-      ? { ...base.competitiveProfile, byMap }
-      : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer: null, competitiveProfile }));
+  it('Combat recebe somente o summary do domínio Season selecionado', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat')?.click();
+    fixture.detectChanges();
+    const combat = fixture.debugElement.query(By.directive(BunkerCombatPanel)).componentInstance as BunkerCombatPanel;
 
-    expect(compiled.textContent).toContain('history-6');
-    expect(compiled.textContent).not.toContain('history-7');
-    expect(competitiveProfile?.byMap).toHaveLength(7);
+    expect(combat.summary()).toBe(summary.seasonPlayer?.summary);
+    expect(fixture.debugElement.query(By.directive(BunkerOverviewPanel))).toBeNull();
   });
 
-  it('28. renderiza periods Lifetime e Season com valores distintos nos respectivos domínios', () => {
-    const base = createBunkerSummary();
-    const competitiveProfile = base.competitiveProfile
-      ? { ...base.competitiveProfile, periods: { '7d': createStats({ kdRatio: 1.77 }) } }
-      : null;
-    const seasonPlayer = base.seasonPlayer
-      ? { ...base.seasonPlayer, periods: { '7d': createStats({ kdRatio: 0.83 }) } }
-      : null;
-    const compiled = render(createBunkerSummary({ competitiveProfile, seasonPlayer }));
-    const lifetime = compiled.querySelector('.lifetime-history');
-    const season = compiled.querySelector('.season-periods');
+  it('Combat recebe somente o summary Lifetime selecionado', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat')?.click();
+    fixture.detectChanges();
+    const combat = fixture.debugElement.query(By.directive(BunkerCombatPanel)).componentInstance as BunkerCombatPanel;
 
-    expect(lifetime?.textContent).toContain('1,77');
-    expect(lifetime?.textContent).not.toContain('0,83');
-    expect(season?.textContent).toContain('Janelas da Season');
-    expect(season?.textContent).toContain('0,83');
-    expect(season?.textContent).not.toContain('1,77');
+    expect(combat.summary()).toBe(summary.competitiveProfile?.lifetime);
   });
 
-  it('29. periods vazio não esconde os demais analytics da Season', () => {
-    const base = createBunkerSummary();
-    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, periods: {} } : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
+  it('Combat não usa Lifetime como fallback quando Season está ausente', () => {
+    const summary = createBunkerSummary({ seasonPlayer: null });
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat')?.click();
+    fixture.detectChanges();
+    const combat = fixture.debugElement.query(By.directive(BunkerCombatPanel)).componentInstance as BunkerCombatPanel;
 
-    expect(compiled.querySelector('.season-periods')).toBeNull();
-    expect(compiled.textContent).toContain('de_nuke');
-    expect(compiled.textContent).toContain('de_mirage');
-    expect(compiled.textContent).toContain('Timeline da temporada');
+    expect(combat.summary()).toBeNull();
+    expect(compiled.textContent).toContain('Sem estatísticas de combate disponíveis para este contexto.');
   });
 
-  it('30. mantém currentSeason como única autoridade do contexto visual', () => {
-    const base = createBunkerSummary();
-    const seasonPlayer = base.seasonPlayer
-      ? {
-          ...base.seasonPlayer,
-          season: {
-            slug: 'artifact-snapshot',
-            scope: { startAt: '2025-01-01', endAt: '2025-06-30' },
-          },
-        }
-      : null;
-    const compiled = render(createBunkerSummary({ seasonPlayer }));
-    const seasonContext = compiled.querySelector('.season-context');
+  it('Combat não usa Season como fallback quando Lifetime está ausente', () => {
+    const summary = createBunkerSummary({ competitiveProfile: null });
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat')?.click();
+    fixture.detectChanges();
+    const combat = fixture.debugElement.query(By.directive(BunkerCombatPanel)).componentInstance as BunkerCombatPanel;
 
-    expect(seasonContext?.textContent).toContain('Season 02');
-    expect(seasonContext?.textContent).toContain('season-02');
-    expect(compiled.textContent).not.toContain('artifact-snapshot');
-    expect(compiled.textContent).not.toContain('01/01/2025');
+    expect(combat.summary()).toBeNull();
+  });
+
+  it('Maps recebe somente byMap do domínio Season selecionado', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
+    fixture.detectChanges();
+    const maps = fixture.debugElement.query(By.directive(BunkerMapsPanel)).componentInstance as BunkerMapsPanel;
+
+    expect(maps.byMap()).toBe(summary.seasonPlayer?.byMap);
+    expect(maps.recentMaps()).toBe(summary.seasonPlayer?.recentMaps);
+    expect(fixture.debugElement.query(By.directive(BunkerOverviewPanel))).toBeNull();
+    expect(fixture.debugElement.query(By.directive(BunkerCombatPanel))).toBeNull();
+  });
+
+  it('Maps recebe somente byMap do domínio Lifetime selecionado', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
+    fixture.detectChanges();
+    const maps = fixture.debugElement.query(By.directive(BunkerMapsPanel)).componentInstance as BunkerMapsPanel;
+
+    expect(maps.byMap()).toBe(summary.competitiveProfile?.byMap);
+    expect(maps.recentMaps()).toBe(summary.competitiveProfile?.recentMaps);
+  });
+
+  it('Maps não usa Lifetime como fallback quando Season está ausente', () => {
+    const summary = createBunkerSummary({ seasonPlayer: null });
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
+    fixture.detectChanges();
+    const maps = fixture.debugElement.query(By.directive(BunkerMapsPanel)).componentInstance as BunkerMapsPanel;
+
+    expect(maps.byMap()).toBeNull();
+    expect(maps.recentMaps()).toBeNull();
+    expect(compiled.textContent).toContain('Sem desempenho por mapa disponível para este contexto.');
+  });
+
+  it('Maps não usa Season como fallback quando Lifetime está ausente', () => {
+    const summary = createBunkerSummary({ competitiveProfile: null });
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
+    fixture.detectChanges();
+    const maps = fixture.debugElement.query(By.directive(BunkerMapsPanel)).componentInstance as BunkerMapsPanel;
+
+    expect(maps.byMap()).toBeNull();
+    expect(maps.recentMaps()).toBeNull();
+  });
+
+  it('Maps fica montado somente enquanto sua tab está ativa', () => {
+    const compiled = render();
+    expect(fixture.debugElement.query(By.directive(BunkerMapsPanel))).toBeNull();
+
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(BunkerMapsPanel))).toBeTruthy();
+
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-matches')?.click();
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(BunkerMapsPanel))).toBeNull();
+  });
+
+  it('Histórico recebe somente recentMaps do domínio Season, sem timeline', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-matches')?.click();
+    fixture.detectChanges();
+    const history = fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel)).componentInstance as BunkerMatchHistoryPanel;
+
+    expect(history.recentMaps()).toBe(summary.seasonPlayer?.recentMaps);
+    expect('timeline' in history).toBe(false);
+    expect(fixture.debugElement.query(By.directive(BunkerOverviewPanel))).toBeNull();
+    expect(fixture.debugElement.query(By.directive(BunkerMapsPanel))).toBeNull();
+  });
+
+  it('Histórico troca para recentMaps Lifetime sem refetch ou fallback cruzado', () => {
+    const summary = createBunkerSummary();
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-matches')?.click();
+    fixture.detectChanges();
+    selectContext(compiled, 'lifetime');
+    fixture.detectChanges();
+    const history = fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel)).componentInstance as BunkerMatchHistoryPanel;
+
+    expect(history.recentMaps()).toBe(summary.competitiveProfile?.recentMaps);
+    expect(harness().analyticsContext()).toBe('lifetime');
+    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
+  });
+
+  it('Histórico não usa Lifetime como fallback quando Season está ausente', () => {
+    const summary = createBunkerSummary({ seasonPlayer: null });
+    const compiled = render(summary);
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-matches')?.click();
+    fixture.detectChanges();
+    const history = fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel)).componentInstance as BunkerMatchHistoryPanel;
+
+    expect(history.recentMaps()).toBeNull();
+    expect(compiled.textContent).toContain('Sem partidas recentes disponíveis para este contexto.');
+  });
+
+  it('Histórico não usa Season como fallback quando Lifetime está ausente', () => {
+    const summary = createBunkerSummary({ competitiveProfile: null });
+    const compiled = render(summary);
+    selectContext(compiled, 'lifetime');
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-matches')?.click();
+    fixture.detectChanges();
+    const history = fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel)).componentInstance as BunkerMatchHistoryPanel;
+
+    expect(history.recentMaps()).toBeNull();
+    expect(compiled.textContent).toContain('Sem partidas recentes disponíveis para este contexto.');
+  });
+
+  it('Histórico fica montado somente enquanto sua tab está ativa', () => {
+    const compiled = render();
+    expect(fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel))).toBeNull();
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-matches')?.click();
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel))).toBeTruthy();
+    compiled.querySelector<HTMLButtonElement>('#bunker-tab-overview')?.click();
+    fixture.detectChanges();
+    expect(fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel))).toBeNull();
+  });
+
+  it('troca de tab desmonta o painel anterior e monta somente o selecionado', () => {
+    const compiled = render();
+    const combatTab = compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat');
+    combatTab?.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelectorAll('[role="tabpanel"]')).toHaveLength(1);
+    expect(compiled.querySelector('[role="tabpanel"]')?.id).toBe('bunker-panel-combat');
+    expect(compiled.querySelector('#bunker-panel-overview')).toBeNull();
+    expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
   });
 });

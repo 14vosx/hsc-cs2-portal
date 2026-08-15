@@ -1,0 +1,86 @@
+@if (summary(); as stats) {
+  <section class="overview" [attr.aria-label]="'bunker.overview.ariaLabel' | translate">
+    <section class="overview__section" [attr.aria-label]="'bunker.overview.primary.ariaLabel' | translate">
+      <div class="overview__heading">
+        <span>{{ 'bunker.overview.primary.eyebrow' | translate }}</span>
+      </div>
+
+      <div class="primary-metrics">
+        <article class="primary-card primary-card--cyan">
+          <span class="primary-card__label">{{ 'bunker.overview.metrics.impact' | translate }}</span>
+          <strong>{{ formatDecimal(stats.impactRating) }}</strong>
+        </article>
+        <article class="primary-card">
+          <span class="primary-card__label">{{ 'bunker.overview.metrics.kd' | translate }}</span>
+          <strong>{{ formatDecimal(stats.kdRatio) }}</strong>
+        </article>
+        <article class="primary-card primary-card--orange">
+          <span class="primary-card__label">{{ 'bunker.overview.metrics.winRate' | translate }}</span>
+          <strong>{{ formatRatioPercent(stats.winRate) }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="trend-panel" appViewportOnce #trendViewport="viewportOnce" appViewportOncePlaceholderSize="300px">
+      <div class="overview__heading overview__heading--trend">
+        <span>{{ 'bunker.overview.trend.eyebrow' | translate }}</span>
+        <h2>{{ 'bunker.overview.trend.title' | translate }}</h2>
+      </div>
+
+      @if (hasImpactTimeline()) {
+        @if (trendViewport.hasEnteredViewport() || motionRegistry.reducedMotion()) {
+          @if (chartRelease(); as release) {
+            @if (release.key === motionKey()) {
+              <app-competitive-impact-trend-chart [timeline]="timeline()" [animate]="release.animate" />
+            }
+          }
+        }
+      } @else {
+        <p class="trend-panel__empty" role="status">{{ 'bunker.overview.trend.empty' | translate }}</p>
+      }
+    </section>
+
+    <section class="overview__section" [attr.aria-label]="'bunker.overview.fundamentals.ariaLabel' | translate">
+      <div class="overview__heading">
+        <span>{{ 'bunker.overview.fundamentals.eyebrow' | translate }}</span>
+      </div>
+
+      <div class="fundamentals">
+        <article class="fundamental-card">
+          <span>{{ 'bunker.overview.metrics.adr' | translate }}</span>
+          <strong>{{ formatDecimal(stats.adr, 1) }}</strong>
+          <small>{{ 'bunker.overview.descriptions.adr' | translate }}</small>
+        </article>
+        <article class="fundamental-card">
+          <span>{{ 'bunker.overview.metrics.headshotPct' | translate }}</span>
+          <strong>{{ formatHumanPercent(stats.headshotPct) }}</strong>
+          <small>{{ 'bunker.overview.descriptions.headshotPct' | translate }}</small>
+        </article>
+        <article class="fundamental-card">
+          <span>{{ 'bunker.overview.metrics.accuracy' | translate }}</span>
+          <strong>{{ formatRatioPercent(stats.accuracy) }}</strong>
+          <small>{{ 'bunker.overview.descriptions.accuracy' | translate }}</small>
+        </article>
+        <article class="fundamental-card">
+          <span>{{ 'bunker.overview.metrics.entryWinRate' | translate }}</span>
+          <strong>{{ formatRatioPercent(stats.entryWinRate) }}</strong>
+          <small>{{ 'bunker.overview.descriptions.entryWinRate' | translate }}</small>
+        </article>
+        <article class="fundamental-card">
+          <span>{{ 'bunker.overview.metrics.utilityPerRound' | translate }}</span>
+          <strong>{{ formatDecimal(stats.utilityDmgPerRound, 1) }}</strong>
+          <small>{{ 'bunker.overview.descriptions.utilityPerRound' | translate }}</small>
+        </article>
+        <article class="fundamental-card">
+          <span>{{ 'bunker.overview.metrics.totalRounds' | translate }}</span>
+          <strong>{{ formatInteger(stats.roundsPlayed) }}</strong>
+          <small>{{ 'bunker.overview.descriptions.totalRounds' | translate }}</small>
+        </article>
+      </div>
+    </section>
+  </section>
+} @else {
+  <section class="overview-empty" role="status">
+    <p>{{ 'bunker.overview.empty' | translate }}</p>
+  </section>
+}

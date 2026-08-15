@@ -1,22 +1,22 @@
-<nav class="bunker-section-nav" aria-label="Navegação do Bunker">
-  <ul class="bunker-section-nav__list">
-    <li class="bunker-section-nav__item">
-      <a class="bunker-section-nav__link" href="#bunker-summary">Resumo</a>
-    </li>
-    @if (hasMaps()) {
-      <li class="bunker-section-nav__item">
-        <a class="bunker-section-nav__link" href="#bunker-maps">Mapas</a>
-      </li>
-    }
-    @if (hasRecentMaps()) {
-      <li class="bunker-section-nav__item">
-        <a class="bunker-section-nav__link" href="#bunker-recent">Últimos mapas</a>
-      </li>
-    }
-    @if (hasTimeline()) {
-      <li class="bunker-section-nav__item">
-        <a class="bunker-section-nav__link" href="#bunker-timeline">Timeline</a>
-      </li>
-    }
-  </ul>
-</nav>
+<div
+  class="bunker-section-nav"
+  role="tablist"
+  [attr.aria-label]="'bunker.navigation.ariaLabel' | translate"
+>
+  @for (tab of tabs; track tab.id; let index = $index) {
+    <button
+      #tabButton
+      class="bunker-section-nav__tab"
+      type="button"
+      role="tab"
+      [id]="'bunker-tab-' + tab.id"
+      [attr.aria-controls]="'bunker-panel-' + tab.id"
+      [attr.aria-selected]="activeTab() === tab.id"
+      [tabIndex]="activeTab() === tab.id ? 0 : -1"
+      (click)="selectTab(tab.id)"
+      (keydown)="handleKeydown($event, index)"
+    >
+      {{ tab.labelKey | translate }}
+    </button>
+  }
+</div>

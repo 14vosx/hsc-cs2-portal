@@ -1,0 +1,103 @@
+@if (summary(); as stats) {
+  <section class="combat-panel" [attr.aria-label]="'bunker.combat.ariaLabel' | translate">
+    <article class="combat-card clutch-card">
+      <header class="combat-card__header">
+        <span>{{ 'bunker.combat.eyebrow' | translate }}</span>
+        <h2>{{ 'bunker.combat.clutch.title' | translate }}</h2>
+      </header>
+
+      <div class="clutch-table" role="table" [attr.aria-label]="'bunker.combat.clutch.title' | translate">
+        <div class="clutch-row clutch-row--header" role="row">
+          <span role="columnheader">{{ 'bunker.combat.clutch.situation' | translate }}</span>
+          <span role="columnheader">{{ 'bunker.combat.clutch.success' | translate }}</span>
+          <span role="columnheader">{{ 'bunker.combat.clutch.rate' | translate }}</span>
+        </div>
+        <div class="clutch-row" role="row">
+          <strong role="cell">1v1</strong>
+          <span role="cell">{{ formatSuccess(stats.v1Wins, stats.v1Count) }}</span>
+          <div class="clutch-rate" role="cell">
+            <b>{{ formatRate(stats.v1WinRate) }}</b>
+            <span class="clutch-rate__track" aria-hidden="true">
+              @if (hasRate(stats.v1WinRate)) {
+                <span [style.width]="rateWidth(stats.v1WinRate)"></span>
+              }
+            </span>
+          </div>
+        </div>
+        <div class="clutch-row" role="row">
+          <strong role="cell">1v2</strong>
+          <span role="cell">{{ formatSuccess(stats.v2Wins, stats.v2Count) }}</span>
+          <div class="clutch-rate" role="cell">
+            <b>{{ formatRate(stats.v2WinRate) }}</b>
+            <span class="clutch-rate__track" aria-hidden="true">
+              @if (hasRate(stats.v2WinRate)) {
+                <span [style.width]="rateWidth(stats.v2WinRate)"></span>
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="combat-card multikill-card">
+      <header class="combat-card__header combat-card__header--orange">
+        <span>{{ 'bunker.combat.eyebrow' | translate }}</span>
+        <h2>{{ 'bunker.combat.multikill.title' | translate }}</h2>
+      </header>
+
+      @switch (multikillState()) {
+        @case ('data') {
+          <div class="multikill-distribution" role="list">
+            @for (row of distributionRows(); track row.label) {
+              <div class="multikill-distribution__row" role="listitem" [attr.aria-label]="row.label + ': ' + formatCounter(row.value)">
+                <b>{{ row.label }}</b>
+                <span
+                  class="multikill-distribution__track"
+                  role="meter"
+                  aria-valuemin="0"
+                  [attr.aria-valuemax]="visualMax()"
+                  [attr.aria-valuenow]="row.value"
+                  [attr.aria-label]="row.label"
+                >
+                  <span [style.width]="distributionWidth(row.value)"></span>
+                </span>
+                <strong>{{ formatCounter(row.value) }}</strong>
+              </div>
+            }
+          </div>
+        }
+        @case ('zero') {
+          <div class="multikill-factual" role="status">
+            <p>{{ 'bunker.combat.multikill.zero' | translate }}</p>
+            <div class="multikill-values">
+              <span><b>2K</b> 0</span><span><b>3K</b> 0</span><span><b>4K</b> 0</span><span><b>5K</b> 0</span>
+            </div>
+          </div>
+        }
+        @case ('partial') {
+          <div class="multikill-factual" role="status">
+            <p>{{ 'bunker.combat.multikill.incomplete' | translate }}</p>
+            <div class="multikill-values">
+              <span><b>2K</b> {{ formatCounter(stats.enemy2ks) }}</span>
+              <span><b>3K</b> {{ formatCounter(stats.enemy3ks) }}</span>
+              <span><b>4K</b> {{ formatCounter(stats.enemy4ks) }}</span>
+              <span><b>5K</b> {{ formatCounter(stats.enemy5ks) }}</span>
+            </div>
+          </div>
+        }
+        @default {
+          <div class="multikill-factual" role="status">
+            <p>{{ 'bunker.combat.multikill.empty' | translate }}</p>
+            <div class="multikill-values">
+              <span><b>2K</b> —</span><span><b>3K</b> —</span><span><b>4K</b> —</span><span><b>5K</b> —</span>
+            </div>
+          </div>
+        }
+      }
+    </article>
+  </section>
+} @else {
+  <section class="combat-empty" role="status">
+    <p>{{ 'bunker.combat.empty' | translate }}</p>
+  </section>
+}

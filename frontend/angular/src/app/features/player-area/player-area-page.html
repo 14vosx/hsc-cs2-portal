@@ -67,7 +67,6 @@
           </div>
         </header>
 
-        @if (logoutFailed()) { <p class="player-area-page__error" role="alert">{{ 'playerArea.notices.logoutFailed' | translate }}</p> }
         @if (successNotice()) { <p class="player-area-page__success" role="status">{{ successNotice()! | translate }}</p> }
 
         @if (settingsOpen()) {
@@ -89,7 +88,7 @@
               <section id="conta-seguranca" class="player-settings__panel"><app-ui-card><app-player-account-security-panel [account]="vm.account" [steamLinkUrl]="steamLinkUrl" [steamNotice]="steamLinkNoticeKey() ? (steamLinkNoticeKey()! | translate) : null" [steamNoticeKind]="steamLinkNoticeKind()" /></app-ui-card></section>
               <section class="player-settings__panel"><app-ui-card><div class="player-area-page__section-header"><div><span class="player-area-page__eyebrow">{{ 'playerArea.header.eyebrow' | translate }}</span><h3>{{ 'playerArea.membership.title' | translate }}</h3></div><app-status-badge [label]="membershipLabel(vm.membership) | translate" [tone]="membershipTone(vm.membership)" /></div>@if (vm.membership; as membership) { <dl class="player-area-page__facts"><div><dt>{{ 'playerArea.membership.plan' | translate }}</dt><dd>{{ membership.planCode }}</dd></div><div><dt>{{ 'playerArea.membership.start' | translate }}</dt><dd>{{ formatDate(membership.startedAt) }}</dd></div><div><dt>{{ 'playerArea.membership.validUntil' | translate }}</dt><dd>{{ formatDate(membership.expiresAt) }}</dd></div></dl> } @else { <p class="player-area-page__muted">{{ 'playerArea.membership.empty' | translate }}</p> }</app-ui-card></section>
             </div>
-            <button type="button" class="player-area-page__button" [disabled]="logoutPending()" (click)="logout()">{{ (logoutPending() ? 'playerArea.actions.signingOut' : 'playerArea.actions.signOut') | translate }}</button>
+            <button type="button" class="player-area-page__button" (click)="toggleSettings()">{{ 'playerArea.actions.close' | translate }}</button>
           </section>
         }
 

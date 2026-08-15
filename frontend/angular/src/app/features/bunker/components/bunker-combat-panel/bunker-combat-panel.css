@@ -1,0 +1,39 @@
+:host { display: block; min-width: 0; }
+.combat-panel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.combat-card { min-width: 0; padding: 18px; background: color-mix(in oklch, var(--color-surface-base) 94%, transparent); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); }
+.combat-card__header { margin-bottom: 14px; }
+.combat-card__header span { color: var(--color-accent-cyan); font-family: var(--font-display); font-size: .65rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.combat-card__header h2 { margin: 4px 0 0; font-size: clamp(1rem, 1.6vw, 1.25rem); line-height: 1.15; text-transform: uppercase; }
+.combat-card__header--orange span { color: var(--color-accent-orange); }
+
+.clutch-table { border-top: 1px solid var(--color-border-default); }
+.clutch-row { display: grid; grid-template-columns: .75fr 1fr 1.35fr; gap: 12px; align-items: center; min-height: 60px; padding: 8px 4px; border-bottom: 1px solid var(--color-border-default); }
+.clutch-row--header { min-height: auto; padding-block: 8px; color: var(--color-text-muted); font-family: var(--font-display); font-size: .64rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.clutch-row strong { color: var(--color-accent-cyan); font-family: var(--font-display); font-size: 1.1rem; }
+.clutch-row > span { color: var(--color-text-main); font-variant-numeric: tabular-nums; }
+.clutch-rate { display: grid; gap: 6px; }
+.clutch-rate b { color: var(--color-accent-cyan); font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+.clutch-rate__track { display: block; width: 100%; height: 4px; overflow: hidden; background: rgba(193, 203, 210, .12); border-radius: var(--radius-full); }
+.clutch-rate__track > span { display: block; height: 100%; background: var(--color-accent-cyan); border-radius: inherit; }
+.multikill-distribution { display: grid; gap: 13px; padding-block: 6px; }
+.multikill-distribution__row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 34px; gap: 11px; align-items: center; min-height: 34px; }
+.multikill-distribution__row > b { color: var(--color-accent-orange); font-family: var(--font-display); font-size: .72rem; }
+.multikill-distribution__row > strong { color: var(--color-text-main); font-family: var(--font-display); font-size: .95rem; font-variant-numeric: tabular-nums; text-align: right; }
+.multikill-distribution__track { display: block; height: 7px; overflow: hidden; background: rgba(193, 203, 210, .11); border-radius: var(--radius-full); }
+.multikill-distribution__track > span { display: block; height: 100%; background: var(--color-accent-orange); border-radius: inherit; }
+.multikill-factual { display: grid; gap: 18px; min-height: 218px; align-content: center; color: var(--color-text-muted); text-align: center; }
+.multikill-factual p { margin: 0; }
+.multikill-values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.multikill-values span { display: grid; gap: 4px; padding: 9px 5px; background: rgba(243, 123, 33, .055); border: 1px solid rgba(243, 123, 33, .17); border-radius: var(--radius-sm); color: var(--color-text-main); font-variant-numeric: tabular-nums; }
+.multikill-values b { color: var(--color-accent-orange); font-family: var(--font-display); font-size: .7rem; }
+.combat-empty { padding: 28px; background: color-mix(in oklch, var(--color-surface-base) 92%, transparent); border: 1px solid var(--color-border-default); border-radius: var(--radius-md); color: var(--color-text-muted); text-align: center; }
+.combat-empty p { margin: 0; }
+
+@media (max-width: 760px) {
+  .combat-panel { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 440px) {
+  .combat-card { padding-inline: 14px; }
+  .clutch-row { grid-template-columns: .65fr .9fr 1.2fr; gap: 8px; }
+}
