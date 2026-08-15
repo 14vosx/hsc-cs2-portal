@@ -57,26 +57,13 @@ Não adicione mecanismo de environment apenas para documentação. Se o projeto 
 
 ## Validação
 
-Testes:
-
 ```bash
-npm test
-```
-
-Build de produção:
-
-```bash
+npm run lint
+npm test -- --watch=false
 npm run build
-```
-
-Validação básica de diff:
-
-```bash
 git diff --check
 git diff --stat
 ```
-
-O projeto não possui script `lint` dedicado atualmente. A ausência desse script não deve ser mascarada na documentação.
 
 ## Build em subpath
 
