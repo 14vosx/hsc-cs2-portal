@@ -65,7 +65,9 @@ describe('BunkerPlayerHeader', () => {
           name: 'Season Name',
           steamId64: '999',
           generatedAt: null,
+          season: null,
           summary: null,
+          periods: {},
           byMap: [],
           recentMaps: [],
           timeline: [],
@@ -77,6 +79,10 @@ describe('BunkerPlayerHeader', () => {
           avatarMedium: null,
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );
@@ -96,7 +102,9 @@ describe('BunkerPlayerHeader', () => {
           name: 'Season Name',
           steamId64: '999',
           generatedAt: null,
+          season: null,
           summary: null,
+          periods: {},
           byMap: [],
           recentMaps: [],
           timeline: [],
@@ -108,6 +116,10 @@ describe('BunkerPlayerHeader', () => {
           avatarMedium: null,
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );
@@ -127,7 +139,9 @@ describe('BunkerPlayerHeader', () => {
           name: 'Season Priority',
           steamId64: '777',
           generatedAt: null,
+          season: null,
           summary: null,
+          periods: {},
           byMap: [],
           recentMaps: [],
           timeline: [],
@@ -150,7 +164,9 @@ describe('BunkerPlayerHeader', () => {
           name: '   ',
           steamId64: '   ',
           generatedAt: null,
+          season: null,
           summary: null,
+          periods: {},
           byMap: [],
           recentMaps: [],
           timeline: [],
@@ -162,6 +178,10 @@ describe('BunkerPlayerHeader', () => {
           avatarMedium: null,
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );
@@ -191,6 +211,10 @@ describe('BunkerPlayerHeader', () => {
           avatarMedium: 'https://example.com/comp.jpg',
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );
@@ -211,6 +235,10 @@ describe('BunkerPlayerHeader', () => {
           avatarMedium: 'https://example.com/comp.jpg',
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );

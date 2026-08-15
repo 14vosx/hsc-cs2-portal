@@ -32,30 +32,30 @@ const BUNKER_TRANSLATIONS = {
     shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } },
     bunker: {
       header: { productName: 'Competitive Analytics', currentContext: 'Contexto atual' },
-      states: { loading: { eyebrow: 'Carregando analytics' }, failure: { title: 'Competitive Analytics indisponível', description: 'Falha global.' }, partial: { eyebrow: 'Dados competitivos', title: 'Resumo temporariamente indisponível', description: 'Falha parcial.' }, empty: { lifetimeTitle: 'Perfil competitivo geral ainda indisponível.', lifetimeDescription: 'Nenhuma métrica lifetime foi publicada.', maps: 'Performance por mapa ainda indisponível.' } },
+      states: { loading: { eyebrow: 'Carregando analytics' }, failure: { title: 'Competitive Analytics indisponível', description: 'Falha global.' }, partial: { eyebrow: 'Dados competitivos', title: 'Resumo temporariamente indisponível', description: 'Falha parcial.' }, empty: { lifetimeTitle: 'Perfil competitivo geral ainda indisponível.', lifetimeDescription: 'Nenhuma métrica lifetime foi publicada.', maps: 'Performance por mapa ainda indisponível.', historicalMaps: 'Histórico por mapa ainda indisponível.' } },
       auth: { eyebrow: 'Conta Steam', title: 'Entre para acessar o Competitive Analytics', description: 'Entre com Steam para validar sua sessão.', action: 'Entrar com Steam' },
       season: { label: 'Season', status: 'Status', period: 'Período', updated: 'Atualizado', unavailable: 'Season indisponível' },
-      sections: { overview: { eyebrow: 'Visão geral', title: 'Perfil competitivo geral', description: 'Histórico lifetime.', canonicalLifetime: 'Lifetime · valor canônico' }, impactTrend: { eyebrow: 'Tendência de performance', title: 'Evolução de Impacto', description: 'Sequência sazonal.' }, maps: { eyebrow: 'Map pool', title: 'Performance por mapa', description: 'Métricas sazonais.' }, combat: { eyebrow: 'Perfil de combate', title: 'Perfil de combate', description: 'Contadores publicados.', clutchEyebrow: 'Performance de clutch', multiKillEyebrow: 'Perfil de multi-kill' }, recent: { eyebrow: 'Mapas recentes', title: 'Mapas recentes', description: 'Resultados canônicos.' }, timeline: { eyebrow: 'Eventos', title: 'Timeline da temporada', description: 'Eventos competitivos.' } },
+      sections: { overview: { eyebrow: 'Visão geral', title: 'Perfil competitivo geral', description: 'Histórico lifetime.', canonicalLifetime: 'Lifetime · valor canônico' }, history: { eyebrow: 'Histórico competitivo permanente', title: 'Trajetória lifetime', description: 'Histórico independente.', updated: 'Perfil atualizado', mapsTitle: 'Desempenho histórico por mapa', recentTitle: 'Mapas recentes do histórico', timelineTitle: 'Timeline permanente' }, seasonDomain: { eyebrow: 'Recorte competitivo', title: 'Season atual', description: 'Dados exclusivos da Season.' }, seasonPeriods: { eyebrow: 'Recortes da Season', title: 'Janelas da Season', description: 'Recortes recentes dentro da Season ativa.' }, impactTrend: { eyebrow: 'Tendência de performance', title: 'Evolução de Impacto', description: 'Sequência sazonal.' }, maps: { eyebrow: 'Map pool', title: 'Performance por mapa', description: 'Métricas sazonais.' }, combat: { eyebrow: 'Perfil de combate', title: 'Perfil de combate', description: 'Contadores publicados.', clutchEyebrow: 'Performance de clutch', multiKillEyebrow: 'Perfil de multi-kill' }, recent: { eyebrow: 'Mapas recentes', title: 'Mapas recentes', description: 'Resultados canônicos.' }, timeline: { eyebrow: 'Eventos', title: 'Timeline da temporada', description: 'Eventos competitivos.' } },
       charts: { value: 'Valor', winRate: 'Win Rate', occurrences: 'Ocorrências', mapUnavailable: 'Mapa não informado' },
       labels: { playerFallback: 'Jogador HSC', winRate: 'Win Rate', maps: 'Mapas', wins: 'Vitórias', losses: 'Derrotas', kills: 'Abates', deaths: 'Mortes', assists: 'Assistências', accuracy: 'Precisão', utilityPerRound: 'Util/R', map: 'Mapa', games: 'Jogos', winShort: 'V', lossShort: 'D', winPct: 'Vit%', entry: 'Entrada', success: 'Sucesso', conversion: 'Conversão', utility: 'Utilidade' },
       results: { win: 'Vitória', loss: 'Derrota' },
       actions: { playerArea: 'Área do Jogador', backToPlayerArea: 'Voltar para Área do Jogador' },
-      accessibility: { loading: 'Carregando Competitive Analytics', seasonContext: 'Contexto da temporada atual', lifetimeMetrics: 'Métricas lifetime', mapPerformance: 'Performance sazonal por mapa' },
+      accessibility: { loading: 'Carregando Competitive Analytics', seasonContext: 'Contexto da temporada atual', lifetimeMetrics: 'Métricas lifetime', lifetimePeriods: 'Períodos lifetime', seasonPeriods: 'Períodos da Season', lifetimeMapPerformance: 'Performance histórica', mapPerformance: 'Performance sazonal por mapa' },
     },
   },
   'en-US': {
     shared: { playerAvatar: { alt: '{{displayName}} avatar' } },
     bunker: {
       header: { productName: 'Competitive Analytics', currentContext: 'Current context' },
-      states: { loading: { eyebrow: 'Loading analytics' }, failure: { title: 'Competitive Analytics unavailable', description: 'Global failure.' }, partial: { eyebrow: 'Competitive data', title: 'Summary temporarily unavailable', description: 'Partial failure.' }, empty: { lifetimeTitle: 'Overall competitive profile is not available yet.', lifetimeDescription: 'No lifetime metrics have been published.', maps: 'Map performance is not available yet.' } },
+      states: { loading: { eyebrow: 'Loading analytics' }, failure: { title: 'Competitive Analytics unavailable', description: 'Global failure.' }, partial: { eyebrow: 'Competitive data', title: 'Summary temporarily unavailable', description: 'Partial failure.' }, empty: { lifetimeTitle: 'Overall competitive profile is not available yet.', lifetimeDescription: 'No lifetime metrics have been published.', maps: 'Map performance is not available yet.', historicalMaps: 'Historical map performance is not available.' } },
       auth: { eyebrow: 'Steam Account', title: 'Sign in to access Competitive Analytics', description: 'Sign in with Steam to validate your session.', action: 'Sign in with Steam' },
       season: { label: 'Season', status: 'Status', period: 'Period', updated: 'Updated', unavailable: 'Season unavailable' },
-      sections: { overview: { eyebrow: 'Overview', title: 'Overall Competitive Profile', description: 'Lifetime history.', canonicalLifetime: 'Lifetime · canonical value' }, impactTrend: { eyebrow: 'Performance trend', title: 'Impact Trend', description: 'Season sequence.' }, maps: { eyebrow: 'Map pool', title: 'Map Performance', description: 'Season metrics.' }, combat: { eyebrow: 'Combat profile', title: 'Combat Profile', description: 'Published counters.', clutchEyebrow: 'Clutch performance', multiKillEyebrow: 'Multi-kill profile' }, recent: { eyebrow: 'Recent maps', title: 'Recent Maps', description: 'Canonical results.' }, timeline: { eyebrow: 'Events', title: 'Season Timeline', description: 'Competitive events.' } },
+      sections: { overview: { eyebrow: 'Overview', title: 'Overall Competitive Profile', description: 'Lifetime history.', canonicalLifetime: 'Lifetime · canonical value' }, history: { eyebrow: 'Permanent competitive history', title: 'Lifetime journey', description: 'Independent history.', updated: 'Profile updated', mapsTitle: 'Historical map performance', recentTitle: 'Recent historical maps', timelineTitle: 'Permanent timeline' }, seasonDomain: { eyebrow: 'Competitive snapshot', title: 'Current Season', description: 'Season-only data.' }, seasonPeriods: { eyebrow: 'Season snapshots', title: 'Season windows', description: 'Recent windows within the active Season.' }, impactTrend: { eyebrow: 'Performance trend', title: 'Impact Trend', description: 'Season sequence.' }, maps: { eyebrow: 'Map pool', title: 'Map Performance', description: 'Season metrics.' }, combat: { eyebrow: 'Combat profile', title: 'Combat Profile', description: 'Published counters.', clutchEyebrow: 'Clutch performance', multiKillEyebrow: 'Multi-kill profile' }, recent: { eyebrow: 'Recent maps', title: 'Recent Maps', description: 'Canonical results.' }, timeline: { eyebrow: 'Events', title: 'Season Timeline', description: 'Competitive events.' } },
       charts: { value: 'Value', winRate: 'Win Rate', occurrences: 'Occurrences', mapUnavailable: 'Map unavailable' },
       labels: { playerFallback: 'HSC Player', winRate: 'Win Rate', maps: 'Maps', wins: 'Wins', losses: 'Losses', kills: 'Kills', deaths: 'Deaths', assists: 'Assists', accuracy: 'Accuracy', utilityPerRound: 'Util/R', map: 'Map', games: 'Games', winShort: 'W', lossShort: 'L', winPct: 'Win%', entry: 'Entry', success: 'Success', conversion: 'Conversion', utility: 'Util' },
       results: { win: 'Win', loss: 'Loss' },
       actions: { playerArea: 'Player Area', backToPlayerArea: 'Back to Player Area' },
-      accessibility: { loading: 'Loading Competitive Analytics', seasonContext: 'Current season context', lifetimeMetrics: 'Lifetime metrics', mapPerformance: 'Season map performance' },
+      accessibility: { loading: 'Loading Competitive Analytics', seasonContext: 'Current season context', lifetimeMetrics: 'Lifetime metrics', lifetimePeriods: 'Lifetime periods', seasonPeriods: 'Season periods', lifetimeMapPerformance: 'Historical performance', mapPerformance: 'Season map performance' },
     },
   },
 } as const;
@@ -254,7 +254,9 @@ function createBunkerSummary(overrides: Partial<BunkerSummary> = {}): BunkerSumm
       name: 'L4VOSX',
       steamId64: '76561198000000000',
       generatedAt: '2026-08-11T20:00:00Z',
+      season: null,
       summary: createStats({ mapsPlayed: 12, wins: 6, losses: 6, winRate: 0.5 }),
+      periods: {},
       byMap: [
         createMapPerformance({ mapName: 'de_nuke', mapsPlayed: 2, wins: 1, losses: 1, winRate: 0.5 }),
         createMapPerformance({ mapName: 'de_inferno', mapsPlayed: 4, wins: 3, losses: 1, winRate: 0.75 }),
@@ -297,6 +299,10 @@ function createBunkerSummary(overrides: Partial<BunkerSummary> = {}): BunkerSumm
       avatarMedium: 'https://example.com/avatar.jpg',
       steamProfileUrl: 'https://steamcommunity.com/id/lavosx',
       lifetime: createStats(),
+      periods: {},
+      byMap: [],
+      recentMaps: [],
+      timeline: [],
     },
     ...overrides,
   };
@@ -466,9 +472,9 @@ describe('BunkerPage Competitive Analytics', () => {
 
   it('10. sparklines usam sequência canônica da timeline e preservam null', () => {
     const base = createBunkerSummary();
-    const seasonPlayer = base.seasonPlayer
+    const competitiveProfile = base.competitiveProfile
       ? {
-          ...base.seasonPlayer,
+          ...base.competitiveProfile,
           timeline: [
             createTimelineItem({ kdRatio: 0.88, impactRating: 0.91 }),
             createTimelineItem({ kdRatio: null, impactRating: null }),
@@ -477,7 +483,7 @@ describe('BunkerPage Competitive Analytics', () => {
         }
       : null;
 
-    render(createBunkerSummary({ seasonPlayer }));
+    render(createBunkerSummary({ competitiveProfile }));
 
     const sparklines = fixture.debugElement.queryAll(By.directive(MetricSparklineStub));
     const kdSparkline = sparklines[0].componentInstance as MetricSparklineStub;
@@ -597,6 +603,10 @@ describe('BunkerPage Competitive Analytics', () => {
         avatarMedium: null,
         steamProfileUrl: null,
         lifetime: null,
+        periods: {},
+        byMap: [],
+        recentMaps: [],
+        timeline: [],
       },
     });
     const compiled = render(summary);
@@ -753,5 +763,109 @@ describe('BunkerPage Competitive Analytics', () => {
     expect(summary.seasonPlayer?.timeline[0].impactRating).toBe(0.9);
     expect(playerIdentityApiMock.getCurrentIdentity).toHaveBeenCalledTimes(1);
     expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
+  });
+
+  it('25. mantém histórico lifetime visível durante transição sem seasonPlayer', () => {
+    const base = createBunkerSummary();
+    const competitiveProfile = base.competitiveProfile
+      ? {
+          ...base.competitiveProfile,
+          periods: { '7d': createStats({ kdRatio: 1.42 }) },
+          byMap: [createMapPerformance({ mapName: 'de_history' })],
+          recentMaps: [createRecentMap({ mapName: 'de_history_recent' })],
+          timeline: [createTimelineItem({ mapName: 'de_history_timeline' })],
+        }
+      : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer: null, competitiveProfile }));
+
+    expect(compiled.textContent).toContain('Trajetória lifetime');
+    expect(compiled.textContent).toContain('de_history');
+    expect(compiled.textContent).toContain('de_history_recent');
+    expect(compiled.textContent).toContain('de_history_timeline');
+    expect(compiled.textContent).toContain('Season atual');
+    expect(compiled.querySelector('.lifetime-history')).not.toBeNull();
+  });
+
+  it('26. renderiza Lifetime e Season como domínios distintos sem fallback cruzado', () => {
+    const base = createBunkerSummary();
+    const competitiveProfile = base.competitiveProfile
+      ? { ...base.competitiveProfile, byMap: [createMapPerformance({ mapName: 'de_lifetime' })] }
+      : null;
+    const seasonPlayer = base.seasonPlayer
+      ? { ...base.seasonPlayer, byMap: [createMapPerformance({ mapName: 'de_season' })] }
+      : null;
+    const compiled = render(createBunkerSummary({ competitiveProfile, seasonPlayer }));
+
+    const lifetimeSection = compiled.querySelector('.lifetime-history');
+    expect(lifetimeSection?.textContent).toContain('de_lifetime');
+    expect(lifetimeSection?.textContent).not.toContain('de_season');
+    expect(compiled.textContent).toContain('Histórico competitivo permanente');
+    expect(compiled.textContent).toContain('Season atual');
+    expect(compiled.textContent).toContain('de_season');
+  });
+
+  it('27. limita coleções apenas na apresentação e mantém o resumo recebido intacto', () => {
+    const base = createBunkerSummary();
+    const byMap = Array.from({ length: 7 }, (_, index) =>
+      createMapPerformance({ mapName: `history-${index + 1}` }),
+    );
+    const competitiveProfile = base.competitiveProfile
+      ? { ...base.competitiveProfile, byMap }
+      : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer: null, competitiveProfile }));
+
+    expect(compiled.textContent).toContain('history-6');
+    expect(compiled.textContent).not.toContain('history-7');
+    expect(competitiveProfile?.byMap).toHaveLength(7);
+  });
+
+  it('28. renderiza periods Lifetime e Season com valores distintos nos respectivos domínios', () => {
+    const base = createBunkerSummary();
+    const competitiveProfile = base.competitiveProfile
+      ? { ...base.competitiveProfile, periods: { '7d': createStats({ kdRatio: 1.77 }) } }
+      : null;
+    const seasonPlayer = base.seasonPlayer
+      ? { ...base.seasonPlayer, periods: { '7d': createStats({ kdRatio: 0.83 }) } }
+      : null;
+    const compiled = render(createBunkerSummary({ competitiveProfile, seasonPlayer }));
+    const lifetime = compiled.querySelector('.lifetime-history');
+    const season = compiled.querySelector('.season-periods');
+
+    expect(lifetime?.textContent).toContain('1,77');
+    expect(lifetime?.textContent).not.toContain('0,83');
+    expect(season?.textContent).toContain('Janelas da Season');
+    expect(season?.textContent).toContain('0,83');
+    expect(season?.textContent).not.toContain('1,77');
+  });
+
+  it('29. periods vazio não esconde os demais analytics da Season', () => {
+    const base = createBunkerSummary();
+    const seasonPlayer = base.seasonPlayer ? { ...base.seasonPlayer, periods: {} } : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
+
+    expect(compiled.querySelector('.season-periods')).toBeNull();
+    expect(compiled.textContent).toContain('de_nuke');
+    expect(compiled.textContent).toContain('de_mirage');
+    expect(compiled.textContent).toContain('Timeline da temporada');
+  });
+
+  it('30. mantém currentSeason como única autoridade do contexto visual', () => {
+    const base = createBunkerSummary();
+    const seasonPlayer = base.seasonPlayer
+      ? {
+          ...base.seasonPlayer,
+          season: {
+            slug: 'artifact-snapshot',
+            scope: { startAt: '2025-01-01', endAt: '2025-06-30' },
+          },
+        }
+      : null;
+    const compiled = render(createBunkerSummary({ seasonPlayer }));
+    const seasonContext = compiled.querySelector('.season-context');
+
+    expect(seasonContext?.textContent).toContain('Season 02');
+    expect(seasonContext?.textContent).toContain('season-02');
+    expect(compiled.textContent).not.toContain('artifact-snapshot');
+    expect(compiled.textContent).not.toContain('01/01/2025');
   });
 });

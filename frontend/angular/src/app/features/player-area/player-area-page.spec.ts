@@ -50,8 +50,8 @@ describe('PlayerAreaPage athlete dashboard', () => {
   const summary: BunkerSummary = {
     status: 'ready', seasonFirst: true, statsAvailable: true,
     currentSeason: { slug: 's2-2026', name: 'Season 02', status: 'active', scope: { startAt: '2026-04-01T00:00:00Z', endAt: '2026-09-30T00:00:00Z' } },
-    seasonPlayer: { name: 'Player HSC', steamId64: '76561198000000001', generatedAt: '2026-08-11T17:00:00Z', summary: seasonStats, byMap: [], recentMaps: [], timeline: [] },
-    competitiveProfile: { generatedAt: null, steamId64: '76561198000000001', name: 'Player HSC', avatarMedium: null, steamProfileUrl: null, lifetime: { ...seasonStats, kdRatio: 9.99 } },
+    seasonPlayer: { name: 'Player HSC', steamId64: '76561198000000001', generatedAt: '2026-08-11T17:00:00Z', season: null, summary: seasonStats, periods: {}, byMap: [], recentMaps: [], timeline: [] },
+    competitiveProfile: { generatedAt: null, steamId64: '76561198000000001', name: 'Player HSC', avatarMedium: null, steamProfileUrl: null, lifetime: { ...seasonStats, kdRatio: 9.99 }, periods: {}, byMap: [], recentMaps: [], timeline: [] },
   };
 
   beforeEach(async () => {

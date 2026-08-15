@@ -1,6 +1,19 @@
 :host { display: block; }
 .analytics-page { container-type: inline-size; display: grid; gap: var(--space-5); width: min(100%, 1240px); margin: 0 auto; color: var(--color-text-main); }
 .analytics-page :is(h1, h2, h3, p, dl) { margin: 0; }
+.analytics-section h3 { margin-top: var(--space-5); font-family: var(--font-display); font-size: .9rem; letter-spacing: .06em; text-transform: uppercase; }
+.analytics-heading small { display: block; margin-top: var(--space-2); color: var(--color-text-subtle); }
+.period-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
+.period-card { padding: var(--space-4); background: var(--color-surface-strong); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); }
+.period-card > span { color: var(--color-accent-cyan); font-family: var(--font-display); font-weight: 600; text-transform: uppercase; }
+.period-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin-top: var(--space-3); }
+.period-card dt { color: var(--color-text-subtle); font-size: .68rem; text-transform: uppercase; }
+.period-card dd { margin: var(--space-1) 0 0; font-family: var(--font-display); }
+.lifetime-history { border-color: var(--color-accent-cyan-border); }
+.lifetime-history > :is(h3, .recent-maps, .event-timeline) { margin-top: var(--space-4); }
+.domain-divider { display: grid; gap: var(--space-1); padding: var(--space-4) var(--space-5); border-left: 3px solid var(--color-accent-orange); background: var(--color-surface-strong); }
+.domain-divider strong { font-family: var(--font-display); font-size: 1.1rem; text-transform: uppercase; }
+.domain-divider p { color: var(--color-text-muted); }
 .analytics-eyebrow { color: var(--color-accent-cyan); font-family: var(--font-display); font-size: .68rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
 .analytics-action { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 0 var(--space-4); color: var(--color-text-main); background: var(--color-surface-strong); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); font-family: var(--font-display); font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; transition: color 180ms ease, border-color 180ms ease, background 180ms ease, transform 180ms ease; }
 .analytics-action:hover { color: var(--color-accent-cyan); background: var(--color-accent-cyan-soft); border-color: var(--color-accent-cyan-border); transform: translateY(-1px); }

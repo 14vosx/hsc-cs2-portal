@@ -51,7 +51,9 @@ function createFullBunkerSummary(): BunkerSummary {
       name: 'Player One',
       steamId64: '76561198000000000',
       generatedAt: '2026-08-01',
+      season: null,
       summary: createDummyStats(),
+      periods: {},
       byMap: [
         {
           mapName: 'de_inferno',
@@ -140,6 +142,10 @@ function createFullBunkerSummary(): BunkerSummary {
       avatarMedium: null,
       steamProfileUrl: null,
       lifetime: createDummyStats(),
+      periods: {},
+      byMap: [],
+      recentMaps: [],
+      timeline: [],
     },
   };
 }

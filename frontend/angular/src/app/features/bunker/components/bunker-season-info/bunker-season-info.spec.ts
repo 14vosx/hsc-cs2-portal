@@ -265,7 +265,9 @@ describe('BunkerSeasonInfo', () => {
           name: null,
           steamId64: null,
           generatedAt: '2026-08-04',
+          season: null,
           summary: null,
+          periods: {},
           byMap: [],
           recentMaps: [],
           timeline: [],
@@ -277,6 +279,10 @@ describe('BunkerSeasonInfo', () => {
           avatarMedium: null,
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );
@@ -297,6 +303,10 @@ describe('BunkerSeasonInfo', () => {
           avatarMedium: null,
           steamProfileUrl: null,
           lifetime: null,
+          periods: {},
+          byMap: [],
+          recentMaps: [],
+          timeline: [],
         },
       })
     );
