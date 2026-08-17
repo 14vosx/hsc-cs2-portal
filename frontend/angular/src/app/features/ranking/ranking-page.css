@@ -87,6 +87,7 @@
 .ranking-page__summary-card span { color: var(--color-text-subtle); font-family: var(--font-display); font-size: .68rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
 .ranking-page__summary-card strong { overflow: hidden; color: var(--color-accent-cyan); font-family: var(--font-display); font-size: clamp(1.55rem, 3vw, 2.2rem); line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
 .ranking-page__summary-card--orange strong { color: var(--color-accent-orange); }
+.ranking-page__summary-card strong app-player-link { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; }
 
 .ranking-page__podium-section,
 .ranking-page__table-section,
@@ -136,6 +137,7 @@
 .ranking-page__podium-kicker { color: var(--color-text-subtle); font-family: var(--font-display); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; }
 .ranking-page__podium-name-line { display: flex; min-width: 0; align-items: center; gap: var(--space-2); }
 .ranking-page__podium-identity h3 { overflow: hidden; margin-top: 2px; font-size: 1.2rem; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-page__podium-identity h3 app-player-link { display: block; overflow: hidden; text-overflow: ellipsis; }
 .ranking-page__podium-item--first .ranking-page__podium-identity h3 { color: var(--color-accent-warm); font-size: 1.4rem; }
 .ranking-page__podium-score { display: grid; justify-items: center; gap: 2px; padding: var(--space-3); text-align: center; background: var(--color-surface-base); border: 1px solid var(--podium-accent-border); border-radius: var(--radius-sm); }
 .ranking-page__podium-record-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: hidden; background: var(--color-border-subtle); border: 1px solid var(--color-border-default); border-radius: var(--radius-sm); }
@@ -189,6 +191,7 @@
 .ranking-page__table-player-copy { display: block; min-width: 0; overflow: hidden; }
 .ranking-page__player-line { display: flex; min-width: 0; align-items: center; gap: var(--space-2); }
 .ranking-page__player-name, .ranking-page__mobile-identity strong { overflow: hidden; color: var(--color-text-main); text-overflow: ellipsis; white-space: nowrap; }
+.ranking-page__player-name app-player-link, .ranking-page__mobile-identity strong app-player-link { display: block; overflow: hidden; text-overflow: ellipsis; }
 .ranking-page__player-steamid { display: block; overflow: hidden; margin-top: 2px; color: var(--color-text-subtle); font-family: var(--font-mono); font-size: .62rem; text-overflow: ellipsis; }
 .ranking-page__record { justify-content: flex-end; gap: 6px; }
 .ranking-page__cell-record { overflow: hidden; }

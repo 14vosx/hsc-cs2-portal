@@ -1,0 +1,5 @@
+@if (profileSlug(); as slug) {
+  <a [routerLink]="['/players', slug]">{{ label() }}</a>
+} @else {
+  <span>{{ label() }}</span>
+}

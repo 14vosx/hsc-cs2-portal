@@ -1,12 +1,17 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import type { Observable } from 'rxjs';
-import { firstValueFrom, of, Subject, throwError } from 'rxjs';
+import { firstValueFrom, NEVER, of, Subject, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { PlayerSession } from '../../core/session/player-session.model';
+import type {
+  PlayerPresentationReference,
+} from '../../core/player-presentation/player-presentation-reference.model';
+import { PlayerPresentationReferenceService } from '../../core/player-presentation/player-presentation-reference.service';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import { RankingApiService } from './data-access/ranking-api.service';
 import type { Ranking, RankingPlayer } from './domain/ranking.model';
@@ -31,6 +36,20 @@ class TestableRankingPage extends RankingPage {
 
   callFilteredPlayers(players: readonly RankingPlayer[]): readonly RankingPlayer[] {
     return this.filteredPlayers(players);
+  }
+
+  callFilteredPlayersWithReferences(
+    players: readonly RankingPlayer[],
+    references: ReadonlyMap<string, PlayerPresentationReference>,
+  ): readonly RankingPlayer[] {
+    return this.filteredPlayers(players, references);
+  }
+
+  callAvatarUrlFor(
+    player: RankingPlayer,
+    references: ReadonlyMap<string, PlayerPresentationReference>,
+  ): string | null {
+    return this.avatarUrlFor(player, references);
   }
 
   callIsCurrentPlayer(player: RankingPlayer): boolean {
@@ -95,6 +114,7 @@ function createInputEvent(value: string): Event {
 
 describe('RankingPage', () => {
   let mockRankingApi: RankingApiServiceMock;
+  let mockPresentation: { resolve: Mock<PlayerPresentationReferenceService['resolve']> };
   let translate: TranslateService;
   const mockSessionState = signal<PlayerSession>({ status: 'anonymous' });
 
@@ -219,18 +239,28 @@ describe('RankingPage', () => {
     mockRankingApi = {
       getRanking: vi.fn<RankingApiService['getRanking']>().mockReturnValue(of(mockRanking)),
     };
+    mockPresentation = {
+      resolve: vi.fn<PlayerPresentationReferenceService['resolve']>().mockReturnValue(NEVER),
+    };
 
     TestBed.configureTestingModule({
       imports: [RankingPage],
       providers: [
         provideTranslateService(),
+        provideRouter([]),
         TestableRankingPage,
         { provide: RankingApiService, useValue: mockRankingApi },
+        { provide: PlayerPresentationReferenceService, useValue: mockPresentation },
         { provide: PlayerSessionService, useValue: { state: mockSessionState } },
       ],
     });
     translate = TestBed.inject(TranslateService);
     translate.setTranslation('pt-BR', { ranking: { hero: { eyebrow: 'Ranking Geral', title: 'Ranking Geral HSC', description: 'Classificação geral acumulada.', synced: 'Dados sincronizados', lastUpdated: 'Última atualização' }, states: { loading: { title: 'Carregando ranking geral...', message: 'Sincronizando a classificação dos jogadores.' }, error: { title: 'Ranking indisponível', message: 'Não foi possível carregar.', retry: 'Tentar novamente' }, empty: { title: 'Nenhum jogador classificado', message: 'Não há dados de ranking geral disponíveis no momento.' } }, summary: { ariaLabel: 'Resumo do ranking geral', players: 'Jogadores', completedMaps: 'Mapas finalizados', currentLeader: 'Líder atual', noLeader: 'Sem líder' }, podium: { ariaLabel: 'Pódio top 3', eyebrow: 'Pódio', title: 'Top 3 da Comunidade', description: 'Jogadores com maior pontuação.', gold: 'Ouro · Campeão', silver: 'Prata', bronze: 'Bronze', player: 'Jogador', wins: 'Vitórias', losses: 'Derrotas' }, players: { unnamedAccessible: 'Jogador sem nome', unnamed: 'Sem nome', you: 'Você' }, table: { ariaLabel: 'Tabela de classificação completa', mobileAriaLabel: 'Classificação completa', eyebrow: 'Classificação', title: 'Classificação Completa', description: 'Lista ordinal.', searchLabel: 'Buscar jogador', searchPlaceholder: 'Nome ou SteamID64', position: 'Pos', player: 'Jogador', record: 'V/D', win: 'V', loss: 'D', winPct: 'Vit%', winMobile: 'Vit' }, searchEmpty: { title: 'Nenhum jogador encontrado', description: 'A busca atual não encontrou nome ou SteamID64 correspondente.' }, guide: { eyebrow: 'Como ler', title: 'Score e Impact', score: 'Resumo do Score.', impact: 'Descrição do Impact.' }, date: { unavailable: 'Sem data disponível' } } });
+    translate.setTranslation(
+      'pt-BR',
+      { shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } } },
+      true,
+    );
     translate.setTranslation('en-US', { ranking: { hero: { eyebrow: 'Overall Ranking', title: 'HSC Overall Ranking', description: 'Overall player ranking.', synced: 'Data synced', lastUpdated: 'Last updated' }, states: { loading: { title: 'Loading overall ranking...', message: 'Syncing the player ranking.' }, error: { title: 'Ranking unavailable', message: 'Could not load.', retry: 'Try again' }, empty: { title: 'No ranked players', message: 'No ranking data is available.' } }, summary: { ariaLabel: 'Overall ranking summary', players: 'Players', completedMaps: 'Completed maps', currentLeader: 'Current leader', noLeader: 'No leader' }, podium: { ariaLabel: 'Top 3 podium', eyebrow: 'Podium', title: 'Community Top 3', description: 'Highest scoring players.', gold: 'Gold · Champion', silver: 'Silver', bronze: 'Bronze', player: 'Player', wins: 'Wins', losses: 'Losses' }, players: { unnamedAccessible: 'Unnamed player', unnamed: 'Unnamed', you: 'You' }, table: { ariaLabel: 'Full ranking table', mobileAriaLabel: 'Full ranking', eyebrow: 'Ranking', title: 'Full Ranking', description: 'Ordered list.', searchLabel: 'Search player', searchPlaceholder: 'Name or SteamID64', position: 'Pos', player: 'Player', record: 'W/L', win: 'W', loss: 'L', winPct: 'Win%', winMobile: 'Win' }, searchEmpty: { title: 'No players found', description: 'No matching name or SteamID64.' }, guide: { eyebrow: 'How to read', title: 'Score and Impact', score: 'Score summary.', impact: 'Impact description.' }, date: { unavailable: 'No date available' } } });
     void translate.use('pt-BR');
   });
@@ -608,4 +638,151 @@ describe('RankingPage', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('No date available');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Unnamed');
   });
+
+  it('33. ranking fica ready mesmo quando o enrichment Auth falha', () => {
+    mockPresentation.resolve.mockReturnValue(throwError(() => new Error('HTTP 401')));
+    const page = TestBed.inject(TestableRankingPage);
+
+    const vm = requireReadyVm(captureLatest(page.publicVm$));
+    expect(vm.players).toEqual(mockRanking.players);
+    expect(vm.presentationReferences.size).toBe(0);
+  });
+
+  it('34. ranking emite ready estático antes de o enrichment responder', () => {
+    const references$ = new Subject<ReadonlyMap<string, PlayerPresentationReference>>();
+    mockPresentation.resolve.mockReturnValue(references$);
+    const states: Array<{ state: string; name?: string | null }> = [];
+
+    const page = TestBed.inject(TestableRankingPage);
+    page.publicVm$.subscribe((vm) => states.push({
+      state: vm.state,
+      name: vm.state === 'ready'
+        ? vm.presentationReferences.get(mockPlayer1.steamId64)?.steam.personaname ?? mockPlayer1.name
+        : undefined,
+    }));
+
+    expect(states).toEqual([
+      { state: 'loading', name: undefined },
+      { state: 'ready', name: 'Fallen' },
+    ]);
+    references$.next(presentationMap());
+    expect(states.at(-1)).toEqual({ state: 'ready', name: 'Lavos' });
+  });
+
+  it('35. resolve todas as identidades em uma única operação batch, sem N+1', () => {
+    const page = TestBed.inject(TestableRankingPage);
+    page.publicVm$.subscribe();
+
+    expect(mockPresentation.resolve).toHaveBeenCalledTimes(1);
+    expect([...mockPresentation.resolve.mock.calls[0][0]]).toEqual(
+      mockRanking.players.map((player) => player.steamId64),
+    );
+  });
+
+  it('36. busca encontra current name sem perder nome ETL nem SteamID64', () => {
+    const page = TestBed.inject(TestableRankingPage);
+    const references = presentationMap();
+
+    for (const term of ['lavos', 'fallen', mockPlayer1.steamId64]) {
+      page.callUpdateSearch(createInputEvent(term));
+      expect(page.callFilteredPlayersWithReferences(mockRanking.players, references)).toEqual([
+        mockPlayer1,
+      ]);
+    }
+  });
+
+  it('37. personaname atual aparece no leader, podium, desktop e mobile com link público', () => {
+    mockPresentation.resolve.mockReturnValue(of(presentationMap()));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    const selectors = [
+      '.ranking-page__summary-card:last-child',
+      '.ranking-page__podium-item:first-child',
+      'tbody tr:first-child',
+      '.ranking-page__mobile-player:first-child',
+    ];
+    for (const selector of selectors) {
+      const block = element.querySelector(selector);
+      expect(block?.textContent).toContain('Lavos');
+      expect(block?.textContent).not.toContain('Fallen');
+      expect(block?.querySelector('app-player-link a')?.getAttribute('href')).toBe('/players/lavos');
+    }
+  });
+
+  it('38. profile null mantém current name como texto sem anchor', () => {
+    mockPresentation.resolve.mockReturnValue(of(presentationMap({ profile: null })));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const firstRowLink = (fixture.nativeElement as HTMLElement).querySelector(
+      'tbody tr:first-child app-player-link',
+    );
+    expect(firstRowLink?.textContent).toContain('Lavos');
+    expect(firstRowLink?.querySelector('a')).toBeNull();
+  });
+
+  it('39. sem reference ou com personaname null mantém RankingPlayer.name', () => {
+    mockPresentation.resolve.mockReturnValue(of(presentationMap({ personaname: null })));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('tbody tr:first-child')?.textContent)
+      .toContain('Fallen');
+  });
+
+  it('40. avatar de presentation tem precedência e usa o current name acessível', () => {
+    mockSessionState.set({
+      status: 'authenticated',
+      displayName: 'Fallen',
+      steamId64: mockPlayer1.steamId64,
+      avatarMedium: 'https://session/avatar.jpg',
+    });
+    const references = presentationMap();
+    mockPresentation.resolve.mockReturnValue(of(references));
+    const page = TestBed.inject(TestableRankingPage);
+    expect(page.callAvatarUrlFor(mockPlayer1, references)).toBe('https://steam/avatar.jpg');
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+    const image = (fixture.nativeElement as HTMLElement).querySelector(
+      'tbody tr:first-child app-player-avatar img',
+    );
+    expect(image?.getAttribute('src')).toBe('https://steam/avatar.jpg');
+    expect(image?.getAttribute('alt')).toBe('Avatar de Lavos');
+  });
+
+  it('41. retry remove referências antigas enquanto a nova resolução está pendente', () => {
+    mockPresentation.resolve.mockReturnValueOnce(of(presentationMap())).mockReturnValueOnce(NEVER);
+    const page = TestBed.inject(TestableRankingPage);
+    const emissions: ExposedRankingVm[] = [];
+    page.publicVm$.subscribe((vm) => emissions.push(vm));
+    expect(requireReadyVm(emissions.at(-1)).presentationReferences.size).toBe(1);
+
+    page.callRetry();
+    expect(requireReadyVm(emissions.at(-1)).presentationReferences.size).toBe(0);
+  });
 });
+
+function presentationMap(
+  overrides: Partial<PlayerPresentationReference['steam']> & {
+    profile?: PlayerPresentationReference['profile'];
+  } = {},
+): ReadonlyMap<string, PlayerPresentationReference> {
+  const { profile, ...steamOverrides } = overrides;
+  return new Map([
+    [
+      '76561198000000001',
+      {
+        steam: {
+          steamId64: '76561198000000001',
+          personaname: 'Lavos',
+          avatarMediumUrl: 'https://steam/avatar.jpg',
+          ...steamOverrides,
+        },
+        profile: profile === undefined ? { slug: 'lavos' } : profile,
+      },
+    ],
+  ]);
+}

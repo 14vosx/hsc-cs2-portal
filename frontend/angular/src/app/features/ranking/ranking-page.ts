@@ -1,13 +1,28 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, map, Observable, of, startWith, Subject, switchMap } from 'rxjs';
+import {
+  catchError,
+  concat,
+  EMPTY,
+  map,
+  Observable,
+  of,
+  startWith,
+  Subject,
+  switchMap,
+} from 'rxjs';
 
 import { LocaleService } from '../../core/i18n/locale.service';
+import type {
+  PlayerPresentationReferences,
+} from '../../core/player-presentation/player-presentation-reference.model';
+import { PlayerPresentationReferenceService } from '../../core/player-presentation/player-presentation-reference.service';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { PageState } from '../../shared/components/page-state/page-state';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
+import { PlayerLink } from '../../shared/components/player-link/player-link';
 import { StatusBadge } from '../../shared/components/status-badge/status-badge';
 import { RankingApiService } from './data-access/ranking-api.service';
 import type { RankingPlayer } from './domain/ranking.model';
@@ -20,6 +35,7 @@ interface RankingReadyVm {
   rankedPlayerCount: number;
   leader: RankingPlayer | null;
   podium: readonly RankingPlayer[];
+  presentationReferences: PlayerPresentationReferences;
 }
 
 type RankingVm =
@@ -35,6 +51,7 @@ type RankingVm =
     EmptyState,
     PageState,
     PlayerAvatar,
+    PlayerLink,
     StatusBadge,
     TranslatePipe,
   ],
@@ -45,6 +62,7 @@ type RankingVm =
 export class RankingPage {
   private readonly localeService = inject(LocaleService);
   private readonly rankingApi = inject(RankingApiService);
+  private readonly playerPresentation = inject(PlayerPresentationReferenceService);
   private readonly reload$ = new Subject<void>();
   protected readonly playerSession = inject(PlayerSessionService);
 
@@ -54,12 +72,12 @@ export class RankingPage {
     startWith(undefined),
     switchMap(() =>
       this.rankingApi.getRanking().pipe(
-        map((ranking): RankingVm => {
+        switchMap((ranking): Observable<RankingVm> => {
           if (ranking.players.length === 0) {
-            return { state: 'empty' };
+            return of({ state: 'empty' });
           }
 
-          return {
+          const ready: RankingReadyVm = {
             state: 'ready',
             generatedAt: ranking.generatedAt,
             completedMaps: ranking.completedMaps,
@@ -67,7 +85,16 @@ export class RankingPage {
             rankedPlayerCount: ranking.rankedPlayerCount,
             leader: ranking.leader,
             podium: ranking.players.slice(0, 3),
+            presentationReferences: new Map(),
           };
+
+          return concat(
+            of(ready),
+            this.playerPresentation.resolve(ranking.players.map((player) => player.steamId64)).pipe(
+              map((presentationReferences): RankingVm => ({ ...ready, presentationReferences })),
+              catchError(() => EMPTY),
+            ),
+          );
         }),
         startWith({ state: 'loading' } satisfies RankingVm),
         catchError(() => of({ state: 'error' } satisfies RankingVm)),
@@ -84,7 +111,10 @@ export class RankingPage {
     this.searchTerm.set(input.value);
   }
 
-  protected filteredPlayers(players: readonly RankingPlayer[]): readonly RankingPlayer[] {
+  protected filteredPlayers(
+    players: readonly RankingPlayer[],
+    references: PlayerPresentationReferences = new Map(),
+  ): readonly RankingPlayer[] {
     const term = this.searchTerm().trim().toLowerCase();
 
     if (!term) {
@@ -94,9 +124,24 @@ export class RankingPage {
     return players.filter((player) => {
       return (
         (player.name ?? '').toLowerCase().includes(term) ||
+        (references.get(player.steamId64)?.steam.personaname ?? '').toLowerCase().includes(term) ||
         player.steamId64.toLowerCase().includes(term)
       );
     });
+  }
+
+  protected displayNameFor(
+    player: RankingPlayer,
+    references: PlayerPresentationReferences,
+  ): string | null {
+    return references.get(player.steamId64)?.steam.personaname ?? player.name;
+  }
+
+  protected profileSlugFor(
+    player: RankingPlayer,
+    references: PlayerPresentationReferences,
+  ): string | null {
+    return references.get(player.steamId64)?.profile?.slug ?? null;
   }
 
   protected isCurrentPlayer(player: RankingPlayer): boolean {
@@ -109,7 +154,13 @@ export class RankingPage {
     );
   }
 
-  protected avatarUrlFor(player: RankingPlayer): string | null {
+  protected avatarUrlFor(
+    player: RankingPlayer,
+    references: PlayerPresentationReferences = new Map(),
+  ): string | null {
+    const presentationAvatar = references.get(player.steamId64)?.steam.avatarMediumUrl;
+    if (presentationAvatar) return presentationAvatar;
+
     const session = this.playerSession.state();
 
     return (

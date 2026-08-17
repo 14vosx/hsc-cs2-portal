@@ -1,0 +1,5 @@
+:host { min-width: 0; color: inherit; font: inherit; }
+a, span { color: inherit; font: inherit; }
+a { text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: .18em; }
+a:focus-visible { border-radius: 2px; outline: 2px solid var(--color-accent-cyan); outline-offset: 3px; }
