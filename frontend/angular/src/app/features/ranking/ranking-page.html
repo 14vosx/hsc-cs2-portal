@@ -54,7 +54,16 @@
           </article>
           <article class="ranking-page__summary-card ranking-page__summary-card--cyan">
             <span>{{ 'ranking.summary.currentLeader' | translate }}</span>
-            <strong>{{ vm.leader?.name || ('ranking.summary.noLeader' | translate) }}</strong>
+            <strong>
+              @if (vm.leader; as leader) {
+                <app-player-link
+                  [label]="displayNameFor(leader, vm.presentationReferences) || ('ranking.players.unnamed' | translate)"
+                  [profileSlug]="profileSlugFor(leader, vm.presentationReferences)"
+                />
+              } @else {
+                {{ 'ranking.summary.noLeader' | translate }}
+              }
+            </strong>
           </article>
         </section>
 
@@ -86,14 +95,19 @@
                 </div>
                 <div class="ranking-page__podium-identity">
                   <app-player-avatar
-                    [imageUrl]="avatarUrlFor(player)"
-                    [displayName]="player.name || ('ranking.players.unnamedAccessible' | translate)"
+                    [imageUrl]="avatarUrlFor(player, vm.presentationReferences)"
+                    [displayName]="displayNameFor(player, vm.presentationReferences) || ('ranking.players.unnamedAccessible' | translate)"
                     [accent]="player.position === 2 ? 'cyan' : 'orange'"
                   />
                   <div>
                     <span class="ranking-page__podium-kicker">{{ 'ranking.podium.player' | translate }}</span>
                     <span class="ranking-page__podium-name-line">
-                      <h3>{{ player.name || ('ranking.players.unnamed' | translate) }}</h3>
+                      <h3>
+                        <app-player-link
+                          [label]="displayNameFor(player, vm.presentationReferences) || ('ranking.players.unnamed' | translate)"
+                          [profileSlug]="profileSlugFor(player, vm.presentationReferences)"
+                        />
+                      </h3>
                       @if (isCurrentPlayer(player)) {
                         <span class="ranking-page__you-badge">{{ 'ranking.players.you' | translate }}</span>
                       }
@@ -138,7 +152,7 @@
             </div>
           </div>
 
-          @let visiblePlayers = filteredPlayers(vm.players);
+          @let visiblePlayers = filteredPlayers(vm.players, vm.presentationReferences);
 
           @if (visiblePlayers.length > 0) {
             <div class="ranking-page__table-wrap">
@@ -166,12 +180,17 @@
                       <td class="ranking-page__cell-player">
                         <span class="ranking-page__table-player">
                           <app-player-avatar
-                            [imageUrl]="avatarUrlFor(player)"
-                            [displayName]="player.name || ('ranking.players.unnamedAccessible' | translate)"
+                            [imageUrl]="avatarUrlFor(player, vm.presentationReferences)"
+                            [displayName]="displayNameFor(player, vm.presentationReferences) || ('ranking.players.unnamedAccessible' | translate)"
                           />
                           <span class="ranking-page__table-player-copy">
                             <span class="ranking-page__player-line">
-                              <strong class="ranking-page__player-name">{{ player.name || ('ranking.players.unnamed' | translate) }}</strong>
+                              <strong class="ranking-page__player-name">
+                                <app-player-link
+                                  [label]="displayNameFor(player, vm.presentationReferences) || ('ranking.players.unnamed' | translate)"
+                                  [profileSlug]="profileSlugFor(player, vm.presentationReferences)"
+                                />
+                              </strong>
                               @if (isCurrentPlayer(player)) {
                                 <span class="ranking-page__you-badge">{{ 'ranking.players.you' | translate }}</span>
                               }
@@ -212,12 +231,17 @@
                   <div class="ranking-page__mobile-identity">
                     <span class="ranking-page__mobile-identity-row">
                       <app-player-avatar
-                        [imageUrl]="avatarUrlFor(player)"
-                        [displayName]="player.name || ('ranking.players.unnamedAccessible' | translate)"
+                        [imageUrl]="avatarUrlFor(player, vm.presentationReferences)"
+                        [displayName]="displayNameFor(player, vm.presentationReferences) || ('ranking.players.unnamedAccessible' | translate)"
                       />
                       <span class="ranking-page__mobile-identity-copy">
                         <span class="ranking-page__player-line">
-                          <strong>{{ player.name || ('ranking.players.unnamed' | translate) }}</strong>
+                          <strong>
+                            <app-player-link
+                              [label]="displayNameFor(player, vm.presentationReferences) || ('ranking.players.unnamed' | translate)"
+                              [profileSlug]="profileSlugFor(player, vm.presentationReferences)"
+                            />
+                          </strong>
                           @if (isCurrentPlayer(player)) {
                             <span class="ranking-page__you-badge">{{ 'ranking.players.you' | translate }}</span>
                           }
