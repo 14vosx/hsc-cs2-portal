@@ -12,6 +12,20 @@ export const routes: Routes = [
       import('./features/ranking/ranking-page').then((component) => component.RankingPage),
   },
   {
+    path: 'mix',
+    loadComponent: () =>
+      import('./features/mix/lobby-list/mix-lobby-list-page').then(
+        (component) => component.MixLobbyListPage,
+      ),
+  },
+  {
+    path: 'mix/rooms/:roomId',
+    loadComponent: () =>
+      import('./features/mix/match-room/match-room-page').then(
+        (component) => component.MatchRoomPage,
+      ),
+  },
+  {
     path: 'seasons',
     loadComponent: () =>
       import('./features/seasons/seasons-page').then((component) => component.SeasonsPage),

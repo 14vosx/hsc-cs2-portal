@@ -30,8 +30,8 @@ export function normalizePlayerPresentationReferences(
 
   for (const steamId64 of Object.keys(input)) {
     const reference = ownDataProperty(input, steamId64);
-    const normalized = normalizeReference(steamId64, reference);
-    if (!normalized) {
+    const normalized = normalizePlayerPresentationReference(reference);
+    if (!normalized || normalized.steam.steamId64 !== steamId64) {
       throw new PlayerPresentationReferenceContractError();
     }
     references.set(steamId64, normalized);
@@ -40,18 +40,17 @@ export function normalizePlayerPresentationReferences(
   return references;
 }
 
-function normalizeReference(
-  key: string,
+export function normalizePlayerPresentationReference(
   input: unknown,
 ): PlayerPresentationReference | null {
-  if (!isSteamId64(key) || !isRecord(input)) return null;
+  if (!isRecord(input)) return null;
 
   const steam = ownDataProperty(input, 'steam');
   const profile = ownDataProperty(input, 'profile');
   if (!isRecord(steam)) return null;
 
   const steamId64 = ownDataProperty(steam, 'steamId64');
-  if (!isSteamId64(steamId64) || steamId64 !== key) return null;
+  if (!isSteamId64(steamId64)) return null;
 
   const personaname = nullableTrimmedString(ownDataProperty(steam, 'personaname'));
   const avatarMediumUrl = nullableTrimmedString(ownDataProperty(steam, 'avatarMediumUrl'));
