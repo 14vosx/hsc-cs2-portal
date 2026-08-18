@@ -1,0 +1,272 @@
+<div class="room-page">
+  <!-- Session Loading -->
+  @if (sessionService.state().status === 'loading') {
+    <app-page-state
+      type="loading"
+      [title]="'mix.matchRoom.sessionLoading' | translate"
+      [message]="'mix.matchRoom.sessionLoadingMessage' | translate"
+    />
+  }
+
+  <!-- Session Anonymous -->
+  @else if (sessionService.state().status === 'anonymous') {
+    <div class="room-page__auth-wall">
+      <div class="room-auth-card">
+        <h2 class="room-auth-card__title">{{ 'mix.authWall.title' | translate }}</h2>
+        <p class="room-auth-card__description">{{ 'mix.authWall.description' | translate }}</p>
+        <a class="room-btn room-btn--primary" routerLink="/area-do-jogador">
+          {{ 'mix.authWall.action' | translate }}
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Session Unavailable -->
+  @else if (sessionService.state().status === 'unavailable') {
+    <app-page-state
+      type="error"
+      [title]="'mix.matchRoom.sessionUnavailable' | translate"
+      [message]="'mix.matchRoom.sessionUnavailableMessage' | translate"
+      [actionLabel]="'mix.matchRoom.retry' | translate"
+      (actionClick)="onRetrySession()"
+    />
+  }
+
+  <!-- Initial Loading -->
+  @else if (isInitialLoading() && snapshot() === null) {
+    <app-page-state
+      type="loading"
+      [title]="'mix.matchRoom.loadingTitle' | translate"
+      [message]="'mix.matchRoom.loadingMessage' | translate"
+    />
+  }
+
+  <!-- Initial Error / 404 -->
+  @else if (initialError() && snapshot() === null) {
+    <app-page-state
+      type="error"
+      [title]="'mix.matchRoom.errorTitle' | translate"
+      [message]="initialError()! | translate"
+      [actionLabel]="'mix.matchRoom.backToLobbies' | translate"
+      (actionClick)="onLeaveLobby()"
+    />
+  }
+
+  <!-- Authenticated & Loaded Snapshot -->
+  @else if (snapshot(); as snap) {
+    <!-- Breadcrumb / Back Link -->
+    <nav class="room-nav" aria-label="Navegação do lobby">
+      <a class="room-nav__back" routerLink="/mix">
+        &larr; {{ 'mix.matchRoom.backToLobbies' | translate }}
+      </a>
+    </nav>
+
+    <!-- Error Alert -->
+    @if (actionError()) {
+      <div class="room-alert room-alert--error" role="alert">
+        <span>{{ actionError()! | translate }}</span>
+      </div>
+    }
+
+    <!-- Terminal State: CANCELLED -->
+    @if (snap.room.status === 'CANCELLED') {
+      <div class="room-terminal-card">
+        <app-status-badge
+          [label]="('mix.statuses.' + snap.room.status) | translate"
+          tone="closed"
+        />
+        <h1 class="room-terminal-card__title">{{ 'mix.matchRoom.cancelledTitle' | translate }}</h1>
+        <p class="room-terminal-card__desc">{{ 'mix.matchRoom.cancelledDesc' | translate }}</p>
+        <a class="room-btn room-btn--primary" routerLink="/mix">
+          {{ 'mix.matchRoom.backToLobbies' | translate }}
+        </a>
+      </div>
+    }
+
+    <!-- Non-Terminal States: FORMING, CONFIRMING, SETUP -->
+    @else {
+      <!-- Room Header -->
+      <header class="room-header">
+        <div class="room-header__title-group">
+          <div class="room-header__badge-row">
+            <app-status-badge
+              [label]="('mix.statuses.' + snap.room.status) | translate"
+              [tone]="getStatusBadgeVariant(snap.room.status)"
+            />
+            <span class="room-header__count">
+              {{ snap.room.participantCount }}/{{ snap.room.capacity }}
+            </span>
+          </div>
+
+          <h1 class="room-header__title">
+            @if (snap.room.status === 'FORMING') {
+              {{ 'mix.matchRoom.formingTitle' | translate }}
+            } @else if (snap.room.status === 'CONFIRMING') {
+              {{ 'mix.matchRoom.confirmingTitle' | translate }}
+            } @else if (snap.room.status === 'SETUP') {
+              {{ 'mix.matchRoom.setupTitle' | translate }}
+            }
+          </h1>
+        </div>
+
+        <div class="room-header__actions">
+          <!-- Cancel Lobby (Creator with canCancel) -->
+          @if (snap.viewer.actions.canCancel) {
+            <button
+              type="button"
+              class="room-btn room-btn--danger"
+              [disabled]="isPerformingAction()"
+              (click)="onCancelLobby()"
+            >
+              {{ 'mix.matchRoom.cancelAction' | translate }}
+            </button>
+          }
+
+          <!-- Leave Lobby (Participant with canLeave) -->
+          @if (snap.viewer.actions.canLeave) {
+            <button
+              type="button"
+              class="room-btn room-btn--secondary"
+              [disabled]="isPerformingAction()"
+              (click)="onLeaveLobby()"
+            >
+              {{ 'mix.matchRoom.leaveAction' | translate }}
+            </button>
+          }
+
+          <!-- Deep-link Join Lobby (Non-participant with canJoin) -->
+          @if (snap.viewer.actions.canJoin) {
+            <button
+              type="button"
+              class="room-btn room-btn--primary"
+              [disabled]="isPerformingAction()"
+              (click)="onJoinLobby()"
+            >
+              {{ 'mix.matchRoom.joinAction' | translate }}
+            </button>
+          }
+        </div>
+      </header>
+
+      <!-- SETUP State Callout -->
+      @if (snap.room.status === 'SETUP') {
+        <div class="room-callout room-callout--setup">
+          <h2 class="room-callout__title">{{ 'mix.matchRoom.setupBannerTitle' | translate }}</h2>
+          <p class="room-callout__desc">{{ 'mix.matchRoom.setupBannerDesc' | translate }}</p>
+        </div>
+      }
+
+      <!-- CONFIRMING State Central Confirmation Panel -->
+      @if (snap.room.status === 'CONFIRMING' && snap.room.confirmation; as conf) {
+        <section class="room-confirm-panel" aria-labelledby="confirm-panel-heading">
+          <div class="room-confirm-panel__header">
+            <span class="room-confirm-panel__eyebrow">
+              {{ 'mix.matchRoom.confirmPresenceEyebrow' | translate }}
+            </span>
+            <h2 id="confirm-panel-heading" class="room-confirm-panel__title">
+              {{ 'mix.matchRoom.confirmPresenceHeading' | translate }}
+            </h2>
+          </div>
+
+          <div class="room-confirm-panel__main">
+            <!-- Countdown -->
+            <div class="room-countdown" [class.room-countdown--expired]="isConfirmBlocked()">
+              <span class="room-countdown__label">{{ 'mix.matchRoom.countdownLabel' | translate }}</span>
+              <span class="room-countdown__timer">{{ formattedCountdown() }}</span>
+            </div>
+
+            <!-- Progress Count -->
+            <div class="room-progress-info">
+              <span class="room-progress-info__count">
+                {{
+                  'mix.matchRoom.confirmedProgress'
+                    | translate: { confirmed: conf.confirmedCount, total: snap.room.capacity }
+                }}
+              </span>
+            </div>
+
+            <!-- Confirm Button -->
+            @if (snap.viewer.actions.canConfirm) {
+              <button
+                type="button"
+                class="room-btn room-btn--accent room-btn--lg"
+                [disabled]="isPerformingAction() || isConfirmBlocked()"
+                (click)="onConfirmPresence()"
+              >
+                @if (isPerformingAction()) {
+                  {{ 'mix.matchRoom.confirming' | translate }}
+                } @else {
+                  {{ 'mix.matchRoom.confirmAction' | translate }}
+                }
+              </button>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- 10 Neutral Slots Roster Grid -->
+      <section class="room-roster" aria-labelledby="roster-heading">
+        <div class="room-roster__header">
+          <h2 id="roster-heading" class="room-roster__title">
+            {{ 'mix.matchRoom.rosterHeading' | translate }}
+          </h2>
+          <span class="room-roster__subtitle">
+            {{ snap.room.participantCount }}/{{ snap.room.capacity }} {{ 'mix.matchRoom.players' | translate }}
+          </span>
+        </div>
+
+        <div class="room-slots-grid">
+          @for (slot of getSlots(); track $index) {
+            <div class="room-slot" [class.room-slot--occupied]="slot !== null">
+              @if (slot; as participant) {
+                <div class="room-slot__player">
+                  <app-player-avatar
+                    [imageUrl]="participant.player?.steam?.avatarMediumUrl ?? null"
+                    [displayName]="getDisplayName(participant)"
+                    accent="cyan"
+                  />
+
+                  <div class="room-slot__details">
+                    <div class="room-slot__name-row">
+                      <app-player-link
+                        [label]="getDisplayName(participant)"
+                        [profileSlug]="participant.player?.profile?.slug ?? null"
+                      />
+
+                      @if (isCreator(participant)) {
+                        <span class="room-badge room-badge--creator">
+                          {{ 'mix.matchRoom.creatorBadge' | translate }}
+                        </span>
+                      }
+                    </div>
+
+                    @if (snap.room.status === 'CONFIRMING') {
+                      <div class="room-slot__confirm-status">
+                        @if (participant.confirmation.confirmed) {
+                          <span class="room-status-tag room-status-tag--confirmed">
+                            {{ 'mix.matchRoom.confirmedStatus' | translate }}
+                          </span>
+                        } @else {
+                          <span class="room-status-tag room-status-tag--waiting">
+                            {{ 'mix.matchRoom.waitingConfirmationStatus' | translate }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="room-slot__empty">
+                  <span class="room-slot__empty-icon">+</span>
+                  <span class="room-slot__empty-label">
+                    {{ 'mix.matchRoom.waitingPlayer' | translate }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

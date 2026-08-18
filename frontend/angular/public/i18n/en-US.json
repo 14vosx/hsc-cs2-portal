@@ -4,6 +4,7 @@
     "home": "Home",
     "seasons": "Seasons",
     "ranking": "Ranking",
+    "mix": "Mix",
     "matches": "Matches",
     "maps": "Maps",
     "news": "News",
@@ -174,5 +175,108 @@
     "validation": { "displayNameRequired": "Display name is required.", "displayNameMaxLength": "Display name must be at most 255 characters.", "displayNameInvalid": "Invalid display name.", "slugRequired": "Profile address (slug) is required.", "slugMinLength": "Slug must be at least 3 characters.", "slugMaxLength": "Slug must be at most 64 characters.", "slugPattern": "Slug may contain only lowercase letters, numbers, and hyphens (e.g. my-slug).", "slugInvalid": "Invalid slug.", "bioMaxLength": "Bio must be at most 500 characters.", "bioInvalid": "Invalid bio.", "discordMaxLength": "Discord handle must be at most 100 characters.", "discordInvalid": "Invalid Discord handle.", "publicProfileRequiresCustomSlug": "To make your profile visible to HSC members, choose a custom profile address." },
     "errors": { "unknown": "An error occurred while saving the profile. Try again.", "unauthorized": "Your session expired. Sign in again.", "slugUnavailable": "This profile address is already used by another player.", "slugReserved": "This profile address is reserved and cannot be used.", "invalidSlug": "Invalid profile address (slug).", "publicProfileRequiresCustomSlug": "To make your profile visible to HSC members, choose a custom profile address.", "invalidDisplayName": "Invalid display name.", "invalidBio": "The bio exceeds the limit or contains invalid characters.", "invalidDiscordHandle": "Invalid Discord handle.", "invalidPreferredRole": "Invalid preferred role.", "invalidPreferredMap": "Invalid preferred map.", "invalidVisibility": "Invalid visibility option.", "profileMediaMustBeUploaded": "Profile media must be uploaded.", "accountDisabled": "Your HSC account is disabled.", "csrfOriginInvalid": "The server did not authorize the request (invalid origin).", "forbidden": "This action is not allowed for your account.", "server": "Could not save the profile changes. Try again." },
     "media": { "ariaLabel": "Profile media", "processing": "Processing...", "cancelSelection": "Cancel selection", "avatar": { "title": "Avatar", "description": "Image displayed with your profile.", "previewAlt": "Profile avatar preview", "empty": "No avatar", "select": "Select avatar", "upload": "Upload avatar", "remove": "Remove avatar" }, "banner": { "title": "Banner", "description": "Horizontal profile highlight image.", "previewAlt": "Profile banner preview", "empty": "No banner", "select": "Select banner", "upload": "Upload banner", "remove": "Remove banner" }, "errors": { "unknown": "Could not update the image. Try again.", "unauthorized": "Your session expired. Sign in again.", "missingFile": "Select an image before uploading.", "invalidFileType": "Image format not allowed. Use JPEG, PNG, or WebP.", "invalidFileSignature": "The file content does not match a valid image.", "fileTypeMismatch": "The actual file format does not match its declared type.", "unexpectedFileField": "Could not process the selected file.", "uploadFailed": "Could not process the image upload.", "accountDisabled": "Your HSC account is disabled.", "csrfOriginInvalid": "This operation could not be validated securely. Reload the page and try again.", "fileTooLarge": "The image exceeds the maximum allowed size.", "updateFailed": "Could not update the image right now. Try again.", "tooManyRequests": "Too many attempts in a short time. Wait and try again." } }
+  },
+  "mix": {
+    "hero": {
+      "eyebrow": "Competitive Mode",
+      "title": "HSC MIX 5v5",
+      "subtitle": "Form the lobby. Fill the 10 slots. The rest happens inside the Match Room.",
+      "createLobby": "CREATE LOBBY",
+      "creating": "CREATING LOBBY..."
+    },
+    "authWall": {
+      "title": "Sign in to your HSC account",
+      "description": "To create or join an HSC Mix lobby, you must be signed in.",
+      "action": "Go to Player Area"
+    },
+    "lobbyList": {
+      "loadingTitle": "Loading lobbies",
+      "loadingMessage": "Fetching available matches and open rooms...",
+      "errorTitle": "Could not load lobbies",
+      "retry": "Try again",
+      "sessionLoading": "Checking session",
+      "sessionLoadingMessage": "Please wait while we verify your account...",
+      "sessionUnavailable": "Session unavailable",
+      "sessionUnavailableMessage": "Could not validate your session at this time."
+    },
+    "currentLobby": {
+      "heading": "YOUR CURRENT LOBBY",
+      "returnAction": "RETURN TO LOBBY",
+      "hints": {
+        "FORMING": "Waiting for players to fill 10 slots.",
+        "CONFIRMING": "Lobby full! Check-in confirmation in progress.",
+        "SETUP": "All players confirmed. Preparing the match.",
+        "CANCELLED": "This lobby has been cancelled."
+      }
+    },
+    "openLobbies": {
+      "heading": "OPEN LOBBIES",
+      "cardTitle": "HSC MIX 5V5",
+      "slotsAvailable": "{{ count }} SLOTS AVAILABLE",
+      "joinAction": "JOIN",
+      "joining": "JOINING...",
+      "empty": "No open lobbies right now."
+    },
+    "matchRoom": {
+      "sessionLoading": "Checking session",
+      "sessionLoadingMessage": "Please wait while we load your data...",
+      "sessionUnavailable": "Session unavailable",
+      "sessionUnavailableMessage": "Could not validate your session at this time.",
+      "loadingTitle": "Loading Match Room",
+      "loadingMessage": "Connecting to room data...",
+      "errorTitle": "Could not load lobby",
+      "backToLobbies": "Back to lobbies",
+      "formingTitle": "FORMING LOBBY",
+      "confirmingTitle": "LOBBY CONFIRMATION",
+      "setupTitle": "PREPARING MATCH",
+      "cancelledTitle": "LOBBY CANCELLED",
+      "cancelledDesc": "This lobby is no longer active.",
+      "setupBannerTitle": "PREPARANDO PARTIDA",
+      "setupBannerDesc": "10/10 confirmed. We are preparing captains and teams for the next stage.",
+      "confirmPresenceEyebrow": "CHECK-IN",
+      "confirmPresenceHeading": "CONFIRM YOUR PARTICIPATION",
+      "countdownLabel": "Time remaining",
+      "confirmedProgress": "{{ confirmed }} OF {{ total }} CONFIRMED",
+      "confirmAction": "CONFIRM PRESENCE",
+      "confirming": "CONFIRMING...",
+      "leaveAction": "LEAVE LOBBY",
+      "cancelAction": "CANCEL LOBBY",
+      "joinAction": "JOIN LOBBY",
+      "rosterHeading": "PLAYERS IN LOBBY",
+      "players": "players",
+      "creatorBadge": "CREATOR",
+      "confirmedStatus": "CONFIRMED",
+      "waitingConfirmationStatus": "WAITING",
+      "waitingPlayer": "WAITING FOR PLAYER",
+      "retry": "Try again"
+    },
+    "statuses": {
+      "FORMING": "FORMING",
+      "CONFIRMING": "CONFIRMING",
+      "SETUP": "PREPARING",
+      "CANCELLED": "CANCELLED"
+    },
+    "errors": {
+      "already_in_active_room": "You already have an active lobby at this time.",
+      "already_in_room": "You are already participating in this lobby.",
+      "room_not_found": "The requested lobby was not found.",
+      "room_not_joinable": "Cannot join this lobby.",
+      "room_full": "This lobby has already reached maximum player capacity.",
+      "not_room_participant": "You are not a participant in this lobby.",
+      "creator_must_cancel_room": "The room creator must cancel the lobby.",
+      "not_room_creator": "Only the lobby creator can perform this action.",
+      "room_not_cancellable": "This lobby cannot be cancelled.",
+      "room_not_confirmable": "This lobby is not in the confirmation stage.",
+      "confirmation_window_closed": "The check-in confirmation window has expired.",
+      "steam_identity_not_linked": "A linked Steam account is required to participate. Visit the Player Area.",
+      "player_account_disabled": "Your player account is disabled.",
+      "membership_required": "An active membership is required to play Mix. Visit the Player Area.",
+      "membership_inactive": "Your membership is inactive.",
+      "membership_suspended": "Your membership is suspended.",
+      "membership_expired": "Your membership has expired. Renew in the Player Area.",
+      "membership_cancelled": "Your membership was cancelled.",
+      "match_room_operation_failed": "Could not complete the room operation.",
+      "generic": "An error occurred while processing your request. Try again."
+    }
   }
 }

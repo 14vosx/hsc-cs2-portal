@@ -38,6 +38,13 @@ export const cs2ApiPaths = {
   playerAuthEmailLinkConfirm: '/player/auth/email/link/confirm',
   playerAuthSteamStart: '/player/auth/steam/start',
   playerAuthSteamLinkStart: '/player/auth/steam/link/start',
+  playerMatchRooms: '/player/match-rooms',
+  playerMatchRoomCurrent: '/player/match-rooms/current',
+  playerMatchRoom: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}`,
+  playerMatchRoomJoin: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/join`,
+  playerMatchRoomLeave: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/leave`,
+  playerMatchRoomCancel: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/cancel`,
+  playerMatchRoomConfirm: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/confirm`,
   newsIndex: '/content/news/',
   newsItem: (slug: string) => `/content/news/${encodeURIComponent(slug)}/`,
 } as const;

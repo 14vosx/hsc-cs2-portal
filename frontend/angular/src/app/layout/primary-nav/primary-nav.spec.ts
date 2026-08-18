@@ -30,6 +30,8 @@ describe('PrimaryNav', () => {
           { path: '', component: TestHostComponent },
           { path: 'seasons', component: TestHostComponent },
           { path: 'ranking', component: TestHostComponent },
+          { path: 'mix', component: TestHostComponent },
+          { path: 'mix/rooms/:roomId', component: TestHostComponent },
           { path: 'seasons/current', component: TestHostComponent },
           { path: 'seasons/s2-2026', component: TestHostComponent },
           { path: 'seasons/current/ranking', component: TestHostComponent },
@@ -48,10 +50,10 @@ describe('PrimaryNav', () => {
 
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('pt-BR', {
-      nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
+      nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', mix: 'Mix', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
     });
     translate.setTranslation('en-US', {
-      nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
+      nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', mix: 'Mix', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
     });
     translate.use('pt-BR');
 
@@ -62,7 +64,7 @@ describe('PrimaryNav', () => {
 
   it('should render all primary navigation items', () => {
     const links = fixture.nativeElement.querySelectorAll('.primary-nav__link');
-    expect(links.length).toBe(7);
+    expect(links.length).toBe(8);
   });
 
   it('renders the pt-BR navigation labels', () => {
@@ -103,6 +105,22 @@ describe('PrimaryNav', () => {
 
     const rankingLink = fixture.nativeElement.querySelector('a[href="/ranking"]');
     expect(rankingLink.classList.contains('primary-nav__link--active')).toBe(true);
+  });
+
+  it('/mix ativa Mix', async () => {
+    await router.navigateByUrl('/mix');
+    fixture.detectChanges();
+
+    const mixLink = fixture.nativeElement.querySelector('a[href="/mix"]');
+    expect(mixLink.classList.contains('primary-nav__link--active')).toBe(true);
+  });
+
+  it('/mix/rooms/:roomId ativa Mix', async () => {
+    await router.navigateByUrl('/mix/rooms/test-room-123');
+    fixture.detectChanges();
+
+    const mixLink = fixture.nativeElement.querySelector('a[href="/mix"]');
+    expect(mixLink.classList.contains('primary-nav__link--active')).toBe(true);
   });
 
   it('/seasons ativa Temporadas', async () => {

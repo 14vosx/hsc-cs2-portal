@@ -24,6 +24,7 @@ export class PrimaryNav {
     { id: 'home', labelKey: 'nav.home', path: '/' },
     { id: 'seasons', labelKey: 'nav.seasons', path: '/seasons' },
     { id: 'ranking', labelKey: 'nav.ranking', path: '/ranking' },
+    { id: 'mix', labelKey: 'nav.mix', path: '/mix' },
     { id: 'matches', labelKey: 'nav.matches', path: '/matches' },
     { id: 'maps', labelKey: 'nav.maps', path: '/maps' },
     { id: 'news', labelKey: 'nav.news', path: '/news' },

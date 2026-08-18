@@ -1,0 +1,203 @@
+<div class="mix-page">
+  <!-- Session Loading -->
+  @if (sessionService.state().status === 'loading') {
+    <app-page-state
+      type="loading"
+      [title]="'mix.lobbyList.sessionLoading' | translate"
+      [message]="'mix.lobbyList.sessionLoadingMessage' | translate"
+    />
+  }
+
+  <!-- Session Anonymous -->
+  @else if (sessionService.state().status === 'anonymous') {
+    <div class="mix-page__auth-wall">
+      <div class="mix-hero">
+        <h1 class="mix-hero__title">{{ 'mix.hero.title' | translate }}</h1>
+        <p class="mix-hero__subtitle">{{ 'mix.hero.subtitle' | translate }}</p>
+      </div>
+
+      <div class="mix-auth-card">
+        <h2 class="mix-auth-card__title">{{ 'mix.authWall.title' | translate }}</h2>
+        <p class="mix-auth-card__description">{{ 'mix.authWall.description' | translate }}</p>
+        <a class="mix-btn mix-btn--primary" routerLink="/area-do-jogador">
+          {{ 'mix.authWall.action' | translate }}
+        </a>
+      </div>
+    </div>
+  }
+
+  <!-- Session Unavailable -->
+  @else if (sessionService.state().status === 'unavailable') {
+    <app-page-state
+      type="error"
+      [title]="'mix.lobbyList.sessionUnavailable' | translate"
+      [message]="'mix.lobbyList.sessionUnavailableMessage' | translate"
+      [actionLabel]="'mix.lobbyList.retry' | translate"
+      (actionClick)="onRetrySession()"
+    />
+  }
+
+  <!-- Session Authenticated -->
+  @else {
+    <!-- Hero Header -->
+    <header class="mix-hero">
+      <div class="mix-hero__content">
+        <span class="mix-hero__eyebrow">{{ 'mix.hero.eyebrow' | translate }}</span>
+        <h1 class="mix-hero__title">{{ 'mix.hero.title' | translate }}</h1>
+        <p class="mix-hero__subtitle">{{ 'mix.hero.subtitle' | translate }}</p>
+      </div>
+
+      <div class="mix-hero__actions">
+        @if (!getCurrentRoom()) {
+          <button
+            type="button"
+            class="mix-btn mix-btn--primary mix-btn--lg"
+            [disabled]="isCreating()"
+            (click)="onCreateLobby()"
+          >
+            @if (isCreating()) {
+              {{ 'mix.hero.creating' | translate }}
+            } @else {
+              {{ 'mix.hero.createLobby' | translate }}
+            }
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Action feedback / error message -->
+    @if (actionError()) {
+      <div class="mix-alert mix-alert--error" role="alert">
+        <span>{{ actionError()! | translate }}</span>
+      </div>
+    }
+
+    <!-- Initial Loading -->
+    @if (isInitialLoading() && matchRooms() === null) {
+      <app-page-state
+        type="loading"
+        [title]="'mix.lobbyList.loadingTitle' | translate"
+        [message]="'mix.lobbyList.loadingMessage' | translate"
+      />
+    }
+
+    <!-- Initial Error -->
+    @else if (initialError() && matchRooms() === null) {
+      <app-page-state
+        type="error"
+        [title]="'mix.lobbyList.errorTitle' | translate"
+        [message]="initialError()! | translate"
+        [actionLabel]="'mix.lobbyList.retry' | translate"
+        (actionClick)="refetchList()"
+      />
+    }
+
+    <!-- Loaded Content -->
+    @else {
+      <!-- Current Room Banner / Card (if user is in a room) -->
+      @if (getCurrentRoom(); as current) {
+        <section class="mix-section mix-section--current" aria-labelledby="current-lobby-heading">
+          <div class="mix-section__header">
+            <h2 id="current-lobby-heading" class="mix-section__title">
+              {{ 'mix.currentLobby.heading' | translate }}
+            </h2>
+          </div>
+
+          <div class="mix-current-card">
+            <div class="mix-current-card__info">
+              <div class="mix-current-card__status">
+                <app-status-badge
+                  [label]="('mix.statuses.' + current.room.status) | translate"
+                  [tone]="getStatusBadgeVariant(current.room.status)"
+                />
+                <span class="mix-current-card__count">
+                  {{ current.room.participantCount }}/{{ current.room.capacity }}
+                </span>
+              </div>
+              <p class="mix-current-card__hint">
+                {{ ('mix.currentLobby.hints.' + current.room.status) | translate }}
+              </p>
+            </div>
+
+            <div class="mix-current-card__actions">
+              <a
+                class="mix-btn mix-btn--primary"
+                [routerLink]="['/mix/rooms', current.room.id]"
+              >
+                {{ 'mix.currentLobby.returnAction' | translate }}
+              </a>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- Open Rooms Section -->
+      <section class="mix-section" aria-labelledby="open-lobbies-heading">
+        <div class="mix-section__header">
+          <h2 id="open-lobbies-heading" class="mix-section__title">
+            {{ 'mix.openLobbies.heading' | translate }}
+          </h2>
+        </div>
+
+        @if (getOpenRooms().length > 0) {
+          <div class="mix-grid">
+            @for (item of getOpenRooms(); track item.room.id) {
+              <article class="mix-card">
+                <div class="mix-card__header">
+                  <app-status-badge
+                    [label]="('mix.statuses.' + item.room.status) | translate"
+                    tone="info"
+                  />
+                  <span class="mix-card__capacity">
+                    {{ item.room.participantCount }}/{{ item.room.capacity }}
+                  </span>
+                </div>
+
+                <div class="mix-card__body">
+                  <h3 class="mix-card__title">{{ 'mix.openLobbies.cardTitle' | translate }}</h3>
+                  <p class="mix-card__slots">
+                    {{
+                      'mix.openLobbies.slotsAvailable'
+                        | translate: { count: item.room.capacity - item.room.participantCount }
+                    }}
+                  </p>
+                </div>
+
+                <div class="mix-card__footer">
+                  <button
+                    type="button"
+                    class="mix-btn mix-btn--primary mix-btn--block"
+                    [disabled]="!item.viewer.actions.canJoin || joiningRoomId() !== null"
+                    (click)="onJoinLobby(item)"
+                  >
+                    @if (joiningRoomId() === item.room.id) {
+                      {{ 'mix.openLobbies.joining' | translate }}
+                    } @else {
+                      {{ 'mix.openLobbies.joinAction' | translate }}
+                    }
+                  </button>
+                </div>
+              </article>
+            }
+          </div>
+        } @else if (!getCurrentRoom()) {
+          <div class="mix-empty">
+            <p class="mix-empty__text">{{ 'mix.openLobbies.empty' | translate }}</p>
+            <button
+              type="button"
+              class="mix-btn mix-btn--primary"
+              [disabled]="isCreating()"
+              (click)="onCreateLobby()"
+            >
+              {{ 'mix.hero.createLobby' | translate }}
+            </button>
+          </div>
+        } @else {
+          <div class="mix-empty">
+            <p class="mix-empty__text">{{ 'mix.openLobbies.empty' | translate }}</p>
+          </div>
+        }
+      </section>
+    }
+  }
+</div>

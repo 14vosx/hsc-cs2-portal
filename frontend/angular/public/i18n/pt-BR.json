@@ -4,6 +4,7 @@
     "home": "Home",
     "seasons": "Temporadas",
     "ranking": "Ranking",
+    "mix": "Mix",
     "matches": "Partidas",
     "maps": "Mapas",
     "news": "News",
@@ -175,5 +176,108 @@
     "validation": { "displayNameRequired": "Nome de exibição é obrigatório.", "displayNameMaxLength": "Nome de exibição deve ter no máximo 255 caracteres.", "displayNameInvalid": "Nome de exibição inválido.", "slugRequired": "Endereço do perfil (slug) é obrigatório.", "slugMinLength": "Slug deve ter pelo menos 3 caracteres.", "slugMaxLength": "Slug deve ter no máximo 64 caracteres.", "slugPattern": "Slug deve conter apenas letras minúsculas, números e hífens (ex: meu-slug).", "slugInvalid": "Slug inválido.", "bioMaxLength": "Biografia deve ter no máximo 500 caracteres.", "bioInvalid": "Biografia inválida.", "discordMaxLength": "Discord handle deve ter no máximo 100 caracteres.", "discordInvalid": "Handle do Discord inválido.", "publicProfileRequiresCustomSlug": "Para tornar o perfil visível para membros HSC, você precisa escolher um endereço de perfil personalizado." },
     "errors": { "unknown": "Ocorreu um erro ao salvar o perfil. Tente novamente.", "unauthorized": "Sua sessão expirou. Faça login novamente.", "slugUnavailable": "Este endereço de perfil já está em uso por outro jogador.", "slugReserved": "Este endereço de perfil é reservado e não pode ser utilizado.", "invalidSlug": "Endereço de perfil (slug) inválido.", "publicProfileRequiresCustomSlug": "Para tornar o perfil visível para membros HSC, você precisa escolher um endereço de perfil personalizado.", "invalidDisplayName": "Nome de exibição inválido.", "invalidBio": "Biografia excede o limite ou contém caracteres inválidos.", "invalidDiscordHandle": "Handle do Discord inválido.", "invalidPreferredRole": "Função preferida inválida.", "invalidPreferredMap": "Mapa preferido inválido.", "invalidVisibility": "Opção de visibilidade inválida.", "profileMediaMustBeUploaded": "Mídia do perfil precisa ser enviada.", "accountDisabled": "Sua conta HSC está desativada.", "csrfOriginInvalid": "Requisição não autorizada pelo servidor (origem inválida).", "forbidden": "Ação não permitida para a sua conta.", "server": "Não foi possível salvar as alterações no perfil. Tente novamente." },
     "media": { "ariaLabel": "Mídia do perfil", "processing": "Processando...", "cancelSelection": "Cancelar seleção", "avatar": { "title": "Avatar", "description": "Imagem exibida junto ao seu perfil.", "previewAlt": "Prévia do avatar do perfil", "empty": "Sem avatar", "select": "Selecionar avatar", "upload": "Enviar avatar", "remove": "Remover avatar" }, "banner": { "title": "Banner", "description": "Imagem horizontal de destaque do perfil.", "previewAlt": "Prévia do banner do perfil", "empty": "Sem banner", "select": "Selecionar banner", "upload": "Enviar banner", "remove": "Remover banner" }, "errors": { "unknown": "Não foi possível atualizar a imagem. Tente novamente.", "unauthorized": "Sua sessão expirou. Faça login novamente.", "missingFile": "Selecione uma imagem antes de enviar.", "invalidFileType": "Formato de imagem não permitido. Use JPEG, PNG ou WebP.", "invalidFileSignature": "O conteúdo do arquivo não corresponde a uma imagem válida.", "fileTypeMismatch": "O formato real do arquivo não corresponde ao tipo informado.", "unexpectedFileField": "Não foi possível processar o arquivo selecionado.", "uploadFailed": "Não foi possível processar o upload da imagem.", "accountDisabled": "Sua conta HSC está desativada.", "csrfOriginInvalid": "Não foi possível validar esta operação com segurança. Recarregue a página e tente novamente.", "fileTooLarge": "A imagem excede o tamanho máximo permitido.", "updateFailed": "Não foi possível atualizar a imagem agora. Tente novamente.", "tooManyRequests": "Muitas tentativas em pouco tempo. Aguarde e tente novamente." } }
+  },
+  "mix": {
+    "hero": {
+      "eyebrow": "Modo Competitivo",
+      "title": "MIX HSC 5v5",
+      "subtitle": "Monte o lobby. Feche os 10. O restante acontece dentro da Match Room.",
+      "createLobby": "CRIAR LOBBY",
+      "creating": "CRIANDO LOBBY..."
+    },
+    "authWall": {
+      "title": "Entre na sua conta HSC",
+      "description": "Para criar ou participar de um lobby Mix HSC, você precisa estar autenticado.",
+      "action": "Ir para a Área do Jogador"
+    },
+    "lobbyList": {
+      "loadingTitle": "Carregando lobbies",
+      "loadingMessage": "Buscando partidas e salas abertas...",
+      "errorTitle": "Não foi possível carregar os lobbies",
+      "retry": "Tentar novamente",
+      "sessionLoading": "Verificando sessão",
+      "sessionLoadingMessage": "Aguarde enquanto verificamos sua conta...",
+      "sessionUnavailable": "Sessão indisponível",
+      "sessionUnavailableMessage": "Não foi possível validar sua sessão no momento."
+    },
+    "currentLobby": {
+      "heading": "SEU LOBBY ATUAL",
+      "returnAction": "VOLTAR AO LOBBY",
+      "hints": {
+        "FORMING": "Aguardando jogadores para completar 10 vagas.",
+        "CONFIRMING": "Lobby completo! Confirmação de presença em andamento.",
+        "SETUP": "Todos os jogadores confirmados. Preparando a partida.",
+        "CANCELLED": "Este lobby foi encerrado."
+      }
+    },
+    "openLobbies": {
+      "heading": "LOBBIES ABERTOS",
+      "cardTitle": "HSC MIX 5V5",
+      "slotsAvailable": "{{ count }} VAGAS DISPONÍVEIS",
+      "joinAction": "ENTRAR",
+      "joining": "ENTRANDO...",
+      "empty": "Nenhum lobby aberto agora."
+    },
+    "matchRoom": {
+      "sessionLoading": "Verificando sessão",
+      "sessionLoadingMessage": "Aguarde enquanto carregamos seus dados...",
+      "sessionUnavailable": "Sessão indisponível",
+      "sessionUnavailableMessage": "Não foi possível validar sua sessão no momento.",
+      "loadingTitle": "Carregando Match Room",
+      "loadingMessage": "Conectando aos dados da sala...",
+      "errorTitle": "Não foi possível carregar o lobby",
+      "backToLobbies": "Voltar aos lobbies",
+      "formingTitle": "FORMANDO LOBBY",
+      "confirmingTitle": "CONFIRMAÇÃO DO LOBBY",
+      "setupTitle": "PREPARANDO PARTIDA",
+      "cancelledTitle": "LOBBY ENCERRADO",
+      "cancelledDesc": "Este lobby não está mais ativo.",
+      "setupBannerTitle": "PREPARANDO PARTIDA",
+      "setupBannerDesc": "10/10 confirmados. Estamos preparando capitães e times para a próxima etapa.",
+      "confirmPresenceEyebrow": "CHECK-IN",
+      "confirmPresenceHeading": "CONFIRME SUA PARTICIPAÇÃO",
+      "countdownLabel": "Tempo restante",
+      "confirmedProgress": "{{ confirmed }} DE {{ total }} CONFIRMADOS",
+      "confirmAction": "CONFIRMAR PRESENÇA",
+      "confirming": "CONFIRMANDO...",
+      "leaveAction": "SAIR DO LOBBY",
+      "cancelAction": "CANCELAR LOBBY",
+      "joinAction": "ENTRAR NO LOBBY",
+      "rosterHeading": "JOGADORES NO LOBBY",
+      "players": "jogadores",
+      "creatorBadge": "CRIADOR",
+      "confirmedStatus": "CONFIRMADO",
+      "waitingConfirmationStatus": "AGUARDANDO",
+      "waitingPlayer": "AGUARDANDO JOGADOR",
+      "retry": "Tentar novamente"
+    },
+    "statuses": {
+      "FORMING": "FORMANDO",
+      "CONFIRMING": "CONFIRMANDO",
+      "SETUP": "PREPARANDO",
+      "CANCELLED": "CANCELADO"
+    },
+    "errors": {
+      "already_in_active_room": "Você já possui uma sala ativa no momento.",
+      "already_in_room": "Você já está participando desta sala.",
+      "room_not_found": "O lobby solicitado não foi encontrado.",
+      "room_not_joinable": "Não é possível entrar neste lobby.",
+      "room_full": "Este lobby já atingiu a capacidade máxima de jogadores.",
+      "not_room_participant": "Você não é participante deste lobby.",
+      "creator_must_cancel_room": "O criador da sala deve utilizar o cancelamento.",
+      "not_room_creator": "Apenas o criador do lobby pode realizar esta ação.",
+      "room_not_cancellable": "Este lobby não pode ser cancelado.",
+      "room_not_confirmable": "Este lobby não está na fase de confirmação.",
+      "confirmation_window_closed": "O tempo para confirmação de presença expirou.",
+      "steam_identity_not_linked": "É necessário ter uma conta Steam vinculada para participar. Acesse a Área do Jogador.",
+      "player_account_disabled": "Sua conta de jogador está desativada.",
+      "membership_required": "É necessária uma associação ativa para jogar Mix. Acesse a Área do Jogador.",
+      "membership_inactive": "Sua associação está inativa.",
+      "membership_suspended": "Sua associação está suspensa.",
+      "membership_expired": "Sua associação expirou. Renove na Área do Jogador.",
+      "membership_cancelled": "Sua associação foi cancelada.",
+      "match_room_operation_failed": "Não foi possível concluir a operação na sala.",
+      "generic": "Ocorreu um erro ao processar sua solicitação. Tente novamente."
+    }
   }
 }
