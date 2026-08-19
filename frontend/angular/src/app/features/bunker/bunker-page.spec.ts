@@ -1,5 +1,4 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import type { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
@@ -15,7 +14,7 @@ import { BunkerCombatPanel } from './components/bunker-combat-panel/bunker-comba
 import { BunkerMatchHistoryPanel } from './components/bunker-match-history-panel/bunker-match-history-panel';
 import { BunkerMapsPanel } from './components/bunker-maps-panel/bunker-maps-panel';
 import { BunkerOverviewPanel } from './components/bunker-overview-panel/bunker-overview-panel';
-import type { AnalyticsContext, SelectedAnalyticsData } from './bunker-analytics.types';
+import type { AnalyticsContext } from './bunker-analytics.types';
 import { BunkerApiService } from './data-access/bunker-api.service';
 import type {
   BunkerMapPerformance,
@@ -182,11 +181,6 @@ function createBunkerSummary(overrides: Partial<BunkerSummary> = {}): BunkerSumm
   };
 }
 
-interface BunkerPageHarness {
-  readonly analyticsContext: WritableSignal<AnalyticsContext>;
-  selectedAnalyticsData(summary: BunkerSummary): SelectedAnalyticsData | null;
-}
-
 describe('BunkerPage Competitive Analytics', () => {
   let fixture: ComponentFixture<BunkerPage>;
   let playerIdentityApiMock: { getCurrentIdentity: ReturnType<typeof vi.fn> };
@@ -218,10 +212,6 @@ describe('BunkerPage Competitive Analytics', () => {
     fixture = TestBed.createComponent(BunkerPage);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
-  }
-
-  function harness(): BunkerPageHarness {
-    return fixture.componentInstance as unknown as BunkerPageHarness;
   }
 
   function contextSelect(element: HTMLElement): HTMLSelectElement {
@@ -298,20 +288,7 @@ describe('BunkerPage Competitive Analytics', () => {
 
   it('analyticsContext inicia em Season', () => {
     const compiled = render();
-    expect(harness().analyticsContext()).toBe('season');
     expect(contextSelect(compiled).value).toBe('season');
-  });
-
-  it('Season selecionada resolve somente as cinco fontes de seasonPlayer', () => {
-    const summary = createBunkerSummary();
-    render(summary);
-    const selected = harness().selectedAnalyticsData(summary);
-
-    expect(selected?.summary).toBe(summary.seasonPlayer?.summary);
-    expect(selected?.periods).toBe(summary.seasonPlayer?.periods);
-    expect(selected?.byMap).toBe(summary.seasonPlayer?.byMap);
-    expect(selected?.recentMaps).toBe(summary.seasonPlayer?.recentMaps);
-    expect(selected?.timeline).toBe(summary.seasonPlayer?.timeline);
   });
 
   it('Overview recebe somente summary e timeline do domínio Season selecionado', () => {
@@ -322,20 +299,6 @@ describe('BunkerPage Competitive Analytics', () => {
     expect(overview.summary()).toBe(summary.seasonPlayer?.summary);
     expect(overview.timeline()).toBe(summary.seasonPlayer?.timeline);
     expect(overview.context()).toBe('season');
-  });
-
-  it('Lifetime selecionado resolve somente as cinco fontes de competitiveProfile', () => {
-    const summary = createBunkerSummary();
-    const compiled = render(summary);
-    selectContext(compiled, 'lifetime');
-    fixture.detectChanges();
-    const selected = harness().selectedAnalyticsData(summary);
-
-    expect(selected?.summary).toBe(summary.competitiveProfile?.lifetime);
-    expect(selected?.periods).toBe(summary.competitiveProfile?.periods);
-    expect(selected?.byMap).toBe(summary.competitiveProfile?.byMap);
-    expect(selected?.recentMaps).toBe(summary.competitiveProfile?.recentMaps);
-    expect(selected?.timeline).toBe(summary.competitiveProfile?.timeline);
   });
 
   it('Overview troca para o domínio Lifetime sem fallback cruzado', () => {
@@ -353,7 +316,6 @@ describe('BunkerPage Competitive Analytics', () => {
   it('Season ausente não usa dados Lifetime como fallback', () => {
     const summary = createBunkerSummary({ seasonPlayer: null });
     const compiled = render(summary);
-    expect(harness().selectedAnalyticsData(summary)).toBeNull();
     expect(compiled.textContent).toContain('Sem estatísticas disponíveis para este contexto.');
   });
 
@@ -362,7 +324,6 @@ describe('BunkerPage Competitive Analytics', () => {
     const compiled = render(summary);
     selectContext(compiled, 'lifetime');
     fixture.detectChanges();
-    expect(harness().selectedAnalyticsData(summary)).toBeNull();
     const overview = fixture.debugElement.query(By.directive(BunkerOverviewPanel)).componentInstance as BunkerOverviewPanel;
     expect(overview.summary()).toBeNull();
     expect(overview.timeline()).toEqual([]);
@@ -381,14 +342,15 @@ describe('BunkerPage Competitive Analytics', () => {
     const summary = createBunkerSummary({ currentSeason: null });
     const compiled = render(summary);
     expect(contextSelect(compiled).options[0].textContent?.trim()).toBe('Season atual');
-    expect(harness().selectedAnalyticsData(summary)?.summary).toBe(summary.seasonPlayer?.summary);
+    const overview = fixture.debugElement.query(By.directive(BunkerOverviewPanel)).componentInstance as BunkerOverviewPanel;
+    expect(overview.summary()).toBe(summary.seasonPlayer?.summary);
   });
 
   it('troca global de contexto não provoca novo fetch', () => {
     const compiled = render();
     selectContext(compiled, 'lifetime');
     fixture.detectChanges();
-    expect(harness().analyticsContext()).toBe('lifetime');
+    expect(contextSelect(compiled).value).toBe('lifetime');
     expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
   });
 
@@ -396,7 +358,7 @@ describe('BunkerPage Competitive Analytics', () => {
     const compiled = render();
     compiled.querySelector<HTMLButtonElement>('#bunker-tab-maps')?.click();
     fixture.detectChanges();
-    expect(harness().analyticsContext()).toBe('season');
+    expect(contextSelect(compiled).value).toBe('season');
   });
 
   it('contexto selecionado permanece ao navegar para outra tab', () => {
@@ -405,7 +367,6 @@ describe('BunkerPage Competitive Analytics', () => {
     compiled.querySelector<HTMLButtonElement>('#bunker-tab-combat')?.click();
     fixture.detectChanges();
 
-    expect(harness().analyticsContext()).toBe('lifetime');
     expect(contextSelect(compiled).value).toBe('lifetime');
     expect(compiled.querySelector('[role="tabpanel"]')?.id).toBe('bunker-panel-combat');
   });
@@ -539,7 +500,7 @@ describe('BunkerPage Competitive Analytics', () => {
     const history = fixture.debugElement.query(By.directive(BunkerMatchHistoryPanel)).componentInstance as BunkerMatchHistoryPanel;
 
     expect(history.recentMaps()).toBe(summary.competitiveProfile?.recentMaps);
-    expect(harness().analyticsContext()).toBe('lifetime');
+    expect(contextSelect(compiled).value).toBe('lifetime');
     expect(bunkerApiMock.getSummary).toHaveBeenCalledTimes(1);
   });
 
