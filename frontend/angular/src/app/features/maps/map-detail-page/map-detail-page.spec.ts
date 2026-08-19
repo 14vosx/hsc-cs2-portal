@@ -43,7 +43,6 @@ const createMockMapDetail = (name = 'de_mirage'): MapDetail => ({
 });
 
 describe('MapDetailPage', () => {
-  let component: MapDetailPage;
   let fixture: ComponentFixture<MapDetailPage>;
   let mapsApiMock: { getMap: ReturnType<typeof vi.fn> };
   let paramMapSubject: BehaviorSubject<ParamMap>;
@@ -74,7 +73,6 @@ describe('MapDetailPage', () => {
 
   const createComponent = () => {
     fixture = TestBed.createComponent(MapDetailPage);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   };
 
@@ -82,7 +80,7 @@ describe('MapDetailPage', () => {
     mapsApiMock.getMap.mockReturnValue(of(createMockMapDetail('de_mirage')));
     createComponent();
 
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
     expect(mapsApiMock.getMap).toHaveBeenCalledWith('de_mirage');
 
     const el = fixture.nativeElement as HTMLElement;
@@ -171,13 +169,33 @@ describe('MapDetailPage', () => {
   });
 
   it('retry repete a chamada e goBack navega para /maps', () => {
-    mapsApiMock.getMap.mockReturnValue(of(createMockMapDetail()));
+    mapsApiMock.getMap
+      .mockReturnValueOnce(throwError(() => new MapsContractError('Erro de conexão')))
+      .mockReturnValueOnce(of(createMockMapDetail('de_mirage')));
     createComponent();
-    component['retry']();
+
+    expect(fixture.nativeElement.textContent).toContain('Erro ao carregar mapa');
+
+    const retryBtn = fixture.nativeElement.querySelector('.page-state__btn') as HTMLButtonElement;
+    expect(retryBtn).toBeTruthy();
+    retryBtn.click();
+    fixture.detectChanges();
+
     expect(mapsApiMock.getMap).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.querySelector('app-page-state')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.map-detail-page__hero')).toBeTruthy();
+
     const router = TestBed.inject(Router);
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    component['goBack']();
+
+    paramMapSubject.next(convertToParamMap({ map: '   ' }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Mapa não encontrado');
+    const backBtn = fixture.nativeElement.querySelector('.page-state__btn') as HTMLButtonElement;
+    expect(backBtn).toBeTruthy();
+    backBtn.click();
+
     expect(navigate).toHaveBeenCalledWith(['/maps']);
   });
 

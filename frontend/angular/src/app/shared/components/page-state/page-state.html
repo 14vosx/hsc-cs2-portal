@@ -14,6 +14,11 @@
     @if (message()) {
       <p class="page-state__message">{{ message() }}</p>
     }
+    @if (actionLabel()) {
+      <button type="button" class="page-state__btn" (click)="onAction()">
+        {{ actionLabel() }}
+      </button>
+    }
   } @else if (type() === 'error') {
     <div class="page-state__icon page-state__icon--error" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
