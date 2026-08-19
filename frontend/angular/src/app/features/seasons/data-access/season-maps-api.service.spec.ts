@@ -1,8 +1,10 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { firstValueFrom, of, throwError } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { firstValueFrom } from 'rxjs';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { cs2ApiPaths } from '../../../core/config/api-paths';
 import { SeasonMapsApiService, SeasonMapsContractError } from './season-maps-api.service';
 
 const createValidMapsPayload = (slug = 'season-1') => ({
@@ -18,27 +20,30 @@ const createValidMapsPayload = (slug = 'season-1') => ({
 
 describe('SeasonMapsApiService', () => {
   let service: SeasonMapsApiService;
-  let httpMock: { get: ReturnType<typeof vi.fn> };
+  let httpTesting: HttpTestingController;
 
   beforeEach(() => {
-    httpMock = { get: vi.fn() };
-
     TestBed.configureTestingModule({
-      providers: [
-        SeasonMapsApiService,
-        { provide: HttpClient, useValue: httpMock },
-      ],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
 
     service = TestBed.inject(SeasonMapsApiService);
+    httpTesting = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTesting.verify();
   });
 
   it('slug explícito faz requisição direta para a URL do recorte sazonal de mapas', async () => {
-    httpMock.get.mockReturnValue(of(createValidMapsPayload('season-1')));
+    const resultPromise = firstValueFrom(service.getMaps('season-1'));
 
-    const result = await firstValueFrom(service.getMaps('season-1'));
+    const req = httpTesting.expectOne(cs2ApiPaths.seasonMaps('season-1'));
+    expect(req.request.method).toBe('GET');
+    req.flush(createValidMapsPayload('season-1'));
 
-    expect(httpMock.get).toHaveBeenCalledWith('/api/cs2/v2/season/season-1/maps.json');
+    const result = await resultPromise;
+
     expect(result).toMatchObject({
       kind: 'available',
       maps: {
@@ -49,22 +54,25 @@ describe('SeasonMapsApiService', () => {
     });
   });
 
-
   it('retorna season-unavailable para erro HTTP 404', async () => {
-    httpMock.get.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 404 })),
-    );
+    const resultPromise = firstValueFrom(service.getMaps('season-invalida'));
 
-    const result = await firstValueFrom(service.getMaps('season-invalida'));
+    const req = httpTesting.expectOne(cs2ApiPaths.seasonMaps('season-invalida'));
+    expect(req.request.method).toBe('GET');
+    req.flush('not-found', { status: 404, statusText: 'Not Found' });
+
+    const result = await resultPromise;
 
     expect(result).toEqual({ kind: 'season-unavailable' });
   });
 
   it('lança SeasonMapsContractError se o payload for malformado', async () => {
-    httpMock.get.mockReturnValue(of({ payload: 'invalido' }));
+    const resultPromise = firstValueFrom(service.getMaps('season-1'));
 
-    await expect(
-      firstValueFrom(service.getMaps('season-1')),
-    ).rejects.toBeInstanceOf(SeasonMapsContractError);
+    const req = httpTesting.expectOne(cs2ApiPaths.seasonMaps('season-1'));
+    expect(req.request.method).toBe('GET');
+    req.flush({ payload: 'invalido' });
+
+    await expect(resultPromise).rejects.toBeInstanceOf(SeasonMapsContractError);
   });
 });
