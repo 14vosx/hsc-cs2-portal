@@ -33,6 +33,181 @@ function setSearch(fixture: ComponentFixture<RankingPage>, term: string): void {
   fixture.detectChanges();
 }
 
+const RANKING_TRANSLATIONS_PT_BR = {
+  ranking: {
+    hero: {
+      eyebrow: 'Ranking Geral',
+      title: 'Ranking Geral HSC',
+      description: 'Classificação geral acumulada.',
+      synced: 'Dados sincronizados',
+      lastUpdated: 'Última atualização',
+    },
+    states: {
+      loading: {
+        title: 'Carregando ranking geral...',
+        message: 'Sincronizando a classificação dos jogadores.',
+      },
+      error: {
+        title: 'Ranking indisponível',
+        message: 'Não foi possível carregar.',
+        retry: 'Tentar novamente',
+      },
+      empty: {
+        title: 'Nenhum jogador classificado',
+        message: 'Não há dados de ranking geral disponíveis no momento.',
+      },
+    },
+    summary: {
+      ariaLabel: 'Resumo do ranking geral',
+      players: 'Jogadores',
+      completedMaps: 'Mapas finalizados',
+      currentLeader: 'Líder atual',
+      noLeader: 'Sem líder',
+    },
+    podium: {
+      ariaLabel: 'Pódio top 3',
+      eyebrow: 'Pódio',
+      title: 'Top 3 da Comunidade',
+      description: 'Jogadores com maior pontuação.',
+      gold: 'Ouro · Campeão',
+      silver: 'Prata',
+      bronze: 'Bronze',
+      player: 'Jogador',
+      wins: 'Vitórias',
+      losses: 'Derrotas',
+    },
+    players: {
+      unnamedAccessible: 'Jogador sem nome',
+      unnamed: 'Sem nome',
+      you: 'Você',
+    },
+    table: {
+      ariaLabel: 'Tabela de classificação completa',
+      mobileAriaLabel: 'Classificação completa',
+      eyebrow: 'Classificação',
+      title: 'Classificação Completa',
+      description: 'Lista ordinal.',
+      searchLabel: 'Buscar jogador',
+      searchPlaceholder: 'Nome ou SteamID64',
+      position: 'Pos',
+      player: 'Jogador',
+      record: 'V/D',
+      win: 'V',
+      loss: 'D',
+      winPct: 'Vit%',
+      winMobile: 'Vit',
+    },
+    searchEmpty: {
+      title: 'Nenhum jogador encontrado',
+      description: 'A busca atual não encontrou nome ou SteamID64 correspondente.',
+    },
+    guide: {
+      eyebrow: 'Como ler',
+      title: 'Score e Impact',
+      score: 'Resumo do Score.',
+      impact: 'Descrição do Impact.',
+    },
+    date: {
+      unavailable: 'Sem data disponível',
+    },
+  },
+};
+
+const SHARED_TRANSLATIONS_PT_BR = {
+  shared: {
+    playerAvatar: {
+      alt: 'Avatar de {{displayName}}',
+    },
+  },
+};
+
+const RANKING_TRANSLATIONS_EN_US = {
+  ranking: {
+    hero: {
+      eyebrow: 'Overall Ranking',
+      title: 'HSC Overall Ranking',
+      description: 'Overall player ranking.',
+      synced: 'Data synced',
+      lastUpdated: 'Last updated',
+    },
+    states: {
+      loading: {
+        title: 'Loading overall ranking...',
+        message: 'Syncing the player ranking.',
+      },
+      error: {
+        title: 'Ranking unavailable',
+        message: 'Could not load.',
+        retry: 'Try again',
+      },
+      empty: {
+        title: 'No ranked players',
+        message: 'No ranking data is available.',
+      },
+    },
+    summary: {
+      ariaLabel: 'Overall ranking summary',
+      players: 'Players',
+      completedMaps: 'Completed maps',
+      currentLeader: 'Current leader',
+      noLeader: 'No leader',
+    },
+    podium: {
+      ariaLabel: 'Top 3 podium',
+      eyebrow: 'Podium',
+      title: 'Community Top 3',
+      description: 'Highest scoring players.',
+      gold: 'Gold · Champion',
+      silver: 'Silver',
+      bronze: 'Bronze',
+      player: 'Player',
+      wins: 'Wins',
+      losses: 'Losses',
+    },
+    players: {
+      unnamedAccessible: 'Unnamed player',
+      unnamed: 'Unnamed',
+      you: 'You',
+    },
+    table: {
+      ariaLabel: 'Full ranking table',
+      mobileAriaLabel: 'Full ranking',
+      eyebrow: 'Ranking',
+      title: 'Full Ranking',
+      description: 'Ordered list.',
+      searchLabel: 'Search player',
+      searchPlaceholder: 'Name or SteamID64',
+      position: 'Pos',
+      player: 'Player',
+      record: 'W/L',
+      win: 'W',
+      loss: 'L',
+      winPct: 'Win%',
+      winMobile: 'Win',
+    },
+    searchEmpty: {
+      title: 'No players found',
+      description: 'No matching name or SteamID64.',
+    },
+    guide: {
+      eyebrow: 'How to read',
+      title: 'Score and Impact',
+      score: 'Score summary.',
+      impact: 'Impact description.',
+    },
+    date: {
+      unavailable: 'No date available',
+    },
+  },
+};
+
+function configureTranslations(translate: TranslateService): void {
+  translate.setTranslation('pt-BR', RANKING_TRANSLATIONS_PT_BR);
+  translate.setTranslation('pt-BR', SHARED_TRANSLATIONS_PT_BR, true);
+  translate.setTranslation('en-US', RANKING_TRANSLATIONS_EN_US);
+  void translate.use('pt-BR');
+}
+
 describe('RankingPage', () => {
   let mockRankingApi: RankingApiServiceMock;
   let mockPresentation: { resolve: Mock<PlayerPresentationReferenceService['resolve']> };
@@ -175,14 +350,7 @@ describe('RankingPage', () => {
       ],
     });
     translate = TestBed.inject(TranslateService);
-    translate.setTranslation('pt-BR', { ranking: { hero: { eyebrow: 'Ranking Geral', title: 'Ranking Geral HSC', description: 'Classificação geral acumulada.', synced: 'Dados sincronizados', lastUpdated: 'Última atualização' }, states: { loading: { title: 'Carregando ranking geral...', message: 'Sincronizando a classificação dos jogadores.' }, error: { title: 'Ranking indisponível', message: 'Não foi possível carregar.', retry: 'Tentar novamente' }, empty: { title: 'Nenhum jogador classificado', message: 'Não há dados de ranking geral disponíveis no momento.' } }, summary: { ariaLabel: 'Resumo do ranking geral', players: 'Jogadores', completedMaps: 'Mapas finalizados', currentLeader: 'Líder atual', noLeader: 'Sem líder' }, podium: { ariaLabel: 'Pódio top 3', eyebrow: 'Pódio', title: 'Top 3 da Comunidade', description: 'Jogadores com maior pontuação.', gold: 'Ouro · Campeão', silver: 'Prata', bronze: 'Bronze', player: 'Jogador', wins: 'Vitórias', losses: 'Derrotas' }, players: { unnamedAccessible: 'Jogador sem nome', unnamed: 'Sem nome', you: 'Você' }, table: { ariaLabel: 'Tabela de classificação completa', mobileAriaLabel: 'Classificação completa', eyebrow: 'Classificação', title: 'Classificação Completa', description: 'Lista ordinal.', searchLabel: 'Buscar jogador', searchPlaceholder: 'Nome ou SteamID64', position: 'Pos', player: 'Jogador', record: 'V/D', win: 'V', loss: 'D', winPct: 'Vit%', winMobile: 'Vit' }, searchEmpty: { title: 'Nenhum jogador encontrado', description: 'A busca atual não encontrou nome ou SteamID64 correspondente.' }, guide: { eyebrow: 'Como ler', title: 'Score e Impact', score: 'Resumo do Score.', impact: 'Descrição do Impact.' }, date: { unavailable: 'Sem data disponível' } } });
-    translate.setTranslation(
-      'pt-BR',
-      { shared: { playerAvatar: { alt: 'Avatar de {{displayName}}' } } },
-      true,
-    );
-    translate.setTranslation('en-US', { ranking: { hero: { eyebrow: 'Overall Ranking', title: 'HSC Overall Ranking', description: 'Overall player ranking.', synced: 'Data synced', lastUpdated: 'Last updated' }, states: { loading: { title: 'Loading overall ranking...', message: 'Syncing the player ranking.' }, error: { title: 'Ranking unavailable', message: 'Could not load.', retry: 'Try again' }, empty: { title: 'No ranked players', message: 'No ranking data is available.' } }, summary: { ariaLabel: 'Overall ranking summary', players: 'Players', completedMaps: 'Completed maps', currentLeader: 'Current leader', noLeader: 'No leader' }, podium: { ariaLabel: 'Top 3 podium', eyebrow: 'Podium', title: 'Community Top 3', description: 'Highest scoring players.', gold: 'Gold · Champion', silver: 'Silver', bronze: 'Bronze', player: 'Player', wins: 'Wins', losses: 'Losses' }, players: { unnamedAccessible: 'Unnamed player', unnamed: 'Unnamed', you: 'You' }, table: { ariaLabel: 'Full ranking table', mobileAriaLabel: 'Full ranking', eyebrow: 'Ranking', title: 'Full Ranking', description: 'Ordered list.', searchLabel: 'Search player', searchPlaceholder: 'Name or SteamID64', position: 'Pos', player: 'Player', record: 'W/L', win: 'W', loss: 'L', winPct: 'Win%', winMobile: 'Win' }, searchEmpty: { title: 'No players found', description: 'No matching name or SteamID64.' }, guide: { eyebrow: 'How to read', title: 'Score and Impact', score: 'Score summary.', impact: 'Impact description.' }, date: { unavailable: 'No date available' } } });
-    void translate.use('pt-BR');
+    configureTranslations(translate);
   });
 
   it('1. o componente pode ser instanciado e renderizado', () => {
