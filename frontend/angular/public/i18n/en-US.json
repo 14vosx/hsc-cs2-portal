@@ -283,6 +283,27 @@
       "waitingForPick": "Waiting for pick...",
       "updatingWindow": "Waiting for update..."
     },
+    "mapVeto": {
+      "eyebrow": "MAP VETO",
+      "title": "Map Veto",
+      "banningTitle": "VETO IN PROGRESS",
+      "yourTurn": "YOUR TURN TO BAN",
+      "currentVetoerTurn": "Turn of {{ name }}",
+      "waitingForVeto": "Waiting for veto...",
+      "availablePool": "AVAILABLE MAPS",
+      "banAction": "BAN",
+      "banning": "BANNING...",
+      "bannedBadge": "BANNED",
+      "selectedBadge": "SELECTED MAP",
+      "completedTitle": "VETO COMPLETED",
+      "completedBanner": "Map selected. Preparing match.",
+      "windowExpired": "Window expired",
+      "updatingWindow": "Waiting for update...",
+      "sources": {
+        "MANUAL_BAN": "Manual ban",
+        "TIMEOUT_AUTO_BAN": "Auto ban"
+      }
+    },
     "errors": {
       "already_in_active_room": "You already have an active lobby at this time.",
       "already_in_room": "You are already participating in this lobby.",

@@ -284,6 +284,27 @@
       "waitingForPick": "Aguardando escolha...",
       "updatingWindow": "Aguardando atualização..."
     },
+    "mapVeto": {
+      "eyebrow": "MAP VETO",
+      "title": "Escolha do mapa",
+      "banningTitle": "VETO EM ANDAMENTO",
+      "yourTurn": "SUA VEZ DE BANIR",
+      "currentVetoerTurn": "Vez de {{ name }}",
+      "waitingForVeto": "Aguardando veto...",
+      "availablePool": "MAPAS DISPONÍVEIS",
+      "banAction": "BANIR",
+      "banning": "BANINDO...",
+      "bannedBadge": "BANIDO",
+      "selectedBadge": "MAPA SELECIONADO",
+      "completedTitle": "VETO CONCLUÍDO",
+      "completedBanner": "Mapa definido. Preparando a partida.",
+      "windowExpired": "Janela expirada",
+      "updatingWindow": "Aguardando atualização...",
+      "sources": {
+        "MANUAL_BAN": "Ban manual",
+        "TIMEOUT_AUTO_BAN": "Ban automático"
+      }
+    },
     "errors": {
       "already_in_active_room": "Você já possui uma sala ativa no momento.",
       "already_in_room": "Você já está participando desta sala.",

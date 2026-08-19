@@ -1,0 +1,143 @@
+<section class="veto-panel" aria-labelledby="veto-panel-heading">
+  <!-- Veto Header -->
+  <header class="veto-panel__header">
+    <div class="veto-panel__title-group">
+      <span class="veto-panel__eyebrow">{{ 'mix.mapVeto.eyebrow' | translate }}</span>
+      <h2 id="veto-panel-heading" class="veto-panel__title">
+        {{ 'mix.mapVeto.title' | translate }}
+      </h2>
+    </div>
+
+    <!-- Status / Turn Banner / Countdown -->
+    @if (mapVeto().phase === 'BANNING') {
+      <div class="veto-panel__turn-status">
+        @if (canMapVetoBan()) {
+          <div class="veto-turn-banner veto-turn-banner--your-turn">
+            <span class="veto-turn-banner__badge">{{ 'mix.mapVeto.yourTurn' | translate }}</span>
+            @if (formattedCountdown()) {
+              <span class="veto-turn-banner__timer" [class.veto-turn-banner__timer--expired]="isWindowClosed()">
+                {{ formattedCountdown() }}
+              </span>
+            }
+          </div>
+        } @else if (currentVetoerParticipant(); as vetoer) {
+          <div class="veto-turn-banner veto-turn-banner--waiting">
+            <span class="veto-turn-banner__label">
+              {{ 'mix.mapVeto.currentVetoerTurn' | translate: { name: getDisplayName(vetoer) } }}
+            </span>
+            @if (formattedCountdown()) {
+              <span class="veto-turn-banner__timer" [class.veto-turn-banner__timer--expired]="isWindowClosed()">
+                {{ formattedCountdown() }}
+              </span>
+            }
+          </div>
+        } @else {
+          <div class="veto-turn-banner veto-turn-banner--waiting">
+            <span class="veto-turn-banner__label">{{ 'mix.mapVeto.waitingForVeto' | translate }}</span>
+            @if (formattedCountdown()) {
+              <span class="veto-turn-banner__timer" [class.veto-turn-banner__timer--expired]="isWindowClosed()">
+                {{ formattedCountdown() }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Phase COMPLETED -->
+      <div class="veto-panel__completed-badge">
+        <app-status-badge [label]="'mix.mapVeto.completedTitle' | translate" tone="active" />
+      </div>
+    }
+  </header>
+
+  <!-- Completed Banner & Selected Map callout -->
+  @if (mapVeto().phase === 'COMPLETED') {
+    <div class="veto-banner veto-banner--completed">
+      <p class="veto-banner__text">
+        {{ 'mix.mapVeto.completedBanner' | translate }}
+        @if (selectedMap(); as sel) {
+          <strong class="veto-banner__highlight"> — {{ sel.displayName }}</strong>
+        }
+      </p>
+    </div>
+  }
+
+  <!-- Map Pool Grid -->
+  <div class="veto-pool-section">
+    <div class="veto-pool-header">
+      <h3 class="veto-pool-title">{{ 'mix.mapVeto.availablePool' | translate }}</h3>
+      <span class="veto-pool-count">
+        {{ mapVeto().availableMapKeys.length }} / {{ sortedMaps().length }}
+      </span>
+    </div>
+
+    <div class="veto-grid">
+      @for (map of sortedMaps(); track map.key) {
+        @let action = actionMap().get(map.key) ?? null;
+        @let isSelected = mapVeto().selectedMapKey === map.key;
+        @let isBanned = action !== null;
+        @let isAvailable = mapVeto().availableMapKeys.includes(map.key);
+        @let isPending = pendingMapKey() === map.key;
+        @let canBanThis = canMapVetoBan() && mapVeto().phase === 'BANNING' && !isWindowClosed() && isAvailable && !isBanned && !isSelected && pendingMapKey() === null;
+        @let actorParticipant = action ? participantMap().get(action.actorPlayerAccountId) ?? null : null;
+
+        <div
+          class="veto-card"
+          [class.veto-card--selected]="isSelected"
+          [class.veto-card--banned]="!isSelected && isBanned"
+          [class.veto-card--available]="!isSelected && !isBanned && isAvailable"
+          [class.veto-card--pending]="isPending"
+        >
+          <div class="veto-card__header">
+            <h4 class="veto-card__name">{{ map.displayName }}</h4>
+            <span class="veto-card__key">{{ map.key }}</span>
+          </div>
+
+          <!-- State Badge / Info -->
+          <div class="veto-card__body">
+            @if (isSelected) {
+              <div class="veto-status-badge veto-status-badge--selected">
+                <span class="veto-status-badge__label">{{ 'mix.mapVeto.selectedBadge' | translate }}</span>
+              </div>
+            } @else if (!isSelected && isBanned) {
+              <div class="veto-status-badge veto-status-badge--banned">
+                <span class="veto-status-badge__label">{{ 'mix.mapVeto.bannedBadge' | translate }}</span>
+                @if (action) {
+                  <div class="veto-ban-meta">
+                    <span class="veto-ban-meta__actor">
+                      {{ getDisplayName(actorParticipant) }}
+                    </span>
+                    <span class="veto-ban-meta__source">
+                      {{ getBanSourceKey(action.source) | translate }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Action Button for Available Maps -->
+          @if (mapVeto().phase === 'BANNING' && isAvailable && !isBanned && !isSelected) {
+            <div class="veto-card__footer">
+              @if (canMapVetoBan()) {
+                <button
+                  type="button"
+                  class="veto-btn veto-btn--ban"
+                  [disabled]="!canBanThis || isPending"
+                  (click)="onBan(map.key)"
+                  [attr.aria-label]="'mix.mapVeto.banAction' | translate"
+                >
+                  @if (isPending) {
+                    {{ 'mix.mapVeto.banning' | translate }}
+                  } @else {
+                    {{ 'mix.mapVeto.banAction' | translate }}
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</section>

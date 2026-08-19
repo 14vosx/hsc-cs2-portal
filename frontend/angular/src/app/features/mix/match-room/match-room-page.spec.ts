@@ -11,6 +11,7 @@ import type { PlayerSession } from '../../../core/session/player-session.model';
 import { MatchRoomApiService } from '../data-access/match-room-api.service';
 import type {
   MatchRoomDraftSnapshot,
+  MatchRoomMapVetoSnapshot,
   MatchRoomParticipant,
   MatchRoomSnapshot,
   MatchRoomStatus,
@@ -59,6 +60,7 @@ function createRoomSnapshot(
     round?: number;
     confirmedCount?: number;
     draft?: MatchRoomDraftSnapshot | null;
+    mapVeto?: MatchRoomMapVetoSnapshot | null;
   } = {},
 ): MatchRoomSnapshot {
   const participants =
@@ -87,7 +89,7 @@ function createRoomSnapshot(
       rosterLockedAt: null,
       readyAt: null,
       draft: overrides.draft !== undefined ? overrides.draft : null,
-      mapVeto: null,
+      mapVeto: overrides.mapVeto !== undefined ? overrides.mapVeto : null,
       competitiveMatch: null,
       participants,
     },
@@ -118,6 +120,7 @@ describe('MatchRoomPage', () => {
     cancelMatchRoom: vi.fn(),
     joinMatchRoom: vi.fn(),
     draftPick: vi.fn(),
+    mapVetoBan: vi.fn(),
   };
 
   const sessionServiceMock = {
@@ -190,6 +193,27 @@ describe('MatchRoomPage', () => {
         emptyAvailablePool: 'Nenhum jogador disponível no momento.',
         waitingForPick: 'Aguardando escolha...',
       },
+      mapVeto: {
+        eyebrow: 'MAP VETO',
+        title: 'Escolha do mapa',
+        banningTitle: 'VETO EM ANDAMENTO',
+        yourTurn: 'SUA VEZ DE BANIR',
+        currentVetoerTurn: 'Vez de {{ name }}',
+        waitingForVeto: 'Aguardando veto...',
+        availablePool: 'MAPAS DISPONÍVEIS',
+        banAction: 'BANIR',
+        banning: 'BANINDO...',
+        bannedBadge: 'BANIDO',
+        selectedBadge: 'MAPA SELECIONADO',
+        completedTitle: 'VETO CONCLUÍDO',
+        completedBanner: 'Mapa definido. Preparando a partida.',
+        windowExpired: 'Janela expirada',
+        updatingWindow: 'Aguardando atualização...',
+        sources: {
+          MANUAL_BAN: 'Ban manual',
+          TIMEOUT_AUTO_BAN: 'Ban automático',
+        },
+      },
       statuses: {
         FORMING: 'FORMANDO',
         CONFIRMING: 'CONFIRMANDO',
@@ -202,6 +226,7 @@ describe('MatchRoomPage', () => {
         room_not_found: 'O lobby solicitado não foi encontrado.',
         generic: 'Ocorreu um erro ao processar sua solicitação. Tente novamente.',
         draft_target_not_available: 'O jogador selecionado não está disponível para escolha.',
+        map_veto_target_not_available: 'O mapa selecionado não está disponível para veto.',
       },
     },
   };
@@ -650,6 +675,274 @@ describe('MatchRoomPage', () => {
       // Extra ticks do not spam GET because of window key
       vi.advanceTimersByTime(1000);
       expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('SETUP state & Map Veto Orchestration', () => {
+    const validMapVeto = {
+      phase: 'BANNING' as const,
+      pool: {
+        id: 'pool-1',
+        key: 'active-pool',
+        version: 1,
+        maps: [
+          { key: 'de_inferno', displayName: 'Inferno', position: 1 },
+          { key: 'de_mirage', displayName: 'Mirage', position: 2 },
+          { key: 'de_nuke', displayName: 'Nuke', position: 3 },
+        ],
+      },
+      firstVetoerPlayerAccountId: 'player-creator',
+      currentVetoerPlayerAccountId: 'player-creator',
+      nextActionOrder: 1,
+      actionDeadlineAt: new Date(Date.now() + 30000).toISOString(),
+      availableMapKeys: ['de_inferno', 'de_mirage', 'de_nuke'],
+      selectedMapKey: null,
+      actions: [],
+    };
+
+    const validDraft = {
+      phase: 'COMPLETED' as const,
+      captains: { teamAPlayerAccountId: 'player-creator', teamBPlayerAccountId: 'player-2' },
+      firstPickerPlayerAccountId: 'player-creator',
+      currentPickerPlayerAccountId: null,
+      nextSelectionOrder: null,
+      pickDeadlineAt: null,
+      availablePlayerAccountIds: [],
+      assignments: [],
+    };
+
+    const vetoParticipants = [
+      createParticipant('player-creator', 'Creator Player', 'creator-slug', true),
+      createParticipant('player-2', 'Second Player', null, true),
+    ];
+
+    it('1. SETUP + mapVeto renderiza Map Veto Panel e esconde neutral roster', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: validMapVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('app-match-room-map-veto-panel')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('MAP VETO');
+      expect(fixture.nativeElement.textContent).toContain('SUA VEZ DE BANIR');
+    });
+
+    it('2. se draft != null e mapVeto != null, Map Veto tem precedência visual e Draft Panel não aparece', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: validDraft,
+        mapVeto: validMapVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('app-match-room-map-veto-panel')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-match-room-draft-panel')).toBeNull();
+    });
+
+    it('3. clique de ban chama mapVetoBan no service sem alteração otimista prévia', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: validMapVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      const updatedMapVeto = {
+        ...validMapVeto,
+        nextActionOrder: 2,
+        availableMapKeys: ['de_mirage', 'de_nuke'],
+        actions: [
+          {
+            actionOrder: 1,
+            mapKey: 'de_inferno',
+            actorPlayerAccountId: 'player-creator',
+            source: 'MANUAL_BAN' as const,
+            actedAt: '2026-08-17T20:01:00Z',
+          },
+        ],
+      };
+      const updatedSnap = createRoomSnapshot('SETUP', 2, {
+        mapVeto: updatedMapVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: false,
+      });
+      matchRoomApiMock.mapVetoBan.mockReturnValue(of(updatedSnap));
+
+      fixture = setupFixture();
+
+      const banBtn = fixture.nativeElement.querySelector('.veto-btn--ban');
+      expect(banBtn).not.toBeNull();
+
+      banBtn.click();
+      expect(matchRoomApiMock.mapVetoBan).toHaveBeenCalledWith('room-test-123', 'de_inferno');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelectorAll('.veto-status-badge--banned').length).toBe(1);
+    });
+
+    it('4. erro na mutation exibe mensagem traduzida e dispara refetch', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: validMapVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      const errorResponse = new HttpErrorResponse({
+        status: 409,
+        error: { ok: false, error: 'map_veto_target_not_available' },
+      });
+      matchRoomApiMock.mapVetoBan.mockReturnValue(throwError(() => errorResponse));
+
+      fixture = setupFixture();
+
+      const banBtn = fixture.nativeElement.querySelector('.veto-btn--ban');
+      banBtn.click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('O mapa selecionado não está disponível para veto.');
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+    });
+
+    it('5. countdown do Map Veto atingindo zero dispara one-shot refetch', () => {
+      const expiredVeto = {
+        ...validMapVeto,
+        actionDeadlineAt: new Date(Date.now() - 2000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: expiredVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(1);
+
+      // Ticker ticks at 1s -> zero veto refresh
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+
+      // Extra ticks do not spam GET because of window key
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+    });
+
+    it('6. timeout de veto não altera estado localmente (currentVetoer, actions, selectedMapKey, phase)', () => {
+      const expiredVeto = {
+        ...validMapVeto,
+        actionDeadlineAt: new Date(Date.now() - 2000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: expiredVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.textContent).toContain('SUA VEZ DE BANIR');
+      expect(fixture.nativeElement.textContent).not.toContain('VETO CONCLUÍDO');
+    });
+
+    it('7. nova janela actionDeadlineAt/nextActionOrder permite novo one-shot refresh', () => {
+      const baseTime = 1700000000000;
+      vi.setSystemTime(baseTime);
+
+      const deadline1 = new Date(baseTime + 2000).toISOString();
+      const snap1 = createRoomSnapshot('SETUP', 1, {
+        mapVeto: { ...validMapVeto, nextActionOrder: 1, actionDeadlineAt: deadline1 },
+        participants: vetoParticipants,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap1));
+
+      fixture = setupFixture();
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(1);
+
+      // Advance clock before deadline 1 -> no expiration refetch
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(1);
+
+      // Advance clock past deadline 1 (baseTime + 2100ms >= deadline1) -> exactly one refetch for window 1
+      vi.advanceTimersByTime(1100);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+
+      // Extra tick in same window 1 -> no additional call
+      vi.advanceTimersByTime(900); // clock at baseTime + 3000ms
+
+      // Window 2: new nextActionOrder, room version 2, future deadline relative to current clock (baseTime + 7000ms)
+      const deadline2 = new Date(baseTime + 7000).toISOString();
+      const snap2 = createRoomSnapshot('SETUP', 2, {
+        mapVeto: { ...validMapVeto, nextActionOrder: 2, actionDeadlineAt: deadline2 },
+        participants: vetoParticipants,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap2));
+
+      // Advance 3000ms to trigger polling (at baseTime + 6000ms) to load snap2 while window 2 is still active
+      vi.advanceTimersByTime(3000);
+      const callsBeforeExpiry = matchRoomApiMock.getMatchRoom.mock.calls.length;
+
+      // Advance before deadline 2 (baseTime + 6500ms < baseTime + 7000ms) -> no expiration refetch yet
+      vi.advanceTimersByTime(500);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(callsBeforeExpiry);
+
+      // Advance past deadline 2 (baseTime + 7500ms >= baseTime + 7000ms) -> one-shot refetch for window 2
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(callsBeforeExpiry + 1);
+
+      // Extra tick in window 2 -> no additional calls
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(callsBeforeExpiry + 1);
+    });
+
+    it('8. phase COMPLETED: selected map visível, bans permanecem visíveis, nenhuma ação de ban', () => {
+      const completedVeto = {
+        ...validMapVeto,
+        phase: 'COMPLETED' as const,
+        currentVetoerPlayerAccountId: null,
+        nextActionOrder: null,
+        actionDeadlineAt: null,
+        availableMapKeys: [],
+        selectedMapKey: 'de_nuke',
+        actions: [
+          {
+            actionOrder: 1,
+            mapKey: 'de_inferno',
+            actorPlayerAccountId: 'player-creator',
+            source: 'MANUAL_BAN' as const,
+            actedAt: '2026-08-17T20:01:00Z',
+          },
+          {
+            actionOrder: 2,
+            mapKey: 'de_mirage',
+            actorPlayerAccountId: 'player-2',
+            source: 'MANUAL_BAN' as const,
+            actedAt: '2026-08-17T20:02:00Z',
+          },
+        ],
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: completedVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.textContent).toContain('VETO CONCLUÍDO');
+      expect(fixture.nativeElement.textContent).toContain('Mapa definido. Preparando a partida.');
+      expect(fixture.nativeElement.textContent).toContain('Nuke');
+      expect(fixture.nativeElement.querySelectorAll('.veto-btn--ban').length).toBe(0);
     });
   });
 

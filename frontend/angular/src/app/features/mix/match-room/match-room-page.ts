@@ -27,6 +27,7 @@ import type {
   MatchRoomStatus,
 } from '../domain/match-room.model';
 import { MatchRoomDraftPanel } from './draft/match-room-draft-panel';
+import { MatchRoomMapVetoPanel } from './veto/match-room-map-veto-panel';
 
 @Component({
   selector: 'app-match-room-page',
@@ -38,6 +39,7 @@ import { MatchRoomDraftPanel } from './draft/match-room-draft-panel';
     PlayerAvatar,
     PlayerLink,
     MatchRoomDraftPanel,
+    MatchRoomMapVetoPanel,
   ],
   templateUrl: './match-room-page.html',
   styleUrl: './match-room-page.css',
@@ -57,11 +59,13 @@ export class MatchRoomPage implements OnInit {
   protected readonly actionError = signal<string | null>(null);
   protected readonly isPerformingAction = signal(false);
   protected readonly pendingDraftPlayerAccountId = signal<string | null>(null);
+  protected readonly pendingMapVetoKey = signal<string | null>(null);
 
   // Countdown and one-shot refresh tracking
   protected readonly nowTimestamp = signal(Date.now());
   private lastRefreshedWindowKey: string | null = null;
   private lastRefreshedDraftWindowKey: string | null = null;
+  private lastRefreshedMapVetoWindowKey: string | null = null;
 
   protected readonly remainingSeconds = computed(() => {
     const snap = this.snapshot();
@@ -117,6 +121,47 @@ export class MatchRoomPage implements OnInit {
     return seconds !== null && seconds <= 0;
   });
 
+  protected readonly mapVetoRemainingSeconds = computed(() => {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.mapVeto ||
+      snap.room.mapVeto.phase !== 'BANNING' ||
+      !snap.room.mapVeto.actionDeadlineAt
+    ) {
+      return null;
+    }
+    const deadline = Date.parse(snap.room.mapVeto.actionDeadlineAt);
+    if (isNaN(deadline)) return 0;
+    const diff = Math.floor((deadline - this.nowTimestamp()) / 1000);
+    return Math.max(0, diff);
+  });
+
+  protected readonly formattedMapVetoCountdown = computed(() => {
+    const seconds = this.mapVetoRemainingSeconds();
+    if (seconds === null) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  });
+
+  protected readonly isMapVetoWindowClosed = computed(() => {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.mapVeto ||
+      snap.room.mapVeto.phase !== 'BANNING' ||
+      !snap.room.mapVeto.actionDeadlineAt
+    ) {
+      return false;
+    }
+    const deadline = Date.parse(snap.room.mapVeto.actionDeadlineAt);
+    if (isNaN(deadline)) return true;
+    return this.nowTimestamp() >= deadline;
+  });
+
   ngOnInit(): void {
     const roomId = this.route.snapshot.paramMap.get('roomId');
     if (!roomId) {
@@ -132,6 +177,7 @@ export class MatchRoomPage implements OnInit {
         this.nowTimestamp.set(Date.now());
         this.checkZeroCountdownRefresh(roomId);
         this.checkZeroDraftCountdownRefresh(roomId);
+        this.checkZeroMapVetoCountdownRefresh(roomId);
       });
 
     // 3-second bounded polling
@@ -213,6 +259,30 @@ export class MatchRoomPage implements OnInit {
       const windowKey = `${snap.room.id}:${snap.room.draft.nextSelectionOrder}:${snap.room.draft.pickDeadlineAt}`;
       if (this.lastRefreshedDraftWindowKey !== windowKey) {
         this.lastRefreshedDraftWindowKey = windowKey;
+        this.refetchRoom(roomId);
+      }
+    }
+  }
+
+  private checkZeroMapVetoCountdownRefresh(roomId: string): void {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.mapVeto ||
+      snap.room.mapVeto.phase !== 'BANNING' ||
+      !snap.room.mapVeto.actionDeadlineAt
+    ) {
+      return;
+    }
+
+    const deadline = Date.parse(snap.room.mapVeto.actionDeadlineAt);
+    if (isNaN(deadline)) return;
+
+    if (this.nowTimestamp() >= deadline) {
+      const windowKey = `${snap.room.id}:${snap.room.mapVeto.nextActionOrder}:${snap.room.mapVeto.actionDeadlineAt}`;
+      if (this.lastRefreshedMapVetoWindowKey !== windowKey) {
+        this.lastRefreshedMapVetoWindowKey = windowKey;
         this.refetchRoom(roomId);
       }
     }
@@ -313,6 +383,40 @@ export class MatchRoomPage implements OnInit {
       },
       error: (err: unknown) => {
         this.pendingDraftPlayerAccountId.set(null);
+        this.isPerformingAction.set(false);
+        this.actionError.set(mapMatchRoomErrorToI18nKey(err));
+        this.refetchRoom(snap.room.id);
+      },
+    });
+  }
+
+  protected onMapVetoBan(mapKey: string): void {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.mapVeto ||
+      snap.room.mapVeto.phase !== 'BANNING' ||
+      !snap.viewer.actions.canMapVetoBan ||
+      !snap.room.mapVeto.availableMapKeys.includes(mapKey) ||
+      this.isMapVetoWindowClosed() ||
+      this.isPerformingAction()
+    ) {
+      return;
+    }
+
+    this.isPerformingAction.set(true);
+    this.pendingMapVetoKey.set(mapKey);
+    this.actionError.set(null);
+
+    this.matchRoomApi.mapVetoBan(snap.room.id, mapKey).subscribe({
+      next: (updated) => {
+        this.pendingMapVetoKey.set(null);
+        this.isPerformingAction.set(false);
+        this.applySnapshotSafely(updated);
+      },
+      error: (err: unknown) => {
+        this.pendingMapVetoKey.set(null);
         this.isPerformingAction.set(false);
         this.actionError.set(mapMatchRoomErrorToI18nKey(err));
         this.refetchRoom(snap.room.id);
