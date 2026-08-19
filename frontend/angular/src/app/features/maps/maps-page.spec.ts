@@ -142,8 +142,11 @@ describe('MapsPage', () => {
     mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
     createComponent();
 
-    const visible = component['visibleMaps'](maps);
-    expect(visible.map((m) => m.name)).toEqual(['de_nuke', 'de_mirage', 'de_dust2']);
+    const cardTitles = Array.from(
+      fixture.nativeElement.querySelectorAll('.maps-page__grid app-map-stat-card h3'),
+      (el) => (el as HTMLElement).textContent?.trim(),
+    );
+    expect(cardTitles).toEqual(['de_nuke', 'de_mirage', 'de_dust2']);
   });
 
   it('ordena por matches, rounds, lastPlayed e name sem mutar a lista recebida', () => {
@@ -155,17 +158,32 @@ describe('MapsPage', () => {
     mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
     createComponent();
 
-    component['sortBy'].set('matches');
-    expect(component['visibleMaps'](maps).map((m) => m.name)).toEqual(['de_mirage', 'de_dust2', 'de_nuke']);
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    const getRenderedOrder = () =>
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.maps-page__grid app-map-stat-card h3'),
+        (el) => (el as HTMLElement).textContent?.trim(),
+      );
 
-    component['sortBy'].set('rounds');
-    expect(component['visibleMaps'](maps).map((m) => m.name)).toEqual(['de_dust2', 'de_nuke', 'de_mirage']);
+    select.value = 'matches';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_mirage', 'de_dust2', 'de_nuke']);
 
-    component['sortBy'].set('lastPlayed');
-    expect(component['visibleMaps'](maps).map((m) => m.name)).toEqual(['de_mirage', 'de_dust2', 'de_nuke']);
+    select.value = 'rounds';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_dust2', 'de_nuke', 'de_mirage']);
 
-    component['sortBy'].set('name');
-    expect(component['visibleMaps'](maps).map((m) => m.name)).toEqual(['de_dust2', 'de_mirage', 'de_nuke']);
+    select.value = 'lastPlayed';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_mirage', 'de_dust2', 'de_nuke']);
+
+    select.value = 'name';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_dust2', 'de_mirage', 'de_nuke']);
 
     // garante imutabilidade
     expect(maps[0].name).toBe('de_nuke');
@@ -188,13 +206,22 @@ describe('MapsPage', () => {
   });
 
   it('retry realiza uma nova chamada à API e emite estado loading', () => {
-    mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps: [createMockMap('de_mirage')] }));
+    mapsApiMock.getMaps
+      .mockReturnValueOnce(throwError(() => new Error('HTTP 500')))
+      .mockReturnValueOnce(of({ generatedAt: '2026-08-04T12:00:00Z', maps: [createMockMap('de_mirage')] }));
     createComponent();
 
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.querySelector('app-page-state[type="error"]')).toBeTruthy();
 
-    component['retry']();
+    const retryBtn = fixture.nativeElement.querySelector('.page-state__btn') as HTMLButtonElement;
+    expect(retryBtn).toBeTruthy();
+    retryBtn.click();
+    fixture.detectChanges();
+
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.querySelector('app-page-state')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('de_mirage');
   });
 
   it('alteração de busca ou sort opera localmente sem realizar chamadas adicionais à API', () => {
@@ -203,8 +230,14 @@ describe('MapsPage', () => {
 
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
 
-    component['searchTerm'].set('mirage');
-    component['sortBy'].set('name');
+    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    input.value = 'mirage';
+    input.dispatchEvent(new Event('input'));
+
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    select.value = 'name';
+    select.dispatchEvent(new Event('change'));
+
     fixture.detectChanges();
 
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
@@ -219,16 +252,22 @@ describe('MapsPage', () => {
     mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
     createComponent();
 
+    const getRenderedOrder = () =>
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.maps-page__grid app-map-stat-card h3'),
+        (el) => (el as HTMLElement).textContent?.trim(),
+      );
+
     const ptDate = (fixture.nativeElement as HTMLElement).querySelector('.maps-page__snapshot time')?.textContent?.trim();
-    const publishedOrder = component['visibleMaps'](maps).map((map) => map.name);
+    const initialOrder = getRenderedOrder();
 
     await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
     fixture.detectChanges();
 
     const enDate = (fixture.nativeElement as HTMLElement).querySelector('.maps-page__snapshot time')?.textContent?.trim();
     expect(enDate).not.toBe(ptDate);
-    expect(component['visibleMaps'](maps).map((map) => map.name)).toEqual(publishedOrder);
-    expect(publishedOrder).toEqual(['de_nuke', 'de_mirage', 'de_dust2']);
+    expect(getRenderedOrder()).toEqual(initialOrder);
+    expect(initialOrder).toEqual(['de_nuke', 'de_mirage', 'de_dust2']);
     expect(mapsApiMock.getMaps).toHaveBeenCalledTimes(1);
   });
 
@@ -236,8 +275,17 @@ describe('MapsPage', () => {
     const maps = [createMockMap('de_mirage'), createMockMap('de_nuke')];
     mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
     createComponent();
-    component['searchTerm'].set('MIR');
-    expect(component['visibleMaps'](maps).map((map) => map.name)).toEqual(['de_mirage']);
+
+    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    input.value = 'MIR';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const cardTitles = Array.from(
+      fixture.nativeElement.querySelectorAll('.maps-page__grid app-map-stat-card h3'),
+      (el) => (el as HTMLElement).textContent?.trim(),
+    );
+    expect(cardTitles).toEqual(['de_mirage']);
     expect(maps.map((map) => map.name)).toEqual(['de_mirage', 'de_nuke']);
   });
 
@@ -246,7 +294,9 @@ describe('MapsPage', () => {
     mapsApiMock.getMaps.mockReturnValue(of({ generatedAt: '2026-08-04T12:00:00Z', maps }));
     createComponent();
 
-    component['searchTerm'].set('mapa_inexistente');
+    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    input.value = 'mapa_inexistente';
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
     const el = fixture.nativeElement as HTMLElement;
