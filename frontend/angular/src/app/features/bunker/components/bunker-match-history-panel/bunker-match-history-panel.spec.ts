@@ -38,13 +38,7 @@ function recentMap(overrides: Partial<BunkerRecentMap> = {}): BunkerRecentMap {
   };
 }
 
-interface MatchHistoryHarness {
-  selectedMatch(): BunkerRecentMap | null;
-  filteredMatches(): readonly BunkerRecentMap[];
-  mapOptions(): readonly string[];
-  mapImage(value: string | null): string | null;
-  matchStableKey(match: BunkerRecentMap): string;
-}
+
 
 describe('BunkerMatchHistoryPanel Match Explorer', () => {
   let fixture: ComponentFixture<BunkerMatchHistoryPanel>;
@@ -66,9 +60,7 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  function harness(): MatchHistoryHarness {
-    return fixture.componentInstance as unknown as MatchHistoryHarness;
-  }
+
 
   function matchRows(element: HTMLElement): HTMLButtonElement[] {
     return Array.from(element.querySelectorAll<HTMLButtonElement>('[role="option"]'));
@@ -76,6 +68,10 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
 
   function dossier(element: HTMLElement): HTMLElement {
     return element.querySelector<HTMLElement>('[aria-label="Detalhes da performance individual"]') as HTMLElement;
+  }
+
+  function hero(element: HTMLElement): HTMLElement {
+    return element.querySelector<HTMLElement>('[aria-label="Partida selecionada"]') as HTMLElement;
   }
 
   function selectFilter(element: HTMLElement, index: number, value: string): void {
@@ -107,8 +103,8 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     expect(rows.map((row) => row.querySelector('strong')?.textContent?.trim())).toEqual(['MAP1', 'MAP2', 'MAP3', 'MAP4', 'MAP5']);
     expect(rows.map((row) => row.querySelector('span')?.textContent?.trim())).toEqual(['score-1', 'score-2', 'score-3', 'score-4', 'score-5']);
     expect(rows).toHaveLength(5);
-    expect(harness().selectedMatch()).toBe(matches[0]);
     expect(rows[0].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('MAP1');
   });
 
   it('seleciona outra linha, atualiza o dossier e não altera a coleção original', () => {
@@ -118,10 +114,13 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     ];
     const original = [...matches];
     const element = render(matches);
-    matchRows(element)[1].click();
+    const rows = matchRows(element);
+    rows[1].click();
     fixture.detectChanges();
 
-    expect(harness().selectedMatch()).toBe(matches[1]);
+    expect(rows[1].getAttribute('aria-selected')).toBe('true');
+    expect(rows[0].getAttribute('aria-selected')).toBe('false');
+    expect(hero(element).textContent).toContain('INFERNO');
     expect(dossier(element).textContent).toContain('27');
     expect(matches).toEqual(original);
   });
@@ -133,18 +132,38 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     fixture.componentRef.setInput('recentMaps', lifetime);
     fixture.detectChanges();
 
-    expect(harness().selectedMatch()).toBe(lifetime[0]);
-    expect(harness().selectedMatch()).not.toBe(season[0]);
+    const element = fixture.nativeElement as HTMLElement;
+    const rows = matchRows(element);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('MIRAGE');
+    expect(hero(element).textContent).not.toContain('INFERNO');
   });
 
   it('mantém chave factual estável quando uma partida sem matchId é recriada', () => {
-    const original = recentMap({ matchId: null });
-    const recreated = recentMap({ matchId: null });
-    render([original]);
+    const matchA = recentMap({ matchId: null, mapName: 'de_mirage', mapNumber: 1 });
+    const matchB = recentMap({ matchId: null, mapName: 'de_inferno', mapNumber: 2 });
+    const element = render([matchA, matchB]);
 
-    expect(harness().matchStableKey(recreated)).toBe(harness().matchStableKey(original));
-    expect(harness().matchStableKey(recentMap({ matchId: null, mapNumber: 2 })))
-      .not.toBe(harness().matchStableKey(original));
+    matchRows(element)[1].click();
+    fixture.detectChanges();
+    expect(matchRows(element)[1].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('INFERNO');
+
+    const recreatedA = recentMap({ matchId: null, mapName: 'de_mirage', mapNumber: 1 });
+    const recreatedB = recentMap({ matchId: null, mapName: 'de_inferno', mapNumber: 2 });
+    fixture.componentRef.setInput('recentMaps', [recreatedA, recreatedB]);
+    fixture.detectChanges();
+
+    expect(matchRows(element)[1].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('INFERNO');
+
+    const changedB = recentMap({ matchId: null, mapName: 'de_inferno', mapNumber: 3 });
+    fixture.componentRef.setInput('recentMaps', [recreatedA, changedB]);
+    fixture.detectChanges();
+
+    expect(matchRows(element)[0].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('MIRAGE');
   });
 
   it('forma recente preserva win, loss e estado neutro na ordem publicada', () => {
@@ -189,7 +208,6 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     const options = Array.from(element.querySelectorAll<HTMLSelectElement>('select')[0].options, (option) => option.textContent?.trim());
 
     expect(options).toEqual(['Todos os mapas', 'NUKE', 'MIRAGE']);
-    expect(harness().mapOptions()).toEqual(['de_nuke', 'de_mirage']);
   });
 
   it('combina filtros de mapa e resultado sem inferir pelo score ou alterar a coleção', () => {
@@ -203,27 +221,32 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     selectFilter(element, 0, 'de_mirage');
     selectFilter(element, 1, 'loss');
 
-    expect(harness().filteredMatches()).toEqual([matches[0]]);
-    expect(matchRows(element)).toHaveLength(1);
-    expect(matchRows(element)[0].textContent).toContain('13-0');
-    expect(matchRows(element)[0].textContent).toContain('Derrota');
+    const rows = matchRows(element);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('13-0');
+    expect(rows[0].textContent).toContain('Derrota');
+    expect(hero(element).textContent).toContain('13-0');
     expect(matches).toEqual(original);
   });
 
   it('preserva seleção visível e recai no primeiro item quando o filtro a remove', () => {
     const matches = [
-      recentMap({ matchId: 'first', mapName: 'de_mirage', isWin: false, result: 'loss', outcome: 'loss' }),
-      recentMap({ matchId: 'second', mapName: 'de_mirage', isWin: true, result: 'win', outcome: 'win' }),
-      recentMap({ matchId: 'third', mapName: 'de_nuke', isWin: true, result: 'win', outcome: 'win' }),
+      recentMap({ matchId: 'first', mapName: 'de_mirage', score: '13-1', kills: 11, isWin: false, result: 'loss', outcome: 'loss' }),
+      recentMap({ matchId: 'second', mapName: 'de_mirage', score: '13-2', kills: 27, isWin: true, result: 'win', outcome: 'win' }),
+      recentMap({ matchId: 'third', mapName: 'de_nuke', score: '13-3', kills: 33, isWin: true, result: 'win', outcome: 'win' }),
     ];
     const element = render(matches);
     matchRows(element)[1].click();
     fixture.detectChanges();
     selectFilter(element, 0, 'de_mirage');
-    expect(harness().selectedMatch()).toBe(matches[1]);
+    expect(matchRows(element)[1].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('13-2');
+    expect(dossier(element).textContent).toContain('27');
 
     selectFilter(element, 1, 'loss');
-    expect(harness().selectedMatch()).toBe(matches[0]);
+    expect(matchRows(element)[0].getAttribute('aria-selected')).toBe('true');
+    expect(hero(element).textContent).toContain('13-1');
+    expect(dossier(element).textContent).toContain('11');
   });
 
   it('filtros sem resultado mantêm filtros e mostram empty state local no index e dossier', () => {
@@ -231,7 +254,6 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     selectFilter(element, 1, 'loss');
 
     expect(matchRows(element)).toHaveLength(0);
-    expect(harness().selectedMatch()).toBeNull();
     expect(element.textContent?.match(/Nenhuma partida encontrada com os filtros selecionados\./g)).toHaveLength(2);
     expect(element.querySelectorAll<HTMLSelectElement>('select')[1].value).toBe('loss');
   });
@@ -310,11 +332,9 @@ describe('BunkerMatchHistoryPanel Match Explorer', () => {
     const element = render([known]);
     expect(element.textContent).toContain('MIRAGE');
     expect(known.mapName).toBe('de_mirage');
-    expect(harness().mapImage('de_mirage')).toBe('map-images/de_mirage.png');
     expect(element.querySelector('[aria-label="Partida selecionada"] img')?.getAttribute('src')).toBe('map-images/de_mirage.png');
 
     const unknownElement = render([recentMap({ mapName: 'de_cache' })]);
-    expect(harness().mapImage('de_cache')).toBeNull();
     expect(unknownElement.querySelector('[aria-label="Partida selecionada"] img')).toBeNull();
   });
 
