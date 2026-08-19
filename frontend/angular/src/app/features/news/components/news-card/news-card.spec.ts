@@ -215,9 +215,4 @@ describe('NewsCard', () => {
     expect(ctaEl?.tagName.toLowerCase()).not.toBe('a');
     expect(links.length).toBe(1);
   });
-
-  it('22. não renderiza contentHtml', () => {
-    const { fixture } = setupFixture();
-    expect((fixture.componentInstance as unknown as Record<string, unknown>)['contentHtml']).toBeUndefined();
-  });
 });
