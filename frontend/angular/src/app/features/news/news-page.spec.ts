@@ -243,8 +243,4 @@ describe('NewsPage', () => {
     createComponent(throwError(() => new Error('HTTP 500')));
     expect(fixture.nativeElement.querySelectorAll('app-news-card').length).toBe(0);
   });
-
-  it('20. não importa ou depende de Cs2ApiService', () => {
-    expect(true).toBe(true);
-  });
 });
