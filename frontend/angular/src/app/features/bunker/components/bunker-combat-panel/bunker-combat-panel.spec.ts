@@ -31,11 +31,6 @@ function stats(overrides: Partial<BunkerPlayerStats> = {}): BunkerPlayerStats {
   };
 }
 
-interface CombatHarness {
-  visualMax(): number;
-  distributionWidth(value: number): string;
-}
-
 describe('BunkerCombatPanel', () => {
   let fixture: ComponentFixture<BunkerCombatPanel>;
 
@@ -54,10 +49,6 @@ describe('BunkerCombatPanel', () => {
     fixture.componentRef.setInput('summary', summary);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
-  }
-
-  function harness(): CombatHarness {
-    return fixture.componentInstance as unknown as CombatHarness;
   }
 
   function dataRows(element: HTMLElement): HTMLElement[] {
@@ -106,11 +97,15 @@ describe('BunkerCombatPanel', () => {
   });
 
   it('usa o maior contador como visualMax compartilhado para as larguras relativas', () => {
-    render(stats({ enemy2ks: 14, enemy3ks: 3, enemy4ks: 1, enemy5ks: 0 }));
-    expect(harness().visualMax()).toBe(14);
-    expect(Number.parseFloat(harness().distributionWidth(14))).toBeGreaterThan(Number.parseFloat(harness().distributionWidth(3)));
-    expect(Number.parseFloat(harness().distributionWidth(3))).toBeGreaterThan(Number.parseFloat(harness().distributionWidth(1)));
-    expect(Number.parseFloat(harness().distributionWidth(0))).toBe(0);
+    const element = render(stats({ enemy2ks: 14, enemy3ks: 3, enemy4ks: 1, enemy5ks: 0 }));
+    const meters = Array.from(element.querySelectorAll<HTMLElement>('[role="meter"]'));
+    expect(meters).toHaveLength(4);
+    expect(meters.every((m) => m.getAttribute('aria-valuemax') === '14')).toBe(true);
+    expect(meters.map((m) => m.getAttribute('aria-valuenow'))).toEqual(['14', '3', '1', '0']);
+    const widths = meters.map((m) => Number.parseFloat((m.querySelector('span') as HTMLElement).style.width));
+    expect(widths[0]).toBeGreaterThan(widths[1]);
+    expect(widths[1]).toBeGreaterThan(widths[2]);
+    expect(widths[3]).toBe(0);
   });
 
   it('quatro zeros acionam zero-state factual sem montar Apex', () => {
