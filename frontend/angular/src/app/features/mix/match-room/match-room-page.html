@@ -182,20 +182,13 @@
         }
       }
 
-      <!-- READY State Callout -->
-      @if (snap.room.status === 'READY') {
-        <div class="room-callout room-callout--setup">
-          <h2 class="room-callout__title">{{ 'mix.matchRoom.readyBannerTitle' | translate }}</h2>
-          <p class="room-callout__desc">{{ 'mix.matchRoom.readyBannerDesc' | translate }}</p>
-        </div>
-      }
-
-      <!-- PROVISIONING State Callout -->
-      @if (snap.room.status === 'PROVISIONING') {
-        <div class="room-callout room-callout--setup">
-          <h2 class="room-callout__title">{{ 'mix.matchRoom.provisioningBannerTitle' | translate }}</h2>
-          <p class="room-callout__desc">{{ 'mix.matchRoom.provisioningBannerDesc' | translate }}</p>
-        </div>
+      <!-- READY and PROVISIONING States: Competitive Panel -->
+      @if (snap.room.status === 'READY' || snap.room.status === 'PROVISIONING') {
+        <app-match-room-competitive-panel
+          [competitiveMatch]="snap.room.competitiveMatch"
+          [participants]="snap.room.participants"
+          [status]="snap.room.status"
+        />
       }
 
       <!-- CONFIRMING State Central Confirmation Panel -->
@@ -247,7 +240,7 @@
       }
 
       <!-- 10 Neutral Slots Roster Grid (for FORMING, CONFIRMING, or SETUP without draft/veto) -->
-      @if (snap.room.status !== 'SETUP' || (snap.room.draft === null && snap.room.mapVeto === null)) {
+      @if (snap.room.status === 'FORMING' || snap.room.status === 'CONFIRMING' || (snap.room.status === 'SETUP' && snap.room.draft === null && snap.room.mapVeto === null)) {
         <section class="room-roster" aria-labelledby="roster-heading">
           <div class="room-roster__header">
             <h2 id="roster-heading" class="room-roster__title">

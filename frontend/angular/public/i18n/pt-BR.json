@@ -267,6 +267,20 @@
       "PROVISIONING": "INICIANDO",
       "CANCELLED": "CANCELADO"
     },
+    "competitive": {
+      "readyTitle": "PARTIDA DEFINIDA",
+      "provisioningTitle": "PREPARANDO SERVIDOR",
+      "readyDesc": "Times e mapa definidos.",
+      "readySubDesc": "Preparando próxima etapa.",
+      "provisioningDesc": "A configuração da partida está concluída. O servidor está sendo preparado.",
+      "autoUpdateNotice": "Esta página será atualizada automaticamente.",
+      "readyFallback": "Finalizando os dados da partida.",
+      "provisioningFallback": "Preparando os dados da partida.",
+      "mapSelected": "MAPA DEFINIDO",
+      "teamA": "TIME A",
+      "teamB": "TIME B",
+      "players": "jogadores"
+    },
     "draft": {
       "eyebrow": "CAPTAIN DRAFT",
       "title": "Formação dos times",

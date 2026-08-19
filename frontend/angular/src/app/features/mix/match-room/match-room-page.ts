@@ -28,6 +28,7 @@ import type {
 } from '../domain/match-room.model';
 import { MatchRoomDraftPanel } from './draft/match-room-draft-panel';
 import { MatchRoomMapVetoPanel } from './veto/match-room-map-veto-panel';
+import { MatchRoomCompetitivePanel } from './competitive/match-room-competitive-panel';
 
 @Component({
   selector: 'app-match-room-page',
@@ -40,6 +41,7 @@ import { MatchRoomMapVetoPanel } from './veto/match-room-map-veto-panel';
     PlayerLink,
     MatchRoomDraftPanel,
     MatchRoomMapVetoPanel,
+    MatchRoomCompetitivePanel,
   ],
   templateUrl: './match-room-page.html',
   styleUrl: './match-room-page.css',
