@@ -152,9 +152,19 @@
         </div>
       </header>
 
-      <!-- SETUP State Section: Draft Panel or Fallback Banner -->
+      <!-- SETUP State Section: Map Veto Panel, Draft Panel or Fallback Banner -->
       @if (snap.room.status === 'SETUP') {
-        @if (snap.room.draft; as draft) {
+        @if (snap.room.mapVeto; as mapVeto) {
+          <app-match-room-map-veto-panel
+            [mapVeto]="mapVeto"
+            [participants]="snap.room.participants"
+            [canMapVetoBan]="snap.viewer.actions.canMapVetoBan"
+            [formattedCountdown]="formattedMapVetoCountdown()"
+            [isWindowClosed]="isMapVetoWindowClosed()"
+            [pendingMapKey]="pendingMapVetoKey()"
+            (banMap)="onMapVetoBan($event)"
+          />
+        } @else if (snap.room.draft; as draft) {
           <app-match-room-draft-panel
             [draft]="draft"
             [participants]="snap.room.participants"
@@ -236,8 +246,8 @@
         </section>
       }
 
-      <!-- 10 Neutral Slots Roster Grid (for FORMING, CONFIRMING, or SETUP without draft) -->
-      @if (snap.room.status !== 'SETUP' || snap.room.draft === null) {
+      <!-- 10 Neutral Slots Roster Grid (for FORMING, CONFIRMING, or SETUP without draft/veto) -->
+      @if (snap.room.status !== 'SETUP' || (snap.room.draft === null && snap.room.mapVeto === null)) {
         <section class="room-roster" aria-labelledby="roster-heading">
           <div class="room-roster__header">
             <h2 id="roster-heading" class="room-roster__title">

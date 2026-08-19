@@ -1,0 +1,287 @@
+.veto-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
+  margin-bottom: 2rem;
+}
+
+.veto-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.veto-panel__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.veto-panel__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #06b6d4;
+}
+
+.veto-panel__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+/* Turn Banner & Timer */
+.veto-turn-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.veto-turn-banner--your-turn {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  color: #22d3ee;
+}
+
+.veto-turn-banner--waiting {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+}
+
+.veto-turn-banner__badge {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.veto-turn-banner__timer {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.veto-turn-banner__timer--expired {
+  color: #ef4444;
+}
+
+/* Completed Banner */
+.veto-banner--completed {
+  padding: 1rem 1.25rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+}
+
+.veto-banner__text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #34d399;
+}
+
+.veto-banner__highlight {
+  color: #6ee7b7;
+  font-weight: 700;
+}
+
+/* Pool Section */
+.veto-pool-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.veto-pool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.veto-pool-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.veto-pool-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Map Grid */
+.veto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+/* Map Card */
+.veto-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.2s ease;
+}
+
+.veto-card--available {
+  border-color: rgba(6, 182, 212, 0.2);
+}
+
+.veto-card--available:hover {
+  border-color: rgba(6, 182, 212, 0.5);
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.veto-card--banned {
+  opacity: 0.6;
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.veto-card--selected {
+  border-color: rgba(16, 185, 129, 0.6);
+  background: rgba(16, 185, 129, 0.08);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
+}
+
+.veto-card--pending {
+  opacity: 0.8;
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.veto-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.veto-card__name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.veto-card--banned .veto-card__name {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.veto-card__key {
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #64748b;
+}
+
+.veto-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Status Badges */
+.veto-status-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.veto-status-badge--selected {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.veto-status-badge--banned {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.veto-ban-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-weight: 500;
+  font-size: 0.7rem;
+  color: #fca5a5;
+}
+
+.veto-ban-meta__actor {
+  font-weight: 600;
+}
+
+.veto-ban-meta__source {
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* Buttons */
+.veto-btn {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.veto-btn--ban {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.veto-btn--ban:hover:not(:disabled) {
+  background: #dc2626;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.veto-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .veto-panel {
+    padding: 1rem;
+  }
+
+  .veto-grid {
+    grid-template-columns: 1fr;
+  }
+}
