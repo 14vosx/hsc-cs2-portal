@@ -55,7 +55,6 @@ const createMockSeasonMaps = (slug = 'season-1'): SeasonMaps => ({
 });
 
 describe('SeasonMapsPage', () => {
-  let component: SeasonMapsPage;
   let fixture: ComponentFixture<SeasonMapsPage>;
   let seasonMapsApiMock: { getMaps: ReturnType<typeof vi.fn> };
   let paramMapSubject: BehaviorSubject<ParamMap>;
@@ -83,7 +82,6 @@ describe('SeasonMapsPage', () => {
 
   const createComponent = () => {
     fixture = TestBed.createComponent(SeasonMapsPage);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   };
 
@@ -93,7 +91,7 @@ describe('SeasonMapsPage', () => {
     );
     createComponent();
 
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
     expect(seasonMapsApiMock.getMaps).toHaveBeenCalledWith('season-1');
 
     const el = fixture.nativeElement as HTMLElement;
@@ -151,34 +149,81 @@ describe('SeasonMapsPage', () => {
     createComponent();
 
     const originalOrder = publishedMaps.map((m) => m.name);
-    expect(component['visibleMaps'](publishedMaps).map((m) => m.name)).toEqual(['de_nuke', 'de_mirage']);
+    const getRenderedOrder = () =>
+      Array.from(
+        fixture.nativeElement.querySelectorAll('.season-map-card h3'),
+        (el) => (el as HTMLElement).textContent?.trim(),
+      );
 
-    component['searchTerm'].set('nuke');
-    expect(component['visibleMaps'](publishedMaps).map((m) => m.name)).toEqual(['de_nuke']);
-    component['searchTerm'].set('');
+    const searchInput = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    const sortSelect = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
 
-    component['sortBy'].set('matches');
-    expect(component['visibleMaps'](publishedMaps).map((m) => m.name)).toEqual(['de_mirage', 'de_nuke']);
+    expect(getRenderedOrder()).toEqual(['de_nuke', 'de_mirage']);
 
-    component['sortBy'].set('rounds');
-    expect(component['visibleMaps'](publishedMaps).map((m) => m.name)).toEqual(['de_mirage', 'de_nuke']);
+    searchInput.value = 'nuke';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_nuke']);
 
-    component['sortBy'].set('lastPlayed');
-    expect(component['visibleMaps'](publishedMaps).map((m) => m.name)).toEqual(['de_mirage', 'de_nuke']);
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
-    component['sortBy'].set('name');
-    expect(component['visibleMaps'](publishedMaps).map((m) => m.name)).toEqual(['de_mirage', 'de_nuke']);
+    sortSelect.value = 'matches';
+    sortSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_mirage', 'de_nuke']);
+
+    sortSelect.value = 'rounds';
+    sortSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_mirage', 'de_nuke']);
+
+    sortSelect.value = 'lastPlayed';
+    sortSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_mirage', 'de_nuke']);
+
+    sortSelect.value = 'name';
+    sortSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(getRenderedOrder()).toEqual(['de_mirage', 'de_nuke']);
+
     expect(publishedMaps.map((m) => m.name)).toEqual(originalOrder);
   });
 
   it('usa artwork local somente para mapas conhecidos e fallback para desconhecidos', () => {
+    const data = createMockSeasonMaps('season-1');
+    const maps = [
+      {
+        name: 'de_mirage',
+        matches: 15,
+        rounds: 300,
+        averageRoundsPerMatch: 20.0,
+        lastPlayedAt: '2026-06-30T20:00:00Z',
+      },
+      {
+        name: 'de_unknown',
+        matches: 5,
+        rounds: 50,
+        averageRoundsPerMatch: 10.0,
+        lastPlayedAt: null,
+      },
+    ];
     seasonMapsApiMock.getMaps.mockReturnValue(
-      of({ kind: 'available', maps: createMockSeasonMaps('season-1') })
+      of({ kind: 'available', maps: { ...data, maps } })
     );
     createComponent();
 
-    expect(component['mapBackgroundImage']('de_mirage')).toBe('url("map-images/de_mirage.png")');
-    expect(component['mapBackgroundImage']('de_unknown')).toBe('none');
+    const cards = fixture.nativeElement.querySelectorAll('.season-map-card') as NodeListOf<HTMLElement>;
+    const mirageCard = Array.from(cards).find((c) => c.querySelector('h3')?.textContent?.trim() === 'de_mirage');
+    const unknownCard = Array.from(cards).find((c) => c.querySelector('h3')?.textContent?.trim() === 'de_unknown');
+
+    expect(mirageCard).toBeTruthy();
+    expect(mirageCard?.style.getPropertyValue('--map-bg')).toContain('map-images/de_mirage.png');
+
+    expect(unknownCard).toBeTruthy();
+    expect(unknownCard?.style.getPropertyValue('--map-bg')).toBe('none');
   });
 
   it('mantém o contexto sazonal e exibe empty específico quando a Season não possui mapas', () => {
