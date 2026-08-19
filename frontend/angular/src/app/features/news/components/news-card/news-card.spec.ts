@@ -220,8 +220,4 @@ describe('NewsCard', () => {
     const { fixture } = setupFixture();
     expect((fixture.componentInstance as unknown as Record<string, unknown>)['contentHtml']).toBeUndefined();
   });
-
-  it('23. não importa DTOs', () => {
-    expect(true).toBe(true);
-  });
 });

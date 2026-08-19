@@ -441,22 +441,6 @@ describe('NewsDetailPage', () => {
     expect(backLink?.getAttribute('href')).toBe('/news');
   });
 
-  it('42. não usa Cs2ApiService', () => {
-    expect(true).toBe(true);
-  });
-
-  it('43. não importa DTO', () => {
-    expect(true).toBe(true);
-  });
-
-  it('44. não usa DomSanitizer', () => {
-    expect(true).toBe(true);
-  });
-
-  it('45. não usa bypassSecurityTrustHtml diretamente na página', () => {
-    expect(true).toBe(true);
-  });
-
   it('46. alterna locale sem nova requisição e preserva conteúdo editorial', async () => {
     const article = createNewsArticle(); createComponent(of(article));
     const calls = newsApiMock.getNewsArticle.mock.calls.length;
