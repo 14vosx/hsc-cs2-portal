@@ -152,12 +152,24 @@
         </div>
       </header>
 
-      <!-- SETUP State Callout -->
+      <!-- SETUP State Section: Draft Panel or Fallback Banner -->
       @if (snap.room.status === 'SETUP') {
-        <div class="room-callout room-callout--setup">
-          <h2 class="room-callout__title">{{ 'mix.matchRoom.setupBannerTitle' | translate }}</h2>
-          <p class="room-callout__desc">{{ 'mix.matchRoom.setupBannerDesc' | translate }}</p>
-        </div>
+        @if (snap.room.draft; as draft) {
+          <app-match-room-draft-panel
+            [draft]="draft"
+            [participants]="snap.room.participants"
+            [canDraftPick]="snap.viewer.actions.canDraftPick"
+            [formattedCountdown]="formattedDraftCountdown()"
+            [isWindowClosed]="isDraftWindowClosed()"
+            [pendingPlayerAccountId]="pendingDraftPlayerAccountId()"
+            (pickPlayer)="onDraftPick($event)"
+          />
+        } @else {
+          <div class="room-callout room-callout--setup">
+            <h2 class="room-callout__title">{{ 'mix.matchRoom.setupBannerTitle' | translate }}</h2>
+            <p class="room-callout__desc">{{ 'mix.matchRoom.setupBannerDesc' | translate }}</p>
+          </div>
+        }
       }
 
       <!-- READY State Callout -->
@@ -224,69 +236,71 @@
         </section>
       }
 
-      <!-- 10 Neutral Slots Roster Grid -->
-      <section class="room-roster" aria-labelledby="roster-heading">
-        <div class="room-roster__header">
-          <h2 id="roster-heading" class="room-roster__title">
-            {{ 'mix.matchRoom.rosterHeading' | translate }}
-          </h2>
-          <span class="room-roster__subtitle">
-            {{ snap.room.participantCount }}/{{ snap.room.capacity }} {{ 'mix.matchRoom.players' | translate }}
-          </span>
-        </div>
+      <!-- 10 Neutral Slots Roster Grid (for FORMING, CONFIRMING, or SETUP without draft) -->
+      @if (snap.room.status !== 'SETUP' || snap.room.draft === null) {
+        <section class="room-roster" aria-labelledby="roster-heading">
+          <div class="room-roster__header">
+            <h2 id="roster-heading" class="room-roster__title">
+              {{ 'mix.matchRoom.rosterHeading' | translate }}
+            </h2>
+            <span class="room-roster__subtitle">
+              {{ snap.room.participantCount }}/{{ snap.room.capacity }} {{ 'mix.matchRoom.players' | translate }}
+            </span>
+          </div>
 
-        <div class="room-slots-grid">
-          @for (slot of getSlots(); track $index) {
-            <div class="room-slot" [class.room-slot--occupied]="slot !== null">
-              @if (slot; as participant) {
-                <div class="room-slot__player">
-                  <app-player-avatar
-                    [imageUrl]="participant.player?.steam?.avatarMediumUrl ?? null"
-                    [displayName]="getDisplayName(participant)"
-                    accent="cyan"
-                  />
+          <div class="room-slots-grid">
+            @for (slot of getSlots(); track $index) {
+              <div class="room-slot" [class.room-slot--occupied]="slot !== null">
+                @if (slot; as participant) {
+                  <div class="room-slot__player">
+                    <app-player-avatar
+                      [imageUrl]="participant.player?.steam?.avatarMediumUrl ?? null"
+                      [displayName]="getDisplayName(participant)"
+                      accent="cyan"
+                    />
 
-                  <div class="room-slot__details">
-                    <div class="room-slot__name-row">
-                      <app-player-link
-                        [label]="getDisplayName(participant)"
-                        [profileSlug]="participant.player?.profile?.slug ?? null"
-                      />
+                    <div class="room-slot__details">
+                      <div class="room-slot__name-row">
+                        <app-player-link
+                          [label]="getDisplayName(participant)"
+                          [profileSlug]="participant.player?.profile?.slug ?? null"
+                        />
 
-                      @if (isCreator(participant)) {
-                        <span class="room-badge room-badge--creator">
-                          {{ 'mix.matchRoom.creatorBadge' | translate }}
-                        </span>
-                      }
-                    </div>
-
-                    @if (snap.room.status === 'CONFIRMING') {
-                      <div class="room-slot__confirm-status">
-                        @if (participant.confirmation.confirmed) {
-                          <span class="room-status-tag room-status-tag--confirmed">
-                            {{ 'mix.matchRoom.confirmedStatus' | translate }}
-                          </span>
-                        } @else {
-                          <span class="room-status-tag room-status-tag--waiting">
-                            {{ 'mix.matchRoom.waitingConfirmationStatus' | translate }}
+                        @if (isCreator(participant)) {
+                          <span class="room-badge room-badge--creator">
+                            {{ 'mix.matchRoom.creatorBadge' | translate }}
                           </span>
                         }
                       </div>
-                    }
+
+                      @if (snap.room.status === 'CONFIRMING') {
+                        <div class="room-slot__confirm-status">
+                          @if (participant.confirmation.confirmed) {
+                            <span class="room-status-tag room-status-tag--confirmed">
+                              {{ 'mix.matchRoom.confirmedStatus' | translate }}
+                            </span>
+                          } @else {
+                            <span class="room-status-tag room-status-tag--waiting">
+                              {{ 'mix.matchRoom.waitingConfirmationStatus' | translate }}
+                            </span>
+                          }
+                        </div>
+                      }
+                    </div>
                   </div>
-                </div>
-              } @else {
-                <div class="room-slot__empty">
-                  <span class="room-slot__empty-icon">+</span>
-                  <span class="room-slot__empty-label">
-                    {{ 'mix.matchRoom.waitingPlayer' | translate }}
-                  </span>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      </section>
+                } @else {
+                  <div class="room-slot__empty">
+                    <span class="room-slot__empty-icon">+</span>
+                    <span class="room-slot__empty-label">
+                      {{ 'mix.matchRoom.waitingPlayer' | translate }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
     }
   }
 </div>

@@ -9,7 +9,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PlayerSessionService } from '../../../core/session/player-session.service';
 import type { PlayerSession } from '../../../core/session/player-session.model';
 import { MatchRoomApiService } from '../data-access/match-room-api.service';
-import type { MatchRoomParticipant, MatchRoomSnapshot, MatchRoomStatus } from '../domain/match-room.model';
+import type {
+  MatchRoomDraftSnapshot,
+  MatchRoomParticipant,
+  MatchRoomSnapshot,
+  MatchRoomStatus,
+} from '../domain/match-room.model';
 import { MatchRoomPage } from './match-room-page';
 
 function createParticipant(
@@ -33,7 +38,7 @@ function createParticipant(
     joinedAt: '2026-08-17T20:00:00Z',
     confirmation: {
       confirmed,
-      confirmedAt: confirmed ? '2026-08-17T20:00:10Z' : null,
+      confirmedAt: '2026-08-17T20:01:00Z',
     },
   };
 }
@@ -53,6 +58,7 @@ function createRoomSnapshot(
     deadlineAt?: string;
     round?: number;
     confirmedCount?: number;
+    draft?: MatchRoomDraftSnapshot | null;
   } = {},
 ): MatchRoomSnapshot {
   const participants =
@@ -80,7 +86,7 @@ function createRoomSnapshot(
           : null,
       rosterLockedAt: null,
       readyAt: null,
-      draft: null,
+      draft: overrides.draft !== undefined ? overrides.draft : null,
       mapVeto: null,
       competitiveMatch: null,
       participants,
@@ -111,6 +117,7 @@ describe('MatchRoomPage', () => {
     leaveMatchRoom: vi.fn(),
     cancelMatchRoom: vi.fn(),
     joinMatchRoom: vi.fn(),
+    draftPick: vi.fn(),
   };
 
   const sessionServiceMock = {
@@ -167,6 +174,22 @@ describe('MatchRoomPage', () => {
         waitingPlayer: 'AGUARDANDO JOGADOR',
         retry: 'Tentar novamente',
       },
+      draft: {
+        eyebrow: 'CAPTAIN DRAFT',
+        title: 'Formação dos times',
+        teamA: 'TIME A',
+        teamB: 'TIME B',
+        captain: 'CAPITÃO',
+        currentPickerTurn: 'Vez de {{ name }}',
+        yourTurn: 'SUA VEZ DE ESCOLHER',
+        availablePool: 'JOGADORES DISPONÍVEIS',
+        pickAction: 'ESCOLHER',
+        picking: 'ESCOLHENDO...',
+        completedTitle: 'DRAFT CONCLUÍDO',
+        completedBanner: 'Times definidos. Preparando próxima etapa.',
+        emptyAvailablePool: 'Nenhum jogador disponível no momento.',
+        waitingForPick: 'Aguardando escolha...',
+      },
       statuses: {
         FORMING: 'FORMANDO',
         CONFIRMING: 'CONFIRMANDO',
@@ -178,6 +201,7 @@ describe('MatchRoomPage', () => {
       errors: {
         room_not_found: 'O lobby solicitado não foi encontrado.',
         generic: 'Ocorreu um erro ao processar sua solicitação. Tente novamente.',
+        draft_target_not_available: 'O jogador selecionado não está disponível para escolha.',
       },
     },
   };
@@ -471,8 +495,44 @@ describe('MatchRoomPage', () => {
     });
   });
 
-  describe('SETUP state', () => {
-    it('renderiza cópia transitória e não exibe elementos de Draft', () => {
+  describe('SETUP state & Draft Orchestration', () => {
+    const validDraft = {
+      phase: 'PICKING' as const,
+      captains: { teamAPlayerAccountId: 'player-creator', teamBPlayerAccountId: 'player-2' },
+      firstPickerPlayerAccountId: 'player-creator',
+      currentPickerPlayerAccountId: 'player-creator',
+      nextSelectionOrder: 1,
+      pickDeadlineAt: new Date(Date.now() + 30000).toISOString(),
+      availablePlayerAccountIds: ['player-3'],
+      assignments: [
+        {
+          playerAccountId: 'player-creator',
+          team: 'A' as const,
+          captain: true,
+          selectionOrder: null,
+          source: 'CAPTAIN' as const,
+          pickerPlayerAccountId: null,
+          assignedAt: '2026-08-17T20:01:00Z',
+        },
+        {
+          playerAccountId: 'player-2',
+          team: 'B' as const,
+          captain: true,
+          selectionOrder: null,
+          source: 'CAPTAIN' as const,
+          pickerPlayerAccountId: null,
+          assignedAt: '2026-08-17T20:01:00Z',
+        },
+      ],
+    };
+
+    const draftParticipants = [
+      createParticipant('player-creator', 'Creator Player', 'creator-slug', true),
+      createParticipant('player-2', 'Second Player', null, true),
+      createParticipant('player-3', 'Third Player', 'third-slug', true),
+    ];
+
+    it('1. SETUP sem draft renderiza cópia transitória e roster neutro', () => {
       const snap = createRoomSnapshot('SETUP', 1);
       matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
 
@@ -480,9 +540,116 @@ describe('MatchRoomPage', () => {
 
       expect(fixture.nativeElement.textContent).toContain('PREPARANDO PARTIDA');
       expect(fixture.nativeElement.textContent).toContain('10/10 confirmados');
-      expect(fixture.nativeElement.textContent).not.toContain('Team A');
-      expect(fixture.nativeElement.textContent).not.toContain('Team B');
-      expect(fixture.nativeElement.textContent).not.toContain('Draft');
+      expect(fixture.nativeElement.querySelector('app-match-room-draft-panel')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-roster')).not.toBeNull();
+    });
+
+    it('2. SETUP com draft renderiza MatchRoomDraftPanel e esconde roster neutro', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: validDraft,
+        participants: draftParticipants,
+        canDraftPick: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('app-match-room-draft-panel')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('CAPTAIN DRAFT');
+      expect(fixture.nativeElement.textContent).toContain('SUA VEZ DE ESCOLHER');
+    });
+
+    it('3. clique de pick chama draftPick no service sem alteração otimista prévia', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: validDraft,
+        participants: draftParticipants,
+        canDraftPick: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      const updatedDraft = {
+        ...validDraft,
+        availablePlayerAccountIds: [],
+        assignments: [
+          ...validDraft.assignments,
+          {
+            playerAccountId: 'player-3',
+            team: 'A' as const,
+            captain: false,
+            selectionOrder: 1,
+            source: 'MANUAL_PICK' as const,
+            pickerPlayerAccountId: 'player-creator',
+            assignedAt: '2026-08-17T20:02:00Z',
+          },
+        ],
+      };
+      const updatedSnap = createRoomSnapshot('SETUP', 2, {
+        draft: updatedDraft,
+        participants: draftParticipants,
+        canDraftPick: false,
+      });
+      matchRoomApiMock.draftPick.mockReturnValue(of(updatedSnap));
+
+      fixture = setupFixture();
+
+      const pickBtn = fixture.nativeElement.querySelector('.draft-btn--pick');
+      expect(pickBtn).not.toBeNull();
+
+      pickBtn.click();
+      expect(matchRoomApiMock.draftPick).toHaveBeenCalledWith('room-test-123', 'player-3');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Nenhum jogador disponível no momento.');
+      expect(fixture.nativeElement.querySelectorAll('.draft-btn--pick').length).toBe(0);
+    });
+
+    it('4. erro na mutation exibe mensagem traduzida e dispara refetch', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: validDraft,
+        participants: draftParticipants,
+        canDraftPick: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      const errorResponse = new HttpErrorResponse({
+        status: 409,
+        error: { ok: false, error: 'draft_target_not_available' },
+      });
+      matchRoomApiMock.draftPick.mockReturnValue(throwError(() => errorResponse));
+
+      fixture = setupFixture();
+
+      const pickBtn = fixture.nativeElement.querySelector('.draft-btn--pick');
+      pickBtn.click();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('O jogador selecionado não está disponível para escolha.');
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+    });
+
+    it('5. countdown do Draft atingindo zero dispara one-shot refetch', () => {
+      const expiredDraft = {
+        ...validDraft,
+        pickDeadlineAt: new Date(Date.now() - 2000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: expiredDraft,
+        participants: draftParticipants,
+        canDraftPick: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(1);
+
+      // Ticker ticks at 1s -> zero draft refresh
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+
+      // Extra ticks do not spam GET because of window key
+      vi.advanceTimersByTime(1000);
+      expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
     });
   });
 

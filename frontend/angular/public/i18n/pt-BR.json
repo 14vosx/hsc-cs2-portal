@@ -267,6 +267,23 @@
       "PROVISIONING": "INICIANDO",
       "CANCELLED": "CANCELADO"
     },
+    "draft": {
+      "eyebrow": "CAPTAIN DRAFT",
+      "title": "Formação dos times",
+      "teamA": "TIME A",
+      "teamB": "TIME B",
+      "captain": "CAPITÃO",
+      "currentPickerTurn": "Vez de {{ name }}",
+      "yourTurn": "SUA VEZ DE ESCOLHER",
+      "availablePool": "JOGADORES DISPONÍVEIS",
+      "pickAction": "ESCOLHER",
+      "picking": "ESCOLHENDO...",
+      "completedTitle": "DRAFT CONCLUÍDO",
+      "completedBanner": "Times definidos. Preparando próxima etapa.",
+      "emptyAvailablePool": "Nenhum jogador disponível no momento.",
+      "waitingForPick": "Aguardando escolha...",
+      "updatingWindow": "Aguardando atualização..."
+    },
     "errors": {
       "already_in_active_room": "Você já possui uma sala ativa no momento.",
       "already_in_room": "Você já está participando desta sala.",

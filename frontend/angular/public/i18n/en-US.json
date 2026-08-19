@@ -266,6 +266,23 @@
       "PROVISIONING": "PROVISIONING",
       "CANCELLED": "CANCELLED"
     },
+    "draft": {
+      "eyebrow": "CAPTAIN DRAFT",
+      "title": "Team Formation",
+      "teamA": "TEAM A",
+      "teamB": "TEAM B",
+      "captain": "CAPTAIN",
+      "currentPickerTurn": "Turn of {{ name }}",
+      "yourTurn": "YOUR TURN TO PICK",
+      "availablePool": "AVAILABLE PLAYERS",
+      "pickAction": "PICK",
+      "picking": "PICKING...",
+      "completedTitle": "DRAFT COMPLETED",
+      "completedBanner": "Teams set. Preparing next stage.",
+      "emptyAvailablePool": "No players available right now.",
+      "waitingForPick": "Waiting for pick...",
+      "updatingWindow": "Waiting for update..."
+    },
     "errors": {
       "already_in_active_room": "You already have an active lobby at this time.",
       "already_in_room": "You are already participating in this lobby.",
