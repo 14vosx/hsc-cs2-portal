@@ -25,6 +25,13 @@ describe('PlayerProfileEditor', () => {
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
 
+  const changeSelect = (select: HTMLSelectElement, value: string): void => {
+    select.value = value;
+    select.dispatchEvent(new Event('input', { bubbles: true }));
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    fixture.detectChanges();
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PlayerProfileEditor],
@@ -47,80 +54,112 @@ describe('PlayerProfileEditor', () => {
   });
 
   it('inicializa o modelo de edição com os dados do perfil', () => {
-    expect(component['editModel']()).toEqual({
-      displayName: 'Gaules',
-      slug: 'gaules',
-      bio: 'Tribo Gaules',
-      discordHandle: 'gaules#1234',
-      preferredRole: 'awper',
-      preferredMap: 'de_train',
-      visibility: 'public',
-    });
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector<HTMLInputElement>('#editor-displayName')?.value).toBe('Gaules');
+    expect(host.querySelector<HTMLInputElement>('#editor-slug')?.value).toBe('gaules');
+    expect(host.querySelector<HTMLTextAreaElement>('#editor-bio')?.value).toBe('Tribo Gaules');
+    expect(host.querySelector<HTMLInputElement>('#editor-discordHandle')?.value).toBe('gaules#1234');
+    expect(host.querySelector<HTMLSelectElement>('#editor-preferredRole')?.value).toBe('awper');
+    expect(host.querySelector<HTMLSelectElement>('#editor-preferredMap')?.value).toBe('de_train');
+    expect(host.querySelector<HTMLSelectElement>('#editor-visibility')?.value).toBe('public');
   });
 
-  it('valida regra cross-field de perfil público com slug técnico', () => {
-    component['editModel'].update((m) => ({
-      ...m,
-      slug: 'player-1234567890abcdef1234567890abcdef',
-      visibility: 'public',
-    }));
-    fixture.detectChanges();
-
-    expect(component['profileForm']().invalid()).toBe(true);
-  });
-
-  it('permite slug técnico quando o perfil é privado', () => {
-    component['editModel'].update((m) => ({
-      ...m,
-      slug: 'player-1234567890abcdef1234567890abcdef',
-      visibility: 'private',
-    }));
-    fixture.detectChanges();
-
-    expect(component['profileForm']().valid()).toBe(true);
-  });
-
-  it('emite evento save com patch ao submeter alterações válidas', () => {
+  it('valida regra cross-field de perfil público com slug técnico', async () => {
     const saveSpy = vi.fn();
     component.save.subscribe(saveSpy);
 
-    component['editModel'].update((m) => ({
-      ...m,
-      bio: 'Nova bio atualizada',
-    }));
+    const host = fixture.nativeElement as HTMLElement;
+    const slugInput = host.querySelector<HTMLInputElement>('#editor-slug')!;
+    const visibilitySelect = host.querySelector<HTMLSelectElement>('#editor-visibility')!;
+    const form = host.querySelector<HTMLFormElement>('form')!;
+
+    slugInput.value = 'player-1234567890abcdef1234567890abcdef';
+    slugInput.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    changeSelect(visibilitySelect, 'public');
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
     fixture.detectChanges();
 
-    const event = new Event('submit');
-    component['onSubmit'](event);
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(slugInput.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('permite slug técnico quando o perfil é privado', async () => {
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    const host = fixture.nativeElement as HTMLElement;
+    const slugInput = host.querySelector<HTMLInputElement>('#editor-slug')!;
+    const visibilitySelect = host.querySelector<HTMLSelectElement>('#editor-visibility')!;
+    const form = host.querySelector<HTMLFormElement>('form')!;
+
+    slugInput.value = 'player-1234567890abcdef1234567890abcdef';
+    slugInput.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    changeSelect(visibilitySelect, 'private');
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(saveSpy).toHaveBeenCalledWith({
+      slug: 'player-1234567890abcdef1234567890abcdef',
+      visibility: 'private',
+    });
+  });
+
+  it('emite evento save com patch ao submeter alterações válidas', async () => {
+    const saveSpy = vi.fn();
+    component.save.subscribe(saveSpy);
+
+    const host = fixture.nativeElement as HTMLElement;
+    const bioInput = host.querySelector<HTMLTextAreaElement>('#editor-bio')!;
+    const form = host.querySelector<HTMLFormElement>('form')!;
+
+    bioInput.value = 'Nova bio atualizada';
+    bioInput.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(saveSpy).toHaveBeenCalledWith({
       bio: 'Nova bio atualizada',
     });
   });
 
-  it('não emite save quando não há diferenças efetivas', () => {
+  it('não emite save quando não há diferenças efetivas', async () => {
     const saveSpy = vi.fn();
     component.save.subscribe(saveSpy);
 
-    const event = new Event('submit');
-    component['onSubmit'](event);
+    const host = fixture.nativeElement as HTMLElement;
+    const form = host.querySelector<HTMLFormElement>('form')!;
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(saveSpy).not.toHaveBeenCalled();
   });
 
-  it('mapeia role/map vazios para null no patch ao submeter', () => {
+  it('mapeia role/map vazios para null no patch ao submeter', async () => {
     const saveSpy = vi.fn();
     component.save.subscribe(saveSpy);
 
-    component['editModel'].update((m) => ({
-      ...m,
-      preferredRole: '',
-      preferredMap: '',
-    }));
-    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const roleSelect = host.querySelector<HTMLSelectElement>('#editor-preferredRole')!;
+    const mapSelect = host.querySelector<HTMLSelectElement>('#editor-preferredMap')!;
+    const form = host.querySelector<HTMLFormElement>('form')!;
 
-    const event = new Event('submit');
-    component['onSubmit'](event);
+    changeSelect(roleSelect, '');
+    changeSelect(mapSelect, '');
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(saveSpy).toHaveBeenCalledWith({
       preferredRole: null,
@@ -132,8 +171,14 @@ describe('PlayerProfileEditor', () => {
     const cancelSpy = vi.fn();
     component.editCancelled.subscribe(cancelSpy);
 
-    component['onCancel']();
-    expect(cancelSpy).toHaveBeenCalled();
+    const cancelButton = fixture.nativeElement.querySelector(
+      '.player-profile-editor__button--secondary'
+    ) as HTMLButtonElement;
+    expect(cancelButton).toBeTruthy();
+    cancelButton.click();
+    fixture.detectChanges();
+
+    expect(cancelSpy).toHaveBeenCalledTimes(1);
   });
 
   it('emite edited quando o jogador altera o formulário após erro do servidor', () => {
@@ -158,7 +203,6 @@ describe('PlayerProfileEditor', () => {
     expect(editedSpy).toHaveBeenCalledTimes(1);
   });
 
-
   it('desabilita os sete controles via Signal Forms enquanto o save está pendente', () => {
     fixture.componentRef.setInput('savePending', true);
     fixture.detectChanges();
@@ -182,7 +226,6 @@ describe('PlayerProfileEditor', () => {
       expect(control?.disabled, `controle #${id} deve estar disabled`).toBe(true);
     }
   });
-
 
   it('submissão inválida marca o campo como touched e revela a validação', async () => {
     const saveSpy = vi.fn();
@@ -218,28 +261,44 @@ describe('PlayerProfileEditor', () => {
   });
 
   it('switches locale without changing canonical form values, options, or PATCH semantics', async () => {
-    component['editModel'].update((model) => ({ ...model, bio: 'Updated bio', preferredRole: 'igl' }));
+    const host = fixture.nativeElement as HTMLElement;
+    const bioInput = host.querySelector<HTMLTextAreaElement>('#editor-bio')!;
+    const roleSelect = host.querySelector<HTMLSelectElement>('#editor-preferredRole')!;
+    const form = host.querySelector<HTMLFormElement>('form')!;
+
+    bioInput.value = 'Updated bio';
+    bioInput.dispatchEvent(new Event('input', { bubbles: true }));
     fixture.detectChanges();
+    changeSelect(roleSelect, 'igl');
+
     await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Edit your HSC profile');
-    expect(component['editModel']()).toEqual({
-      displayName: 'Gaules', slug: 'gaules', bio: 'Updated bio', discordHandle: 'gaules#1234',
-      preferredRole: 'igl', preferredMap: 'de_train', visibility: 'public',
-    });
-    const roleOptions = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLOptionElement>('#editor-preferredRole option'));
-    const mapOptions = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLOptionElement>('#editor-preferredMap option'));
+    expect(host.textContent).toContain('Edit your HSC profile');
+
+    expect(host.querySelector<HTMLInputElement>('#editor-displayName')?.value).toBe('Gaules');
+    expect(host.querySelector<HTMLInputElement>('#editor-slug')?.value).toBe('gaules');
+    expect(host.querySelector<HTMLTextAreaElement>('#editor-bio')?.value).toBe('Updated bio');
+    expect(host.querySelector<HTMLInputElement>('#editor-discordHandle')?.value).toBe('gaules#1234');
+    expect(host.querySelector<HTMLSelectElement>('#editor-preferredRole')?.value).toBe('igl');
+    expect(host.querySelector<HTMLSelectElement>('#editor-preferredMap')?.value).toBe('de_train');
+    expect(host.querySelector<HTMLSelectElement>('#editor-visibility')?.value).toBe('public');
+
+    const roleOptions = Array.from(host.querySelectorAll<HTMLOptionElement>('#editor-preferredRole option'));
+    const mapOptions = Array.from(host.querySelectorAll<HTMLOptionElement>('#editor-preferredMap option'));
     expect(roleOptions.find((option) => option.textContent?.trim() === 'IGL')?.value).toBe('igl');
     expect(roleOptions.find((option) => option.textContent?.trim() === 'Entry Fragger')?.value).toBe('entry_fragger');
     expect(mapOptions.find((option) => option.textContent?.trim() === 'Train')?.value).toBe('de_train');
 
     const saveSpy = vi.fn();
     component.save.subscribe(saveSpy);
-    await component['onSubmit'](new Event('submit'));
+
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
     expect(saveSpy).toHaveBeenCalledWith({ bio: 'Updated bio', preferredRole: 'igl' });
   });
-
 });
 
 const editorTranslations = (english: boolean) => ({ playerProfile: {
