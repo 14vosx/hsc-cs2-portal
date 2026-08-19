@@ -37,6 +37,10 @@ function createSnapshot(
             }
           : null,
       rosterLockedAt: null,
+      readyAt: null,
+      draft: null,
+      mapVeto: null,
+      competitiveMatch: null,
       participants: [
         {
           playerAccountId: 'player-secret-id',
@@ -61,6 +65,8 @@ function createSnapshot(
         canLeave: participant,
         canCancel: participant,
         canConfirm: false,
+        canDraftPick: false,
+        canMapVetoBan: false,
       },
     },
   };
@@ -116,6 +122,8 @@ describe('MixLobbyListPage', () => {
           FORMING: 'Aguardando jogadores para completar 10 vagas.',
           CONFIRMING: 'Lobby completo! Confirmação de presença em andamento.',
           SETUP: 'Todos os jogadores confirmados. Preparando a partida.',
+          READY: 'Partida pronta! Servidor sendo configurado.',
+          PROVISIONING: 'Servidor em inicialização. Aguarde as instruções.',
           CANCELLED: 'Este lobby foi encerrado.',
         },
       },
@@ -131,6 +139,8 @@ describe('MixLobbyListPage', () => {
         FORMING: 'FORMANDO',
         CONFIRMING: 'CONFIRMANDO',
         SETUP: 'PREPARANDO',
+        READY: 'PRONTO',
+        PROVISIONING: 'INICIANDO',
         CANCELLED: 'CANCELADO',
       },
       errors: {
@@ -275,6 +285,26 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('PREPARANDO');
+  });
+
+  it('7a. current room em READY aparece em SEU LOBBY ATUAL', () => {
+    const rooms = [createSnapshot('my-ready', 'READY', true, false)];
+    matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
+    expect(fixture.nativeElement.textContent).toContain('PRONTO');
+  });
+
+  it('7b. current room em PROVISIONING aparece em SEU LOBBY ATUAL', () => {
+    const rooms = [createSnapshot('my-provisioning', 'PROVISIONING', true, false)];
+    matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
+    expect(fixture.nativeElement.textContent).toContain('INICIANDO');
   });
 
   it('8 & 9. criar lobby com sucesso navega para a Match Room', () => {

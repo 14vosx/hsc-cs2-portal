@@ -22,6 +22,10 @@ function createValidRawSnapshot(id = 'room-1') {
       capacity: 10,
       confirmation: null,
       rosterLockedAt: null,
+      readyAt: null,
+      draft: null,
+      mapVeto: null,
+      competitiveMatch: null,
       participants: [
         {
           playerAccountId: 'player-1',
@@ -39,6 +43,8 @@ function createValidRawSnapshot(id = 'room-1') {
         canLeave: false,
         canCancel: true,
         canConfirm: false,
+        canDraftPick: false,
+        canMapVetoBan: false,
       },
     },
   };
@@ -166,6 +172,42 @@ describe('MatchRoomApiService', () => {
       ok: true,
       matchRoom: createValidRawSnapshot('room-1'),
     });
+  });
+
+  it('draftPick faz POST autenticado com body { playerAccountId } e roomId encodado', () => {
+    let result: MatchRoomSnapshot | undefined;
+    const roomId = 'room/special#1';
+    service.draftPick(roomId, 'player-2').subscribe((data) => (result = data));
+
+    const expectedUrl = `/player/match-rooms/${encodeURIComponent(roomId)}/draft/pick`;
+    const req = http.expectOne(expectedUrl);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.body).toEqual({ playerAccountId: 'player-2' });
+
+    req.flush({
+      ok: true,
+      matchRoom: createValidRawSnapshot(roomId),
+    });
+
+    expect(result?.room.id).toBe(roomId);
+  });
+
+  it('mapVetoBan faz POST autenticado com body { mapKey }', () => {
+    let result: MatchRoomSnapshot | undefined;
+    service.mapVetoBan('room-1', 'de_mirage').subscribe((data) => (result = data));
+
+    const req = http.expectOne('/player/match-rooms/room-1/map-veto/ban');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    expect(req.request.body).toEqual({ mapKey: 'de_mirage' });
+
+    req.flush({
+      ok: true,
+      matchRoom: createValidRawSnapshot('room-1'),
+    });
+
+    expect(result?.room.id).toBe('room-1');
   });
 
   describe('Error Mapping', () => {

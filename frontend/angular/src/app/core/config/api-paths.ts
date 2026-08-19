@@ -45,6 +45,10 @@ export const cs2ApiPaths = {
   playerMatchRoomLeave: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/leave`,
   playerMatchRoomCancel: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/cancel`,
   playerMatchRoomConfirm: (roomId: string) => `/player/match-rooms/${encodeURIComponent(roomId)}/confirm`,
+  playerMatchRoomDraftPick: (roomId: string) =>
+    `/player/match-rooms/${encodeURIComponent(roomId)}/draft/pick`,
+  playerMatchRoomMapVetoBan: (roomId: string) =>
+    `/player/match-rooms/${encodeURIComponent(roomId)}/map-veto/ban`,
   newsIndex: '/content/news/',
   newsItem: (slug: string) => `/content/news/${encodeURIComponent(slug)}/`,
 } as const;

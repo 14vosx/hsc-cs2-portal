@@ -22,6 +22,14 @@ const KNOWN_ERROR_CODES: ReadonlySet<string> = new Set([
   'room_not_cancellable',
   'room_not_confirmable',
   'confirmation_window_closed',
+  'room_not_drafting',
+  'not_draft_picker',
+  'draft_target_not_available',
+  'draft_window_closed',
+  'room_not_vetoing',
+  'not_map_vetoer',
+  'map_veto_target_not_available',
+  'map_veto_window_closed',
   'steam_identity_not_linked',
   'player_account_disabled',
   'membership_required',
@@ -117,6 +125,26 @@ export class MatchRoomApiService {
       .post<unknown>(cs2ApiPaths.playerMatchRoomConfirm(roomId), {}, {
         withCredentials: true,
       })
+      .pipe(map(normalizeMatchRoomSingleEnvelope));
+  }
+
+  draftPick(roomId: string, playerAccountId: string): Observable<MatchRoomSnapshot> {
+    return this.http
+      .post<unknown>(
+        cs2ApiPaths.playerMatchRoomDraftPick(roomId),
+        { playerAccountId },
+        { withCredentials: true },
+      )
+      .pipe(map(normalizeMatchRoomSingleEnvelope));
+  }
+
+  mapVetoBan(roomId: string, mapKey: string): Observable<MatchRoomSnapshot> {
+    return this.http
+      .post<unknown>(
+        cs2ApiPaths.playerMatchRoomMapVetoBan(roomId),
+        { mapKey },
+        { withCredentials: true },
+      )
       .pipe(map(normalizeMatchRoomSingleEnvelope));
   }
 }

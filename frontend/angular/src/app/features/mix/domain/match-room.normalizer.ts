@@ -3,8 +3,20 @@ import {
   normalizePlayerPresentationReference,
 } from '../../../core/player-presentation/player-presentation-reference.normalizer';
 import type {
+  CompetitiveMatchRosterEntry,
+  CompetitiveMatchSnapshot,
   MatchRoomConfirmation,
+  MatchRoomDraftAssignment,
+  MatchRoomDraftAssignmentSource,
+  MatchRoomDraftPhase,
+  MatchRoomDraftSnapshot,
   MatchRoomEntity,
+  MatchRoomMapVetoAction,
+  MatchRoomMapVetoPhase,
+  MatchRoomMapVetoPool,
+  MatchRoomMapVetoPoolMap,
+  MatchRoomMapVetoSnapshot,
+  MatchRoomMapVetoSource,
   MatchRoomParticipant,
   MatchRoomParticipantConfirmation,
   MatchRoomSnapshot,
@@ -24,8 +36,21 @@ const VALID_STATUSES: ReadonlySet<string> = new Set<MatchRoomStatus>([
   'FORMING',
   'CONFIRMING',
   'SETUP',
+  'READY',
+  'PROVISIONING',
   'CANCELLED',
 ]);
+
+const VALID_DRAFT_PHASES = new Set<MatchRoomDraftPhase>(['PICKING', 'COMPLETED']);
+const VALID_DRAFT_SOURCES = new Set<MatchRoomDraftAssignmentSource>([
+  'CAPTAIN',
+  'MANUAL_PICK',
+  'TIMEOUT_AUTO_PICK',
+  'LAST_REMAINING',
+]);
+
+const VALID_VETO_PHASES = new Set<MatchRoomMapVetoPhase>(['BANNING', 'COMPLETED']);
+const VALID_VETO_SOURCES = new Set<MatchRoomMapVetoSource>(['MANUAL_BAN', 'TIMEOUT_AUTO_BAN']);
 
 export function normalizeMatchRoomSingleEnvelope(payload: unknown): MatchRoomSnapshot {
   if (!isRecord(payload) || payload['ok'] !== true) {
@@ -122,6 +147,7 @@ function normalizeMatchRoomEntity(input: Record<string, unknown>): MatchRoomEnti
   }
 
   const rosterLockedAt = nullableString(input['rosterLockedAt']);
+  const readyAt = nullableString(input['readyAt']);
 
   const confirmationRaw = input['confirmation'];
   let confirmation: MatchRoomConfirmation | null = null;
@@ -154,6 +180,10 @@ function normalizeMatchRoomEntity(input: Record<string, unknown>): MatchRoomEnti
       confirmedCount,
     };
   }
+
+  const draft = normalizeMatchRoomDraftSnapshot(input['draft']);
+  const mapVeto = normalizeMatchRoomMapVetoSnapshot(input['mapVeto']);
+  const competitiveMatch = normalizeCompetitiveMatchSnapshot(input['competitiveMatch']);
 
   const participantsRaw = input['participants'];
   if (!Array.isArray(participantsRaw)) {
@@ -233,7 +263,320 @@ function normalizeMatchRoomEntity(input: Record<string, unknown>): MatchRoomEnti
     capacity: 10,
     confirmation,
     rosterLockedAt,
+    readyAt,
+    draft,
+    mapVeto,
+    competitiveMatch,
     participants,
+  };
+}
+
+function normalizeMatchRoomDraftSnapshot(input: unknown): MatchRoomDraftSnapshot | null {
+  if (input === null || input === undefined) return null;
+  if (!isRecord(input)) {
+    throw new MatchRoomContractError('Draft snapshot must be an object or null');
+  }
+
+  const phaseRaw = input['phase'];
+  if (typeof phaseRaw !== 'string' || !VALID_DRAFT_PHASES.has(phaseRaw as MatchRoomDraftPhase)) {
+    throw new MatchRoomContractError(`Invalid draft phase: ${String(phaseRaw)}`);
+  }
+  const phase = phaseRaw as MatchRoomDraftPhase;
+
+  const captainsRaw = input['captains'];
+  if (!isRecord(captainsRaw)) {
+    throw new MatchRoomContractError('Draft captains must be an object');
+  }
+  const teamAPlayerAccountId = requiredString(captainsRaw['teamAPlayerAccountId']);
+  const teamBPlayerAccountId = requiredString(captainsRaw['teamBPlayerAccountId']);
+  if (!teamAPlayerAccountId || !teamBPlayerAccountId) {
+    throw new MatchRoomContractError('Draft captains team A and B player account IDs are required');
+  }
+
+  const firstPickerPlayerAccountId = requiredString(input['firstPickerPlayerAccountId']);
+  if (!firstPickerPlayerAccountId) {
+    throw new MatchRoomContractError('Draft firstPickerPlayerAccountId is required');
+  }
+
+  const currentPickerPlayerAccountId = nullableString(input['currentPickerPlayerAccountId']);
+
+  const nextSelectionOrder = input['nextSelectionOrder'];
+  if (
+    nextSelectionOrder !== null &&
+    (typeof nextSelectionOrder !== 'number' || !Number.isInteger(nextSelectionOrder))
+  ) {
+    throw new MatchRoomContractError('Draft nextSelectionOrder must be an integer or null');
+  }
+
+  const pickDeadlineAt = nullableString(input['pickDeadlineAt']);
+
+  const availableRaw = input['availablePlayerAccountIds'];
+  if (!Array.isArray(availableRaw)) {
+    throw new MatchRoomContractError('Draft availablePlayerAccountIds must be an array');
+  }
+  const availablePlayerAccountIds: string[] = [];
+  for (const idRaw of availableRaw) {
+    const id = requiredString(idRaw);
+    if (!id) {
+      throw new MatchRoomContractError('Draft availablePlayerAccountId must be a non-empty string');
+    }
+    availablePlayerAccountIds.push(id);
+  }
+
+  const assignmentsRaw = input['assignments'];
+  if (!Array.isArray(assignmentsRaw)) {
+    throw new MatchRoomContractError('Draft assignments must be an array');
+  }
+
+  const assignments: MatchRoomDraftAssignment[] = [];
+  for (const aRaw of assignmentsRaw) {
+    if (!isRecord(aRaw)) {
+      throw new MatchRoomContractError('Draft assignment must be an object');
+    }
+    const playerAccountId = requiredString(aRaw['playerAccountId']);
+    if (!playerAccountId) {
+      throw new MatchRoomContractError('Draft assignment playerAccountId is required');
+    }
+    const team = aRaw['team'];
+    if (team !== 'A' && team !== 'B') {
+      throw new MatchRoomContractError(`Invalid draft assignment team: ${String(team)}`);
+    }
+    const captain = aRaw['captain'];
+    if (typeof captain !== 'boolean') {
+      throw new MatchRoomContractError('Draft assignment captain must be a boolean');
+    }
+    const selectionOrder = aRaw['selectionOrder'];
+    if (
+      selectionOrder !== null &&
+      (typeof selectionOrder !== 'number' || !Number.isInteger(selectionOrder))
+    ) {
+      throw new MatchRoomContractError('Draft assignment selectionOrder must be an integer or null');
+    }
+    const sourceRaw = aRaw['source'];
+    if (
+      typeof sourceRaw !== 'string' ||
+      !VALID_DRAFT_SOURCES.has(sourceRaw as MatchRoomDraftAssignmentSource)
+    ) {
+      throw new MatchRoomContractError(`Invalid draft assignment source: ${String(sourceRaw)}`);
+    }
+    const source = sourceRaw as MatchRoomDraftAssignmentSource;
+    const pickerPlayerAccountId = nullableString(aRaw['pickerPlayerAccountId']);
+    const assignedAt = requiredString(aRaw['assignedAt']);
+    if (!assignedAt) {
+      throw new MatchRoomContractError('Draft assignment assignedAt is required');
+    }
+
+    assignments.push({
+      playerAccountId,
+      team,
+      captain,
+      selectionOrder,
+      source,
+      pickerPlayerAccountId,
+      assignedAt,
+    });
+  }
+
+  return {
+    phase,
+    captains: {
+      teamAPlayerAccountId,
+      teamBPlayerAccountId,
+    },
+    firstPickerPlayerAccountId,
+    currentPickerPlayerAccountId,
+    nextSelectionOrder,
+    pickDeadlineAt,
+    availablePlayerAccountIds,
+    assignments,
+  };
+}
+
+function normalizeMatchRoomMapVetoSnapshot(input: unknown): MatchRoomMapVetoSnapshot | null {
+  if (input === null || input === undefined) return null;
+  if (!isRecord(input)) {
+    throw new MatchRoomContractError('Map Veto snapshot must be an object or null');
+  }
+
+  const phaseRaw = input['phase'];
+  if (typeof phaseRaw !== 'string' || !VALID_VETO_PHASES.has(phaseRaw as MatchRoomMapVetoPhase)) {
+    throw new MatchRoomContractError(`Invalid map veto phase: ${String(phaseRaw)}`);
+  }
+  const phase = phaseRaw as MatchRoomMapVetoPhase;
+
+  const poolRaw = input['pool'];
+  if (!isRecord(poolRaw)) {
+    throw new MatchRoomContractError('Map Veto pool must be an object');
+  }
+  const poolId = requiredString(poolRaw['id']);
+  const poolKey = requiredString(poolRaw['key']);
+  const poolVersion = poolRaw['version'];
+  if (!poolId || !poolKey || typeof poolVersion !== 'number' || !Number.isInteger(poolVersion)) {
+    throw new MatchRoomContractError('Invalid map veto pool metadata');
+  }
+  const mapsRaw = poolRaw['maps'];
+  if (!Array.isArray(mapsRaw)) {
+    throw new MatchRoomContractError('Map Veto pool maps must be an array');
+  }
+  const poolMaps: MatchRoomMapVetoPoolMap[] = [];
+  for (const mRaw of mapsRaw) {
+    if (!isRecord(mRaw)) {
+      throw new MatchRoomContractError('Map Veto pool map item must be an object');
+    }
+    const key = requiredString(mRaw['key']);
+    const displayName = requiredString(mRaw['displayName']);
+    const position = mRaw['position'];
+    if (!key || !displayName || typeof position !== 'number' || !Number.isInteger(position)) {
+      throw new MatchRoomContractError('Invalid map veto pool map entry');
+    }
+    poolMaps.push({ key, displayName, position });
+  }
+  const pool: MatchRoomMapVetoPool = {
+    id: poolId,
+    key: poolKey,
+    version: poolVersion,
+    maps: poolMaps,
+  };
+
+  const firstVetoerPlayerAccountId = requiredString(input['firstVetoerPlayerAccountId']);
+  if (!firstVetoerPlayerAccountId) {
+    throw new MatchRoomContractError('Map Veto firstVetoerPlayerAccountId is required');
+  }
+
+  const currentVetoerPlayerAccountId = nullableString(input['currentVetoerPlayerAccountId']);
+
+  const nextActionOrder = input['nextActionOrder'];
+  if (
+    nextActionOrder !== null &&
+    (typeof nextActionOrder !== 'number' || !Number.isInteger(nextActionOrder))
+  ) {
+    throw new MatchRoomContractError('Map Veto nextActionOrder must be an integer or null');
+  }
+
+  const actionDeadlineAt = nullableString(input['actionDeadlineAt']);
+
+  const availableRaw = input['availableMapKeys'];
+  if (!Array.isArray(availableRaw)) {
+    throw new MatchRoomContractError('Map Veto availableMapKeys must be an array');
+  }
+  const availableMapKeys: string[] = [];
+  for (const kRaw of availableRaw) {
+    const key = requiredString(kRaw);
+    if (!key) {
+      throw new MatchRoomContractError('Map Veto availableMapKey must be a non-empty string');
+    }
+    availableMapKeys.push(key);
+  }
+
+  const selectedMapKey = nullableString(input['selectedMapKey']);
+
+  const actionsRaw = input['actions'];
+  if (!Array.isArray(actionsRaw)) {
+    throw new MatchRoomContractError('Map Veto actions must be an array');
+  }
+  const actions: MatchRoomMapVetoAction[] = [];
+  for (const actRaw of actionsRaw) {
+    if (!isRecord(actRaw)) {
+      throw new MatchRoomContractError('Map Veto action must be an object');
+    }
+    const actionOrder = actRaw['actionOrder'];
+    if (typeof actionOrder !== 'number' || !Number.isInteger(actionOrder)) {
+      throw new MatchRoomContractError('Map Veto actionOrder must be an integer');
+    }
+    const mapKey = requiredString(actRaw['mapKey']);
+    const actorPlayerAccountId = requiredString(actRaw['actorPlayerAccountId']);
+    if (!mapKey || !actorPlayerAccountId) {
+      throw new MatchRoomContractError('Map Veto action mapKey and actorPlayerAccountId are required');
+    }
+    const sourceRaw = actRaw['source'];
+    if (
+      typeof sourceRaw !== 'string' ||
+      !VALID_VETO_SOURCES.has(sourceRaw as MatchRoomMapVetoSource)
+    ) {
+      throw new MatchRoomContractError(`Invalid map veto action source: ${String(sourceRaw)}`);
+    }
+    const source = sourceRaw as MatchRoomMapVetoSource;
+    const actedAt = requiredString(actRaw['actedAt']);
+    if (!actedAt) {
+      throw new MatchRoomContractError('Map Veto action actedAt is required');
+    }
+    actions.push({ actionOrder, mapKey, actorPlayerAccountId, source, actedAt });
+  }
+
+  return {
+    phase,
+    pool,
+    firstVetoerPlayerAccountId,
+    currentVetoerPlayerAccountId,
+    nextActionOrder,
+    actionDeadlineAt,
+    availableMapKeys,
+    selectedMapKey,
+    actions,
+  };
+}
+
+function normalizeCompetitiveMatchSnapshot(input: unknown): CompetitiveMatchSnapshot | null {
+  if (input === null || input === undefined) return null;
+  if (!isRecord(input)) {
+    throw new MatchRoomContractError('Competitive match snapshot must be an object or null');
+  }
+
+  const id = requiredString(input['id']);
+  const runtimeMatchId = input['runtimeMatchId'];
+  if (!id || typeof runtimeMatchId !== 'number' || !Number.isInteger(runtimeMatchId)) {
+    throw new MatchRoomContractError('Invalid competitive match id or runtimeMatchId');
+  }
+
+  const mapRaw = input['map'];
+  if (!isRecord(mapRaw)) {
+    throw new MatchRoomContractError('Competitive match map must be an object');
+  }
+  const poolId = requiredString(mapRaw['poolId']);
+  const poolKey = requiredString(mapRaw['poolKey']);
+  const poolVersion = mapRaw['poolVersion'];
+  const key = requiredString(mapRaw['key']);
+  const displayName = requiredString(mapRaw['displayName']);
+  if (
+    !poolId ||
+    !poolKey ||
+    typeof poolVersion !== 'number' ||
+    !Number.isInteger(poolVersion) ||
+    !key ||
+    !displayName
+  ) {
+    throw new MatchRoomContractError('Invalid competitive match map details');
+  }
+
+  const rosterRaw = input['roster'];
+  if (!Array.isArray(rosterRaw)) {
+    throw new MatchRoomContractError('Competitive match roster must be an array');
+  }
+  const roster: CompetitiveMatchRosterEntry[] = [];
+  for (const rRaw of rosterRaw) {
+    if (!isRecord(rRaw)) {
+      throw new MatchRoomContractError('Competitive match roster entry must be an object');
+    }
+    const playerAccountId = requiredString(rRaw['playerAccountId']);
+    const steamid64 = requiredString(rRaw['steamid64']);
+    const team = rRaw['team'];
+    if (!playerAccountId || !steamid64 || (team !== 'A' && team !== 'B')) {
+      throw new MatchRoomContractError('Invalid competitive match roster entry');
+    }
+    roster.push({ playerAccountId, steamid64, team });
+  }
+
+  return {
+    id,
+    runtimeMatchId,
+    map: {
+      poolId,
+      poolKey,
+      poolVersion,
+      key,
+      displayName,
+    },
+    roster,
   };
 }
 
@@ -250,12 +593,16 @@ function normalizeMatchRoomViewer(input: Record<string, unknown>): MatchRoomView
   const canLeave = actionsRaw['canLeave'];
   const canCancel = actionsRaw['canCancel'];
   const canConfirm = actionsRaw['canConfirm'];
+  const canDraftPick = actionsRaw['canDraftPick'];
+  const canMapVetoBan = actionsRaw['canMapVetoBan'];
 
   if (
     typeof canJoin !== 'boolean' ||
     typeof canLeave !== 'boolean' ||
     typeof canCancel !== 'boolean' ||
-    typeof canConfirm !== 'boolean'
+    typeof canConfirm !== 'boolean' ||
+    typeof canDraftPick !== 'boolean' ||
+    typeof canMapVetoBan !== 'boolean'
   ) {
     throw new MatchRoomContractError('Invalid viewer actions booleans');
   }
@@ -265,6 +612,8 @@ function normalizeMatchRoomViewer(input: Record<string, unknown>): MatchRoomView
     canLeave,
     canCancel,
     canConfirm,
+    canDraftPick,
+    canMapVetoBan,
   };
 
   return {

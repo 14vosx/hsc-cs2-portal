@@ -96,7 +96,10 @@ export class MixLobbyListPage implements OnInit {
       case 'CONFIRMING':
         return 'warning';
       case 'SETUP':
+      case 'READY':
         return 'active';
+      case 'PROVISIONING':
+        return 'info';
       case 'CANCELLED':
         return 'closed';
     }
