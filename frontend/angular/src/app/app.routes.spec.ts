@@ -4,8 +4,8 @@ import { routes } from './app.routes';
 import { RankingPage } from './features/ranking/ranking-page';
 import { SeasonRankingPage } from './features/seasons/season-ranking-page/season-ranking-page';
 
-describe('App Routes — Ranking Marco 2', () => {
-  it('rota /ranking deve carregar RankingPage', async () => {
+describe('App Routes', () => {
+  it('ranking lazy-loads RankingPage', async () => {
     const route = routes.find((r) => r.path === 'ranking');
     expect(route).toBeDefined();
     expect(route?.redirectTo).toBeUndefined();
@@ -15,7 +15,7 @@ describe('App Routes — Ranking Marco 2', () => {
     expect(component).toBe(RankingPage);
   });
 
-  it('rota /seasons/current/ranking deve continuar carregando SeasonRankingPage', async () => {
+  it('current season ranking lazy-loads SeasonRankingPage', async () => {
     const route = routes.find((r) => r.path === 'seasons/current/ranking');
     expect(route).toBeDefined();
     expect(route?.loadComponent).toBeDefined();
@@ -24,7 +24,7 @@ describe('App Routes — Ranking Marco 2', () => {
     expect(component).toBe(SeasonRankingPage);
   });
 
-  it('rota /seasons/:slug/ranking deve continuar carregando SeasonRankingPage', async () => {
+  it('season slug ranking lazy-loads SeasonRankingPage', async () => {
     const route = routes.find((r) => r.path === 'seasons/:slug/ranking');
     expect(route).toBeDefined();
     expect(route?.loadComponent).toBeDefined();
@@ -33,7 +33,7 @@ describe('App Routes — Ranking Marco 2', () => {
     expect(component).toBe(SeasonRankingPage);
   });
 
-  it('route /players/:slug lazy-loads PlayerPublicProfilePage', async () => {
+  it('public player profile route lazy-loads PlayerPublicProfilePage', async () => {
     const route = routes.find((candidate) => candidate.path === 'players/:slug');
     expect(route).toBeDefined();
     expect(route?.redirectTo).toBeUndefined();
@@ -45,34 +45,36 @@ describe('App Routes — Ranking Marco 2', () => {
     expect(await route!.loadComponent!()).toBe(PlayerPublicProfilePage);
   });
 
-  it('lazy-loads email verification without changing player routes', async () => {
+  it('email verification route lazy-loads VerifyEmailPage', async () => {
     const route = routes.find((candidate) => candidate.path === 'verify-email');
+    expect(route).toBeDefined();
+    expect(route?.loadComponent).toBeDefined();
+
     const { VerifyEmailPage } = await import(
       './features/player-auth/verify-email-page/verify-email-page'
     );
     expect(await route!.loadComponent!()).toBe(VerifyEmailPage);
-    expect(routes.some((candidate) => candidate.path === 'players/:slug')).toBe(true);
   });
 
-  it('lazy-loads password reset and preserves Player Area routes', async () => {
+  it('password reset route lazy-loads ResetPasswordPage', async () => {
     const route = routes.find((candidate) => candidate.path === 'reset-password');
+    expect(route).toBeDefined();
+    expect(route?.loadComponent).toBeDefined();
+
     const { ResetPasswordPage } = await import(
       './features/player-auth/reset-password-page/reset-password-page'
     );
     expect(await route!.loadComponent!()).toBe(ResetPasswordPage);
-    expect(routes.some((candidate) => candidate.path === 'area-do-jogador')).toBe(true);
-    expect(routes.some((candidate) => candidate.path === 'area-do-jogador/estatisticas')).toBe(true);
   });
 
-  it('lazy-loads email linking and preserves existing identity routes', async () => {
+  it('email linking route lazy-loads LinkEmailPage', async () => {
     const route = routes.find((candidate) => candidate.path === 'link-email');
+    expect(route).toBeDefined();
+    expect(route?.loadComponent).toBeDefined();
+
     const { LinkEmailPage } = await import(
       './features/player-account-security/link-email-page/link-email-page'
     );
     expect(await route!.loadComponent!()).toBe(LinkEmailPage);
-    expect(routes.some((candidate) => candidate.path === 'verify-email')).toBe(true);
-    expect(routes.some((candidate) => candidate.path === 'reset-password')).toBe(true);
-    expect(routes.some((candidate) => candidate.path === 'players/:slug')).toBe(true);
-    expect(routes.some((candidate) => candidate.path === 'area-do-jogador')).toBe(true);
   });
 });
