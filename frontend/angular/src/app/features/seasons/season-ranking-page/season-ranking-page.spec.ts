@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { ActivatedRoute, convertToParamMap, ParamMap } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, NEVER, of, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -13,41 +13,9 @@ import { SeasonPodium } from '../season-podium/season-podium';
 import { SeasonRankingPage } from './season-ranking-page';
 import { installSeasonsTranslations } from '../../../testing/seasons-i18n.fixture';
 
-class TestableSeasonRankingPage extends SeasonRankingPage {
-  get publicVm$() {
-    return this.vm$;
-  }
-
-  getPublicSearchTerm(): string {
-    return this.searchTerm();
-  }
-
-  callRetry(): void {
-    this.retry();
-  }
-
-  callUpdateSearch(event: Event): void {
-    this.updateSearch(event);
-  }
-
-  callFilteredPlayers(players: readonly SeasonRankingPlayer[]): readonly SeasonRankingPlayer[] {
-    return this.filteredPlayers(players);
-  }
-}
-
 type SeasonRankingApiServiceMock = {
   getRanking: Mock<SeasonRankingApiService['getRanking']>;
 };
-
-function createInputEvent(value: string): Event {
-  const input = document.createElement('input');
-  input.value = value;
-
-  const event = new Event('input');
-  Object.defineProperty(event, 'target', { value: input });
-
-  return event;
-}
 
 describe('SeasonRankingPage', () => {
   let mockSeasonRankingApi: SeasonRankingApiServiceMock;
@@ -134,7 +102,6 @@ describe('SeasonRankingPage', () => {
       imports: [SeasonRankingPage],
       providers: [
         provideTranslateService({ fallbackLang: 'pt-BR' }),
-        TestableSeasonRankingPage,
         { provide: ActivatedRoute, useValue: { paramMap: paramMap$.asObservable() } },
         { provide: SeasonRankingApiService, useValue: mockSeasonRankingApi },
       ],
@@ -143,144 +110,173 @@ describe('SeasonRankingPage', () => {
   });
 
   it('creates the component', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-    expect(page).toBeTruthy();
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
   it('calls getRanking with null for the current-season route', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-
-    const values: unknown[] = [];
-    page.publicVm$.subscribe((value) => values.push(value));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledWith(null);
-    expect(values.at(-1)).toMatchObject({ state: 'ready' });
+    expect(fixture.nativeElement.querySelector('.season-ranking__classification')).toBeTruthy();
   });
 
   it('calls getRanking with the explicit slug', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-
     paramMap$.next(convertToParamMap({ slug: 'summer-2026' }));
-    page.publicVm$.subscribe();
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledWith('summer-2026');
   });
 
-
   it('emits loading initially', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-    mockSeasonRankingApi.getRanking.mockReturnValue(new Observable(() => undefined));
+    mockSeasonRankingApi.getRanking.mockReturnValue(NEVER);
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    const values: unknown[] = [];
-    page.publicVm$.subscribe((value) => values.push(value));
-
-    expect(values[0]).toEqual({ state: 'loading' });
+    const loadingState = fixture.nativeElement.querySelector('app-page-state[type="loading"]');
+    expect(loadingState).toBeTruthy();
+    expect(loadingState.textContent).toContain('Sincronizando a classificação da temporada.');
   });
 
   it('maps available rankings with players to ready', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-
     paramMap$.next(convertToParamMap({ slug: 'summer-2026' }));
-    const values: Array<{ state: string }> = [];
-    page.publicVm$.subscribe((value) => values.push(value as { state: string }));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    expect(values.at(-1)).toMatchObject({ state: 'ready' });
+    expect(fixture.nativeElement.querySelector('.season-ranking__classification')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.season-ranking__snapshot')).toBeTruthy();
   });
 
   it('maps available rankings without players to empty while preserving the ranking', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
     mockSeasonRankingApi.getRanking.mockReturnValue(
       of({ kind: 'available', ranking: { ...mockRanking, players: [] } }),
     );
 
     paramMap$.next(convertToParamMap({ slug: 'summer-2026' }));
-    const values: unknown[] = [];
-    page.publicVm$.subscribe((value) => values.push(value));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    expect(values.at(-1)).toMatchObject({ state: 'empty', ranking: { season: mockSeason } });
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.season-ranking__hero')).toBeTruthy();
+    expect(el.querySelector('.season-ranking__hero')?.textContent).toContain('Summer 2026');
+    expect(el.querySelector('app-season-tabs')).toBeTruthy();
+    expect(el.querySelector('.season-ranking__snapshot')).toBeNull();
+    expect(el.querySelector('.season-ranking__table')).toBeNull();
   });
 
   it('keeps the season-unavailable state distinct', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
     mockSeasonRankingApi.getRanking.mockReturnValue(of({ kind: 'season-unavailable' }));
 
     paramMap$.next(convertToParamMap({ slug: 'summer-2026' }));
-    const values: unknown[] = [];
-    page.publicVm$.subscribe((value) => values.push(value));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    expect(values.at(-1)).toEqual({ state: 'season-unavailable' });
+    const el = fixture.nativeElement as HTMLElement;
+    const pageState = el.querySelector('app-page-state[type="empty"]');
+    expect(pageState).toBeTruthy();
+    expect(pageState?.textContent).toContain(
+      'Não existe uma temporada disponível para exibir o ranking neste momento.',
+    );
+    expect(el.querySelector('app-season-tabs')).toBeNull();
   });
 
   it('maps service errors to error', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
     mockSeasonRankingApi.getRanking.mockReturnValue(throwError(() => new Error('boom')));
 
     paramMap$.next(convertToParamMap({ slug: 'summer-2026' }));
-    const values: unknown[] = [];
-    page.publicVm$.subscribe((value) => values.push(value));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    expect(values.at(-1)).toEqual({ state: 'error' });
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-page-state[type="error"]')).toBeTruthy();
   });
 
   it('retries and performs a second request', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-
     mockSeasonRankingApi.getRanking
       .mockReturnValueOnce(throwError(() => new Error('boom')))
       .mockReturnValueOnce(of({ kind: 'available', ranking: mockRanking }));
 
-    const values: unknown[] = [];
-    page.publicVm$.subscribe((value) => values.push(value));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    page.callRetry();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-page-state[type="error"]')).toBeTruthy();
+
+    const button = el.querySelector<HTMLButtonElement>('.page-state__btn');
+    expect(button).toBeTruthy();
+    button?.click();
+    fixture.detectChanges();
 
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(2);
-    expect(values.map((v) => (v as { state: string }).state)).toEqual(['loading', 'error', 'loading', 'ready']);
+    expect(el.querySelector('app-page-state')).toBeNull();
+    expect(el.querySelector('.season-ranking__classification')).toBeTruthy();
   });
 
   it('changes slug and issues another request', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
-
     paramMap$.next(convertToParamMap({ slug: 'summer-2026' }));
-    const states: string[] = [];
-    page.publicVm$.subscribe((v) => states.push((v as { state: string }).state));
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
     paramMap$.next(convertToParamMap({ slug: 'winter-2026' }));
+    fixture.detectChanges();
 
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(2);
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledWith('summer-2026');
     expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledWith('winter-2026');
-    expect(states).toEqual(['loading', 'ready', 'loading', 'ready']);
   });
 
   it('filters players case-insensitively and restores the full list', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    const filtered = page.callFilteredPlayers([mockPlayer1, mockPlayer2]);
-    expect(filtered).toHaveLength(2);
+    const input = fixture.nativeElement.querySelector('#season-ranking-search') as HTMLInputElement;
+    expect(fixture.nativeElement.querySelectorAll('.season-ranking__table tbody tr')).toHaveLength(2);
 
-    page.callUpdateSearch(createInputEvent('fallen'));
-    expect(page.callFilteredPlayers([mockPlayer1, mockPlayer2])).toHaveLength(1);
+    input.value = 'fallen';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
 
-    page.callUpdateSearch(createInputEvent('   '));
-    expect(page.callFilteredPlayers([mockPlayer1, mockPlayer2])).toHaveLength(2);
+    const filteredRows = fixture.nativeElement.querySelectorAll('.season-ranking__table tbody tr');
+    expect(filteredRows).toHaveLength(1);
+    expect(filteredRows[0].textContent).toContain('Fallen');
+
+    input.value = '   ';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.season-ranking__table tbody tr')).toHaveLength(2);
   });
 
   it('does not change the remote state when the local search produces no result', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    page.callUpdateSearch(createInputEvent('zzz'));
-    expect(page.callFilteredPlayers([mockPlayer1, mockPlayer2])).toEqual([]);
-    expect(page.getPublicSearchTerm()).toBe('zzz');
+    const calls = mockSeasonRankingApi.getRanking.mock.calls.length;
+    const input = fixture.nativeElement.querySelector('#season-ranking-search') as HTMLInputElement;
+
+    input.value = 'zzz';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-empty-state')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.season-ranking__table')).toBeNull();
+    expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(calls);
   });
 
   it('preserves player order and top prize candidates from the domain', () => {
-    const page = TestBed.inject(TestableSeasonRankingPage);
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
 
-    const visible = page.callFilteredPlayers([mockPlayer1, mockPlayer2]);
-    expect(visible[0].steamId64).toBe(mockPlayer1.steamId64);
-    expect(visible[1].steamId64).toBe(mockPlayer2.steamId64);
-    expect(mockRanking.topPrizeCandidates[0].steamId64).toBe(mockPlayer1.steamId64);
+    const rows = fixture.nativeElement.querySelectorAll('.season-ranking__table tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toContain('Fallen');
+    expect(rows[1].textContent).toContain('fer');
+
+    const podium = fixture.nativeElement.querySelector('app-season-podium');
+    expect(podium).toBeTruthy();
+    expect(podium.textContent).toContain('Fallen');
   });
 
   it('does not trigger extra requests on repeated change detection', () => {
@@ -384,18 +380,35 @@ describe('SeasonRankingPage', () => {
 
   it('switches ranking presentation at runtime while preserving search, domain data, and requests', async () => {
     const translate = TestBed.inject(TranslateService);
-    const fixture = TestBed.createComponent(SeasonRankingPage); fixture.detectChanges();
+    const fixture = TestBed.createComponent(SeasonRankingPage);
+    fixture.detectChanges();
     const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
-    input.value = 'fall'; input.dispatchEvent(new Event('input')); fixture.detectChanges();
+    input.value = 'fall';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
     const calls = mockSeasonRankingApi.getRanking.mock.calls.length;
-    expect(fixture.nativeElement.textContent).toContain('Classificação'); expect(input.placeholder).toBe('Nome do jogador'); expect(fixture.nativeElement.textContent).toContain('Pos.'); expect(fixture.nativeElement.textContent).toContain('Temporada ativa'); expect(fixture.nativeElement.textContent).toContain('Elegível');
-    await translate.use('en-US').toPromise(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Classificação');
+    expect(input.placeholder).toBe('Nome do jogador');
+    expect(fixture.nativeElement.textContent).toContain('Pos.');
+    expect(fixture.nativeElement.textContent).toContain('Temporada ativa');
+    expect(fixture.nativeElement.textContent).toContain('Elegível');
+    await translate.use('en-US').toPromise();
+    fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Leaderboard'); expect(input.placeholder).toBe('Player name'); expect(text).toContain('Rank'); expect(text).toContain('Active season'); expect(text).toContain('Eligible');
-    for (const value of ['Summer 2026', 'Fallen', 'Score', 'Impact', 'K/D', 'ADR', 'HS%', '98.40']) expect(text).toContain(value);
-    expect(input.value).toBe('fall'); expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(calls);
+    expect(text).toContain('Leaderboard');
+    expect(input.placeholder).toBe('Player name');
+    expect(text).toContain('Rank');
+    expect(text).toContain('Active season');
+    expect(text).toContain('Eligible');
+    for (const value of ['Summer 2026', 'Fallen', 'Score', 'Impact', 'K/D', 'ADR', 'HS%', '98.40']) {
+      expect(text).toContain(value);
+    }
+    expect(input.value).toBe('fall');
+    expect(mockSeasonRankingApi.getRanking).toHaveBeenCalledTimes(calls);
     const rows = fixture.nativeElement.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
     expect(Array.from(rows, (row) => row.textContent ?? '')).toEqual([expect.stringContaining('Fallen')]);
-    expect(fixture.nativeElement.querySelector('.season-ranking__mobile-list')?.getAttribute('aria-label')).toBe('Full season leaderboard');
+    expect(fixture.nativeElement.querySelector('.season-ranking__mobile-list')?.getAttribute('aria-label')).toBe(
+      'Full season leaderboard',
+    );
   });
 });
