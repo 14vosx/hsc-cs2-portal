@@ -200,6 +200,8 @@ describe('MatchRoomPage', () => {
         waitingConfirmationStatus: 'AGUARDANDO',
         waitingPlayer: 'AGUARDANDO JOGADOR',
         retry: 'Tentar novamente',
+        lobbyNavigationLabel: 'Navegação do lobby',
+        timerAccessibleLabel: 'Tempo restante: {{ time }}',
       },
       draft: {
         eyebrow: 'CAPTAIN DRAFT',
@@ -211,6 +213,8 @@ describe('MatchRoomPage', () => {
         yourTurn: 'SUA VEZ DE ESCOLHER',
         availablePool: 'JOGADORES DISPONÍVEIS',
         pickAction: 'ESCOLHER',
+        pickPlayerAction: 'Escolher {{ name }}',
+        pickOrder: 'Escolha #{{ order }}',
         picking: 'ESCOLHENDO...',
         completedTitle: 'DRAFT CONCLUÍDO',
         completedBanner: 'Times definidos. Preparando próxima etapa.',
@@ -226,6 +230,7 @@ describe('MatchRoomPage', () => {
         waitingForVeto: 'Aguardando veto...',
         availablePool: 'MAPAS DISPONÍVEIS',
         banAction: 'BANIR',
+        banMapAction: 'Banir {{ map }}',
         banning: 'BANINDO...',
         bannedBadge: 'BANIDO',
         selectedBadge: 'MAPA SELECIONADO',
@@ -1120,6 +1125,45 @@ describe('MatchRoomPage', () => {
 
       // UI still renders the snapshot
       expect(fixture.nativeElement.textContent).toContain('FORMANDO LOBBY');
+    });
+  });
+
+  describe('Accessibility & Motion Polish (P3-E)', () => {
+    it('possuir live region polite com status server-authoritative do lobby', () => {
+      const snap = createRoomSnapshot('FORMING');
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const liveRegion = fixture.nativeElement.querySelector('.room-sr-only[aria-live="polite"]');
+      expect(liveRegion).not.toBeNull();
+      expect(liveRegion.textContent).toContain('FORMANDO');
+    });
+
+    it('navigation do lobby utiliza i18n em aria-label', () => {
+      const snap = createRoomSnapshot('FORMING');
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const nav = fixture.nativeElement.querySelector('nav.room-nav');
+      expect(nav.getAttribute('aria-label')).toBe('Navegação do lobby');
+    });
+
+    it('CONFIRMING: countdown timer possui role="timer" e aria-label sem spamma live region', () => {
+      const snap = createRoomSnapshot('CONFIRMING', 1, { canConfirm: true });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const timerEl = fixture.nativeElement.querySelector('.room-countdown__timer');
+      expect(timerEl).not.toBeNull();
+      expect(timerEl.getAttribute('role')).toBe('timer');
+      expect(timerEl.getAttribute('aria-label')).toContain('Tempo restante:');
+      expect(timerEl.getAttribute('aria-live')).toBeNull();
+
+      const progressEl = fixture.nativeElement.querySelector('.room-progress-info__count');
+      expect(progressEl.getAttribute('aria-live')).toBe('polite');
     });
   });
 });

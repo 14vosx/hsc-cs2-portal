@@ -53,6 +53,9 @@ function createMapVetoSnapshot(
 
 const TRANSLATIONS = {
   mix: {
+    matchRoom: {
+      timerAccessibleLabel: 'Tempo restante: {{ time }}',
+    },
     mapVeto: {
       eyebrow: 'MAP VETO',
       title: 'Escolha do mapa',
@@ -62,6 +65,7 @@ const TRANSLATIONS = {
       waitingForVeto: 'Aguardando veto...',
       availablePool: 'MAPAS DISPONÍVEIS',
       banAction: 'BANIR',
+      banMapAction: 'Banir {{ map }}',
       banning: 'BANINDO...',
       bannedBadge: 'BANIDO',
       selectedBadge: 'MAPA SELECIONADO',
@@ -359,6 +363,37 @@ describe('MatchRoomMapVetoPanel', () => {
 
     // Nuke card must not have banned class
     expect(selectedCard.classList.contains('veto-card--banned')).toBe(false);
+  });
+
+  it('15. mensagem de turno é aria-live="polite" e timer possui role="timer" sem live spam', () => {
+    const veto = createMapVetoSnapshot({ currentVetoerPlayerAccountId: 'p1' });
+    const fix = setup(veto, participants, true);
+
+    const turnBadge = fix.nativeElement.querySelector('.veto-turn-banner__badge');
+    expect(turnBadge.getAttribute('aria-live')).toBe('polite');
+
+    const timer = fix.nativeElement.querySelector('.veto-turn-banner__timer');
+    expect(timer.getAttribute('role')).toBe('timer');
+    expect(timer.getAttribute('aria-label')).toBe('Tempo restante: 00:30');
+    expect(timer.getAttribute('aria-live')).toBeNull();
+  });
+
+  it('16. botão de ban possui nome acessível contendo o displayName do mapa', () => {
+    const veto = createMapVetoSnapshot();
+    const fix = setup(veto, participants, true);
+
+    const banButtons = fix.nativeElement.querySelectorAll('.veto-btn--ban');
+    expect(banButtons[0].getAttribute('aria-label')).toBe('Banir Inferno');
+    expect(banButtons[1].getAttribute('aria-label')).toBe('Banir Mirage');
+    expect(banButtons[2].getAttribute('aria-label')).toBe('Banir Nuke');
+  });
+
+  it('17. mapa pending define aria-busy="true"', () => {
+    const veto = createMapVetoSnapshot();
+    const fix = setup(veto, participants, true, '00:25', false, 'de_inferno');
+
+    const pendingCard = fix.nativeElement.querySelector('.veto-card--pending');
+    expect(pendingCard.getAttribute('aria-busy')).toBe('true');
   });
 });
 

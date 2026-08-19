@@ -13,29 +13,48 @@
       <div class="veto-panel__turn-status">
         @if (canMapVetoBan()) {
           <div class="veto-turn-banner veto-turn-banner--your-turn">
-            <span class="veto-turn-banner__badge">{{ 'mix.mapVeto.yourTurn' | translate }}</span>
+            <span class="veto-turn-banner__badge" aria-live="polite" aria-atomic="true">
+              {{ 'mix.mapVeto.yourTurn' | translate }}
+            </span>
             @if (formattedCountdown()) {
-              <span class="veto-turn-banner__timer" [class.veto-turn-banner__timer--expired]="isWindowClosed()">
+              <span
+                class="veto-turn-banner__timer"
+                [class.veto-turn-banner__timer--expired]="isWindowClosed()"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
                 {{ formattedCountdown() }}
               </span>
             }
           </div>
         } @else if (currentVetoerParticipant(); as vetoer) {
           <div class="veto-turn-banner veto-turn-banner--waiting">
-            <span class="veto-turn-banner__label">
+            <span class="veto-turn-banner__label" aria-live="polite" aria-atomic="true">
               {{ 'mix.mapVeto.currentVetoerTurn' | translate: { name: getDisplayName(vetoer) } }}
             </span>
             @if (formattedCountdown()) {
-              <span class="veto-turn-banner__timer" [class.veto-turn-banner__timer--expired]="isWindowClosed()">
+              <span
+                class="veto-turn-banner__timer"
+                [class.veto-turn-banner__timer--expired]="isWindowClosed()"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
                 {{ formattedCountdown() }}
               </span>
             }
           </div>
         } @else {
           <div class="veto-turn-banner veto-turn-banner--waiting">
-            <span class="veto-turn-banner__label">{{ 'mix.mapVeto.waitingForVeto' | translate }}</span>
+            <span class="veto-turn-banner__label" aria-live="polite" aria-atomic="true">
+              {{ 'mix.mapVeto.waitingForVeto' | translate }}
+            </span>
             @if (formattedCountdown()) {
-              <span class="veto-turn-banner__timer" [class.veto-turn-banner__timer--expired]="isWindowClosed()">
+              <span
+                class="veto-turn-banner__timer"
+                [class.veto-turn-banner__timer--expired]="isWindowClosed()"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
                 {{ formattedCountdown() }}
               </span>
             }
@@ -87,6 +106,7 @@
           [class.veto-card--banned]="!isSelected && isBanned"
           [class.veto-card--available]="!isSelected && !isBanned && isAvailable"
           [class.veto-card--pending]="isPending"
+          [attr.aria-busy]="isPending ? 'true' : null"
         >
           <div class="veto-card__header">
             <h4 class="veto-card__name">{{ map.displayName }}</h4>
@@ -125,7 +145,7 @@
                   class="veto-btn veto-btn--ban"
                   [disabled]="!canBanThis || isPending"
                   (click)="onBan(map.key)"
-                  [attr.aria-label]="'mix.mapVeto.banAction' | translate"
+                  [attr.aria-label]="'mix.mapVeto.banMapAction' | translate: { map: map.displayName }"
                 >
                   @if (isPending) {
                     {{ 'mix.mapVeto.banning' | translate }}

@@ -63,6 +63,9 @@ function createDraftSnapshot(overrides: Partial<MatchRoomDraftSnapshot> = {}): M
 
 const TRANSLATIONS = {
   mix: {
+    matchRoom: {
+      timerAccessibleLabel: 'Tempo restante: {{ time }}',
+    },
     draft: {
       eyebrow: 'CAPTAIN DRAFT',
       title: 'Formação dos times',
@@ -73,6 +76,8 @@ const TRANSLATIONS = {
       yourTurn: 'SUA VEZ DE ESCOLHER',
       availablePool: 'JOGADORES DISPONÍVEIS',
       pickAction: 'ESCOLHER',
+      pickPlayerAction: 'Escolher {{ name }}',
+      pickOrder: 'Escolha #{{ order }}',
       picking: 'ESCOLHENDO...',
       completedTitle: 'DRAFT CONCLUÍDO',
       completedBanner: 'Times definidos. Preparando próxima etapa.',
@@ -214,5 +219,55 @@ describe('MatchRoomDraftPanel', () => {
 
     const pickButtons = fix.nativeElement.querySelectorAll('.draft-btn--pick');
     expect(pickButtons.length).toBe(0);
+  });
+
+  it('10. mensagem de turno é aria-live="polite" e timer possui role="timer" sem live spam', () => {
+    const draft = createDraftSnapshot({ currentPickerPlayerAccountId: 'p1' });
+    const fix = setup(draft, participants, true);
+
+    const turnLabel = fix.nativeElement.querySelector('.draft-turn-banner__badge');
+    expect(turnLabel.getAttribute('aria-live')).toBe('polite');
+
+    const timer = fix.nativeElement.querySelector('.draft-turn-banner__timer');
+    expect(timer.getAttribute('role')).toBe('timer');
+    expect(timer.getAttribute('aria-label')).toBe('Tempo restante: 00:30');
+    expect(timer.getAttribute('aria-live')).toBeNull();
+  });
+
+  it('11. botão de pick possui nome acessível específico com nome do jogador', () => {
+    const draft = createDraftSnapshot();
+    const fix = setup(draft, participants, true);
+
+    const pickButtons = fix.nativeElement.querySelectorAll('.draft-btn--pick');
+    expect(pickButtons[0].getAttribute('aria-label')).toBe('Escolher Player Three');
+    expect(pickButtons[1].getAttribute('aria-label')).toBe('Escolher Player Four');
+  });
+
+  it('12. candidato pending define aria-busy="true"', () => {
+    const draft = createDraftSnapshot();
+    const fix = setup(draft, participants, true, '00:25', false, 'p3');
+
+    const pendingCard = fix.nativeElement.querySelector('.draft-candidate-card--pending');
+    expect(pendingCard.getAttribute('aria-busy')).toBe('true');
+  });
+
+  it('13. pick order utiliza i18n e não hardcode "pick"', () => {
+    const draft = createDraftSnapshot({
+      assignments: [
+        {
+          playerAccountId: 'p3',
+          team: 'A',
+          captain: false,
+          selectionOrder: 1,
+          source: 'MANUAL_PICK',
+          pickerPlayerAccountId: 'p1',
+          assignedAt: '2026-08-17T20:02:00Z',
+        },
+      ],
+    });
+    const fix = setup(draft, participants);
+
+    const orderEl = fix.nativeElement.querySelector('.draft-player-card__order');
+    expect(orderEl.textContent.trim()).toBe('Escolha #1');
   });
 });

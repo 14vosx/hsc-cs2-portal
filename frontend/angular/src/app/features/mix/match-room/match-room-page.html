@@ -54,8 +54,13 @@
 
   <!-- Authenticated & Loaded Snapshot -->
   @else if (snapshot(); as snap) {
+    <!-- Status Announcement Live Region (polite) -->
+    <p class="room-sr-only" aria-live="polite" aria-atomic="true">
+      {{ ('mix.statuses.' + snap.room.status) | translate }}
+    </p>
+
     <!-- Breadcrumb / Back Link -->
-    <nav class="room-nav" aria-label="Navegação do lobby">
+    <nav class="room-nav" [attr.aria-label]="'mix.matchRoom.lobbyNavigationLabel' | translate">
       <a class="room-nav__back" routerLink="/mix">
         &larr; {{ 'mix.matchRoom.backToLobbies' | translate }}
       </a>
@@ -207,12 +212,18 @@
             <!-- Countdown -->
             <div class="room-countdown" [class.room-countdown--expired]="isConfirmBlocked()">
               <span class="room-countdown__label">{{ 'mix.matchRoom.countdownLabel' | translate }}</span>
-              <span class="room-countdown__timer">{{ formattedCountdown() }}</span>
+              <span
+                class="room-countdown__timer"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
+                {{ formattedCountdown() }}
+              </span>
             </div>
 
             <!-- Progress Count -->
             <div class="room-progress-info">
-              <span class="room-progress-info__count">
+              <span class="room-progress-info__count" aria-live="polite" aria-atomic="true">
                 {{
                   'mix.matchRoom.confirmedProgress'
                     | translate: { confirmed: conf.confirmedCount, total: snap.room.capacity }
