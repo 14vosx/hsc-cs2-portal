@@ -33,6 +33,7 @@ describe('PlayerAccountSecurityPanel', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    api.requestEmailLink.mockReturnValue(of({ ok: true, verificationRequired: true }));
     emailAuthApi.requestPasswordReset.mockReturnValue(of({ ok: true, message: 'generic' }));
     await TestBed.configureTestingModule({
       imports: [PlayerAccountSecurityPanel],
@@ -154,78 +155,73 @@ describe('PlayerAccountSecurityPanel', () => {
   });
 
   it('validates password length using Unicode code-point boundaries', () => {
-    const component = fixture.componentInstance as unknown as {
-      showEmailLinkForm(): void;
-      emailLinkModel: { set(value: unknown): void };
-      emailLinkForm: { password(): { errors(): { kind: string }[] } };
-    };
-    component.showEmailLinkForm();
-    component.emailLinkModel.set({
-      email: 'p@example.test',
-      password: '😀'.repeat(9),
-      confirmPassword: '😀'.repeat(9),
-    });
-    fixture.detectChanges();
-    expect(
-      component.emailLinkForm.password().errors().some((error) => error.kind === 'password_length'),
-    ).toBe(true);
+    openEmailLinkForm();
 
-    component.emailLinkModel.set({
+    setEmailInput('#email-link-email', 'p@example.test');
+    setEmailInput('#email-link-password', '😀'.repeat(9));
+    setEmailInput('#email-link-confirm-password', '😀'.repeat(9));
+    submitEmailForm();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('A senha deve ter entre 10 e 128 caracteres.');
+    expect(api.requestEmailLink).not.toHaveBeenCalled();
+
+    setEmailInput('#email-link-password', '😀'.repeat(10));
+    setEmailInput('#email-link-confirm-password', '😀'.repeat(10));
+    submitEmailForm();
+
+    expect(host.textContent).not.toContain('A senha deve ter entre 10 e 128 caracteres.');
+    expect(api.requestEmailLink).toHaveBeenCalledWith({
       email: 'p@example.test',
       password: '😀'.repeat(10),
-      confirmPassword: '😀'.repeat(10),
     });
-    fixture.detectChanges();
-    expect(
-      component.emailLinkForm.password().errors().some((error) => error.kind === 'password_length'),
-    ).toBe(false);
   });
 
   it('validates confirmation mismatch when the primary password is valid', () => {
-    const component = fixture.componentInstance as unknown as {
-      showEmailLinkForm(): void;
-      emailLinkModel: { set(value: unknown): void };
-      emailLinkForm: { confirmPassword(): { errors(): { kind: string }[] } };
-    };
-    component.showEmailLinkForm();
-    component.emailLinkModel.set({
-      email: 'p@example.test',
-      password: 'valid-password',
-      confirmPassword: 'different-password',
-    });
-    fixture.detectChanges();
-    expect(
-      component.emailLinkForm
-        .confirmPassword()
-        .errors()
-        .some((error) => error.kind === 'password_mismatch'),
-    ).toBe(true);
+    openEmailLinkForm();
+
+    setEmailInput('#email-link-email', 'p@example.test');
+    setEmailInput('#email-link-password', 'valid-password');
+    setEmailInput('#email-link-confirm-password', 'different-password');
+    submitEmailForm();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('As senhas não coincidem.');
+    expect(api.requestEmailLink).not.toHaveBeenCalled();
   });
 
-  it('prevents duplicate submissions and shows generic success', async () => {
+  it('prevents duplicate submissions and shows generic success', () => {
     const response = new Subject<{ ok: true; verificationRequired: true }>();
     api.requestEmailLink.mockReturnValue(response);
-    const component = fixture.componentInstance as unknown as { showEmailLinkForm(): void; emailLinkModel: { set(value: unknown): void }; onSubmit(event: Event): Promise<void> };
-    component.showEmailLinkForm();
-    component.emailLinkModel.set({ email: 'p@example.test', password: 'long-password', confirmPassword: 'long-password' });
-    const event = new Event('submit');
-    await component.onSubmit(event);
-    await component.onSubmit(event);
+
+    openEmailLinkForm();
+    setEmailInput('#email-link-email', 'p@example.test');
+    setEmailInput('#email-link-password', 'long-password');
+    setEmailInput('#email-link-confirm-password', 'long-password');
+
+    submitEmailForm();
+    submitEmailForm();
+
     expect(api.requestEmailLink).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Enviando...');
+
     response.next({ ok: true, verificationRequired: true });
     response.complete();
     fixture.detectChanges();
+
     expect(fixture.nativeElement.textContent).toContain('Solicitação recebida');
     expect(fixture.nativeElement.textContent).not.toContain('p@example.test');
   });
 
-  it('maps request failures to safe presentation copy', async () => {
+  it('maps request failures to safe presentation copy', () => {
     api.requestEmailLink.mockReturnValue(throwError(() => new Error('internal')));
-    const component = fixture.componentInstance as unknown as { showEmailLinkForm(): void; emailLinkModel: { set(value: unknown): void }; onSubmit(event: Event): Promise<void> };
-    component.showEmailLinkForm();
-    component.emailLinkModel.set({ email: 'p@example.test', password: 'long-password', confirmPassword: 'long-password' });
-    await component.onSubmit(new Event('submit'));
-    fixture.detectChanges();
+
+    openEmailLinkForm();
+    setEmailInput('#email-link-email', 'p@example.test');
+    setEmailInput('#email-link-password', 'long-password');
+    setEmailInput('#email-link-confirm-password', 'long-password');
+    submitEmailForm();
+
     expect(fixture.debugElement.query(By.css('[role="alert"]')).nativeElement.textContent).not.toContain('internal');
   });
 
@@ -244,23 +240,27 @@ describe('PlayerAccountSecurityPanel', () => {
   });
 
   it('switches locale without changing identity, URL, form values, or request payload', async () => {
-    const component = fixture.componentInstance as unknown as { showEmailLinkForm(): void; emailLinkModel: { set(value: unknown): void }; onSubmit(event: Event): Promise<void> };
-    component.showEmailLinkForm();
-    component.emailLinkModel.set({ email: ' Player+CS2@example.test ', password: 'canonical-password', confirmPassword: 'canonical-password' });
-    fixture.detectChanges();
+    openEmailLinkForm();
+    setEmailInput('#email-link-email', ' Player+CS2@example.test ');
+    setEmailInput('#email-link-password', 'canonical-password');
+    setEmailInput('#email-link-confirm-password', 'canonical-password');
+
     const host = fixture.nativeElement as HTMLElement;
     const emailBeforeLocaleSwitch = (host.querySelector('#email-link-email') as HTMLInputElement).value;
     const passwordBeforeLocaleSwitch = (host.querySelector('#email-link-password') as HTMLInputElement).value;
     const confirmationBeforeLocaleSwitch = (host.querySelector('#email-link-confirm-password') as HTMLInputElement).value;
     const steamHrefBeforeLocaleSwitch = (host.querySelector('a') as HTMLAnchorElement).getAttribute('href');
+
     await firstValueFrom(TestBed.inject(TranslateService).use('en-US'));
     fixture.detectChanges();
+
     expect(host.textContent).toContain('Account and security');
     expect((host.querySelector('#email-link-email') as HTMLInputElement).value).toBe(emailBeforeLocaleSwitch);
     expect((host.querySelector('#email-link-password') as HTMLInputElement).value).toBe(passwordBeforeLocaleSwitch);
     expect((host.querySelector('#email-link-confirm-password') as HTMLInputElement).value).toBe(confirmationBeforeLocaleSwitch);
     expect((host.querySelector('a') as HTMLAnchorElement).getAttribute('href')).toBe(steamHrefBeforeLocaleSwitch);
-    await component.onSubmit(new Event('submit'));
+
+    submitEmailForm();
     expect(api.requestEmailLink).toHaveBeenCalledWith({ email: 'Player+CS2@example.test', password: 'canonical-password' });
   });
 
@@ -268,6 +268,26 @@ describe('PlayerAccountSecurityPanel', () => {
     return Array.from(
       fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
     ).find((button) => button.textContent.includes('Redefinir senha'));
+  }
+
+  function openEmailLinkForm(): void {
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>);
+    const linkBtn = buttons.find((b) => b.textContent.includes('Vincular e-mail'));
+    linkBtn?.click();
+    fixture.detectChanges();
+  }
+
+  function setEmailInput(selector: string, value: string): void {
+    const inputEl = fixture.nativeElement.querySelector(selector) as HTMLInputElement;
+    inputEl.value = value;
+    inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+  }
+
+  function submitEmailForm(): void {
+    const formEl = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    formEl.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges();
   }
 });
 
