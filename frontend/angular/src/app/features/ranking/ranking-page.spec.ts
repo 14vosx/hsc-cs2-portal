@@ -1,115 +1,36 @@
 import { signal } from '@angular/core';
+import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
-import type { Observable } from 'rxjs';
 import { firstValueFrom, NEVER, of, Subject, throwError } from 'rxjs';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PlayerSession } from '../../core/session/player-session.model';
 import type {
   PlayerPresentationReference,
 } from '../../core/player-presentation/player-presentation-reference.model';
 import { PlayerPresentationReferenceService } from '../../core/player-presentation/player-presentation-reference.service';
+import type { PlayerSession } from '../../core/session/player-session.model';
 import { PlayerSessionService } from '../../core/session/player-session.service';
 import { RankingApiService } from './data-access/ranking-api.service';
 import type { Ranking, RankingPlayer } from './domain/ranking.model';
 import { RankingPage } from './ranking-page';
 
-class TestableRankingPage extends RankingPage {
-  get publicVm$() {
-    return this.vm$;
-  }
-
-  getPublicSearchTerm(): string {
-    return this.searchTerm();
-  }
-
-  callRetry(): void {
-    this.retry();
-  }
-
-  callUpdateSearch(event: Event): void {
-    this.updateSearch(event);
-  }
-
-  callFilteredPlayers(players: readonly RankingPlayer[]): readonly RankingPlayer[] {
-    return this.filteredPlayers(players);
-  }
-
-  callFilteredPlayersWithReferences(
-    players: readonly RankingPlayer[],
-    references: ReadonlyMap<string, PlayerPresentationReference>,
-  ): readonly RankingPlayer[] {
-    return this.filteredPlayers(players, references);
-  }
-
-  callAvatarUrlFor(
-    player: RankingPlayer,
-    references: ReadonlyMap<string, PlayerPresentationReference>,
-  ): string | null {
-    return this.avatarUrlFor(player, references);
-  }
-
-  callIsCurrentPlayer(player: RankingPlayer): boolean {
-    return this.isCurrentPlayer(player);
-  }
-
-  callFormatRateAsPct(value: number): string {
-    return this.formatRateAsPct(value);
-  }
-}
-
 type RankingApiServiceMock = {
   getRanking: Mock<RankingApiService['getRanking']>;
 };
 
-type ObservableValue<T> = T extends Observable<infer TValue> ? TValue : never;
-
-type ExposedRankingVm = ObservableValue<TestableRankingPage['publicVm$']>;
-
-function captureLatest<T>(source: Observable<T>): T | undefined {
-  let latest: T | undefined;
-
-  source.subscribe((value) => {
-    latest = value;
-  });
-
-  return latest;
-}
-
-function requireReadyVm(
-  value: ExposedRankingVm | undefined,
-): Extract<ExposedRankingVm, { state: 'ready' }> {
-  if (!value || value.state !== 'ready') {
-    throw new Error(`Expected ready RankingVm, received ${value?.state ?? 'undefined'}`);
+function setSearch(fixture: ComponentFixture<RankingPage>, term: string): void {
+  const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+    '#ranking-search-input',
+  );
+  if (!input) {
+    throw new Error('Search input not found');
   }
-
-  return value;
-}
-
-function requireErrorVm(
-  value: ExposedRankingVm | undefined,
-): Extract<ExposedRankingVm, { state: 'error' }> {
-  if (!value || value.state !== 'error') {
-    throw new Error(`Expected error RankingVm, received ${value?.state ?? 'undefined'}`);
-  }
-
-  return value;
-}
-
-function createInputEvent(value: string): Event {
-  const input = document.createElement('input');
-  input.value = value;
-
-  const event = new Event('input');
-
-  Object.defineProperty(event, 'target', {
-    value: input,
-  });
-
-  return event;
+  input.value = term;
+  input.dispatchEvent(new Event('input'));
+  fixture.detectChanges();
 }
 
 describe('RankingPage', () => {
@@ -248,7 +169,6 @@ describe('RankingPage', () => {
       providers: [
         provideTranslateService(),
         provideRouter([]),
-        TestableRankingPage,
         { provide: RankingApiService, useValue: mockRankingApi },
         { provide: PlayerPresentationReferenceService, useValue: mockPresentation },
         { provide: PlayerSessionService, useValue: { state: mockSessionState } },
@@ -265,240 +185,159 @@ describe('RankingPage', () => {
     void translate.use('pt-BR');
   });
 
-  it('1. o componente pode ser criado', () => {
-    const page = TestBed.inject(TestableRankingPage);
-    expect(page).toBeTruthy();
+  it('1. o componente pode ser instanciado e renderizado', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('2. RankingApiService.getRanking() é chamado exatamente uma vez', () => {
-    const page = TestBed.inject(TestableRankingPage);
-    page.publicVm$.subscribe();
-    expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(1);
-  });
-
-  it('3. estado inicial de loading é preservado antes da emissão', () => {
-    const rankingSubject = new Subject<Ranking>();
-    mockRankingApi.getRanking.mockReturnValue(rankingSubject.asObservable());
-
-    const page = TestBed.inject(TestableRankingPage);
-    const states: string[] = [];
-    const sub = page.publicVm$.subscribe((vm) => states.push(vm.state));
-
-    expect(states).toEqual(['loading']);
-
-    rankingSubject.next(mockRanking);
-    sub.unsubscribe();
-  });
-
-  it('4. emissão de Ranking encerra loading e produz estado de pronto', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.state).toBe('ready');
-    expect(vm.generatedAt).toBe('2026-08-03T12:00:00Z');
-    expect(vm.completedMaps).toBe(15);
-    expect(vm.rankedPlayerCount).toBe(4);
-  });
-
-  it('5. rankedPlayerCount é exposto como métrica', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.rankedPlayerCount).toBe(4);
-  });
-
-  it('6. completedMaps é exibido a partir do domínio', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.completedMaps).toBe(15);
-  });
-
-  it('7. leader é usado na apresentação do líder', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.leader).toEqual(mockPlayer1);
-  });
-
-  it('8. pódio preserva a ordem dos três primeiros jogadores', () => {
-    const publishedRanking = {
-      ...mockRanking,
-      players: [mockPlayer3, mockPlayer1, mockPlayer2, mockPlayer4],
-    } satisfies Ranking;
-    mockRankingApi.getRanking.mockReturnValue(of(publishedRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.podium).toHaveLength(3);
-    expect(vm.podium[0]).toEqual(mockPlayer3);
-    expect(vm.podium[1]).toEqual(mockPlayer1);
-    expect(vm.podium[2]).toEqual(mockPlayer2);
-  });
-
-  it('9. tabela preserva a ordem recebida do domínio sem reordenar', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.players).toEqual([mockPlayer1, mockPlayer2, mockPlayer3, mockPlayer4]);
-  });
-
-  it('10. player.position é mantida a partir do modelo de domínio', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.players[0].position).toBe(1);
-    expect(vm.players[1].position).toBe(2);
-    expect(vm.players[2].position).toBe(3);
-    expect(vm.players[3].position).toBe(4);
-  });
-
-  it('11. player.steamId64 é usado como identificador canônico', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-
-    expect(vm.players[0].steamId64).toBe('76561198000000001');
-  });
-
-  it('12. busca por nome continua funcionando', () => {
-    const page = TestBed.inject(TestableRankingPage);
-
-    page.callUpdateSearch(createInputEvent('fallen'));
-    expect(page.getPublicSearchTerm()).toBe('fallen');
-
-    const filtered = page.callFilteredPlayers(mockRanking.players);
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].steamId64).toBe('76561198000000001');
-  });
-
-  it('13. busca por SteamID continua funcionando', () => {
-    const page = TestBed.inject(TestableRankingPage);
-
-    page.callUpdateSearch(createInputEvent('76561198000000002'));
-    const filtered = page.callFilteredPlayers(mockRanking.players);
-    expect(filtered).toHaveLength(1);
-    expect(filtered[0].name).toBe('fer');
-  });
-
-  it('14. busca é segura quando name é null', () => {
-    const page = TestBed.inject(TestableRankingPage);
-
-    page.callUpdateSearch(createInputEvent('76561198000000004'));
-    expect(() => {
-      const filtered = page.callFilteredPlayers(mockRanking.players);
-      expect(filtered).toHaveLength(1);
-      expect(filtered[0].name).toBeNull();
-    }).not.toThrow();
-  });
-
-  it('15. consulta vazia restaura todos os jogadores', () => {
-    const page = TestBed.inject(TestableRankingPage);
-
-    page.callUpdateSearch(createInputEvent('   '));
-    const filtered = page.callFilteredPlayers(mockRanking.players);
-    expect(filtered).toHaveLength(4);
-  });
-
-  it('16. Ranking vazio emite estado empty', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = captureLatest(page.publicVm$);
-
-    expect(vm).toEqual({ state: 'empty' });
-  });
-
-  it('17. Ranking vazio não é tratado como erro', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = captureLatest(page.publicVm$);
-
-    expect(vm?.state).toBe('empty');
-    expect(vm?.state).not.toBe('error');
-  });
-
-  it('18. erro do Observable exibe o estado de erro atual', () => {
-    mockRankingApi.getRanking.mockReturnValue(throwError(() => new Error('HTTP 500')));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireErrorVm(captureLatest(page.publicVm$));
-
-    expect(vm).toEqual({ state: 'error' });
-  });
-
-  it('19. erro encerra loading', () => {
-    const errorSubject = new Subject<Ranking>();
-    mockRankingApi.getRanking.mockReturnValue(errorSubject.asObservable());
-
-    const page = TestBed.inject(TestableRankingPage);
-    const states: string[] = [];
-
-    const sub = page.publicVm$.subscribe((vm) => states.push(vm.state));
-
-    expect(states).toEqual(['loading']);
-
-    errorSubject.error(new Error('Network error'));
-    expect(states).toEqual(['loading', 'error']);
-
-    sub.unsubscribe();
-  });
-
-  it('20. erro não exibe dados de sucesso', () => {
-    mockRankingApi.getRanking.mockReturnValue(throwError(() => new Error('HTTP 500')));
-
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireErrorVm(captureLatest(page.publicVm$));
-
-    expect('players' in vm).toBe(false);
-    expect('rankedPlayerCount' in vm).toBe(false);
-  });
-
-  it('21. não existe segunda chamada ao serviço durante detecções de mudança', () => {
-    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
-
+  it('2. RankingApiService.getRanking() é chamado na inicialização', () => {
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
-    fixture.detectChanges();
-
     expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(1);
   });
 
-  it('22. chamada de retry re-executa a requisição após erro e transita para ready', () => {
-    mockRankingApi.getRanking.mockReturnValueOnce(throwError(() => new Error('HTTP 500')));
-    mockRankingApi.getRanking.mockReturnValueOnce(of(mockRanking));
+  it('3. estado inicial de loading é exibido antes da resposta do ranking', () => {
+    mockRankingApi.getRanking.mockReturnValue(NEVER);
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
-    const page = TestBed.inject(TestableRankingPage);
-    const states: string[] = [];
-
-    const sub = page.publicVm$.subscribe((vm) => states.push(vm.state));
-
-    expect(states).toEqual(['loading', 'error']);
-
-    page.callRetry();
-
-    expect(states).toEqual(['loading', 'error', 'loading', 'ready']);
-    expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(2);
-
-    sub.unsubscribe();
+    const element = fixture.nativeElement as HTMLElement;
+    const loadingState = element.querySelector('app-page-state[type="loading"]');
+    expect(loadingState).not.toBeNull();
+    expect(loadingState?.textContent).toContain(
+      'Sincronizando a classificação dos jogadores.',
+    );
   });
 
-  it('23. template no estado empty preserva header e page-state', () => {
+  it('4. resposta de ranking encerra loading e renderiza a página de ranking', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('app-page-state')).toBeNull();
+    expect(element.querySelector('.ranking-page__metrics')).not.toBeNull();
+    expect(element.querySelector('.ranking-page__podium-section')).not.toBeNull();
+    expect(element.querySelector('.ranking-page__table-section')).not.toBeNull();
+  });
+
+  it('5. exibe métricas resumidas de jogadores classificados, mapas concluídos e líder atual', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const summaryCards = element.querySelectorAll('.ranking-page__summary-card');
+    expect(summaryCards).toHaveLength(3);
+    expect(summaryCards[0].textContent).toContain('4');
+    expect(summaryCards[0].textContent).toContain('Jogadores');
+    expect(summaryCards[1].textContent).toContain('15');
+    expect(summaryCards[1].textContent).toContain('Mapas finalizados');
+    expect(summaryCards[2].textContent).toContain('Fallen');
+    expect(summaryCards[2].textContent).toContain('Líder atual');
+  });
+
+  it('6. pódio renderiza os três primeiros colocados com medalhas correspondentes', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const podiumItems = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.ranking-page__podium-item',
+    );
+    expect(podiumItems).toHaveLength(3);
+    expect(podiumItems[0].textContent).toContain('Fallen');
+    expect(podiumItems[0].textContent).toContain('#1');
+    expect(podiumItems[0].textContent).toContain('Ouro · Campeão');
+
+    expect(podiumItems[1].textContent).toContain('fer');
+    expect(podiumItems[1].textContent).toContain('#2');
+    expect(podiumItems[1].textContent).toContain('Prata');
+
+    expect(podiumItems[2].textContent).toContain('coldzera');
+    expect(podiumItems[2].textContent).toContain('#3');
+    expect(podiumItems[2].textContent).toContain('Bronze');
+  });
+
+  it('7. tabela exibe jogadores na ordem canônica com posição e SteamID64', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(4);
+
+    expect(rows[0].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#1');
+    expect(rows[0].querySelector('.ranking-page__player-name')?.textContent).toContain('Fallen');
+    expect(rows[0].querySelector('.ranking-page__player-steamid')?.textContent).toBe('76561198000000001');
+
+    expect(rows[1].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#2');
+    expect(rows[1].querySelector('.ranking-page__player-name')?.textContent).toContain('fer');
+    expect(rows[1].querySelector('.ranking-page__player-steamid')?.textContent).toBe('76561198000000002');
+
+    expect(rows[2].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#3');
+    expect(rows[2].querySelector('.ranking-page__player-name')?.textContent).toContain('coldzera');
+    expect(rows[2].querySelector('.ranking-page__player-steamid')?.textContent).toBe('76561198000000003');
+
+    expect(rows[3].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#4');
+    expect(rows[3].querySelector('.ranking-page__player-name')?.textContent).toContain('Sem nome');
+    expect(rows[3].querySelector('.ranking-page__player-steamid')?.textContent).toBe('76561198000000004');
+  });
+
+  it('8. busca por nome filtra linhas da tabela', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    setSearch(fixture, 'fallen');
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('Fallen');
+  });
+
+  it('9. busca por SteamID filtra linhas da tabela', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    setSearch(fixture, '76561198000000002');
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('fer');
+  });
+
+  it('10. busca é segura quando jogador possui nome nulo', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    setSearch(fixture, '76561198000000004');
+
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('76561198000000004');
+  });
+
+  it('11. consulta vazia restaura todos os jogadores', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    setSearch(fixture, 'fallen');
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr')).toHaveLength(1);
+
+    setSearch(fixture, '   ');
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr')).toHaveLength(4);
+  });
+
+  it('12. busca sem resultados exibe estado vazio de busca', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    setSearch(fixture, 'jogador-inexistente');
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('tbody tr')).toHaveLength(0);
+    const emptyState = element.querySelector('app-empty-state');
+    expect(emptyState).not.toBeNull();
+    expect(element.textContent).toContain('Nenhum jogador encontrado');
+  });
+
+  it('13. ranking vazio renderiza estado de página vazia preservando o cabeçalho', () => {
     mockRankingApi.getRanking.mockReturnValue(of(mockEmptyRanking));
 
     const fixture = TestBed.createComponent(RankingPage);
@@ -506,25 +345,59 @@ describe('RankingPage', () => {
 
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('h1')?.textContent).toContain('Ranking Geral HSC');
-    expect(element.querySelector('app-page-state')).not.toBeNull();
+    const emptyState = element.querySelector('app-page-state');
+    expect(emptyState).not.toBeNull();
+    expect(element.textContent).toContain('Nenhum jogador classificado');
+    expect(element.querySelector('.ranking-page__metrics')).toBeNull();
+    expect(element.querySelector('.ranking-page__table-section')).toBeNull();
   });
 
-  it('24. sessão autenticada identifica somente o SteamID64 correspondente', () => {
-    mockSessionState.set({
-      status: 'authenticated',
-      displayName: 'fer',
-      steamId64: mockPlayer2.steamId64,
-      avatarMedium: null,
-    });
+  it('14. erro na API encerra loading e renderiza estado de erro sem dados parciais', () => {
+    mockRankingApi.getRanking.mockReturnValue(throwError(() => new Error('HTTP 500')));
 
-    const page = TestBed.inject(TestableRankingPage);
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
-    expect(page.callIsCurrentPlayer(mockPlayer1)).toBe(false);
-    expect(page.callIsCurrentPlayer(mockPlayer2)).toBe(true);
-    expect(page.callIsCurrentPlayer(mockPlayer3)).toBe(false);
+    const element = fixture.nativeElement as HTMLElement;
+    const errorState = element.querySelector('app-page-state');
+    expect(errorState).not.toBeNull();
+    expect(element.textContent).toContain('Ranking indisponível');
+    expect(element.querySelector('.ranking-page__metrics')).toBeNull();
+    expect(element.querySelector('.ranking-page__table-section')).toBeNull();
   });
 
-  it('25. tabela destaca visualmente somente a row do jogador autenticado', () => {
+  it('15. não dispara segunda chamada ao serviço durante detecções de mudança repetidas', () => {
+    mockRankingApi.getRanking.mockReturnValue(of(mockRanking));
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(1);
+  });
+
+  it('16. ação de retry no estado de erro dispara nova requisição e transita para ready', () => {
+    mockRankingApi.getRanking.mockReturnValueOnce(throwError(() => new Error('HTTP 500')));
+    mockRankingApi.getRanking.mockReturnValueOnce(of(mockRanking));
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Ranking indisponível');
+
+    const retryButton = element.querySelector<HTMLButtonElement>('.page-state__btn');
+    expect(retryButton).not.toBeNull();
+    retryButton?.click();
+    fixture.detectChanges();
+
+    expect(mockRankingApi.getRanking).toHaveBeenCalledTimes(2);
+    expect(element.querySelector('app-page-state')).toBeNull();
+    expect(element.querySelector('.ranking-page__table-section')).not.toBeNull();
+    expect(element.textContent).toContain('Fallen');
+  });
+
+  it('17. sessão autenticada destaca visualmente somente a linha do jogador correspondente', () => {
     mockSessionState.set({
       status: 'authenticated',
       displayName: 'fer',
@@ -544,7 +417,7 @@ describe('RankingPage', () => {
     expect(highlightedRows[0].textContent).toContain('Você');
   });
 
-  it('26. sessão anonymous não destaca nenhum jogador', () => {
+  it('18. sessão anônima não destaca nenhum jogador na tabela', () => {
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
 
@@ -555,7 +428,7 @@ describe('RankingPage', () => {
     expect(highlightedRows).toHaveLength(0);
   });
 
-  it('27. destaque da sessão não altera posição nem ordem canônica', () => {
+  it('19. destaque da sessão não altera a ordem canônica nem posições exibidas', () => {
     mockSessionState.set({
       status: 'authenticated',
       displayName: 'coldzera',
@@ -563,16 +436,25 @@ describe('RankingPage', () => {
       avatarMedium: null,
     });
 
-    const page = TestBed.inject(TestableRankingPage);
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
-    expect(vm.players.map((player) => player.steamId64)).toEqual(
-      mockRanking.players.map((player) => player.steamId64),
-    );
-    expect(vm.players.map((player) => player.position)).toEqual([1, 2, 3, 4]);
+    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(4);
+    expect(rows[0].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#1');
+    expect(rows[0].querySelector('.ranking-page__player-name')?.textContent).toContain('Fallen');
+
+    expect(rows[1].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#2');
+    expect(rows[1].querySelector('.ranking-page__player-name')?.textContent).toContain('fer');
+
+    expect(rows[2].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#3');
+    expect(rows[2].querySelector('.ranking-page__player-name')?.textContent).toContain('coldzera');
+    expect(rows[2].getAttribute('data-current-player')).toBe('true');
+
+    expect(rows[3].querySelector('.ranking-page__cell-pos')?.textContent).toBe('#4');
   });
 
-  it('28. usuário autenticado no Top 3 recebe badge Você também no pódio', () => {
+  it('20. usuário autenticado no Top 3 recebe badge Você no pódio', () => {
     mockSessionState.set({
       status: 'authenticated',
       displayName: 'Fallen',
@@ -592,13 +474,23 @@ describe('RankingPage', () => {
     expect(highlightedPodium[0].textContent).toContain('Você');
   });
 
-  it('29. winRate zero permanece zero na apresentação', () => {
-    const page = TestBed.inject(TestableRankingPage);
+  it('21. winRate zero é formatado como 0.0% na apresentação da tabela', () => {
+    const rankingWithZeroWinRate: Ranking = {
+      ...mockRanking,
+      players: [{ ...mockPlayer1, winRate: 0 }],
+    };
+    mockRankingApi.getRanking.mockReturnValue(of(rankingWithZeroWinRate));
 
-    expect(page.callFormatRateAsPct(0)).toBe('0.0%');
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    const winRateCell = (fixture.nativeElement as HTMLElement).querySelector(
+      '.ranking-page__win-rate',
+    );
+    expect(winRateCell?.textContent).toContain('0.0%');
   });
 
-  it('30. apresentação usa somente conceitos fornecidos pelo ranking', () => {
+  it('22. apresentação usa somente conceitos fornecidos pelo ranking', () => {
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
 
@@ -607,8 +499,13 @@ describe('RankingPage', () => {
     expect(content).not.toContain('128 tick');
   });
 
-  it('31. troca copy, labels compactos e busca para en-US preservando dados e terminologia', async () => {
-    mockSessionState.set({ status: 'authenticated', displayName: 'fer', steamId64: mockPlayer2.steamId64, avatarMedium: null });
+  it('23. troca copy, labels compactos e busca para en-US preservando dados e terminologia', async () => {
+    mockSessionState.set({
+      status: 'authenticated',
+      displayName: 'fer',
+      steamId64: mockPlayer2.steamId64,
+      avatarMedium: null,
+    });
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('V/D');
@@ -621,12 +518,18 @@ describe('RankingPage', () => {
     expect(element.textContent).toContain('You');
     expect(element.textContent).toContain('fer');
     expect(element.textContent).toContain(mockPlayer2.steamId64);
-    expect(element.querySelector('label[for="ranking-search-input"]')?.textContent).toContain('Search player');
-    expect(element.querySelector('#ranking-search-input')?.getAttribute('placeholder')).toBe('Name or SteamID64');
-    for (const term of ['Score', 'Impact', 'K/D', 'ADR', 'HS%']) expect(element.textContent).toContain(term);
+    expect(element.querySelector('label[for="ranking-search-input"]')?.textContent).toContain(
+      'Search player',
+    );
+    expect(element.querySelector('#ranking-search-input')?.getAttribute('placeholder')).toBe(
+      'Name or SteamID64',
+    );
+    for (const term of ['Score', 'Impact', 'K/D', 'ADR', 'HS%']) {
+      expect(element.textContent).toContain(term);
+    }
   });
 
-  it('32. localiza fallbacks de jogador sem nome e data ausente', async () => {
+  it('24. localiza fallbacks de jogador sem nome e data ausente', async () => {
     mockRankingApi.getRanking.mockReturnValue(of({ ...mockRanking, generatedAt: null }));
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
@@ -639,39 +542,36 @@ describe('RankingPage', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Unnamed');
   });
 
-  it('33. ranking fica ready mesmo quando o enrichment Auth falha', () => {
+  it('25. ranking renderiza dados mesmo quando a resolução de referências falha', () => {
     mockPresentation.resolve.mockReturnValue(throwError(() => new Error('HTTP 401')));
-    const page = TestBed.inject(TestableRankingPage);
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
-    const vm = requireReadyVm(captureLatest(page.publicVm$));
-    expect(vm.players).toEqual(mockRanking.players);
-    expect(vm.presentationReferences.size).toBe(0);
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('app-page-state')).toBeNull();
+    expect(element.querySelectorAll('tbody tr')).toHaveLength(4);
+    expect(element.querySelector('tbody tr:first-child')?.textContent).toContain('Fallen');
   });
 
-  it('34. ranking emite ready estático antes de o enrichment responder', () => {
+  it('26. renderiza dados estáticos antes da resolução assíncrona de apresentação responder', () => {
     const references$ = new Subject<ReadonlyMap<string, PlayerPresentationReference>>();
     mockPresentation.resolve.mockReturnValue(references$);
-    const states: Array<{ state: string; name?: string | null }> = [];
 
-    const page = TestBed.inject(TestableRankingPage);
-    page.publicVm$.subscribe((vm) => states.push({
-      state: vm.state,
-      name: vm.state === 'ready'
-        ? vm.presentationReferences.get(mockPlayer1.steamId64)?.steam.personaname ?? mockPlayer1.name
-        : undefined,
-    }));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
-    expect(states).toEqual([
-      { state: 'loading', name: undefined },
-      { state: 'ready', name: 'Fallen' },
-    ]);
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('tbody tr:first-child')?.textContent).toContain('Fallen');
+
     references$.next(presentationMap());
-    expect(states.at(-1)).toEqual({ state: 'ready', name: 'Lavos' });
+    fixture.detectChanges();
+
+    expect(element.querySelector('tbody tr:first-child')?.textContent).toContain('Lavos');
   });
 
-  it('35. resolve todas as identidades em uma única operação batch, sem N+1', () => {
-    const page = TestBed.inject(TestableRankingPage);
-    page.publicVm$.subscribe();
+  it('27. resolve todas as identidades em uma única operação batch, sem N+1', () => {
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
     expect(mockPresentation.resolve).toHaveBeenCalledTimes(1);
     expect([...mockPresentation.resolve.mock.calls[0][0]]).toEqual(
@@ -679,19 +579,21 @@ describe('RankingPage', () => {
     );
   });
 
-  it('36. busca encontra current name sem perder nome ETL nem SteamID64', () => {
-    const page = TestBed.inject(TestableRankingPage);
-    const references = presentationMap();
+  it('28. busca encontra personaname resolvido sem perder busca por nome ETL nem SteamID64', () => {
+    mockPresentation.resolve.mockReturnValue(of(presentationMap()));
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
 
     for (const term of ['lavos', 'fallen', mockPlayer1.steamId64]) {
-      page.callUpdateSearch(createInputEvent(term));
-      expect(page.callFilteredPlayersWithReferences(mockRanking.players, references)).toEqual([
-        mockPlayer1,
-      ]);
+      setSearch(fixture, term);
+      const rows = (fixture.nativeElement as HTMLElement).querySelectorAll('tbody tr');
+      expect(rows).toHaveLength(1);
+      expect(rows[0].textContent).toContain('Lavos');
+      expect(rows[0].textContent).toContain(mockPlayer1.steamId64);
     }
   });
 
-  it('37. personaname atual aparece no leader, podium, desktop e mobile com link público', () => {
+  it('29. personaname atual aparece no leader, podium, desktop e mobile com link público', () => {
     mockPresentation.resolve.mockReturnValue(of(presentationMap()));
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
@@ -711,7 +613,7 @@ describe('RankingPage', () => {
     }
   });
 
-  it('38. profile null mantém current name como texto sem anchor', () => {
+  it('30. profile null mantém current name como texto sem anchor', () => {
     mockPresentation.resolve.mockReturnValue(of(presentationMap({ profile: null })));
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
@@ -723,29 +625,28 @@ describe('RankingPage', () => {
     expect(firstRowLink?.querySelector('a')).toBeNull();
   });
 
-  it('39. sem reference ou com personaname null mantém RankingPlayer.name', () => {
+  it('31. sem reference ou com personaname null mantém RankingPlayer.name', () => {
     mockPresentation.resolve.mockReturnValue(of(presentationMap({ personaname: null })));
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).querySelector('tbody tr:first-child')?.textContent)
-      .toContain('Fallen');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('tbody tr:first-child')?.textContent,
+    ).toContain('Fallen');
   });
 
-  it('40. avatar de presentation tem precedência e usa o current name acessível', () => {
+  it('32. avatar de presentation tem precedência e usa o current name acessível', () => {
     mockSessionState.set({
       status: 'authenticated',
       displayName: 'Fallen',
       steamId64: mockPlayer1.steamId64,
       avatarMedium: 'https://session/avatar.jpg',
     });
-    const references = presentationMap();
-    mockPresentation.resolve.mockReturnValue(of(references));
-    const page = TestBed.inject(TestableRankingPage);
-    expect(page.callAvatarUrlFor(mockPlayer1, references)).toBe('https://steam/avatar.jpg');
+    mockPresentation.resolve.mockReturnValue(of(presentationMap()));
 
     const fixture = TestBed.createComponent(RankingPage);
     fixture.detectChanges();
+
     const image = (fixture.nativeElement as HTMLElement).querySelector(
       'tbody tr:first-child app-player-avatar img',
     );
@@ -753,15 +654,35 @@ describe('RankingPage', () => {
     expect(image?.getAttribute('alt')).toBe('Avatar de Lavos');
   });
 
-  it('41. retry remove referências antigas enquanto a nova resolução está pendente', () => {
-    mockPresentation.resolve.mockReturnValueOnce(of(presentationMap())).mockReturnValueOnce(NEVER);
-    const page = TestBed.inject(TestableRankingPage);
-    const emissions: ExposedRankingVm[] = [];
-    page.publicVm$.subscribe((vm) => emissions.push(vm));
-    expect(requireReadyVm(emissions.at(-1)).presentationReferences.size).toBe(1);
+  it('33. retry remove presentation data antiga enquanto a nova resolução permanece pendente', () => {
+    const ranking$ = new Subject<Ranking>();
+    mockRankingApi.getRanking.mockReturnValueOnce(ranking$).mockReturnValueOnce(of(mockRanking));
 
-    page.callRetry();
-    expect(requireReadyVm(emissions.at(-1)).presentationReferences.size).toBe(0);
+    const presentation$ = new Subject<ReadonlyMap<string, PlayerPresentationReference>>();
+    mockPresentation.resolve.mockReturnValueOnce(presentation$).mockReturnValueOnce(NEVER);
+
+    const fixture = TestBed.createComponent(RankingPage);
+    fixture.detectChanges();
+
+    ranking$.next(mockRanking);
+    fixture.detectChanges();
+
+    presentation$.next(presentationMap());
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('tbody tr:first-child')?.textContent).toContain('Lavos');
+
+    ranking$.error(new Error('Network error'));
+    fixture.detectChanges();
+
+    const retryButton = element.querySelector<HTMLButtonElement>('.page-state__btn');
+    expect(retryButton).not.toBeNull();
+    retryButton?.click();
+    fixture.detectChanges();
+
+    expect(element.querySelector('tbody tr:first-child')?.textContent).toContain('Fallen');
+    expect(element.textContent).not.toContain('Lavos');
   });
 });
 
