@@ -26,6 +26,7 @@ import type {
   MatchRoomSnapshot,
   MatchRoomStatus,
 } from '../domain/match-room.model';
+import { MatchRoomDraftPanel } from './draft/match-room-draft-panel';
 
 @Component({
   selector: 'app-match-room-page',
@@ -36,6 +37,7 @@ import type {
     StatusBadge,
     PlayerAvatar,
     PlayerLink,
+    MatchRoomDraftPanel,
   ],
   templateUrl: './match-room-page.html',
   styleUrl: './match-room-page.css',
@@ -54,10 +56,12 @@ export class MatchRoomPage implements OnInit {
   protected readonly initialError = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
   protected readonly isPerformingAction = signal(false);
+  protected readonly pendingDraftPlayerAccountId = signal<string | null>(null);
 
   // Countdown and one-shot refresh tracking
   protected readonly nowTimestamp = signal(Date.now());
   private lastRefreshedWindowKey: string | null = null;
+  private lastRefreshedDraftWindowKey: string | null = null;
 
   protected readonly remainingSeconds = computed(() => {
     const snap = this.snapshot();
@@ -83,6 +87,36 @@ export class MatchRoomPage implements OnInit {
     return seconds !== null && seconds <= 0;
   });
 
+  protected readonly draftRemainingSeconds = computed(() => {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.draft ||
+      snap.room.draft.phase !== 'PICKING' ||
+      !snap.room.draft.pickDeadlineAt
+    ) {
+      return null;
+    }
+    const deadline = Date.parse(snap.room.draft.pickDeadlineAt);
+    if (isNaN(deadline)) return 0;
+    const diff = Math.floor((deadline - this.nowTimestamp()) / 1000);
+    return Math.max(0, diff);
+  });
+
+  protected readonly formattedDraftCountdown = computed(() => {
+    const seconds = this.draftRemainingSeconds();
+    if (seconds === null) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  });
+
+  protected readonly isDraftWindowClosed = computed(() => {
+    const seconds = this.draftRemainingSeconds();
+    return seconds !== null && seconds <= 0;
+  });
+
   ngOnInit(): void {
     const roomId = this.route.snapshot.paramMap.get('roomId');
     if (!roomId) {
@@ -97,6 +131,7 @@ export class MatchRoomPage implements OnInit {
       .subscribe(() => {
         this.nowTimestamp.set(Date.now());
         this.checkZeroCountdownRefresh(roomId);
+        this.checkZeroDraftCountdownRefresh(roomId);
       });
 
     // 3-second bounded polling
@@ -156,6 +191,28 @@ export class MatchRoomPage implements OnInit {
       const windowKey = `${snap.room.id}:${snap.room.confirmation.round}:${snap.room.confirmation.deadlineAt}`;
       if (this.lastRefreshedWindowKey !== windowKey) {
         this.lastRefreshedWindowKey = windowKey;
+        this.refetchRoom(roomId);
+      }
+    }
+  }
+
+  private checkZeroDraftCountdownRefresh(roomId: string): void {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.draft ||
+      snap.room.draft.phase !== 'PICKING' ||
+      !snap.room.draft.pickDeadlineAt
+    ) {
+      return;
+    }
+
+    const seconds = this.draftRemainingSeconds();
+    if (seconds !== null && seconds <= 0) {
+      const windowKey = `${snap.room.id}:${snap.room.draft.nextSelectionOrder}:${snap.room.draft.pickDeadlineAt}`;
+      if (this.lastRefreshedDraftWindowKey !== windowKey) {
+        this.lastRefreshedDraftWindowKey = windowKey;
         this.refetchRoom(roomId);
       }
     }
@@ -222,6 +279,40 @@ export class MatchRoomPage implements OnInit {
         this.applySnapshotSafely(updated);
       },
       error: (err: unknown) => {
+        this.isPerformingAction.set(false);
+        this.actionError.set(mapMatchRoomErrorToI18nKey(err));
+        this.refetchRoom(snap.room.id);
+      },
+    });
+  }
+
+  protected onDraftPick(playerAccountId: string): void {
+    const snap = this.snapshot();
+    if (
+      !snap ||
+      snap.room.status !== 'SETUP' ||
+      !snap.room.draft ||
+      snap.room.draft.phase !== 'PICKING' ||
+      !snap.viewer.actions.canDraftPick ||
+      !snap.room.draft.availablePlayerAccountIds.includes(playerAccountId) ||
+      this.isDraftWindowClosed() ||
+      this.isPerformingAction()
+    ) {
+      return;
+    }
+
+    this.isPerformingAction.set(true);
+    this.pendingDraftPlayerAccountId.set(playerAccountId);
+    this.actionError.set(null);
+
+    this.matchRoomApi.draftPick(snap.room.id, playerAccountId).subscribe({
+      next: (updated) => {
+        this.pendingDraftPlayerAccountId.set(null);
+        this.isPerformingAction.set(false);
+        this.applySnapshotSafely(updated);
+      },
+      error: (err: unknown) => {
+        this.pendingDraftPlayerAccountId.set(null);
         this.isPerformingAction.set(false);
         this.actionError.set(mapMatchRoomErrorToI18nKey(err));
         this.refetchRoom(snap.room.id);

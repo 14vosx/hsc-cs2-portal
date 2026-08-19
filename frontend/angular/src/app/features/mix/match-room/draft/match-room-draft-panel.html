@@ -1,0 +1,192 @@
+<section class="draft-panel" aria-labelledby="draft-panel-heading">
+  <!-- Draft Header -->
+  <header class="draft-panel__header">
+    <div class="draft-panel__title-group">
+      <span class="draft-panel__eyebrow">{{ 'mix.draft.eyebrow' | translate }}</span>
+      <h2 id="draft-panel-heading" class="draft-panel__title">
+        {{ 'mix.draft.title' | translate }}
+      </h2>
+    </div>
+
+    <!-- Status / Turn Callout / Countdown -->
+    @if (draft().phase === 'PICKING') {
+      <div class="draft-panel__turn-status">
+        @if (canDraftPick()) {
+          <div class="draft-turn-banner draft-turn-banner--your-turn">
+            <span class="draft-turn-banner__badge">{{ 'mix.draft.yourTurn' | translate }}</span>
+            @if (formattedCountdown()) {
+              <span class="draft-turn-banner__timer" [class.draft-turn-banner__timer--expired]="isWindowClosed()">
+                {{ formattedCountdown() }}
+              </span>
+            }
+          </div>
+        } @else if (currentPickerParticipant(); as picker) {
+          <div class="draft-turn-banner draft-turn-banner--waiting">
+            <span class="draft-turn-banner__label">
+              {{ 'mix.draft.currentPickerTurn' | translate: { name: getDisplayName(picker) } }}
+            </span>
+            @if (formattedCountdown()) {
+              <span class="draft-turn-banner__timer" [class.draft-turn-banner__timer--expired]="isWindowClosed()">
+                {{ formattedCountdown() }}
+              </span>
+            }
+          </div>
+        } @else {
+          <div class="draft-turn-banner draft-turn-banner--waiting">
+            <span class="draft-turn-banner__label">{{ 'mix.draft.waitingForPick' | translate }}</span>
+            @if (formattedCountdown()) {
+              <span class="draft-turn-banner__timer" [class.draft-turn-banner__timer--expired]="isWindowClosed()">
+                {{ formattedCountdown() }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Phase COMPLETED -->
+      <div class="draft-panel__completed-badge">
+        <app-status-badge [label]="'mix.draft.completedTitle' | translate" tone="active" />
+      </div>
+    }
+  </header>
+
+  <!-- Completed Banner -->
+  @if (draft().phase === 'COMPLETED') {
+    <div class="draft-banner draft-banner--completed">
+      <p class="draft-banner__text">{{ 'mix.draft.completedBanner' | translate }}</p>
+    </div>
+  }
+
+  <!-- Main Grid: Team A | Available Pool | Team B -->
+  <div class="draft-grid">
+    <!-- TEAM A Column -->
+    <div class="draft-team-col draft-team-col--a">
+      <div class="draft-team-col__header">
+        <h3 class="draft-team-col__title">{{ 'mix.draft.teamA' | translate }}</h3>
+        <span class="draft-team-col__count">{{ teamAAssignments().length }}/5</span>
+      </div>
+
+      <div class="draft-team-col__list">
+        @for (assignment of teamAAssignments(); track assignment.playerAccountId) {
+          @let participant = participantMap().get(assignment.playerAccountId) ?? null;
+          <div class="draft-player-card draft-player-card--team-a">
+            <app-player-avatar
+              [imageUrl]="participant?.player?.steam?.avatarMediumUrl ?? null"
+              [displayName]="getDisplayName(participant)"
+              accent="cyan"
+            />
+            <div class="draft-player-card__details">
+              <div class="draft-player-card__name-row">
+                <app-player-link
+                  [label]="getDisplayName(participant)"
+                  [profileSlug]="participant?.player?.profile?.slug ?? null"
+                />
+                @if (assignment.captain) {
+                  <span class="draft-badge draft-badge--captain">
+                    {{ 'mix.draft.captain' | translate }}
+                  </span>
+                }
+              </div>
+              @if (assignment.selectionOrder !== null) {
+                <span class="draft-player-card__order">#{{ assignment.selectionOrder }} pick</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- AVAILABLE POOL (Middle section) -->
+    <div class="draft-pool-col">
+      <div class="draft-pool-col__header">
+        <h3 class="draft-pool-col__title">{{ 'mix.draft.availablePool' | translate }}</h3>
+        <span class="draft-pool-col__count">
+          {{ draft().availablePlayerAccountIds.length }}
+        </span>
+      </div>
+
+      @if (draft().availablePlayerAccountIds.length > 0) {
+        <div class="draft-pool-grid">
+          @for (id of draft().availablePlayerAccountIds; track id) {
+            @let participant = participantMap().get(id) ?? null;
+            @let isPending = pendingPlayerAccountId() === id;
+            @let canPickThis = canDraftPick() && draft().phase === 'PICKING' && !isWindowClosed() && pendingPlayerAccountId() === null;
+
+            <div class="draft-candidate-card" [class.draft-candidate-card--selectable]="canPickThis" [class.draft-candidate-card--pending]="isPending">
+              <div class="draft-candidate-card__info">
+                <app-player-avatar
+                  [imageUrl]="participant?.player?.steam?.avatarMediumUrl ?? null"
+                  [displayName]="getDisplayName(participant)"
+                  accent="cyan"
+                />
+                <div class="draft-candidate-card__name">
+                  <app-player-link
+                    [label]="getDisplayName(participant)"
+                    [profileSlug]="participant?.player?.profile?.slug ?? null"
+                  />
+                </div>
+              </div>
+
+              @if (canDraftPick() && draft().phase === 'PICKING') {
+                <button
+                  type="button"
+                  class="draft-btn draft-btn--pick"
+                  [disabled]="!canPickThis || isPending"
+                  (click)="onPick(id)"
+                  [attr.aria-label]="'mix.draft.pickAction' | translate: { name: getDisplayName(participant) }"
+                >
+                  @if (isPending) {
+                    {{ 'mix.draft.picking' | translate }}
+                  } @else {
+                    {{ 'mix.draft.pickAction' | translate }}
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="draft-pool-empty">
+          <p class="draft-pool-empty__text">{{ 'mix.draft.emptyAvailablePool' | translate }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- TEAM B Column -->
+    <div class="draft-team-col draft-team-col--b">
+      <div class="draft-team-col__header">
+        <h3 class="draft-team-col__title">{{ 'mix.draft.teamB' | translate }}</h3>
+        <span class="draft-team-col__count">{{ teamBAssignments().length }}/5</span>
+      </div>
+
+      <div class="draft-team-col__list">
+        @for (assignment of teamBAssignments(); track assignment.playerAccountId) {
+          @let participant = participantMap().get(assignment.playerAccountId) ?? null;
+          <div class="draft-player-card draft-player-card--team-b">
+            <app-player-avatar
+              [imageUrl]="participant?.player?.steam?.avatarMediumUrl ?? null"
+              [displayName]="getDisplayName(participant)"
+              accent="orange"
+            />
+            <div class="draft-player-card__details">
+              <div class="draft-player-card__name-row">
+                <app-player-link
+                  [label]="getDisplayName(participant)"
+                  [profileSlug]="participant?.player?.profile?.slug ?? null"
+                />
+                @if (assignment.captain) {
+                  <span class="draft-badge draft-badge--captain">
+                    {{ 'mix.draft.captain' | translate }}
+                  </span>
+                }
+              </div>
+              @if (assignment.selectionOrder !== null) {
+                <span class="draft-player-card__order">#{{ assignment.selectionOrder }} pick</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
