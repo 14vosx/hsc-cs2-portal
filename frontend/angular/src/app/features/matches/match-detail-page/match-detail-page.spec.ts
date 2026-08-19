@@ -67,7 +67,6 @@ const createMockDetail = (id = 501): MatchDetail => ({
 });
 
 describe('MatchDetailPage', () => {
-  let component: MatchDetailPage;
   let fixture: ComponentFixture<MatchDetailPage>;
   let matchesApiMock: { getMatch: ReturnType<typeof vi.fn> };
   let paramMapSubject: BehaviorSubject<ParamMap>;
@@ -93,7 +92,6 @@ describe('MatchDetailPage', () => {
 
   const createComponent = () => {
     fixture = TestBed.createComponent(MatchDetailPage);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   };
 
@@ -114,14 +112,21 @@ describe('MatchDetailPage', () => {
   });
 
   it('converte erro não-404 em error e preserva retry', () => {
-    matchesApiMock.getMatch.mockReturnValue(
-      throwError(() => new MatchesContractError('Payload malformado'))
-    );
+    matchesApiMock.getMatch
+      .mockReturnValueOnce(throwError(() => new MatchesContractError('Payload malformado')))
+      .mockReturnValueOnce(of(createMockDetail()));
     createComponent();
 
     expect(fixture.nativeElement.textContent).toContain('Erro ao carregar partida');
-    component['retry']();
+
+    const retryBtn = fixture.nativeElement.querySelector('.page-state__btn') as HTMLButtonElement;
+    expect(retryBtn).toBeTruthy();
+    retryBtn.click();
+    fixture.detectChanges();
+
     expect(matchesApiMock.getMatch).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.querySelector('app-page-state')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.match-report__hero')).toBeTruthy();
   });
 
   it('hero usa times e placar reais sem reordenar team1 e team2', () => {
