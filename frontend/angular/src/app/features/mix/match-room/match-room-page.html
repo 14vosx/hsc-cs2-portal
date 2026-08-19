@@ -105,6 +105,10 @@
               {{ 'mix.matchRoom.confirmingTitle' | translate }}
             } @else if (snap.room.status === 'SETUP') {
               {{ 'mix.matchRoom.setupTitle' | translate }}
+            } @else if (snap.room.status === 'READY') {
+              {{ 'mix.matchRoom.readyTitle' | translate }}
+            } @else if (snap.room.status === 'PROVISIONING') {
+              {{ 'mix.matchRoom.provisioningTitle' | translate }}
             }
           </h1>
         </div>
@@ -153,6 +157,22 @@
         <div class="room-callout room-callout--setup">
           <h2 class="room-callout__title">{{ 'mix.matchRoom.setupBannerTitle' | translate }}</h2>
           <p class="room-callout__desc">{{ 'mix.matchRoom.setupBannerDesc' | translate }}</p>
+        </div>
+      }
+
+      <!-- READY State Callout -->
+      @if (snap.room.status === 'READY') {
+        <div class="room-callout room-callout--setup">
+          <h2 class="room-callout__title">{{ 'mix.matchRoom.readyBannerTitle' | translate }}</h2>
+          <p class="room-callout__desc">{{ 'mix.matchRoom.readyBannerDesc' | translate }}</p>
+        </div>
+      }
+
+      <!-- PROVISIONING State Callout -->
+      @if (snap.room.status === 'PROVISIONING') {
+        <div class="room-callout room-callout--setup">
+          <h2 class="room-callout__title">{{ 'mix.matchRoom.provisioningBannerTitle' | translate }}</h2>
+          <p class="room-callout__desc">{{ 'mix.matchRoom.provisioningBannerDesc' | translate }}</p>
         </div>
       }
 

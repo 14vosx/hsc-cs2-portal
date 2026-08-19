@@ -48,6 +48,8 @@ function createRoomSnapshot(
     canLeave?: boolean;
     canCancel?: boolean;
     canJoin?: boolean;
+    canDraftPick?: boolean;
+    canMapVetoBan?: boolean;
     deadlineAt?: string;
     round?: number;
     confirmedCount?: number;
@@ -77,6 +79,10 @@ function createRoomSnapshot(
             }
           : null,
       rosterLockedAt: null,
+      readyAt: null,
+      draft: null,
+      mapVeto: null,
+      competitiveMatch: null,
       participants,
     },
     viewer: {
@@ -87,6 +93,8 @@ function createRoomSnapshot(
         canLeave: overrides.canLeave ?? false,
         canCancel: overrides.canCancel ?? (overrides.isCreator ?? true),
         canConfirm: overrides.canConfirm ?? false,
+        canDraftPick: overrides.canDraftPick ?? false,
+        canMapVetoBan: overrides.canMapVetoBan ?? false,
       },
     },
   };
@@ -132,10 +140,16 @@ describe('MatchRoomPage', () => {
         formingTitle: 'FORMANDO LOBBY',
         confirmingTitle: 'CONFIRMAÇÃO DO LOBBY',
         setupTitle: 'PREPARANDO PARTIDA',
+        readyTitle: 'PARTIDA PRONTA',
+        provisioningTitle: 'INICIANDO SERVIDOR',
         cancelledTitle: 'LOBBY ENCERRADO',
         cancelledDesc: 'Este lobby não está mais ativo.',
         setupBannerTitle: 'PREPARANDO PARTIDA',
         setupBannerDesc: '10/10 confirmados. Estamos preparando capitães e times para a próxima etapa.',
+        readyBannerTitle: 'PARTIDA PRONTA',
+        readyBannerDesc: 'A partida está configurada e o servidor está pronto.',
+        provisioningBannerTitle: 'INICIANDO SERVIDOR',
+        provisioningBannerDesc: 'Aguarde enquanto o servidor de jogo é inicializado.',
         confirmPresenceEyebrow: 'CHECK-IN',
         confirmPresenceHeading: 'CONFIRME SUA PARTICIPAÇÃO',
         countdownLabel: 'Tempo restante',
@@ -157,6 +171,8 @@ describe('MatchRoomPage', () => {
         FORMING: 'FORMANDO',
         CONFIRMING: 'CONFIRMANDO',
         SETUP: 'PREPARANDO',
+        READY: 'PRONTO',
+        PROVISIONING: 'INICIANDO',
         CANCELLED: 'CANCELADO',
       },
       errors: {
@@ -467,6 +483,28 @@ describe('MatchRoomPage', () => {
       expect(fixture.nativeElement.textContent).not.toContain('Team A');
       expect(fixture.nativeElement.textContent).not.toContain('Team B');
       expect(fixture.nativeElement.textContent).not.toContain('Draft');
+    });
+  });
+
+  describe('READY and PROVISIONING states', () => {
+    it('renderiza READY sem erro e não exibe CTA de entrar no servidor CS2', () => {
+      const snap = createRoomSnapshot('READY', 1);
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.textContent).toContain('PARTIDA PRONTA');
+      expect(fixture.nativeElement.textContent).not.toContain('Entrar no servidor');
+      expect(fixture.nativeElement.textContent).not.toContain('connect ');
+    });
+
+    it('renderiza PROVISIONING sem erro', () => {
+      const snap = createRoomSnapshot('PROVISIONING', 1);
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.textContent).toContain('INICIANDO SERVIDOR');
     });
   });
 
