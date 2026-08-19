@@ -37,12 +37,6 @@ function recentMap(overrides: Partial<BunkerRecentMap> = {}): BunkerRecentMap {
   };
 }
 
-interface MapsHarness {
-  selectedMap(): BunkerMapPerformance | null;
-  selectedRecentMaps(): readonly BunkerRecentMap[];
-  mapImage(value: string | null): string | null;
-}
-
 describe('BunkerMapsPanel Map Explorer', () => {
   let fixture: ComponentFixture<BunkerMapsPanel>;
 
@@ -61,10 +55,6 @@ describe('BunkerMapsPanel Map Explorer', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  function harness(): MapsHarness {
-    return fixture.componentInstance as unknown as MapsHarness;
-  }
-
   function selectorButtons(element: HTMLElement): HTMLButtonElement[] {
     return Array.from(element.querySelectorAll<HTMLButtonElement>('nav button'));
   }
@@ -72,9 +62,13 @@ describe('BunkerMapsPanel Map Explorer', () => {
   it('preserva a ordem publicada, fabrica somente as opções recebidas e seleciona a primeira', () => {
     const maps = [mapPerformance({ mapName: 'de_train' }), mapPerformance({ mapName: 'de_mirage' }), mapPerformance({ mapName: 'de_ancient' })];
     const element = render(maps);
-    expect(selectorButtons(element).map((button) => button.textContent?.trim())).toEqual(['TRAIN', 'MIRAGE', 'ANCIENT']);
-    expect(selectorButtons(element)).toHaveLength(3);
-    expect(harness().selectedMap()).toBe(maps[0]);
+    const buttons = selectorButtons(element);
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(['TRAIN', 'MIRAGE', 'ANCIENT']);
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0].getAttribute('aria-pressed')).toBe('true');
+    expect(buttons[1].getAttribute('aria-pressed')).toBe('false');
+    expect(buttons[2].getAttribute('aria-pressed')).toBe('false');
+    expect(element.querySelector('.map-hero h2')?.textContent?.trim()).toBe('TRAIN');
   });
 
   it('button nativo seleciona outro mapa sem alterar ou reordenar a coleção', () => {
@@ -83,27 +77,41 @@ describe('BunkerMapsPanel Map Explorer', () => {
     const element = render(maps);
     selectorButtons(element)[1].click();
     fixture.detectChanges();
-    expect(harness().selectedMap()).toBe(maps[1]);
     expect(maps).toEqual(original);
+    expect(selectorButtons(element)[0].getAttribute('aria-pressed')).toBe('false');
     expect(selectorButtons(element)[1].getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('.map-hero h2')?.textContent?.trim()).toBe('INFERNO');
+    expect(selectorButtons(element).map((button) => button.textContent?.trim())).toEqual(['MIRAGE', 'INFERNO']);
   });
 
   it('troca de coleção não mantém objeto inválido do contexto anterior', () => {
     const season = [mapPerformance({ mapName: 'de_inferno', mapsPlayed: 1 })];
-    render(season);
+    const element = render(season);
+    expect(element.querySelector('.map-hero h2')?.textContent?.trim()).toBe('INFERNO');
+
     const lifetime = [mapPerformance({ mapName: 'de_mirage', mapsPlayed: 6 })];
     fixture.componentRef.setInput('byMap', lifetime);
     fixture.detectChanges();
-    expect(harness().selectedMap()).toBe(lifetime[0]);
-    expect(harness().selectedMap()).not.toBe(season[0]);
+
+    const buttons = selectorButtons(element);
+    expect(buttons.map((b) => b.textContent?.trim())).toEqual(['MIRAGE']);
+    expect(buttons[0].getAttribute('aria-pressed')).toBe('true');
+    expect(element.querySelector('.map-hero h2')?.textContent?.trim()).toBe('MIRAGE');
+    expect(element.textContent).not.toContain('INFERNO');
   });
 
   it('resolve somente assets locais conhecidos e mantém fallback para mapa desconhecido', () => {
     const element = render([mapPerformance({ mapName: 'de_mirage' }), mapPerformance({ mapName: 'de_cache' })]);
-    expect(harness().mapImage('de_mirage')).toBe('map-images/de_mirage.png');
-    expect(harness().mapImage('de_cache')).toBeNull();
-    expect(selectorButtons(element)[0].querySelector('img')?.getAttribute('src')).toBe('map-images/de_mirage.png');
-    expect(selectorButtons(element)[1].querySelector('img')).toBeNull();
+    const buttons = selectorButtons(element);
+
+    expect(buttons[0].querySelector('img')?.getAttribute('src')).toBe('map-images/de_mirage.png');
+    expect(buttons[1].querySelector('img')).toBeNull();
+    expect(buttons[1].querySelector('.map-selector__fallback')).toBeTruthy();
+
+    buttons[1].click();
+    fixture.detectChanges();
+    expect(element.querySelector('.map-hero h2')?.textContent?.trim()).toBe('CACHE');
+    expect(element.querySelector('.map-hero__image')).toBeNull();
   });
 
   it('nome humano e seleção não alteram mapName original', () => {
@@ -148,8 +156,11 @@ describe('BunkerMapsPanel Map Explorer', () => {
       recentMap({ mapName: 'de_mirage', score: 'fourth' }),
     ];
     const element = render([mapPerformance({ mapName: 'de_mirage' })], recent);
-    expect(harness().selectedRecentMaps().map((item) => item.score)).toEqual(['first', 'second', 'third']);
-    expect(element.textContent).toContain('first');
+    const rows = Array.from(element.querySelectorAll<HTMLElement>('.map-recent__list [role="listitem"]'));
+    const scores = rows.map((row) => row.querySelector('strong')?.textContent?.trim());
+
+    expect(rows).toHaveLength(3);
+    expect(scores).toEqual(['first', 'second', 'third']);
     expect(element.textContent).not.toContain('other');
     expect(element.textContent).not.toContain('fourth');
   });
