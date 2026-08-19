@@ -41,7 +41,6 @@ const createMockMatch = (id: number, overrides: Partial<MatchSummary> = {}): Mat
 });
 
 describe('MatchesPage', () => {
-  let component: MatchesPage;
   let fixture: ComponentFixture<MatchesPage>;
   let matchesApiMock: { getMatches: ReturnType<typeof vi.fn> };
 
@@ -60,7 +59,6 @@ describe('MatchesPage', () => {
 
   const createComponent = () => {
     fixture = TestBed.createComponent(MatchesPage);
-    component = fixture.componentInstance;
     fixture.detectChanges();
   };
 
@@ -72,14 +70,20 @@ describe('MatchesPage', () => {
   });
 
   it('exibe erro e permite tentar novamente', () => {
-    matchesApiMock.getMatches.mockReturnValue(
-      throwError(() => new MatchesContractError('Invalid payload'))
-    );
+    matchesApiMock.getMatches
+      .mockReturnValueOnce(throwError(() => new MatchesContractError('Invalid payload')))
+      .mockReturnValueOnce(of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(1)] }));
     createComponent();
 
     expect(fixture.nativeElement.textContent).toContain('Partidas indisponíveis');
-    component['retry']();
+    const retryBtn = fixture.nativeElement.querySelector('.page-state__btn') as HTMLButtonElement;
+    expect(retryBtn).toBeTruthy();
+    retryBtn.click();
+    fixture.detectChanges();
+
     expect(matchesApiMock.getMatches).toHaveBeenCalledTimes(2);
+    expect(fixture.nativeElement.querySelector('app-page-state')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.matches-page__latest')).toBeTruthy();
   });
 
   it('exibe empty quando nenhuma partida foi publicada', () => {
@@ -135,9 +139,16 @@ describe('MatchesPage', () => {
     );
     createComponent();
 
+    const searchInput = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+
     for (const term of ['101', 'furia', 'team b', 'bo3', 'de_nuke']) {
-      component['searchTerm'].set(term);
-      expect(component['filteredMatches'](matches)[0].id).toBe(101);
+      searchInput.value = term;
+      searchInput.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      const rows = fixture.nativeElement.querySelectorAll('.matches-page__match-row');
+      expect(rows.length).toBeGreaterThan(0);
+      expect(rows[0].textContent).toContain('#101');
     }
   });
 
@@ -154,8 +165,15 @@ describe('MatchesPage', () => {
     );
     createComponent();
 
-    component['selectedMap'].set('de_mirage');
-    expect(component['filteredMatches'](matches).map((match) => match.id)).toEqual([8, 5]);
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    select.value = 'de_mirage';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const rows = fixture.nativeElement.querySelectorAll('.matches-page__match-row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toContain('#8');
+    expect(rows[1].textContent).toContain('#5');
   });
 
   it('pagina em blocos de 10 preservando a ordem e a quantidade da página final', () => {
@@ -165,28 +183,52 @@ describe('MatchesPage', () => {
     );
     createComponent();
 
-    component['goToPage'](3, matches.length);
+    const pageButtons = fixture.nativeElement.querySelectorAll(
+      '.matches-page__page-number'
+    ) as NodeListOf<HTMLButtonElement>;
+    expect(pageButtons).toHaveLength(3);
+    pageButtons[2].click();
     fixture.detectChanges();
-    const page = component['paginatedMatches'](matches);
 
-    expect(page).toHaveLength(3);
-    expect(page.map((match) => match.id)).toEqual([120, 121, 122]);
+    const rows = fixture.nativeElement.querySelectorAll('.matches-page__match-row');
+    expect(rows).toHaveLength(3);
+    expect(rows[0].textContent).toContain('#120');
+    expect(rows[1].textContent).toContain('#121');
+    expect(rows[2].textContent).toContain('#122');
     expect(fixture.nativeElement.textContent).toContain('Exibindo 21–23 de 23 partidas');
   });
 
   it('reseta para a primeira página ao alterar busca ou filtro de mapa', () => {
+    const matches = Array.from({ length: 15 }, (_, index) => createMockMatch(100 + index));
     matchesApiMock.getMatches.mockReturnValue(
-      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(1)] })
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
     );
     createComponent();
 
-    component['currentPage'].set(2);
-    component['updateSearch']({ target: { value: 'team' } } as unknown as Event);
-    expect(component['currentPage']()).toBe(1);
+    const getPageButtons = () =>
+      fixture.nativeElement.querySelectorAll('.matches-page__page-number') as NodeListOf<HTMLButtonElement>;
 
-    component['currentPage'].set(2);
-    component['updateMapFilter']({ target: { value: 'de_mirage' } } as unknown as Event);
-    expect(component['currentPage']()).toBe(1);
+    getPageButtons()[1].click();
+    fixture.detectChanges();
+    expect(getPageButtons()[1].getAttribute('aria-current')).toBe('page');
+
+    const searchInput = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    searchInput.value = '10';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(getPageButtons()[0].getAttribute('aria-current')).toBe('page');
+
+    getPageButtons()[1].click();
+    fixture.detectChanges();
+    expect(getPageButtons()[1].getAttribute('aria-current')).toBe('page');
+
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+    select.value = 'de_mirage';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(getPageButtons()[0].getAttribute('aria-current')).toBe('page');
   });
 
   it('mantém /matches/:id nos links do destaque e do feed', () => {
@@ -202,22 +244,22 @@ describe('MatchesPage', () => {
   });
 
   it('exibe duração somente quando os dois timestamps são válidos e ordenados', () => {
+    const matches = [
+      createMockMatch(1, { startedAt: '2026-08-04T10:00:00Z', endedAt: '2026-08-04T11:00:00Z' }),
+      createMockMatch(2, { startedAt: null }),
+      createMockMatch(3, { endedAt: 'inválido' }),
+      createMockMatch(4, { startedAt: '2026-08-04T11:00:00Z', endedAt: '2026-08-04T10:00:00Z' }),
+    ];
     matchesApiMock.getMatches.mockReturnValue(
-      of({ generatedAt: '2026-08-04T12:00:00Z', matches: [createMockMatch(1)] })
+      of({ generatedAt: '2026-08-04T12:00:00Z', matches })
     );
     createComponent();
 
-    expect(component['durationLabel'](createMockMatch(1))).toBe('1h 00min');
-    expect(component['durationLabel'](createMockMatch(2, { startedAt: null }))).toBeNull();
-    expect(component['durationLabel'](createMockMatch(3, { endedAt: 'inválido' }))).toBeNull();
-    expect(
-      component['durationLabel'](
-        createMockMatch(4, {
-          startedAt: '2026-08-04T11:00:00Z',
-          endedAt: '2026-08-04T10:00:00Z',
-        })
-      )
-    ).toBeNull();
+    const rows = fixture.nativeElement.querySelectorAll('.matches-page__match-row');
+    expect(rows[0].querySelector('.matches-page__row-context')?.textContent).toContain('1h 00min');
+    expect(rows[1].querySelector('.matches-page__row-context')?.textContent ?? '').not.toContain('min');
+    expect(rows[2].querySelector('.matches-page__row-context')?.textContent ?? '').not.toContain('min');
+    expect(rows[3].querySelector('.matches-page__row-context')?.textContent ?? '').not.toContain('min');
   });
 
   it('renderiza score null como ausência neutra', () => {
@@ -230,7 +272,6 @@ describe('MatchesPage', () => {
 
     const row = fixture.nativeElement.querySelector('.matches-page__match-row') as HTMLElement;
     expect(row.textContent).toContain('—');
-    expect(component['scoreLabel'](null)).toBe('—');
   });
 
   it('mantém o estado vazio local quando os filtros não retornam partidas', () => {
@@ -239,8 +280,11 @@ describe('MatchesPage', () => {
     );
     createComponent();
 
-    component['searchTerm'].set('termo_inexistente');
+    const input = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
+    input.value = 'termo_inexistente';
+    input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
+
     expect(fixture.nativeElement.textContent).toContain(
       'A busca ou o filtro por mapa não retornou confrontos.'
     );
