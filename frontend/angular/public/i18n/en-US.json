@@ -266,6 +266,20 @@
       "PROVISIONING": "PROVISIONING",
       "CANCELLED": "CANCELLED"
     },
+    "competitive": {
+      "readyTitle": "MATCH DEFINED",
+      "provisioningTitle": "PROVISIONING SERVER",
+      "readyDesc": "Teams and map defined.",
+      "readySubDesc": "Preparing next stage.",
+      "provisioningDesc": "Match configuration completed. Server is being prepared.",
+      "autoUpdateNotice": "This page will update automatically.",
+      "readyFallback": "Finalizing match data.",
+      "provisioningFallback": "Preparing match data.",
+      "mapSelected": "MAP DEFINED",
+      "teamA": "TEAM A",
+      "teamB": "TEAM B",
+      "players": "players"
+    },
     "draft": {
       "eyebrow": "CAPTAIN DRAFT",
       "title": "Team Formation",

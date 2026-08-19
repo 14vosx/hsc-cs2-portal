@@ -1,0 +1,123 @@
+<section class="competitive-panel" aria-labelledby="competitive-panel-heading">
+  <!-- Header -->
+  <header class="competitive-panel__header">
+    <div class="competitive-panel__title-group">
+      <span class="competitive-panel__eyebrow">
+        @if (status() === 'READY') {
+          {{ 'mix.competitive.readyTitle' | translate }}
+        } @else {
+          {{ 'mix.competitive.provisioningTitle' | translate }}
+        }
+      </span>
+      <h2 id="competitive-panel-heading" class="competitive-panel__title">
+        @if (status() === 'READY') {
+          {{ 'mix.competitive.readyDesc' | translate }}
+        } @else {
+          {{ 'mix.competitive.provisioningDesc' | translate }}
+        }
+      </h2>
+    </div>
+
+    <div class="competitive-panel__badge-group">
+      @if (status() === 'READY') {
+        <app-status-badge [label]="('mix.statuses.' + status()) | translate" tone="active" />
+      } @else {
+        <app-status-badge [label]="('mix.statuses.' + status()) | translate" tone="warning" />
+      }
+    </div>
+  </header>
+
+  <!-- Banner / Status Message -->
+  <div class="competitive-banner" [class.competitive-banner--provisioning]="status() === 'PROVISIONING'">
+    @if (status() === 'READY') {
+      <p class="competitive-banner__text">
+        {{ 'mix.competitive.readySubDesc' | translate }}
+      </p>
+    } @else {
+      <p class="competitive-banner__text">
+        {{ 'mix.competitive.autoUpdateNotice' | translate }}
+      </p>
+    }
+  </div>
+
+  @if (competitiveMatch(); as match) {
+    <!-- Map Showcase -->
+    <div class="competitive-map-card">
+      <div class="competitive-map-card__info">
+        <span class="competitive-map-card__label">{{ 'mix.competitive.mapSelected' | translate }}</span>
+        <h3 class="competitive-map-card__name">{{ match.map.displayName }}</h3>
+        <span class="competitive-map-card__key">{{ match.map.key }}</span>
+      </div>
+    </div>
+
+    <!-- Teams Roster Grid: Team A | Team B -->
+    <div class="competitive-teams-grid">
+      <!-- TEAM A -->
+      <div class="competitive-team-col competitive-team-col--a">
+        <div class="competitive-team-col__header">
+          <h3 class="competitive-team-col__title">{{ 'mix.competitive.teamA' | translate }}</h3>
+          <span class="competitive-team-col__count">
+            {{ teamARoster().length }}/5 {{ 'mix.competitive.players' | translate }}
+          </span>
+        </div>
+
+        <div class="competitive-team-col__list">
+          @for (entry of teamARoster(); track entry.playerAccountId) {
+            <div class="competitive-player-card competitive-player-card--team-a">
+              <app-player-avatar
+                [imageUrl]="getAvatarUrl(entry.playerAccountId)"
+                [displayName]="getDisplayName(entry.playerAccountId)"
+                accent="cyan"
+              />
+              <div class="competitive-player-card__details">
+                <app-player-link
+                  [label]="getDisplayName(entry.playerAccountId)"
+                  [profileSlug]="getProfileSlug(entry.playerAccountId)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- TEAM B -->
+      <div class="competitive-team-col competitive-team-col--b">
+        <div class="competitive-team-col__header">
+          <h3 class="competitive-team-col__title">{{ 'mix.competitive.teamB' | translate }}</h3>
+          <span class="competitive-team-col__count">
+            {{ teamBRoster().length }}/5 {{ 'mix.competitive.players' | translate }}
+          </span>
+        </div>
+
+        <div class="competitive-team-col__list">
+          @for (entry of teamBRoster(); track entry.playerAccountId) {
+            <div class="competitive-player-card competitive-player-card--team-b">
+              <app-player-avatar
+                [imageUrl]="getAvatarUrl(entry.playerAccountId)"
+                [displayName]="getDisplayName(entry.playerAccountId)"
+                accent="orange"
+              />
+              <div class="competitive-player-card__details">
+                <app-player-link
+                  [label]="getDisplayName(entry.playerAccountId)"
+                  [profileSlug]="getProfileSlug(entry.playerAccountId)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Fallback when competitiveMatch is null -->
+    <div class="competitive-fallback">
+      <p class="competitive-fallback__text">
+        @if (status() === 'READY') {
+          {{ 'mix.competitive.readyFallback' | translate }}
+        } @else {
+          {{ 'mix.competitive.provisioningFallback' | translate }}
+        }
+      </p>
+    </div>
+  }
+</section>

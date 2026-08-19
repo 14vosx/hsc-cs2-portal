@@ -10,6 +10,7 @@ import { PlayerSessionService } from '../../../core/session/player-session.servi
 import type { PlayerSession } from '../../../core/session/player-session.model';
 import { MatchRoomApiService } from '../data-access/match-room-api.service';
 import type {
+  CompetitiveMatchSnapshot,
   MatchRoomDraftSnapshot,
   MatchRoomMapVetoSnapshot,
   MatchRoomParticipant,
@@ -28,13 +29,13 @@ function createParticipant(
     playerAccountId: id,
     player: personaname
       ? {
-          steam: {
-            steamId64: '76561198000000001',
-            personaname,
-            avatarMediumUrl: 'https://avatar.jpg',
-          },
-          profile: slug ? { slug } : null,
-        }
+        steam: {
+          steamId64: '76561198000000001',
+          personaname,
+          avatarMediumUrl: 'https://avatar.jpg',
+        },
+        profile: slug ? { slug } : null,
+      }
       : null,
     joinedAt: '2026-08-17T20:00:00Z',
     confirmation: {
@@ -61,6 +62,7 @@ function createRoomSnapshot(
     confirmedCount?: number;
     draft?: MatchRoomDraftSnapshot | null;
     mapVeto?: MatchRoomMapVetoSnapshot | null;
+    competitiveMatch?: CompetitiveMatchSnapshot | null;
   } = {},
 ): MatchRoomSnapshot {
   const participants =
@@ -80,17 +82,17 @@ function createRoomSnapshot(
       confirmation:
         status === 'CONFIRMING'
           ? {
-              round: overrides.round ?? 1,
-              startedAt: '2026-08-17T20:00:00Z',
-              deadlineAt: overrides.deadlineAt ?? new Date(Date.now() + 30000).toISOString(),
-              confirmedCount: overrides.confirmedCount ?? 1,
-            }
+            round: overrides.round ?? 1,
+            startedAt: '2026-08-17T20:00:00Z',
+            deadlineAt: overrides.deadlineAt ?? new Date(Date.now() + 30000).toISOString(),
+            confirmedCount: overrides.confirmedCount ?? 1,
+          }
           : null,
       rosterLockedAt: null,
       readyAt: null,
       draft: overrides.draft !== undefined ? overrides.draft : null,
       mapVeto: overrides.mapVeto !== undefined ? overrides.mapVeto : null,
-      competitiveMatch: null,
+      competitiveMatch: overrides.competitiveMatch !== undefined ? overrides.competitiveMatch : null,
       participants,
     },
     viewer: {
@@ -133,6 +135,28 @@ describe('MatchRoomPage', () => {
       playerAvatar: { alt: 'Avatar de {{displayName}}' },
     },
     mix: {
+      statuses: {
+        FORMING: 'FORMANDO',
+        CONFIRMING: 'CONFIRMANDO',
+        SETUP: 'PREPARANDO',
+        READY: 'PRONTO',
+        PROVISIONING: 'INICIANDO',
+        CANCELLED: 'CANCELADO',
+      },
+      competitive: {
+        readyTitle: 'PARTIDA DEFINIDA',
+        provisioningTitle: 'PREPARANDO SERVIDOR',
+        readyDesc: 'Times e mapa definidos.',
+        readySubDesc: 'Preparando próxima etapa.',
+        provisioningDesc: 'A configuração da partida está concluída. O servidor está sendo preparado.',
+        autoUpdateNotice: 'Esta página será atualizada automaticamente.',
+        readyFallback: 'Finalizando os dados da partida.',
+        provisioningFallback: 'Preparando os dados da partida.',
+        mapSelected: 'MAPA DEFINIDO',
+        teamA: 'TIME A',
+        teamB: 'TIME B',
+        players: 'jogadores',
+      },
       authWall: {
         title: 'Entre na sua conta HSC',
         description: 'Para criar ou participar de um lobby Mix HSC, você precisa estar autenticado.',
@@ -213,14 +237,6 @@ describe('MatchRoomPage', () => {
           MANUAL_BAN: 'Ban manual',
           TIMEOUT_AUTO_BAN: 'Ban automático',
         },
-      },
-      statuses: {
-        FORMING: 'FORMANDO',
-        CONFIRMING: 'CONFIRMANDO',
-        SETUP: 'PREPARANDO',
-        READY: 'PRONTO',
-        PROVISIONING: 'INICIANDO',
-        CANCELLED: 'CANCELADO',
       },
       errors: {
         room_not_found: 'O lobby solicitado não foi encontrado.',
@@ -947,24 +963,110 @@ describe('MatchRoomPage', () => {
   });
 
   describe('READY and PROVISIONING states', () => {
-    it('renderiza READY sem erro e não exibe CTA de entrar no servidor CS2', () => {
-      const snap = createRoomSnapshot('READY', 1);
+    const validCompetitiveMatch: CompetitiveMatchSnapshot = {
+      id: 'cm-1',
+      runtimeMatchId: 100,
+      map: {
+        poolId: 'pool-1',
+        poolKey: 'active-pool',
+        poolVersion: 1,
+        key: 'de_mirage',
+        displayName: 'Mirage',
+      },
+      roster: [
+        { playerAccountId: 'player-creator', steamid64: '76561198000000001', team: 'A' },
+        { playerAccountId: 'player-2', steamid64: '76561198000000002', team: 'B' },
+      ],
+    };
+
+    it('1. READY + competitiveMatch renderiza Competitive Panel com mapa e roster', () => {
+      const snap = createRoomSnapshot('READY', 1, {
+        competitiveMatch: validCompetitiveMatch,
+      });
       matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
 
       fixture = setupFixture();
 
-      expect(fixture.nativeElement.textContent).toContain('PARTIDA PRONTA');
-      expect(fixture.nativeElement.textContent).not.toContain('Entrar no servidor');
+      expect(fixture.nativeElement.querySelector('app-match-room-competitive-panel')).not.toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('PARTIDA DEFINIDA');
+      expect(fixture.nativeElement.textContent).toContain('Mirage');
+      expect(fixture.nativeElement.textContent).toContain('TIME A');
+      expect(fixture.nativeElement.textContent).toContain('TIME B');
+    });
+
+    it('2. READY esconde neutral roster', () => {
+      const snap = createRoomSnapshot('READY', 1, {
+        competitiveMatch: validCompetitiveMatch,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+    });
+
+    it('3. READY não exibe CTA de conexão nem connect string', () => {
+      const snap = createRoomSnapshot('READY', 1, {
+        competitiveMatch: validCompetitiveMatch,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.textContent).not.toContain('ENTRAR NO SERVIDOR');
+      expect(fixture.nativeElement.textContent).not.toContain('steam://connect');
       expect(fixture.nativeElement.textContent).not.toContain('connect ');
     });
 
-    it('renderiza PROVISIONING sem erro', () => {
-      const snap = createRoomSnapshot('PROVISIONING', 1);
+    it('4. PROVISIONING + competitiveMatch renderiza Competitive Panel com aviso de atualização automática', () => {
+      const snap = createRoomSnapshot('PROVISIONING', 1, {
+        competitiveMatch: validCompetitiveMatch,
+      });
       matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
 
       fixture = setupFixture();
 
-      expect(fixture.nativeElement.textContent).toContain('INICIANDO SERVIDOR');
+      expect(fixture.nativeElement.querySelector('app-match-room-competitive-panel')).not.toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('PREPARANDO SERVIDOR');
+      expect(fixture.nativeElement.textContent).toContain('Esta página será atualizada automaticamente.');
+      expect(fixture.nativeElement.textContent).toContain('Mirage');
+    });
+
+    it('5. PROVISIONING esconde neutral roster', () => {
+      const snap = createRoomSnapshot('PROVISIONING', 1, {
+        competitiveMatch: validCompetitiveMatch,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+    });
+
+    it('6. READY + competitiveMatch null exibe fallback seguro sem quebrar', () => {
+      const snap = createRoomSnapshot('READY', 1, {
+        competitiveMatch: null,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('app-match-room-competitive-panel')).not.toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Finalizando os dados da partida.');
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+    });
+
+    it('7. PROVISIONING + competitiveMatch null exibe fallback seguro sem quebrar', () => {
+      const snap = createRoomSnapshot('PROVISIONING', 1, {
+        competitiveMatch: null,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      expect(fixture.nativeElement.querySelector('app-match-room-competitive-panel')).not.toBeNull();
+      expect(fixture.nativeElement.textContent).toContain('Preparando os dados da partida.');
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
     });
   });
 
