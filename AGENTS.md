@@ -79,6 +79,20 @@ git diff --check
 - Não misture refactors oportunistas com a tarefa atual.
 - Antes de finalizar, reporte comandos executados, resultados e eventuais warnings ou falhas.
 
+## Testes
+
+- O único test runner da aplicação Angular é o Vitest.
+- Testes devem proteger contratos relevantes e comportamento observável (inputs, outputs, estado público, DOM renderizado e interações), nunca detalhes incidentais de implementação.
+- Não furar encapsulamento para testar: código de produção não deve receber APIs, visibilidade modificada (ex.: tornar `private` em `public`) ou métodos utilitários exclusivamente para testes. Evite `component['privateMember']`, subclasses de teste ou casts/harnesses invasivos.
+- *Mock boundaries, not internals*: substitua fronteiras da unidade (HTTP via `HttpTestingController`, storage, serviços externos em componentes), nunca a implementação interna testada nem spies em métodos privados/internos.
+- Prefira primitives nativas de Angular e Vitest. Não introduza novas dependências de teste (Testing Library, ng-mocks, Spectator, MSW) sem dor recorrente concreta e aprovada.
+- Abstrações compartilhadas, builders ou fixtures só devem existir diante de reuso real e redução líquida de complexidade; duplicação explícita e enxuta é preferível a mini-frameworks de teste.
+- Integration tests devem ser explícitos e seletivos (não transforme todo component spec em integration test).
+- Fake timers são restritos a testes com contratos temporais reais (polling, countdown, TTL, deadline).
+- Não persiga contagem de testes ou metas de coverage artificiais; a contagem de testes pode diminuir na remoção de specs redundantes ou tautológicas.
+- Architecture tests devem proteger exclusivamente invariantes duráveis do repositório, não histórico de migrações ou PRs passados.
+- Para a decisão arquitetural completa e classificação das categorias conceituais (A–E), consulte `docs/adr/0002-test-suite-architecture.md`.
+
 ## Documentação
 
 Documentação local deve permanecer enxuta e dividida entre:
