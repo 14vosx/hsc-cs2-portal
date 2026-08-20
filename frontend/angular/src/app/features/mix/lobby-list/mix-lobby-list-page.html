@@ -8,24 +8,6 @@
     />
   }
 
-  <!-- Session Anonymous -->
-  @else if (sessionService.state().status === 'anonymous') {
-    <div class="mix-page__auth-wall">
-      <div class="mix-hero">
-        <h1 class="mix-hero__title">{{ 'mix.hero.title' | translate }}</h1>
-        <p class="mix-hero__subtitle">{{ 'mix.hero.subtitle' | translate }}</p>
-      </div>
-
-      <div class="mix-auth-card">
-        <h2 class="mix-auth-card__title">{{ 'mix.authWall.title' | translate }}</h2>
-        <p class="mix-auth-card__description">{{ 'mix.authWall.description' | translate }}</p>
-        <a class="mix-btn mix-btn--primary" routerLink="/area-do-jogador">
-          {{ 'mix.authWall.action' | translate }}
-        </a>
-      </div>
-    </div>
-  }
-
   <!-- Session Unavailable -->
   @else if (sessionService.state().status === 'unavailable') {
     <app-page-state
@@ -37,167 +19,388 @@
     />
   }
 
+  <!-- Session Anonymous (Experience A: Landing de Conversão / Deslogado) -->
+  @else if (sessionService.state().status === 'anonymous') {
+    <div class="mix-landing mix-landing--public">
+      <!-- Hero Banner -->
+      <section class="mix-landing__hero mix-landing__hero--public">
+        <div class="mix-hero-art mix-hero-art--landing" aria-hidden="true">
+          <img
+            class="mix-hero-art__image"
+            src="map-images/de_mirage.png"
+            alt=""
+            width="534"
+            height="300"
+            draggable="false"
+          />
+        </div>
+        <div class="mix-landing__hero-content">
+          <span class="mix-badge-eyebrow">{{ 'mix.landing.eyebrow' | translate }}</span>
+          <h1 class="mix-landing__title">{{ 'mix.landing.title' | translate }}</h1>
+          <p class="mix-landing__subtitle">{{ 'mix.landing.subtitle' | translate }}</p>
+          <div class="mix-competitive-signals">
+            <span>{{ 'mix.signals.fiveVsFive' | translate }}</span>
+            <span>{{ 'mix.signals.players' | translate }}</span>
+            <span>{{ 'mix.signals.captainDraft' | translate }}</span>
+            <span>{{ 'mix.signals.mapVeto' | translate }}</span>
+            <span>{{ 'mix.signals.hscServer' | translate }}</span>
+          </div>
+          <div class="mix-landing__actions">
+            <a class="mix-btn mix-btn--primary mix-btn--lg" routerLink="/area-do-jogador">
+              {{ 'mix.landing.ctaPrimary' | translate }}
+            </a>
+            <a class="mix-btn mix-btn--secondary mix-btn--lg" routerLink="/area-do-jogador">
+              {{ 'mix.landing.ctaSecondary' | translate }}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Benefits / Features Section -->
+      <section class="mix-landing__benefits" aria-labelledby="mix-benefits-title">
+        <div class="mix-section__header">
+          <h2 id="mix-benefits-title" class="mix-section__title">
+            {{ 'mix.landing.featuresTitle' | translate }}
+          </h2>
+        </div>
+
+        <div class="mix-features-grid">
+          <article class="mix-feature-card">
+            <div class="mix-feature-card__badge">01</div>
+            <h3 class="mix-feature-card__title">{{ 'mix.landing.features.lobby.title' | translate }}</h3>
+            <p class="mix-feature-card__desc">{{ 'mix.landing.features.lobby.description' | translate }}</p>
+          </article>
+
+          <article class="mix-feature-card">
+            <div class="mix-feature-card__badge">02</div>
+            <h3 class="mix-feature-card__title">{{ 'mix.landing.features.draft.title' | translate }}</h3>
+            <p class="mix-feature-card__desc">{{ 'mix.landing.features.draft.description' | translate }}</p>
+          </article>
+
+          <article class="mix-feature-card">
+            <div class="mix-feature-card__badge">03</div>
+            <h3 class="mix-feature-card__title">{{ 'mix.landing.features.veto.title' | translate }}</h3>
+            <p class="mix-feature-card__desc">{{ 'mix.landing.features.veto.description' | translate }}</p>
+          </article>
+
+          <article class="mix-feature-card">
+            <div class="mix-feature-card__badge">04</div>
+            <h3 class="mix-feature-card__title">{{ 'mix.landing.features.server.title' | translate }}</h3>
+            <p class="mix-feature-card__desc">{{ 'mix.landing.features.server.description' | translate }}</p>
+          </article>
+
+          <article class="mix-feature-card">
+            <div class="mix-feature-card__badge">05</div>
+            <h3 class="mix-feature-card__title">{{ 'mix.landing.features.community.title' | translate }}</h3>
+            <p class="mix-feature-card__desc">{{ 'mix.landing.features.community.description' | translate }}</p>
+          </article>
+        </div>
+      </section>
+    </div>
+  }
+
   <!-- Session Authenticated -->
   @else {
-    <!-- Hero Header -->
-    <header class="mix-hero">
-      <div class="mix-hero__content">
-        <span class="mix-hero__eyebrow">{{ 'mix.hero.eyebrow' | translate }}</span>
-        <h1 class="mix-hero__title">{{ 'mix.hero.title' | translate }}</h1>
-        <p class="mix-hero__subtitle">{{ 'mix.hero.subtitle' | translate }}</p>
-      </div>
-
-      <div class="mix-hero__actions">
-        @if (!getCurrentRoom()) {
-          <button
-            type="button"
-            class="mix-btn mix-btn--primary mix-btn--lg"
-            [disabled]="isCreating()"
-            (click)="onCreateLobby()"
-          >
-            @if (isCreating()) {
-              {{ 'mix.hero.creating' | translate }}
-            } @else {
-              {{ 'mix.hero.createLobby' | translate }}
-            }
-          </button>
-        }
-      </div>
-    </header>
-
-    <!-- Action feedback / error message -->
-    @if (actionError()) {
-      <div class="mix-alert mix-alert--error" role="alert">
-        <span>{{ actionError()! | translate }}</span>
-      </div>
-    }
-
-    <!-- Initial Loading -->
-    @if (isInitialLoading() && matchRooms() === null) {
+    <!-- Membership Loading -->
+    @if (isMembershipLoading()) {
       <app-page-state
         type="loading"
-        [title]="'mix.lobbyList.loadingTitle' | translate"
-        [message]="'mix.lobbyList.loadingMessage' | translate"
+        [title]="'mix.membershipStates.loadingTitle' | translate"
+        [message]="'mix.membershipStates.loadingMessage' | translate"
       />
     }
 
-    <!-- Initial Error -->
-    @else if (initialError() && matchRooms() === null) {
+    <!-- Membership Error / Unavailable -->
+    @else if (isMembershipError()) {
       <app-page-state
         type="error"
-        [title]="'mix.lobbyList.errorTitle' | translate"
-        [message]="initialError()! | translate"
-        [actionLabel]="'mix.lobbyList.retry' | translate"
-        (actionClick)="refetchList()"
+        [title]="'mix.membershipStates.errorTitle' | translate"
+        [message]="'mix.membershipStates.errorMessage' | translate"
+        [actionLabel]="'mix.membershipStates.retry' | translate"
+        (actionClick)="onRetryMembership()"
       />
     }
 
-    <!-- Loaded Content -->
-    @else {
-      <!-- Current Room Banner / Card (if user is in a room) -->
-      @if (getCurrentRoom(); as current) {
-        <section class="mix-section mix-section--current" aria-labelledby="current-lobby-heading">
-          <div class="mix-section__header">
-            <h2 id="current-lobby-heading" class="mix-section__title">
-              {{ 'mix.currentLobby.heading' | translate }}
-            </h2>
+    <!-- Experience B: Authenticated Non-Active Member (inactive / expired / suspended / cancelled / null) -->
+    @else if (membership()?.status !== 'active') {
+      <div class="mix-landing mix-landing--membership">
+        <!-- Hero Banner -->
+        <section class="mix-landing__hero mix-landing__hero--membership">
+          <div class="mix-hero-art mix-hero-art--landing" aria-hidden="true">
+            <img
+              class="mix-hero-art__image"
+              src="map-images/de_mirage.png"
+              alt=""
+              width="534"
+              height="300"
+              draggable="false"
+            />
           </div>
-
-          <div class="mix-current-card">
-            <div class="mix-current-card__info">
-              <div class="mix-current-card__status">
-                <app-status-badge
-                  [label]="('mix.statuses.' + current.room.status) | translate"
-                  [tone]="getStatusBadgeVariant(current.room.status)"
-                />
-                <span class="mix-current-card__count">
-                  {{ current.room.participantCount }}/{{ current.room.capacity }}
-                </span>
-              </div>
-              <p class="mix-current-card__hint">
-                {{ ('mix.currentLobby.hints.' + current.room.status) | translate }}
-              </p>
+          <div class="mix-landing__hero-content">
+            <span class="mix-badge-eyebrow">{{ 'mix.membershipWall.eyebrow' | translate }}</span>
+            <h1 class="mix-landing__title">{{ 'mix.membershipWall.title' | translate }}</h1>
+            <p class="mix-landing__subtitle">{{ 'mix.membershipWall.description' | translate }}</p>
+            <div class="mix-competitive-signals">
+              <span>{{ 'mix.signals.fiveVsFive' | translate }}</span>
+              <span>{{ 'mix.signals.players' | translate }}</span>
+              <span>{{ 'mix.signals.captainDraft' | translate }}</span>
+              <span>{{ 'mix.signals.mapVeto' | translate }}</span>
+              <span>{{ 'mix.signals.hscServer' | translate }}</span>
             </div>
 
-            <div class="mix-current-card__actions">
-              <a
-                class="mix-btn mix-btn--primary"
-                [routerLink]="['/mix/rooms', current.room.id]"
-              >
-                {{ 'mix.currentLobby.returnAction' | translate }}
+            <!-- Membership Status Notice -->
+            <div class="mix-membership-notice">
+              <div class="mix-membership-notice__status">
+                <app-status-badge
+                  [label]="membership() ? ('playerArea.membership.status.' + membership()!.status | translate) : ('playerArea.membership.status.inactive' | translate)"
+                  [tone]="getMembershipBadgeVariant(membership()?.status ?? null)"
+                />
+                <span class="mix-membership-notice__text">
+                  @if (membership()) {
+                    {{ ('mix.membershipWall.statusNotice.' + membership()!.status) | translate }}
+                  } @else {
+                    {{ 'mix.membershipWall.statusNotice.none' | translate }}
+                  }
+                </span>
+              </div>
+              <a class="mix-btn mix-btn--primary" routerLink="/area-do-jogador">
+                {{ 'mix.membershipWall.cta' | translate }}
               </a>
             </div>
           </div>
         </section>
-      }
 
-      <!-- Open Rooms Section -->
-      <section class="mix-section" aria-labelledby="open-lobbies-heading">
-        <div class="mix-section__header">
-          <h2 id="open-lobbies-heading" class="mix-section__title">
-            {{ 'mix.openLobbies.heading' | translate }}
-          </h2>
+        <!-- Benefits / Features Section -->
+        <section class="mix-landing__benefits" aria-labelledby="mix-benefits-auth-title">
+          <div class="mix-section__header">
+            <h2 id="mix-benefits-auth-title" class="mix-section__title">
+              {{ 'mix.landing.featuresTitle' | translate }}
+            </h2>
+          </div>
+
+          <div class="mix-features-grid">
+            <article class="mix-feature-card">
+              <div class="mix-feature-card__badge">01</div>
+              <h3 class="mix-feature-card__title">{{ 'mix.landing.features.lobby.title' | translate }}</h3>
+              <p class="mix-feature-card__desc">{{ 'mix.landing.features.lobby.description' | translate }}</p>
+            </article>
+
+            <article class="mix-feature-card">
+              <div class="mix-feature-card__badge">02</div>
+              <h3 class="mix-feature-card__title">{{ 'mix.landing.features.draft.title' | translate }}</h3>
+              <p class="mix-feature-card__desc">{{ 'mix.landing.features.draft.description' | translate }}</p>
+            </article>
+
+            <article class="mix-feature-card">
+              <div class="mix-feature-card__badge">03</div>
+              <h3 class="mix-feature-card__title">{{ 'mix.landing.features.veto.title' | translate }}</h3>
+              <p class="mix-feature-card__desc">{{ 'mix.landing.features.veto.description' | translate }}</p>
+            </article>
+
+            <article class="mix-feature-card">
+              <div class="mix-feature-card__badge">04</div>
+              <h3 class="mix-feature-card__title">{{ 'mix.landing.features.server.title' | translate }}</h3>
+              <p class="mix-feature-card__desc">{{ 'mix.landing.features.server.description' | translate }}</p>
+            </article>
+
+            <article class="mix-feature-card">
+              <div class="mix-feature-card__badge">05</div>
+              <h3 class="mix-feature-card__title">{{ 'mix.landing.features.community.title' | translate }}</h3>
+              <p class="mix-feature-card__desc">{{ 'mix.landing.features.community.description' | translate }}</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    }
+
+    <!-- Experience C: Authenticated Active Member Operational Home -->
+    @else {
+      <!-- Hero Header -->
+      <header class="mix-hero">
+        <div class="mix-hero-art mix-hero-art--active" aria-hidden="true">
+          <img
+            class="mix-hero-art__image"
+            src="map-images/de_mirage.png"
+            alt=""
+            width="534"
+            height="300"
+            draggable="false"
+          />
+        </div>
+        <div class="mix-hero__content">
+          <span class="mix-hero__eyebrow">{{ 'mix.hero.eyebrow' | translate }}</span>
+          <h1 class="mix-hero__title">{{ 'mix.hero.title' | translate }}</h1>
+          <p class="mix-hero__subtitle">{{ 'mix.hero.subtitle' | translate }}</p>
+          <div class="mix-competitive-signals mix-competitive-signals--compact">
+            <span>{{ 'mix.signals.fiveVsFive' | translate }}</span>
+            <span>{{ 'mix.signals.players' | translate }}</span>
+            <span>{{ 'mix.signals.captainDraft' | translate }}</span>
+            <span>{{ 'mix.signals.mapVeto' | translate }}</span>
+            <span>{{ 'mix.signals.hscServer' | translate }}</span>
+          </div>
         </div>
 
-        @if (getOpenRooms().length > 0) {
-          <div class="mix-grid">
-            @for (item of getOpenRooms(); track item.room.id) {
-              <article class="mix-card">
-                <div class="mix-card__header">
-                  <app-status-badge
-                    [label]="('mix.statuses.' + item.room.status) | translate"
-                    tone="info"
-                  />
-                  <span class="mix-card__capacity">
-                    {{ item.room.participantCount }}/{{ item.room.capacity }}
-                  </span>
-                </div>
-
-                <div class="mix-card__body">
-                  <h3 class="mix-card__title">{{ 'mix.openLobbies.cardTitle' | translate }}</h3>
-                  <p class="mix-card__slots">
-                    {{
-                      'mix.openLobbies.slotsAvailable'
-                        | translate: { count: item.room.capacity - item.room.participantCount }
-                    }}
-                  </p>
-                </div>
-
-                <div class="mix-card__footer">
-                  <button
-                    type="button"
-                    class="mix-btn mix-btn--primary mix-btn--block"
-                    [disabled]="!item.viewer.actions.canJoin || joiningRoomId() !== null"
-                    (click)="onJoinLobby(item)"
-                  >
-                    @if (joiningRoomId() === item.room.id) {
-                      {{ 'mix.openLobbies.joining' | translate }}
-                    } @else {
-                      {{ 'mix.openLobbies.joinAction' | translate }}
-                    }
-                  </button>
-                </div>
-              </article>
-            }
-          </div>
-        } @else if (!getCurrentRoom()) {
-          <div class="mix-empty">
-            <p class="mix-empty__text">{{ 'mix.openLobbies.empty' | translate }}</p>
+        <div class="mix-hero__actions">
+          @if (!getCurrentRoom()) {
             <button
               type="button"
-              class="mix-btn mix-btn--primary"
+              class="mix-btn mix-btn--primary mix-btn--lg mix-hero__cta"
               [disabled]="isCreating()"
               (click)="onCreateLobby()"
             >
-              {{ 'mix.hero.createLobby' | translate }}
+              @if (isCreating()) {
+                {{ 'mix.hero.creating' | translate }}
+              } @else {
+                {{ 'mix.hero.createLobby' | translate }}
+              }
             </button>
-          </div>
-        } @else {
-          <div class="mix-empty">
-            <p class="mix-empty__text">{{ 'mix.openLobbies.empty' | translate }}</p>
-          </div>
+          }
+        </div>
+      </header>
+
+      <!-- Action feedback / error message -->
+      @if (actionError()) {
+        <div class="mix-alert mix-alert--error" role="alert">
+          <span>{{ actionError()! | translate }}</span>
+        </div>
+      }
+
+      <!-- Initial Loading -->
+      @if (isInitialLoading() && matchRooms() === null) {
+        <app-page-state
+          type="loading"
+          [title]="'mix.lobbyList.loadingTitle' | translate"
+          [message]="'mix.lobbyList.loadingMessage' | translate"
+        />
+      }
+
+      <!-- Initial Error -->
+      @else if (initialError() && matchRooms() === null) {
+        <app-page-state
+          type="error"
+          [title]="'mix.lobbyList.errorTitle' | translate"
+          [message]="initialError()! | translate"
+          [actionLabel]="'mix.lobbyList.retry' | translate"
+          (actionClick)="refetchList()"
+        />
+      }
+
+      <!-- Loaded Content -->
+      @else {
+        <!-- Current Room Banner / Card (if user is in a room) -->
+        @if (getCurrentRoom(); as current) {
+          <section class="mix-section mix-section--current" aria-labelledby="current-lobby-heading">
+            <div class="mix-section__header">
+              <h2 id="current-lobby-heading" class="mix-section__title">
+                {{ 'mix.currentLobby.heading' | translate }}
+              </h2>
+            </div>
+
+            <div class="mix-current-card" [attr.data-status]="current.room.status">
+              <div class="mix-current-card__main">
+                <div class="mix-current-card__header-line">
+                  <app-status-badge
+                    [label]="('mix.statuses.' + current.room.status) | translate"
+                    [tone]="getStatusBadgeVariant(current.room.status)"
+                  />
+                  <span class="mix-current-card__count">
+                    {{ current.room.participantCount }}/{{ current.room.capacity }}
+                  </span>
+                </div>
+                <p class="mix-current-card__hint">
+                  {{ ('mix.currentLobby.hints.' + current.room.status) | translate }}
+                </p>
+              </div>
+
+              <div class="mix-current-card__actions">
+                <a
+                  class="mix-btn mix-btn--primary mix-current-card__return-btn"
+                  [routerLink]="['/mix/rooms', current.room.id]"
+                >
+                  {{ 'mix.currentLobby.returnAction' | translate }}
+                </a>
+              </div>
+            </div>
+          </section>
         }
-      </section>
+
+        <!-- Open Rooms Section -->
+        <section class="mix-section" aria-labelledby="open-lobbies-heading">
+          <div class="mix-section__header">
+            <h2 id="open-lobbies-heading" class="mix-section__title">
+              {{ 'mix.openLobbies.heading' | translate }}
+            </h2>
+          </div>
+
+          @if (getOpenRooms().length > 0) {
+            <div class="mix-grid">
+              @for (item of getOpenRooms(); track item.room.id) {
+                <article class="mix-card">
+                  <div class="mix-card__header">
+                    <app-status-badge
+                      [label]="('mix.statuses.' + item.room.status) | translate"
+                      tone="info"
+                    />
+                    <span class="mix-card__capacity">
+                      {{ item.room.participantCount }}/{{ item.room.capacity }}
+                    </span>
+                  </div>
+
+                  <div class="mix-card__body">
+                    <h3 class="mix-card__title">{{ 'mix.openLobbies.cardTitle' | translate }}</h3>
+                    <p class="mix-card__slots">
+                      {{
+                        'mix.openLobbies.slotsAvailable'
+                          | translate: { count: item.room.capacity - item.room.participantCount }
+                      }}
+                    </p>
+                  </div>
+
+                  <div class="mix-card__footer">
+                    <button
+                      type="button"
+                      class="mix-btn mix-btn--primary mix-btn--block"
+                      [disabled]="!item.viewer.actions.canJoin || joiningRoomId() !== null"
+                      (click)="onJoinLobby(item)"
+                    >
+                      @if (joiningRoomId() === item.room.id) {
+                        {{ 'mix.openLobbies.joining' | translate }}
+                      } @else {
+                        {{ 'mix.openLobbies.joinAction' | translate }}
+                      }
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          } @else if (!getCurrentRoom()) {
+            <div class="mix-empty">
+              <div class="mix-empty__icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="mix-empty__svg">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="22" y1="12" x2="18" y2="12" />
+                  <line x1="6" y1="12" x2="2" y2="12" />
+                  <line x1="12" y1="6" x2="12" y2="2" />
+                  <line x1="12" y1="22" x2="12" y2="18" />
+                </svg>
+              </div>
+              <p class="mix-empty__text">{{ 'mix.openLobbies.empty' | translate }}</p>
+              <button
+                type="button"
+                class="mix-btn mix-btn--primary"
+                [disabled]="isCreating()"
+                (click)="onCreateLobby()"
+              >
+                {{ 'mix.hero.createLobby' | translate }}
+              </button>
+            </div>
+          } @else {
+            <div class="mix-empty">
+              <p class="mix-empty__text">{{ 'mix.openLobbies.empty' | translate }}</p>
+            </div>
+          }
+        </section>
+      }
     }
   }
 </div>
