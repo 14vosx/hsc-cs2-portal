@@ -9,11 +9,6 @@
   />
 
   <div class="app-shell__body">
-    <!-- Desktop Permanent Sidebar -->
-    <aside class="app-shell__sidebar-desktop" [attr.aria-label]="'shell.sidebarAriaLabel' | translate">
-      <app-sidebar />
-    </aside>
-
     <!-- Mobile Drawer Modal Overlay & Surface -->
     @if (isDrawerOpen()) {
       <div

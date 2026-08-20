@@ -14,10 +14,11 @@ import { TranslatePipe } from '@ngx-translate/core';
 import type { PlayerSession } from '../../core/session/player-session.model';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
 import { LocaleSwitcher } from '../locale-switcher/locale-switcher';
+import { PrimaryNav } from '../primary-nav/primary-nav';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, TranslatePipe, PlayerAvatar, LocaleSwitcher],
+  imports: [RouterLink, TranslatePipe, PlayerAvatar, LocaleSwitcher, PrimaryNav],
   templateUrl: './app-header.html',
   styleUrl: './app-header.css',
   changeDetection: ChangeDetectionStrategy.Eager,

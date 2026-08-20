@@ -53,6 +53,7 @@ describe('AppHeader', () => {
         playerArea: 'Área do Jogador', signOut: 'Sair', signIn: 'ENTRAR',
         openNavigation: 'Abrir menu de navegação', closeNavigation: 'Fechar menu de navegação',
       },
+      nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', mix: 'Lobby', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
       locale: { ariaLabel: 'Idioma do portal', portuguese: 'Português (Brasil)', english: 'English (United States)' },
     });
     translate.setTranslation('en-US', {
@@ -61,6 +62,7 @@ describe('AppHeader', () => {
         playerArea: 'Player Area', signOut: 'Sign out', signIn: 'SIGN IN',
         openNavigation: 'Open navigation menu', closeNavigation: 'Close navigation menu',
       },
+      nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', mix: 'Lobby', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
       locale: { ariaLabel: 'Portal language', portuguese: 'Portuguese (Brazil)', english: 'English (United States)' },
     });
     await firstValueFrom(translate.use('pt-BR'));
@@ -73,6 +75,14 @@ describe('AppHeader', () => {
     const logoLink = fixture.nativeElement.querySelector('.app-header__logo-link');
     expect(logoLink).toBeTruthy();
     expect(logoLink.getAttribute('href')).toBe('/');
+  });
+
+  it('renders the primary navigation in the desktop header context', () => {
+    const nav = fixture.nativeElement.querySelector('.app-header__primary-nav .primary-nav');
+
+    expect(nav).toBeTruthy();
+    expect(nav.classList.contains('primary-nav--horizontal')).toBe(true);
+    expect(nav.querySelectorAll('.primary-nav__link').length).toBe(8);
   });
 
   it('should render mobile toggle button with correct aria-expanded state', () => {

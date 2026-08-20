@@ -68,12 +68,12 @@ describe('AppShell', () => {
     fixture.detectChanges();
   });
 
-  it('should render header, permanent sidebar, main landmark and footer', () => {
+  it('should render header, full-width main landmark and footer without a permanent sidebar', () => {
     const native = fixture.nativeElement;
     const body = native.querySelector('.app-shell__body');
     const main = native.querySelector('main#main-content');
     expect(native.querySelector('app-header')).toBeTruthy();
-    expect(body?.querySelector(':scope > .app-shell__sidebar-desktop app-sidebar')).toBeTruthy();
+    expect(body?.querySelector(':scope > .app-shell__sidebar-desktop')).toBeNull();
     expect(body?.querySelector(':scope > main#main-content')).toBe(main);
     expect(main?.getAttribute('tabindex')).toBe('-1');
     expect(native.querySelector('app-footer')).toBeTruthy();
@@ -84,14 +84,12 @@ describe('AppShell', () => {
     expect(skipLink).toBeTruthy();
     expect(skipLink.getAttribute('href')).toBe('#main-content');
     expect(skipLink.textContent?.trim()).toBe('Pular para o conteúdo principal');
-    expect(fixture.nativeElement.querySelector('.app-shell__sidebar-desktop').getAttribute('aria-label')).toBe('Navegação lateral');
   });
 
   it('translates the skip link and shell labels to en-US', async () => {
     await firstValueFrom(translate.use('en-US'));
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.skip-link').textContent.trim()).toBe('Skip to main content');
-    expect(fixture.nativeElement.querySelector('.app-shell__sidebar-desktop').getAttribute('aria-label')).toBe('Sidebar navigation');
 
     (fixture.nativeElement.querySelector('.app-header__toggle') as HTMLButtonElement).click();
     fixture.detectChanges();

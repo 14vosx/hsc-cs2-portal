@@ -5,6 +5,10 @@
       <span class="app-header__brand-name"><span>HSC</span> <strong>CS2</strong> <span>PORTAL</span></span>
     </a>
 
+    <div class="app-header__primary-nav">
+      <app-primary-nav orientation="horizontal" />
+    </div>
+
     <div class="app-header__actions">
       <app-locale-switcher />
       @if (session(); as currentSession) {
