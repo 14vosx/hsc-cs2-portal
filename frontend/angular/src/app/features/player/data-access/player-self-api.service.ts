@@ -1,18 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map } from 'rxjs';
+import { catchError, map, throwError } from 'rxjs';
 
 import { cs2ApiPaths } from '../../../core/config/api-paths';
+import {
+  PlayerMembershipApiService,
+  PlayerMembershipContractError,
+} from '../../../core/membership/player-membership-api.service';
+import type { PlayerMembership } from '../../../core/membership/player-membership.model';
 import type {
   PlayerAccountStatus,
   PlayerAccountSummary,
   PlayerSteamCapabilityReason,
 } from '../domain/player-account.model';
-import type {
-  PlayerMembership,
-  PlayerMembershipStatus,
-} from '../domain/player-membership.model';
 import {
   isPreferredMap,
   isPreferredRole,
@@ -35,6 +36,7 @@ export class PlayerSelfContractError extends Error {
 })
 export class PlayerSelfApiService {
   private readonly http = inject(HttpClient);
+  private readonly membershipApi = inject(PlayerMembershipApiService);
 
   getAccount(): Observable<PlayerAccountSummary> {
     return this.http
@@ -123,19 +125,15 @@ export class PlayerSelfApiService {
   }
 
   getMembership(): Observable<PlayerMembership | null> {
-    return this.http
-      .get<unknown>(cs2ApiPaths.playerMembership, {
-        withCredentials: true,
-      })
-      .pipe(
-        map((payload) => {
-          const normalized = normalizePlayerMembershipEnvelope(payload);
-          if (!normalized) {
-            throw new PlayerSelfContractError('Invalid /player/membership payload received');
-          }
-          return normalized.membership;
-        }),
-      );
+    return this.membershipApi.getMembership().pipe(
+      catchError((error: unknown) =>
+        throwError(() =>
+          error instanceof PlayerMembershipContractError
+            ? new PlayerSelfContractError(error.message)
+            : error,
+        ),
+      ),
+    );
   }
 }
 
@@ -293,58 +291,12 @@ function normalizePlayerProfile(input: unknown): PlayerProfile | null {
   };
 }
 
-function normalizePlayerMembershipEnvelope(
-  input: unknown,
-): { membership: PlayerMembership | null } | null {
-  if (!isRecord(input)) {
-    return null;
-  }
-
-  const membershipInput = ownDataProperty(input, 'membership');
-
-  if (membershipInput === null) {
-    return { membership: null };
-  }
-
-  if (!isRecord(membershipInput)) {
-    return null;
-  }
-
-  const status = normalizeMembershipStatus(ownDataProperty(membershipInput, 'status'));
-  const planCode = requiredTrimmedString(ownDataProperty(membershipInput, 'plan_code'));
-
-  if (!status || !planCode) {
-    return null;
-  }
-
-  return {
-    membership: {
-      status,
-      planCode,
-      startedAt: optionalDateString(ownDataProperty(membershipInput, 'started_at')),
-      expiresAt: optionalDateString(ownDataProperty(membershipInput, 'expires_at')),
-      suspendedAt: optionalDateString(ownDataProperty(membershipInput, 'suspended_at')),
-      cancelledAt: optionalDateString(ownDataProperty(membershipInput, 'cancelled_at')),
-    },
-  };
-}
-
 function normalizeAccountStatus(value: unknown): PlayerAccountStatus | null {
   return value === 'active' || value === 'disabled' ? value : null;
 }
 
 function normalizeProfileVisibility(value: unknown): PlayerProfileVisibility | null {
   return value === 'private' || value === 'public' ? value : null;
-}
-
-function normalizeMembershipStatus(value: unknown): PlayerMembershipStatus | null {
-  return value === 'inactive' ||
-    value === 'active' ||
-    value === 'suspended' ||
-    value === 'expired' ||
-    value === 'cancelled'
-    ? value
-    : null;
 }
 
 function normalizeSteamCapabilityReason(

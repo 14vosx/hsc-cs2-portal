@@ -8,11 +8,13 @@ import {
   signal,
   ChangeDetectionStrategy
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter } from 'rxjs';
+import { catchError, filter, of, switchMap, tap } from 'rxjs';
+import { PlayerMembershipApiService } from '../../core/membership/player-membership-api.service';
 import { PlayerSessionService } from '../../core/session/player-session.service';
+import { PortalThemeService } from '../../core/theme/portal-theme.service';
 
 import { AppFooter } from '../app-footer/app-footer';
 import { AppHeader } from '../app-header/app-header';
@@ -37,13 +39,40 @@ export class AppShell {
   private readonly destroyRef = inject(DestroyRef);
   private readonly elementRef = inject(ElementRef);
   protected readonly playerSession = inject(PlayerSessionService);
+  private readonly membershipApi = inject(PlayerMembershipApiService);
+  private readonly portalTheme = inject(PortalThemeService);
 
   protected readonly isDrawerOpen = signal<boolean>(false);
+  protected readonly canSelectTheme = signal(false);
 
   private previousActiveElement: HTMLElement | null = null;
   private previousBodyOverflow = '';
 
   constructor() {
+    toObservable(this.playerSession.state)
+      .pipe(
+        tap(() => {
+          this.canSelectTheme.set(false);
+          this.portalTheme.applyDefaultTheme();
+        }),
+        switchMap((session) =>
+          session.status === 'authenticated'
+            ? this.membershipApi.getMembership().pipe(catchError(() => of(null)))
+            : of(null),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((membership) => {
+        const canSelectTheme = membership?.status === 'active';
+        this.canSelectTheme.set(canSelectTheme);
+
+        if (canSelectTheme) {
+          this.portalTheme.restorePreference();
+        } else {
+          this.portalTheme.applyDefaultTheme();
+        }
+      });
+
     this.playerSession.load();
     this.router.events
       .pipe(
@@ -77,6 +106,7 @@ export class AppShell {
   }
 
   protected logout(): void {
+    this.portalTheme.applyDefaultTheme();
     this.playerSession.logout(() => {
       void this.router.navigateByUrl('/area-do-jogador', { replaceUrl: true });
     });

@@ -15,10 +15,11 @@ import type { PlayerSession } from '../../core/session/player-session.model';
 import { PlayerAvatar } from '../../shared/components/player-avatar/player-avatar';
 import { LocaleSwitcher } from '../locale-switcher/locale-switcher';
 import { PrimaryNav } from '../primary-nav/primary-nav';
+import { ThemeSelector } from '../theme-selector/theme-selector';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, TranslatePipe, PlayerAvatar, LocaleSwitcher, PrimaryNav],
+  imports: [RouterLink, TranslatePipe, PlayerAvatar, LocaleSwitcher, PrimaryNav, ThemeSelector],
   templateUrl: './app-header.html',
   styleUrl: './app-header.css',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -28,6 +29,7 @@ export class AppHeader {
 
   readonly isDrawerOpen = input(false);
   readonly session = input<PlayerSession>({ status: 'loading' });
+  readonly canSelectTheme = input(false);
   readonly toggleDrawer = output<void>();
   readonly logoutRequested = output<void>();
   protected readonly isAccountMenuOpen = signal(false);

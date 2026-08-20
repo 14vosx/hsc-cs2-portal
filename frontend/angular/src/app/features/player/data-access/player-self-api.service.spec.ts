@@ -4,21 +4,37 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { of, throwError, type Observable } from 'rxjs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { cs2ApiPaths } from '../../../core/config/api-paths';
+import {
+  PlayerMembershipApiService,
+  PlayerMembershipContractError,
+} from '../../../core/membership/player-membership-api.service';
+import type { PlayerMembership } from '../../../core/membership/player-membership.model';
 import {
   PlayerSelfApiService,
   PlayerSelfContractError,
 } from './player-self-api.service';
+
+const membershipApiStub = {
+  getMembership: vi.fn((): Observable<PlayerMembership | null> => of(null)),
+};
 
 describe('PlayerSelfApiService', () => {
   let service: PlayerSelfApiService;
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+    membershipApiStub.getMembership.mockImplementation(() => of(null));
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
+        { provide: PlayerMembershipApiService, useValue: membershipApiStub },
+      ],
     });
 
     service = TestBed.inject(PlayerSelfApiService);
@@ -127,44 +143,35 @@ describe('PlayerSelfApiService', () => {
     });
   });
 
-  it('preserva ausÃªncia de membership como estado vÃ¡lido', () => {
-    let result: unknown = 'unset';
-
-    service.getMembership().subscribe((value) => (result = value));
-
-    const request = httpTesting.expectOne(cs2ApiPaths.playerMembership);
-    expect(request.request.withCredentials).toBe(true);
-    request.flush({ ok: true, membership: null });
-
-    expect(result).toBeNull();
-  });
-
-  it('normaliza membership efetiva retornada pelo backend', () => {
+  it('delegates Membership to the core boundary', () => {
     let result: unknown;
-
-    service.getMembership().subscribe((value) => (result = value));
-
-    const request = httpTesting.expectOne(cs2ApiPaths.playerMembership);
-    request.flush({
-      ok: true,
-      membership: {
-        status: 'active',
-        plan_code: 'hsc-member',
-        started_at: '2026-08-07T10:00:00.000Z',
-        expires_at: null,
-        suspended_at: null,
-        cancelled_at: null,
-      },
-    });
-
-    expect(result).toEqual({
-      status: 'active',
+    const membership = {
+      status: 'active' as const,
       planCode: 'hsc-member',
       startedAt: '2026-08-07T10:00:00.000Z',
       expiresAt: null,
       suspendedAt: null,
       cancelledAt: null,
-    });
+    };
+    membershipApiStub.getMembership.mockReturnValue(of(membership));
+
+    service.getMembership().subscribe((value) => (result = value));
+
+    expect(membershipApiStub.getMembership).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(membership);
+    httpTesting.expectNone(cs2ApiPaths.playerMembership);
+  });
+
+  it('preserves PlayerSelfContractError compatibility for invalid Membership payloads', () => {
+    let receivedError: unknown;
+    membershipApiStub.getMembership.mockReturnValue(
+      throwError(() => new PlayerMembershipContractError('Invalid Membership payload')),
+    );
+
+    service.getMembership().subscribe({ error: (error) => (receivedError = error) });
+
+    expect(receivedError).toBeInstanceOf(PlayerSelfContractError);
+    expect((receivedError as Error).message).toBe('Invalid Membership payload');
   });
 
   it('falha fechado quando o contrato de profile é inválido', () => {

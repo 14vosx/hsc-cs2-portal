@@ -23,7 +23,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-drawer-backdrop);
-  background: rgba(5, 8, 11, 0.72);
+  background: color-mix(in oklch, var(--color-bg-base) 72%, transparent);
   backdrop-filter: blur(4px);
   animation: fadeIn var(--transition-fast);
 }
