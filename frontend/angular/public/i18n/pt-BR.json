@@ -257,7 +257,9 @@
       "confirmedStatus": "CONFIRMADO",
       "waitingConfirmationStatus": "AGUARDANDO",
       "waitingPlayer": "AGUARDANDO JOGADOR",
-      "retry": "Tentar novamente"
+      "retry": "Tentar novamente",
+      "lobbyNavigationLabel": "Navegação do lobby",
+      "timerAccessibleLabel": "Tempo restante: {{ time }}"
     },
     "statuses": {
       "FORMING": "FORMANDO",
@@ -291,6 +293,8 @@
       "yourTurn": "SUA VEZ DE ESCOLHER",
       "availablePool": "JOGADORES DISPONÍVEIS",
       "pickAction": "ESCOLHER",
+      "pickPlayerAction": "Escolher {{ name }}",
+      "pickOrder": "Escolha #{{ order }}",
       "picking": "ESCOLHENDO...",
       "completedTitle": "DRAFT CONCLUÍDO",
       "completedBanner": "Times definidos. Preparando próxima etapa.",
@@ -307,6 +311,7 @@
       "waitingForVeto": "Aguardando veto...",
       "availablePool": "MAPAS DISPONÍVEIS",
       "banAction": "BANIR",
+      "banMapAction": "Banir {{ map }}",
       "banning": "BANINDO...",
       "bannedBadge": "BANIDO",
       "selectedBadge": "MAPA SELECIONADO",

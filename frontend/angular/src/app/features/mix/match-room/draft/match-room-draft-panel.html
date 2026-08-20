@@ -13,29 +13,48 @@
       <div class="draft-panel__turn-status">
         @if (canDraftPick()) {
           <div class="draft-turn-banner draft-turn-banner--your-turn">
-            <span class="draft-turn-banner__badge">{{ 'mix.draft.yourTurn' | translate }}</span>
+            <span class="draft-turn-banner__badge" aria-live="polite" aria-atomic="true">
+              {{ 'mix.draft.yourTurn' | translate }}
+            </span>
             @if (formattedCountdown()) {
-              <span class="draft-turn-banner__timer" [class.draft-turn-banner__timer--expired]="isWindowClosed()">
+              <span
+                class="draft-turn-banner__timer"
+                [class.draft-turn-banner__timer--expired]="isWindowClosed()"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
                 {{ formattedCountdown() }}
               </span>
             }
           </div>
         } @else if (currentPickerParticipant(); as picker) {
           <div class="draft-turn-banner draft-turn-banner--waiting">
-            <span class="draft-turn-banner__label">
+            <span class="draft-turn-banner__label" aria-live="polite" aria-atomic="true">
               {{ 'mix.draft.currentPickerTurn' | translate: { name: getDisplayName(picker) } }}
             </span>
             @if (formattedCountdown()) {
-              <span class="draft-turn-banner__timer" [class.draft-turn-banner__timer--expired]="isWindowClosed()">
+              <span
+                class="draft-turn-banner__timer"
+                [class.draft-turn-banner__timer--expired]="isWindowClosed()"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
                 {{ formattedCountdown() }}
               </span>
             }
           </div>
         } @else {
           <div class="draft-turn-banner draft-turn-banner--waiting">
-            <span class="draft-turn-banner__label">{{ 'mix.draft.waitingForPick' | translate }}</span>
+            <span class="draft-turn-banner__label" aria-live="polite" aria-atomic="true">
+              {{ 'mix.draft.waitingForPick' | translate }}
+            </span>
             @if (formattedCountdown()) {
-              <span class="draft-turn-banner__timer" [class.draft-turn-banner__timer--expired]="isWindowClosed()">
+              <span
+                class="draft-turn-banner__timer"
+                [class.draft-turn-banner__timer--expired]="isWindowClosed()"
+                role="timer"
+                [attr.aria-label]="'mix.matchRoom.timerAccessibleLabel' | translate: { time: formattedCountdown() }"
+              >
                 {{ formattedCountdown() }}
               </span>
             }
@@ -88,7 +107,9 @@
                 }
               </div>
               @if (assignment.selectionOrder !== null) {
-                <span class="draft-player-card__order">#{{ assignment.selectionOrder }} pick</span>
+                <span class="draft-player-card__order">
+                  {{ 'mix.draft.pickOrder' | translate: { order: assignment.selectionOrder } }}
+                </span>
               }
             </div>
           </div>
@@ -112,7 +133,12 @@
             @let isPending = pendingPlayerAccountId() === id;
             @let canPickThis = canDraftPick() && draft().phase === 'PICKING' && !isWindowClosed() && pendingPlayerAccountId() === null;
 
-            <div class="draft-candidate-card" [class.draft-candidate-card--selectable]="canPickThis" [class.draft-candidate-card--pending]="isPending">
+            <div
+              class="draft-candidate-card"
+              [class.draft-candidate-card--selectable]="canPickThis"
+              [class.draft-candidate-card--pending]="isPending"
+              [attr.aria-busy]="isPending ? 'true' : null"
+            >
               <div class="draft-candidate-card__info">
                 <app-player-avatar
                   [imageUrl]="participant?.player?.steam?.avatarMediumUrl ?? null"
@@ -133,7 +159,7 @@
                   class="draft-btn draft-btn--pick"
                   [disabled]="!canPickThis || isPending"
                   (click)="onPick(id)"
-                  [attr.aria-label]="'mix.draft.pickAction' | translate: { name: getDisplayName(participant) }"
+                  [attr.aria-label]="'mix.draft.pickPlayerAction' | translate: { name: getDisplayName(participant) }"
                 >
                   @if (isPending) {
                     {{ 'mix.draft.picking' | translate }}
@@ -181,7 +207,9 @@
                 }
               </div>
               @if (assignment.selectionOrder !== null) {
-                <span class="draft-player-card__order">#{{ assignment.selectionOrder }} pick</span>
+                <span class="draft-player-card__order">
+                  {{ 'mix.draft.pickOrder' | translate: { order: assignment.selectionOrder } }}
+                </span>
               }
             </div>
           </div>

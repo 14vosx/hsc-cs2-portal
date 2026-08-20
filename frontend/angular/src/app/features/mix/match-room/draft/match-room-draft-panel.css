@@ -177,6 +177,18 @@
   background: #161e2e;
   border: 1px solid #202b42;
   border-radius: 8px;
+  animation: draftCardEnter 0.2s ease-out;
+}
+
+@keyframes draftCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .draft-player-card--empty {
@@ -249,7 +261,7 @@
   background: #141b29;
   border: 1px solid #202c42;
   border-radius: 8px;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .draft-candidate-card--selectable {
@@ -271,12 +283,21 @@
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
+  flex: 1;
+}
+
+.draft-candidate-card__name {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .draft-candidate-card__name app-player-link {
   font-weight: 600;
   font-size: 0.9375rem;
   color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .draft-btn--pick {
@@ -284,6 +305,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
+  min-height: 44px;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -295,6 +317,11 @@
   cursor: pointer;
   transition: background-color 0.15s ease, opacity 0.15s ease;
   white-space: nowrap;
+}
+
+.draft-btn--pick:focus-visible {
+  outline: 2px solid #00f0ff;
+  outline-offset: 2px;
 }
 
 .draft-btn--pick:hover:not(:disabled) {
@@ -311,4 +338,14 @@
   text-align: center;
   color: #64748b;
   font-size: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draft-player-card,
+  .draft-candidate-card,
+  .draft-btn--pick {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }

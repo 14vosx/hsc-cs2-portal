@@ -368,11 +368,24 @@
   max-width: 480px;
 }
 
+.room-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .room-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.625rem 1.25rem;
+  min-height: 44px;
   font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -381,7 +394,13 @@
   border-radius: 6px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease, opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.room-nav__back:focus-visible,
+.room-btn:focus-visible {
+  outline: 2px solid #00f0ff;
+  outline-offset: 2px;
 }
 
 .room-btn--primary {
@@ -443,4 +462,26 @@
   background: rgba(255, 68, 68, 0.12);
   border: 1px solid rgba(255, 68, 68, 0.4);
   color: #ff7777;
+}
+
+@media (max-width: 640px) {
+  .room-header__actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .room-header__actions .room-btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-nav__back,
+  .room-header,
+  .room-slot,
+  .room-confirm-panel,
+  .room-btn {
+    transition: none !important;
+    animation: none !important;
+  }
 }

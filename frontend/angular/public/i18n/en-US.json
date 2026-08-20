@@ -256,7 +256,9 @@
       "confirmedStatus": "CONFIRMED",
       "waitingConfirmationStatus": "WAITING",
       "waitingPlayer": "WAITING FOR PLAYER",
-      "retry": "Try again"
+      "retry": "Try again",
+      "lobbyNavigationLabel": "Lobby navigation",
+      "timerAccessibleLabel": "Time remaining: {{ time }}"
     },
     "statuses": {
       "FORMING": "FORMING",
@@ -290,6 +292,8 @@
       "yourTurn": "YOUR TURN TO PICK",
       "availablePool": "AVAILABLE PLAYERS",
       "pickAction": "PICK",
+      "pickPlayerAction": "Pick {{ name }}",
+      "pickOrder": "Pick #{{ order }}",
       "picking": "PICKING...",
       "completedTitle": "DRAFT COMPLETED",
       "completedBanner": "Teams set. Preparing next stage.",
@@ -306,6 +310,7 @@
       "waitingForVeto": "Waiting for veto...",
       "availablePool": "AVAILABLE MAPS",
       "banAction": "BAN",
+      "banMapAction": "Ban {{ map }}",
       "banning": "BANNING...",
       "bannedBadge": "BANNED",
       "selectedBadge": "SELECTED MAP",
