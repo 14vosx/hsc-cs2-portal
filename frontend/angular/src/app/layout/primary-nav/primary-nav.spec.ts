@@ -4,14 +4,15 @@ import { provideRouter, Router } from '@angular/router';
 import { provideTranslateService, TranslateService } from '@ngx-translate/core';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { PrimaryNav } from './primary-nav';
+import { PrimaryNav, type PrimaryNavOrientation } from './primary-nav';
 
 @Component({
-  template: '<app-primary-nav (itemSelected)="onSelected()" />',
+  template: '<app-primary-nav [orientation]="orientation" (itemSelected)="onSelected()" />',
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PrimaryNav],
 })
 class TestHostComponent {
+  orientation: PrimaryNavOrientation = 'vertical';
   selectedCount = 0;
   onSelected(): void {
     this.selectedCount++;
@@ -65,6 +66,27 @@ describe('PrimaryNav', () => {
   it('should render all primary navigation items', () => {
     const links = fixture.nativeElement.querySelectorAll('.primary-nav__link');
     expect(links.length).toBe(8);
+  });
+
+  it('renders a decorative Lucide icon before every text label', () => {
+    const links = Array.from(
+      fixture.nativeElement.querySelectorAll('.primary-nav__link'),
+    ) as HTMLAnchorElement[];
+
+    expect(links.every((link) => link.querySelector('svg[aria-hidden="true"]'))).toBe(true);
+    expect(links.every((link) => link.firstElementChild?.classList.contains('primary-nav__icon'))).toBe(true);
+  });
+
+  it('supports horizontal and vertical presentation from the same item source', () => {
+    const nav = fixture.nativeElement.querySelector('.primary-nav');
+    expect(nav.classList.contains('primary-nav--vertical')).toBe(true);
+
+    fixture.componentInstance.orientation = 'horizontal';
+    fixture.detectChanges();
+
+    expect(nav.classList.contains('primary-nav--horizontal')).toBe(true);
+    expect(nav.classList.contains('primary-nav--vertical')).toBe(false);
+    expect(nav.querySelectorAll('.primary-nav__link').length).toBe(8);
   });
 
   it('renders the pt-BR navigation labels', () => {

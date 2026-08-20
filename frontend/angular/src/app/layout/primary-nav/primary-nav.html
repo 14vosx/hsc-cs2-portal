@@ -1,4 +1,9 @@
-<nav class="primary-nav" [attr.aria-label]="'nav.ariaLabel' | translate">
+<nav
+  class="primary-nav"
+  [class.primary-nav--horizontal]="orientation() === 'horizontal'"
+  [class.primary-nav--vertical]="orientation() === 'vertical'"
+  [attr.aria-label]="'nav.ariaLabel' | translate"
+>
   <ul class="primary-nav__list">
     @for (item of navItems; track item.id) {
       <li class="primary-nav__item">
@@ -9,6 +14,9 @@
           [attr.aria-current]="isActive(item) ? 'page' : null"
           (click)="onLinkClick()"
         >
+          <span class="primary-nav__icon" aria-hidden="true">
+            <ng-container *ngComponentOutlet="item.icon" />
+          </span>
           <span class="primary-nav__label">{{ item.labelKey | translate }}</span>
         </a>
       </li>

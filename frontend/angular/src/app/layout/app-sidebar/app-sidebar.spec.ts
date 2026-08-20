@@ -8,6 +8,12 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import { AppSidebar } from './app-sidebar';
 
 @Component({
+  template: '',
+  changeDetection: ChangeDetectionStrategy.Eager,
+})
+class EmptyRouteComponent {}
+
+@Component({
   template: '<app-sidebar [isMobileDrawer]="isMobile" (closeRequested)="onClose()" />',
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppSidebar],
@@ -28,7 +34,10 @@ describe('AppSidebar', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, AppSidebar],
-      providers: [provideRouter([]), provideTranslateService({ fallbackLang: 'pt-BR' })],
+      providers: [
+        provideRouter([{ path: '', component: EmptyRouteComponent }]),
+        provideTranslateService({ fallbackLang: 'pt-BR' }),
+      ],
     }).compileComponents();
 
     translate = TestBed.inject(TranslateService);
@@ -44,9 +53,18 @@ describe('AppSidebar', () => {
     fixture.detectChanges();
   });
 
-  it('should render desktop sidebar without close button by default', () => {
+  it('should render the vertical navigation without a close button by default', () => {
     const closeBtn = fixture.nativeElement.querySelector('.app-sidebar__close-btn');
     expect(closeBtn).toBeNull();
+    expect(fixture.nativeElement.querySelector('.primary-nav--vertical')).toBeTruthy();
+  });
+
+  it('forwards navigation selection through the drawer close contract', () => {
+    const firstLink = fixture.nativeElement.querySelector('.primary-nav__link') as HTMLAnchorElement;
+
+    firstLink.click();
+
+    expect(fixture.componentInstance.closed).toBe(true);
   });
 
   it('should render mobile header with close button when isMobileDrawer is true', () => {
