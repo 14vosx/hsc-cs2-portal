@@ -8,9 +8,10 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import { AppHeader } from './app-header';
 import type { PlayerSession } from '../../core/session/player-session.model';
 import { LocaleService } from '../../core/i18n/locale.service';
+import { PortalThemeService } from '../../core/theme/portal-theme.service';
 
 @Component({
-  template: '<app-header [isDrawerOpen]="isOpen" [session]="session" (toggleDrawer)="onToggle()" (logoutRequested)="onLogout()" />',
+  template: '<app-header [isDrawerOpen]="isOpen" [session]="session" [canSelectTheme]="canSelectTheme" (toggleDrawer)="onToggle()" (logoutRequested)="onLogout()" />',
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AppHeader],
 })
@@ -18,6 +19,7 @@ class TestHostComponent {
   isOpen = false;
   toggled = false;
   loggedOut = false;
+  canSelectTheme = false;
   session: PlayerSession = { status: 'anonymous' };
 
   onToggle(): void {
@@ -43,6 +45,10 @@ describe('AppHeader', () => {
           provide: LocaleService,
           useValue: { currentLocale: signal('pt-BR'), setLocale: () => Promise.resolve() },
         },
+        {
+          provide: PortalThemeService,
+          useValue: { appliedTheme: signal('03'), selectTheme: () => undefined },
+        },
       ],
     }).compileComponents();
 
@@ -55,6 +61,7 @@ describe('AppHeader', () => {
       },
       nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', mix: 'Lobby', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
       locale: { ariaLabel: 'Idioma do portal', portuguese: 'Português (Brasil)', english: 'English (United States)' },
+      themeSelector: { theme: 'Tema', portalTheme: 'Tema do Portal', chooseTheme: 'Escolher tema do Portal', theme01: 'Tema 01', theme02: 'Tema 02', theme03: 'Tema 03', theme04: 'Tema 04', default: 'Padrão' },
     });
     translate.setTranslation('en-US', {
       header: {
@@ -64,6 +71,7 @@ describe('AppHeader', () => {
       },
       nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', mix: 'Lobby', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
       locale: { ariaLabel: 'Portal language', portuguese: 'Portuguese (Brazil)', english: 'English (United States)' },
+      themeSelector: { theme: 'Theme', portalTheme: 'Portal theme', chooseTheme: 'Choose portal theme', theme01: 'Theme 01', theme02: 'Theme 02', theme03: 'Theme 03', theme04: 'Theme 04', default: 'Default' },
     });
     await firstValueFrom(translate.use('pt-BR'));
 
@@ -75,6 +83,20 @@ describe('AppHeader', () => {
     const logoLink = fixture.nativeElement.querySelector('.app-header__logo-link');
     expect(logoLink).toBeTruthy();
     expect(logoLink.getAttribute('href')).toBe('/');
+  });
+
+  it('does not render the theme selector without eligibility', () => {
+    expect(fixture.nativeElement.querySelector('app-theme-selector')).toBeNull();
+  });
+
+  it('renders the theme selector between locale and account when eligible', () => {
+    fixture.componentInstance.canSelectTheme = true;
+    fixture.detectChanges();
+
+    const actions = fixture.nativeElement.querySelector('.app-header__actions');
+    expect(actions.querySelector('app-locale-switcher + app-theme-selector')).toBeTruthy();
+    expect(actions.querySelector('.app-header__sign-in')).toBeTruthy();
+    expect(actions.querySelector('.app-header__toggle')).toBeTruthy();
   });
 
   it('renders the primary navigation in the desktop header context', () => {

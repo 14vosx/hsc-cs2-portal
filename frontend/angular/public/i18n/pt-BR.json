@@ -15,6 +15,16 @@
     "portuguese": "Português (Brasil)",
     "english": "English (United States)"
   },
+  "themeSelector": {
+    "theme": "Tema",
+    "portalTheme": "Tema do Portal",
+    "chooseTheme": "Escolher tema do Portal",
+    "theme01": "Tema 01",
+    "theme02": "Tema 02",
+    "theme03": "Tema 03",
+    "theme04": "Tema 04",
+    "default": "Padrão"
+  },
   "shell": {
     "skipToMainContent": "Pular para o conteúdo principal",
     "sidebarAriaLabel": "Navegação lateral",

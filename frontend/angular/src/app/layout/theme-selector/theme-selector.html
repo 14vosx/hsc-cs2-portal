@@ -1,0 +1,39 @@
+<div class="theme-selector">
+  <button
+    type="button"
+    class="theme-selector__trigger"
+    [attr.aria-label]="'themeSelector.chooseTheme' | translate"
+    [attr.title]="'themeSelector.portalTheme' | translate"
+    [attr.aria-expanded]="isOpen()"
+    aria-controls="portal-theme-menu"
+    (click)="toggle()"
+  >
+    <svg lucidePalette aria-hidden="true"></svg>
+  </button>
+
+  @if (isOpen()) {
+    <section id="portal-theme-menu" class="theme-selector__popover" [attr.aria-label]="'themeSelector.portalTheme' | translate">
+      <span class="theme-selector__title">{{ 'themeSelector.theme' | translate }}</span>
+      <div class="theme-selector__options" role="group" [attr.aria-label]="'themeSelector.chooseTheme' | translate">
+        @for (theme of themes; track theme) {
+          <button
+            type="button"
+            class="theme-selector__option theme-selector__option--{{ theme }}"
+            [attr.aria-label]="'themeSelector.theme' + theme | translate"
+            [attr.aria-pressed]="themeService.appliedTheme() === theme"
+            (click)="select(theme)"
+          >
+            <span class="theme-selector__swatches" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+            <span class="theme-selector__label">{{ 'themeSelector.theme' + theme | translate }}</span>
+            @if (theme === defaultTheme) {
+              <span class="theme-selector__default">{{ 'themeSelector.default' | translate }}</span>
+            }
+            @if (themeService.appliedTheme() === theme) {
+              <span class="theme-selector__check" aria-hidden="true">✓</span>
+            }
+          </button>
+        }
+      </div>
+    </section>
+  }
+</div>

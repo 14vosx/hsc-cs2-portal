@@ -4,6 +4,7 @@
   <app-header
     [isDrawerOpen]="isDrawerOpen()"
     [session]="playerSession.state()"
+    [canSelectTheme]="canSelectTheme()"
     (toggleDrawer)="toggleDrawer()"
     (logoutRequested)="logout()"
   />
