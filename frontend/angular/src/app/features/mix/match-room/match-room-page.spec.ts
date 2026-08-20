@@ -17,6 +17,8 @@ import type {
   MatchRoomSnapshot,
   MatchRoomStatus,
 } from '../domain/match-room.model';
+import { By } from '@angular/platform-browser';
+import { MatchRoomCompetitivePanel } from './competitive/match-room-competitive-panel';
 import { MatchRoomPage } from './match-room-page';
 
 function createParticipant(
@@ -57,6 +59,8 @@ function createRoomSnapshot(
     canJoin?: boolean;
     canDraftPick?: boolean;
     canMapVetoBan?: boolean;
+    canJoinServer?: boolean;
+    join?: { serverKey: string; reference: string; launchUri: string } | null;
     deadlineAt?: string;
     round?: number;
     confirmedCount?: number;
@@ -105,7 +109,18 @@ function createRoomSnapshot(
         canConfirm: overrides.canConfirm ?? false,
         canDraftPick: overrides.canDraftPick ?? false,
         canMapVetoBan: overrides.canMapVetoBan ?? false,
+        canJoinServer: overrides.canJoinServer ?? (status === 'JOINABLE'),
       },
+      join:
+        overrides.join !== undefined
+          ? overrides.join
+          : status === 'JOINABLE'
+            ? {
+                serverKey: 'srv-1',
+                reference: 'connect 127.0.0.1:27015',
+                launchUri: 'steam://connect/127.0.0.1:27015',
+              }
+            : null,
     },
   };
 }
@@ -578,7 +593,7 @@ describe('MatchRoomPage', () => {
       createParticipant('player-3', 'Third Player', 'third-slug', true),
     ];
 
-    it('1. SETUP sem draft renderiza cópia transitória e roster neutro', () => {
+    it('1. SETUP sem draft/veto mantém stage shell e exibe fallback central', () => {
       const snap = createRoomSnapshot('SETUP', 1);
       matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
 
@@ -587,7 +602,28 @@ describe('MatchRoomPage', () => {
       expect(fixture.nativeElement.textContent).toContain('PREPARANDO PARTIDA');
       expect(fixture.nativeElement.textContent).toContain('10/10 confirmados');
       expect(fixture.nativeElement.querySelector('app-match-room-draft-panel')).toBeNull();
-      expect(fixture.nativeElement.querySelector('.room-roster')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-match-room-map-veto-panel')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-stage-shell')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-team-col--a')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-action-stage')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-team-col--b')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+    });
+
+    it('exibe badges de capitão no shell pai para Team A e Team B', () => {
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: validDraft,
+        participants: draftParticipants,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const teamACol = fixture.nativeElement.querySelector('.room-team-col--a');
+      const teamBCol = fixture.nativeElement.querySelector('.room-team-col--b');
+
+      expect(teamACol.textContent).toContain('CAPITÃO');
+      expect(teamBCol.textContent).toContain('CAPITÃO');
     });
 
     it('2. SETUP com draft renderiza MatchRoomDraftPanel e esconde roster neutro', () => {
@@ -1072,6 +1108,137 @@ describe('MatchRoomPage', () => {
       expect(fixture.nativeElement.querySelector('app-match-room-competitive-panel')).not.toBeNull();
       expect(fixture.nativeElement.textContent).toContain('Preparando os dados da partida.');
       expect(fixture.nativeElement.querySelector('.room-roster')).toBeNull();
+    });
+
+    it('8. FAILED: CTA VOLTAR AOS LOBBIES navega diretamente para /mix sem chamar leaveMatchRoom', () => {
+      const snap = createRoomSnapshot('FAILED', 1, { canLeave: false });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const compPanel = fixture.debugElement.query(By.directive(MatchRoomCompetitivePanel));
+      expect(compPanel).not.toBeNull();
+
+      compPanel.componentInstance.backToLobbies.emit();
+      fixture.detectChanges();
+
+      expect(router.navigate).toHaveBeenCalledWith(['/mix']);
+      expect(matchRoomApiMock.leaveMatchRoom).not.toHaveBeenCalled();
+    });
+
+    it('9. exibe a contagem ocupada real dos times (parcial e completo)', () => {
+      const snapParcial = createRoomSnapshot('SETUP', 1, {
+        draft: {
+          phase: 'PICKING',
+          captains: { teamAPlayerAccountId: 'p1', teamBPlayerAccountId: 'p2' },
+          firstPickerPlayerAccountId: 'p1',
+          currentPickerPlayerAccountId: 'p1',
+          nextSelectionOrder: 1,
+          pickDeadlineAt: null,
+          availablePlayerAccountIds: [],
+          assignments: [
+            { playerAccountId: 'p1', team: 'A', captain: true, selectionOrder: null, source: 'CAPTAIN', pickerPlayerAccountId: null, assignedAt: '2026-08-17T20:00:00Z' },
+            { playerAccountId: 'p2', team: 'B', captain: true, selectionOrder: null, source: 'CAPTAIN', pickerPlayerAccountId: null, assignedAt: '2026-08-17T20:00:00Z' },
+            { playerAccountId: 'p3', team: 'B', captain: false, selectionOrder: 1, source: 'MANUAL_PICK', pickerPlayerAccountId: 'p2', assignedAt: '2026-08-17T20:01:00Z' },
+          ],
+        },
+        participants: [
+          createParticipant('p1', 'P1'),
+          createParticipant('p2', 'P2'),
+          createParticipant('p3', 'P3'),
+        ],
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snapParcial));
+
+      fixture = setupFixture();
+
+      const countA = fixture.nativeElement.querySelector('.room-team-col--a .room-team-col__count');
+      const countB = fixture.nativeElement.querySelector('.room-team-col--b .room-team-col__count');
+
+      expect(countA.textContent.trim()).toBe('1/5');
+      expect(countB.textContent.trim()).toBe('2/5');
+    });
+
+    it('10. acionar a cópia de conexão envia a referência literal exata para a Clipboard API', async () => {
+      const reference = 'connect 127.0.0.1:27015';
+      const snap = createRoomSnapshot('JOINABLE', 1, {
+        canJoinServer: true,
+        join: {
+          serverKey: 'srv-1',
+          reference,
+          launchUri: 'steam://connect/127.0.0.1:27015',
+        },
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      const writeTextSpy = vi.fn().mockResolvedValue(undefined);
+      const originalClipboard = navigator.clipboard;
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: writeTextSpy },
+        configurable: true,
+        writable: true,
+      });
+
+      try {
+        fixture = setupFixture();
+
+        const compPanel = fixture.debugElement.query(By.directive(MatchRoomCompetitivePanel));
+        expect(compPanel).not.toBeNull();
+
+        compPanel.componentInstance.copyConnection.emit(reference);
+        fixture.detectChanges();
+
+        expect(writeTextSpy).toHaveBeenCalledWith('connect 127.0.0.1:27015');
+      } finally {
+        Object.defineProperty(navigator, 'clipboard', {
+          value: originalClipboard,
+          configurable: true,
+          writable: true,
+        });
+      }
+    });
+
+    it('11. exibe contagem completa 5/5 quando ambos os times possuem 5 jogadores congelados no roster', () => {
+      const snapFull = createRoomSnapshot('JOINABLE', 1, {
+        competitiveMatch: {
+          id: 'm-1',
+          runtimeMatchId: 1,
+          map: { poolId: 'p1', poolKey: 'active', poolVersion: 1, key: 'de_mirage', displayName: 'Mirage' },
+          roster: [
+            { playerAccountId: 'p1', steamid64: '76561198000000001', team: 'A' },
+            { playerAccountId: 'p2', steamid64: '76561198000000002', team: 'A' },
+            { playerAccountId: 'p3', steamid64: '76561198000000003', team: 'A' },
+            { playerAccountId: 'p4', steamid64: '76561198000000004', team: 'A' },
+            { playerAccountId: 'p5', steamid64: '76561198000000005', team: 'A' },
+            { playerAccountId: 'p6', steamid64: '76561198000000006', team: 'B' },
+            { playerAccountId: 'p7', steamid64: '76561198000000007', team: 'B' },
+            { playerAccountId: 'p8', steamid64: '76561198000000008', team: 'B' },
+            { playerAccountId: 'p9', steamid64: '76561198000000009', team: 'B' },
+            { playerAccountId: 'p10', steamid64: '76561198000000010', team: 'B' },
+          ],
+        },
+        participants: [
+          createParticipant('p1', 'P1'),
+          createParticipant('p2', 'P2'),
+          createParticipant('p3', 'P3'),
+          createParticipant('p4', 'P4'),
+          createParticipant('p5', 'P5'),
+          createParticipant('p6', 'P6'),
+          createParticipant('p7', 'P7'),
+          createParticipant('p8', 'P8'),
+          createParticipant('p9', 'P9'),
+          createParticipant('p10', 'P10'),
+        ],
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snapFull));
+
+      fixture = setupFixture();
+
+      const countA = fixture.nativeElement.querySelector('.room-team-col--a .room-team-col__count');
+      const countB = fixture.nativeElement.querySelector('.room-team-col--b .room-team-col__count');
+
+      expect(countA.textContent.trim()).toBe('5/5');
+      expect(countB.textContent.trim()).toBe('5/5');
     });
   });
 

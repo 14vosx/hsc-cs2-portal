@@ -102,6 +102,7 @@
 
         <div
           class="veto-card"
+          [style.background-image]="'url(map-images/' + map.key + '.png)'"
           [class.veto-card--selected]="isSelected"
           [class.veto-card--banned]="!isSelected && isBanned"
           [class.veto-card--available]="!isSelected && !isBanned && isAvailable"

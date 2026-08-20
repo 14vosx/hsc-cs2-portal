@@ -485,3 +485,144 @@
     animation: none !important;
   }
 }
+
+/* 3-Column Stage Shell: TEAM A | ACTION STAGE | TEAM B */
+.room-stage-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .room-stage-shell {
+    grid-template-columns: 260px 1fr 260px;
+    align-items: start;
+  }
+}
+
+.room-team-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #111722;
+  border: 1px solid #1e283d;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.room-team-col--a {
+  border-left: 3px solid #00f0ff;
+}
+
+.room-team-col--b {
+  border-left: 3px solid #ff9900;
+}
+
+.room-team-col__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #1a2436;
+}
+
+.room-team-col__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.room-team-col--a .room-team-col__title {
+  color: #00f0ff;
+}
+
+.room-team-col--b .room-team-col__title {
+  color: #ff9900;
+}
+
+.room-team-col__count {
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8c9cb8;
+}
+
+.room-team-col__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.room-team-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: #0b0f17;
+  border: 1px solid #1a2233;
+  border-radius: 8px;
+  min-height: 52px;
+}
+
+.room-team-card--empty {
+  border-style: dashed;
+  border-color: #1e283d;
+  justify-content: center;
+}
+
+.room-team-card__empty-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #4a5b78;
+}
+
+.room-team-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.room-team-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.room-team-card__name-row app-player-link {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-badge--captain {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ff9900;
+  background: rgba(255, 153, 0, 0.15);
+  border: 1px solid rgba(255, 153, 0, 0.4);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.room-action-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}

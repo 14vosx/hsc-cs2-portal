@@ -290,6 +290,93 @@ export class MatchRoomPage implements OnInit {
     }
   }
 
+  protected readonly copySuccess = signal(false);
+
+  protected readonly hasTeamStage = computed(() => {
+    const snap = this.snapshot();
+    if (!snap) return false;
+    const status = snap.room.status;
+    return (
+      status === 'SETUP' ||
+      status === 'READY' ||
+      status === 'PROVISIONING' ||
+      status === 'JOINABLE' ||
+      status === 'FAILED'
+    );
+  });
+
+  protected readonly teamASlots = computed(() => this.getTeamSlots('A'));
+  protected readonly teamBSlots = computed(() => this.getTeamSlots('B'));
+
+  protected readonly teamACount = computed(
+    () => this.teamASlots().filter((slot) => slot !== null).length,
+  );
+  protected readonly teamBCount = computed(
+    () => this.teamBSlots().filter((slot) => slot !== null).length,
+  );
+
+  private getTeamSlots(teamSide: 'A' | 'B') {
+    const snap = this.snapshot();
+    if (!snap) return [null, null, null, null, null];
+
+    const participantMap = new Map<string, MatchRoomParticipant>();
+    for (const p of snap.room.participants) {
+      participantMap.set(p.playerAccountId, p);
+    }
+
+    const draftCaptainIds = new Set<string>();
+    if (snap.room.draft?.assignments) {
+      for (const a of snap.room.draft.assignments) {
+        if (a.captain) {
+          draftCaptainIds.add(a.playerAccountId);
+        }
+      }
+    }
+
+    let items: Array<{
+      playerAccountId: string;
+      participant: MatchRoomParticipant | null;
+      captain: boolean;
+      selectionOrder: number | null;
+    }> = [];
+
+    if (snap.room.competitiveMatch?.roster && snap.room.competitiveMatch.roster.length > 0) {
+      const rosterEntries = snap.room.competitiveMatch.roster.filter((r) => r.team === teamSide);
+      items = rosterEntries.map((r) => {
+        const participant = participantMap.get(r.playerAccountId) ?? null;
+        const draftAssignment = snap.room.draft?.assignments.find((a) => a.playerAccountId === r.playerAccountId);
+        const captain = draftAssignment ? draftAssignment.captain : draftCaptainIds.has(r.playerAccountId);
+        return {
+          playerAccountId: r.playerAccountId,
+          participant,
+          captain,
+          selectionOrder: draftAssignment?.selectionOrder ?? null,
+        };
+      });
+    } else if (snap.room.draft?.assignments) {
+      const assignments = snap.room.draft.assignments.filter((a) => a.team === teamSide);
+      items = assignments.map((a) => ({
+        playerAccountId: a.playerAccountId,
+        participant: participantMap.get(a.playerAccountId) ?? null,
+        captain: a.captain,
+        selectionOrder: a.selectionOrder,
+      }));
+    }
+
+    const slots: Array<{
+      playerAccountId: string;
+      participant: MatchRoomParticipant | null;
+      captain: boolean;
+      selectionOrder: number | null;
+    } | null> = [];
+
+    for (let i = 0; i < 5; i++) {
+      slots.push(items[i] ?? null);
+    }
+
+    return slots;
+  }
+
   protected getSlots(): Array<MatchRoomParticipant | null> {
     const snap = this.snapshot();
     const participants = snap ? snap.room.participants : [];
@@ -309,8 +396,8 @@ export class MatchRoomPage implements OnInit {
     return participant.playerAccountId === snap.room.creator.playerAccountId;
   }
 
-  protected getDisplayName(participant: MatchRoomParticipant): string {
-    return participant.player?.steam.personaname || 'Jogador HSC';
+  protected getDisplayName(participant: MatchRoomParticipant | null): string {
+    return participant?.player?.steam.personaname || 'Jogador HSC';
   }
 
   protected getStatusBadgeVariant(
@@ -323,11 +410,33 @@ export class MatchRoomPage implements OnInit {
         return 'warning';
       case 'SETUP':
       case 'READY':
+      case 'JOINABLE':
         return 'active';
       case 'PROVISIONING':
         return 'info';
       case 'CANCELLED':
+      case 'FAILED':
         return 'closed';
+    }
+  }
+
+  protected onCopyConnection(reference: string): void {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.clipboard &&
+      typeof navigator.clipboard.writeText === 'function'
+    ) {
+      navigator.clipboard.writeText(reference).then(
+        () => {
+          this.copySuccess.set(true);
+          setTimeout(() => this.copySuccess.set(false), 2000);
+        },
+        () => {
+          this.actionError.set('mix.competitive.copyError');
+        },
+      );
+    } else {
+      this.actionError.set('mix.competitive.copyError');
     }
   }
 
@@ -424,6 +533,10 @@ export class MatchRoomPage implements OnInit {
         this.refetchRoom(snap.room.id);
       },
     });
+  }
+
+  protected onBackToLobbies(): void {
+    this.router.navigate(['/mix']);
   }
 
   protected onLeaveLobby(): void {

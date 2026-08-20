@@ -267,21 +267,32 @@
       "SETUP": "PREPARANDO",
       "READY": "PRONTO",
       "PROVISIONING": "INICIANDO",
-      "CANCELLED": "CANCELADO"
+      "CANCELLED": "CANCELADO",
+      "JOINABLE": "Servidor pronto",
+      "FAILED": "Partida falhou"
     },
     "competitive": {
       "readyTitle": "PARTIDA DEFINIDA",
       "provisioningTitle": "PREPARANDO SERVIDOR",
+      "joinableTitle": "SERVIDOR PRONTO",
+      "failedTitle": "PARTIDA NÃO PÔDE SER PREPARADA",
       "readyDesc": "Times e mapa definidos.",
       "readySubDesc": "Preparando próxima etapa.",
       "provisioningDesc": "A configuração da partida está concluída. O servidor está sendo preparado.",
+      "joinableDesc": "O servidor de jogo está pronto para a conexão.",
+      "failedDesc": "Não foi possível preparar o servidor de jogo para esta partida.",
       "autoUpdateNotice": "Esta página será atualizada automaticamente.",
       "readyFallback": "Finalizando os dados da partida.",
       "provisioningFallback": "Preparando os dados da partida.",
       "mapSelected": "MAPA DEFINIDO",
       "teamA": "TIME A",
       "teamB": "TIME B",
-      "players": "jogadores"
+      "players": "jogadores",
+      "joinServer": "ENTRAR NO SERVIDOR",
+      "copyConnection": "COPIAR CONEXÃO",
+      "copied": "COPIADO",
+      "copyError": "Não foi possível copiar o comando de conexão.",
+      "backToLobbies": "VOLTAR AOS LOBBIES"
     },
     "draft": {
       "eyebrow": "CAPTAIN DRAFT",

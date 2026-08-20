@@ -97,10 +97,12 @@ export class MixLobbyListPage implements OnInit {
         return 'warning';
       case 'SETUP':
       case 'READY':
+      case 'JOINABLE':
         return 'active';
       case 'PROVISIONING':
         return 'info';
       case 'CANCELLED':
+      case 'FAILED':
         return 'closed';
     }
   }

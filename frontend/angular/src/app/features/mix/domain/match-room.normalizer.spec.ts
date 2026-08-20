@@ -48,6 +48,8 @@ function createValidRoom(overrides: Record<string, unknown> = {}) {
 }
 
 function createValidViewer(overrides: Record<string, unknown> = {}) {
+  const { actions: actionsOverrideRaw, ...viewerOverrides } = overrides;
+  const actionsOverride = (actionsOverrideRaw as Record<string, unknown> | undefined) || {};
   return {
     participant: true,
     creator: true,
@@ -58,8 +60,11 @@ function createValidViewer(overrides: Record<string, unknown> = {}) {
       canConfirm: false,
       canDraftPick: false,
       canMapVetoBan: false,
+      canJoinServer: false,
+      ...actionsOverride,
     },
-    ...overrides,
+    join: null,
+    ...viewerOverrides,
   };
 }
 
@@ -537,6 +542,136 @@ describe('MatchRoom Normalizer', () => {
             roster: [{ playerAccountId: 'p1', steamid64: '123', team: 'INVALID' }],
           }),
         }),
+      ),
+    ).toThrow(MatchRoomContractError);
+  });
+
+  it('13. aceita status JOINABLE e FAILED', () => {
+    const joinable = normalizeMatchRoomSnapshot(
+      createValidSnapshot(
+        { status: 'JOINABLE' },
+        createValidViewer({
+          actions: { canJoinServer: true },
+          join: {
+            serverKey: 'srv-1',
+            reference: 'connect ops.haxixesmokeclub.com:27015',
+            launchUri: 'steam://connect/ops.haxixesmokeclub.com:27015',
+          },
+        }),
+      ),
+    );
+    expect(joinable.room.status).toBe('JOINABLE');
+    expect(joinable.viewer.actions.canJoinServer).toBe(true);
+
+    const failed = normalizeMatchRoomSnapshot(
+      createValidSnapshot({ status: 'FAILED' }),
+    );
+    expect(failed.room.status).toBe('FAILED');
+    expect(failed.viewer.actions.canJoinServer).toBe(false);
+  });
+
+  it('14. preserva literalmente serverKey, reference e launchUri no join valido', () => {
+    const reference = 'connect ops.haxixesmokeclub.com:27015';
+    const launchUri = 'steam://connect/ops.haxixesmokeclub.com:27015';
+    const snapshot = normalizeMatchRoomSnapshot(
+      createValidSnapshot(
+        { status: 'JOINABLE' },
+        createValidViewer({
+          actions: { canJoinServer: true },
+          join: {
+            serverKey: 'srv-key-99',
+            reference,
+            launchUri,
+          },
+        }),
+      ),
+    );
+
+    expect(snapshot.viewer.join).toEqual({
+      serverKey: 'srv-key-99',
+      reference: 'connect ops.haxixesmokeclub.com:27015',
+      launchUri: 'steam://connect/ops.haxixesmokeclub.com:27015',
+    });
+  });
+
+  it('15. rejeita join com missing reference (A), missing launchUri (B) e blank launchUri (C)', () => {
+    // A. missing reference
+    expect(() =>
+      normalizeMatchRoomSnapshot(
+        createValidSnapshot(
+          { status: 'JOINABLE' },
+          createValidViewer({
+            actions: { canJoinServer: true },
+            join: {
+              serverKey: 'srv-1',
+              launchUri: 'steam://connect/ops.haxixesmokeclub.com:27015',
+            },
+          }),
+        ),
+      ),
+    ).toThrow(MatchRoomContractError);
+
+    // B. missing launchUri
+    expect(() =>
+      normalizeMatchRoomSnapshot(
+        createValidSnapshot(
+          { status: 'JOINABLE' },
+          createValidViewer({
+            actions: { canJoinServer: true },
+            join: {
+              serverKey: 'srv-1',
+              reference: 'connect ops.haxixesmokeclub.com:27015',
+            },
+          }),
+        ),
+      ),
+    ).toThrow(MatchRoomContractError);
+
+    // C. blank launchUri
+    expect(() =>
+      normalizeMatchRoomSnapshot(
+        createValidSnapshot(
+          { status: 'JOINABLE' },
+          createValidViewer({
+            actions: { canJoinServer: true },
+            join: {
+              serverKey: 'srv-1',
+              reference: 'connect ops.haxixesmokeclub.com:27015',
+              launchUri: '   ',
+            },
+          }),
+        ),
+      ),
+    ).toThrow(MatchRoomContractError);
+
+    // Blank reference
+    expect(() =>
+      normalizeMatchRoomSnapshot(
+        createValidSnapshot(
+          { status: 'JOINABLE' },
+          createValidViewer({
+            actions: { canJoinServer: true },
+            join: {
+              serverKey: 'srv-1',
+              reference: '   ',
+              launchUri: 'steam://connect/ops.haxixesmokeclub.com:27015',
+            },
+          }),
+        ),
+      ),
+    ).toThrow(MatchRoomContractError);
+  });
+
+  it('16. rejeita canJoinServer=true com join=null (D)', () => {
+    expect(() =>
+      normalizeMatchRoomSnapshot(
+        createValidSnapshot(
+          { status: 'JOINABLE' },
+          createValidViewer({
+            actions: { canJoinServer: true },
+            join: null,
+          }),
+        ),
       ),
     ).toThrow(MatchRoomContractError);
   });

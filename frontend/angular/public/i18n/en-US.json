@@ -266,21 +266,32 @@
       "SETUP": "PREPARING",
       "READY": "READY",
       "PROVISIONING": "PROVISIONING",
-      "CANCELLED": "CANCELLED"
+      "CANCELLED": "CANCELLED",
+      "JOINABLE": "Server ready",
+      "FAILED": "Match failed"
     },
     "competitive": {
       "readyTitle": "MATCH DEFINED",
       "provisioningTitle": "PROVISIONING SERVER",
+      "joinableTitle": "SERVER READY",
+      "failedTitle": "MATCH COULD NOT BE PREPARED",
       "readyDesc": "Teams and map defined.",
       "readySubDesc": "Preparing next stage.",
       "provisioningDesc": "Match configuration completed. Server is being prepared.",
+      "joinableDesc": "Game server is ready for connection.",
+      "failedDesc": "Could not prepare the game server for this match.",
       "autoUpdateNotice": "This page will update automatically.",
       "readyFallback": "Finalizing match data.",
       "provisioningFallback": "Preparing match data.",
       "mapSelected": "MAP DEFINED",
       "teamA": "TEAM A",
       "teamB": "TEAM B",
-      "players": "players"
+      "players": "players",
+      "joinServer": "JOIN SERVER",
+      "copyConnection": "COPY CONNECTION",
+      "copied": "COPIED",
+      "copyError": "Could not copy connection command.",
+      "backToLobbies": "BACK TO LOBBIES"
     },
     "draft": {
       "eyebrow": "CAPTAIN DRAFT",

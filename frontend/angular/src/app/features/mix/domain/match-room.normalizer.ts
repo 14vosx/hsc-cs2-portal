@@ -23,6 +23,7 @@ import type {
   MatchRoomStatus,
   MatchRoomViewer,
   MatchRoomViewerActions,
+  MatchRoomViewerJoin,
 } from './match-room.model';
 
 export class MatchRoomContractError extends Error {
@@ -39,6 +40,8 @@ const VALID_STATUSES: ReadonlySet<string> = new Set<MatchRoomStatus>([
   'READY',
   'PROVISIONING',
   'CANCELLED',
+  'JOINABLE',
+  'FAILED',
 ]);
 
 const VALID_DRAFT_PHASES = new Set<MatchRoomDraftPhase>(['PICKING', 'COMPLETED']);
@@ -595,6 +598,7 @@ function normalizeMatchRoomViewer(input: Record<string, unknown>): MatchRoomView
   const canConfirm = actionsRaw['canConfirm'];
   const canDraftPick = actionsRaw['canDraftPick'];
   const canMapVetoBan = actionsRaw['canMapVetoBan'];
+  const canJoinServer = actionsRaw['canJoinServer'];
 
   if (
     typeof canJoin !== 'boolean' ||
@@ -602,7 +606,8 @@ function normalizeMatchRoomViewer(input: Record<string, unknown>): MatchRoomView
     typeof canCancel !== 'boolean' ||
     typeof canConfirm !== 'boolean' ||
     typeof canDraftPick !== 'boolean' ||
-    typeof canMapVetoBan !== 'boolean'
+    typeof canMapVetoBan !== 'boolean' ||
+    typeof canJoinServer !== 'boolean'
   ) {
     throw new MatchRoomContractError('Invalid viewer actions booleans');
   }
@@ -614,17 +619,51 @@ function normalizeMatchRoomViewer(input: Record<string, unknown>): MatchRoomView
     canConfirm,
     canDraftPick,
     canMapVetoBan,
+    canJoinServer,
   };
+
+  const joinRaw = input['join'];
+  let join: MatchRoomViewerJoin | null = null;
+
+  if (joinRaw !== null && joinRaw !== undefined) {
+    if (!isRecord(joinRaw)) {
+      throw new MatchRoomContractError('Viewer join must be an object or null');
+    }
+    const serverKey = nonBlankLiteralString(joinRaw['serverKey']);
+    const reference = nonBlankLiteralString(joinRaw['reference']);
+    const launchUri = nonBlankLiteralString(joinRaw['launchUri']);
+
+    if (!serverKey || !reference || !launchUri) {
+      throw new MatchRoomContractError('Viewer join must contain non-empty serverKey, reference, and launchUri');
+    }
+
+    join = { serverKey, reference, launchUri };
+  }
+
+  if (canJoinServer && !join) {
+    throw new MatchRoomContractError('canJoinServer is true but join details are missing or invalid');
+  }
+
+  if (!canJoinServer && join !== null) {
+    throw new MatchRoomContractError('canJoinServer is false but join details were provided');
+  }
 
   return {
     participant,
     creator,
     actions,
+    join,
   };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function nonBlankLiteralString(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  if (value.trim().length === 0) return null;
+  return value;
 }
 
 function requiredString(value: unknown): string | null {
