@@ -139,35 +139,69 @@
 
 /* Map Card */
 .veto-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 1rem;
   border-radius: 8px;
-  background: rgba(30, 41, 59, 0.6);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.2s ease;
+  min-height: 160px;
+  overflow: hidden;
+}
+
+.veto-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.92) 100%);
+  z-index: 1;
+  pointer-events: none;
+  transition: background 0.2s ease;
+}
+
+.veto-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+.veto-card--available::before {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.9) 100%);
 }
 
 .veto-card--available {
-  border-color: rgba(6, 182, 212, 0.2);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.veto-card--available:hover::before {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(15, 23, 42, 0.85) 100%);
 }
 
 .veto-card--available:hover {
-  border-color: rgba(6, 182, 212, 0.5);
-  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(6, 182, 212, 0.6);
+}
+
+.veto-card--banned::before {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.96) 100%);
+  filter: grayscale(1);
 }
 
 .veto-card--banned {
   opacity: 0.6;
   border-color: rgba(239, 68, 68, 0.25);
-  background: rgba(15, 23, 42, 0.6);
+}
+
+.veto-card--selected::before {
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
 }
 
 .veto-card--selected {
   border-color: rgba(16, 185, 129, 0.6);
-  background: rgba(16, 185, 129, 0.08);
   box-shadow: 0 0 16px rgba(16, 185, 129, 0.15);
 }
 

@@ -6,7 +6,9 @@ export type MatchRoomStatus =
   | 'SETUP'
   | 'READY'
   | 'PROVISIONING'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'JOINABLE'
+  | 'FAILED';
 
 export type MatchRoomDraftPhase = 'PICKING' | 'COMPLETED';
 
@@ -124,12 +126,20 @@ export interface MatchRoomViewerActions {
   readonly canConfirm: boolean;
   readonly canDraftPick: boolean;
   readonly canMapVetoBan: boolean;
+  readonly canJoinServer: boolean;
+}
+
+export interface MatchRoomViewerJoin {
+  readonly serverKey: string;
+  readonly reference: string;
+  readonly launchUri: string;
 }
 
 export interface MatchRoomViewer {
   readonly participant: boolean;
   readonly creator: boolean;
   readonly actions: MatchRoomViewerActions;
+  readonly join: MatchRoomViewerJoin | null;
 }
 
 export interface MatchRoomEntity {

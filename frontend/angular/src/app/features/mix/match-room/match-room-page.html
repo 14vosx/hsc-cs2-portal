@@ -114,6 +114,10 @@
               {{ 'mix.matchRoom.readyTitle' | translate }}
             } @else if (snap.room.status === 'PROVISIONING') {
               {{ 'mix.matchRoom.provisioningTitle' | translate }}
+            } @else if (snap.room.status === 'JOINABLE') {
+              {{ 'mix.statuses.JOINABLE' | translate }}
+            } @else if (snap.room.status === 'FAILED') {
+              {{ 'mix.statuses.FAILED' | translate }}
             }
           </h1>
         </div>
@@ -156,45 +160,6 @@
           }
         </div>
       </header>
-
-      <!-- SETUP State Section: Map Veto Panel, Draft Panel or Fallback Banner -->
-      @if (snap.room.status === 'SETUP') {
-        @if (snap.room.mapVeto; as mapVeto) {
-          <app-match-room-map-veto-panel
-            [mapVeto]="mapVeto"
-            [participants]="snap.room.participants"
-            [canMapVetoBan]="snap.viewer.actions.canMapVetoBan"
-            [formattedCountdown]="formattedMapVetoCountdown()"
-            [isWindowClosed]="isMapVetoWindowClosed()"
-            [pendingMapKey]="pendingMapVetoKey()"
-            (banMap)="onMapVetoBan($event)"
-          />
-        } @else if (snap.room.draft; as draft) {
-          <app-match-room-draft-panel
-            [draft]="draft"
-            [participants]="snap.room.participants"
-            [canDraftPick]="snap.viewer.actions.canDraftPick"
-            [formattedCountdown]="formattedDraftCountdown()"
-            [isWindowClosed]="isDraftWindowClosed()"
-            [pendingPlayerAccountId]="pendingDraftPlayerAccountId()"
-            (pickPlayer)="onDraftPick($event)"
-          />
-        } @else {
-          <div class="room-callout room-callout--setup">
-            <h2 class="room-callout__title">{{ 'mix.matchRoom.setupBannerTitle' | translate }}</h2>
-            <p class="room-callout__desc">{{ 'mix.matchRoom.setupBannerDesc' | translate }}</p>
-          </div>
-        }
-      }
-
-      <!-- READY and PROVISIONING States: Competitive Panel -->
-      @if (snap.room.status === 'READY' || snap.room.status === 'PROVISIONING') {
-        <app-match-room-competitive-panel
-          [competitiveMatch]="snap.room.competitiveMatch"
-          [participants]="snap.room.participants"
-          [status]="snap.room.status"
-        />
-      }
 
       <!-- CONFIRMING State Central Confirmation Panel -->
       @if (snap.room.status === 'CONFIRMING' && snap.room.confirmation; as conf) {
@@ -250,8 +215,132 @@
         </section>
       }
 
-      <!-- 10 Neutral Slots Roster Grid (for FORMING, CONFIRMING, or SETUP without draft/veto) -->
-      @if (snap.room.status === 'FORMING' || snap.room.status === 'CONFIRMING' || (snap.room.status === 'SETUP' && snap.room.draft === null && snap.room.mapVeto === null)) {
+      <!-- 3-Column Stage Shell for Teams + Central Action Stage (SETUP, READY, PROVISIONING, JOINABLE, FAILED) -->
+      @if (hasTeamStage()) {
+        <div class="room-stage-shell">
+          <!-- TEAM A Column -->
+          <aside class="room-team-col room-team-col--a">
+            <div class="room-team-col__header">
+              <h2 class="room-team-col__title">{{ 'mix.competitive.teamA' | translate }}</h2>
+              <span class="room-team-col__count">{{ teamACount() }}/5</span>
+            </div>
+            <div class="room-team-col__list">
+              @for (slot of teamASlots(); track $index) {
+                @if (slot; as item) {
+                  <div class="room-team-card room-team-card--a">
+                    <app-player-avatar
+                      [imageUrl]="item.participant?.player?.steam?.avatarMediumUrl ?? null"
+                      [displayName]="getDisplayName(item.participant)"
+                      accent="cyan"
+                    />
+                    <div class="room-team-card__details">
+                      <div class="room-team-card__name-row">
+                        <app-player-link
+                          [label]="getDisplayName(item.participant)"
+                          [profileSlug]="item.participant?.player?.profile?.slug ?? null"
+                        />
+                        @if (item.captain) {
+                          <span class="room-badge room-badge--captain">
+                            {{ 'mix.draft.captain' | translate }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="room-team-card room-team-card--empty">
+                    <span class="room-team-card__empty-label">{{ 'mix.matchRoom.waitingPlayer' | translate }}</span>
+                  </div>
+                }
+              }
+            </div>
+          </aside>
+
+          <!-- ACTION STAGE Central Content -->
+          <main class="room-action-stage">
+            @if (snap.room.status === 'SETUP') {
+              @if (snap.room.mapVeto; as mapVeto) {
+                <app-match-room-map-veto-panel
+                  [mapVeto]="mapVeto"
+                  [participants]="snap.room.participants"
+                  [canMapVetoBan]="snap.viewer.actions.canMapVetoBan"
+                  [formattedCountdown]="formattedMapVetoCountdown()"
+                  [isWindowClosed]="isMapVetoWindowClosed()"
+                  [pendingMapKey]="pendingMapVetoKey()"
+                  (banMap)="onMapVetoBan($event)"
+                />
+              } @else if (snap.room.draft; as draft) {
+                <app-match-room-draft-panel
+                  [draft]="draft"
+                  [participants]="snap.room.participants"
+                  [canDraftPick]="snap.viewer.actions.canDraftPick"
+                  [formattedCountdown]="formattedDraftCountdown()"
+                  [isWindowClosed]="isDraftWindowClosed()"
+                  [pendingPlayerAccountId]="pendingDraftPlayerAccountId()"
+                  (pickPlayer)="onDraftPick($event)"
+                />
+              } @else {
+                <div class="room-callout room-callout--setup">
+                  <h2 class="room-callout__title">{{ 'mix.matchRoom.setupBannerTitle' | translate }}</h2>
+                  <p class="room-callout__desc">{{ 'mix.matchRoom.setupBannerDesc' | translate }}</p>
+                </div>
+              }
+            } @else if (snap.room.status === 'READY' || snap.room.status === 'PROVISIONING' || snap.room.status === 'JOINABLE' || snap.room.status === 'FAILED') {
+              <app-match-room-competitive-panel
+                [competitiveMatch]="snap.room.competitiveMatch"
+                [participants]="snap.room.participants"
+                [status]="snap.room.status"
+                [canJoinServer]="snap.viewer.actions.canJoinServer"
+                [join]="snap.viewer.join"
+                [copySuccess]="copySuccess()"
+                (copyConnection)="onCopyConnection($event)"
+                (backToLobbies)="onBackToLobbies()"
+              />
+            }
+          </main>
+
+          <!-- TEAM B Column -->
+          <aside class="room-team-col room-team-col--b">
+            <div class="room-team-col__header">
+              <h2 class="room-team-col__title">{{ 'mix.competitive.teamB' | translate }}</h2>
+              <span class="room-team-col__count">{{ teamBCount() }}/5</span>
+            </div>
+            <div class="room-team-col__list">
+              @for (slot of teamBSlots(); track $index) {
+                @if (slot; as item) {
+                  <div class="room-team-card room-team-card--b">
+                    <app-player-avatar
+                      [imageUrl]="item.participant?.player?.steam?.avatarMediumUrl ?? null"
+                      [displayName]="getDisplayName(item.participant)"
+                      accent="orange"
+                    />
+                    <div class="room-team-card__details">
+                      <div class="room-team-card__name-row">
+                        <app-player-link
+                          [label]="getDisplayName(item.participant)"
+                          [profileSlug]="item.participant?.player?.profile?.slug ?? null"
+                        />
+                        @if (item.captain) {
+                          <span class="room-badge room-badge--captain">
+                            {{ 'mix.draft.captain' | translate }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="room-team-card room-team-card--empty">
+                    <span class="room-team-card__empty-label">{{ 'mix.matchRoom.waitingPlayer' | translate }}</span>
+                  </div>
+                }
+              }
+            </div>
+          </aside>
+        </div>
+      }
+
+      <!-- 10 Neutral Slots Roster Grid (for FORMING or CONFIRMING) -->
+      @if (snap.room.status === 'FORMING' || snap.room.status === 'CONFIRMING') {
         <section class="room-roster" aria-labelledby="roster-heading">
           <div class="room-roster__header">
             <h2 id="roster-heading" class="room-roster__title">

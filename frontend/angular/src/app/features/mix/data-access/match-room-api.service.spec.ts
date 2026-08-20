@@ -45,7 +45,9 @@ function createValidRawSnapshot(id = 'room-1') {
         canConfirm: false,
         canDraftPick: false,
         canMapVetoBan: false,
+        canJoinServer: false,
       },
+      join: null,
     },
   };
 }

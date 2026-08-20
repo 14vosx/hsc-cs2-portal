@@ -395,5 +395,16 @@ describe('MatchRoomMapVetoPanel', () => {
     const pendingCard = fix.nativeElement.querySelector('.veto-card--pending');
     expect(pendingCard.getAttribute('aria-busy')).toBe('true');
   });
+
+  it('18. aplica background image real usando map-images/<mapKey>.png nos cards de mapa', () => {
+    const veto = createMapVetoSnapshot();
+    const fix = setup(veto, participants);
+
+    const host = fix.nativeElement as HTMLElement;
+    const cards = host.querySelectorAll<HTMLElement>('.veto-card');
+    expect(cards[0].style.backgroundImage).toContain('map-images/de_inferno.png');
+    expect(cards[1].style.backgroundImage).toContain('map-images/de_mirage.png');
+    expect(cards[2].style.backgroundImage).toContain('map-images/de_nuke.png');
+  });
 });
 

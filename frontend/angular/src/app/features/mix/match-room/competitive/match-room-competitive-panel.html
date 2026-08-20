@@ -5,117 +5,118 @@
       <span class="competitive-panel__eyebrow">
         @if (status() === 'READY') {
           {{ 'mix.competitive.readyTitle' | translate }}
-        } @else {
+        } @else if (status() === 'PROVISIONING') {
           {{ 'mix.competitive.provisioningTitle' | translate }}
+        } @else if (status() === 'JOINABLE') {
+          {{ 'mix.competitive.joinableTitle' | translate }}
+        } @else if (status() === 'FAILED') {
+          {{ 'mix.competitive.failedTitle' | translate }}
         }
       </span>
       <h2 id="competitive-panel-heading" class="competitive-panel__title">
         @if (status() === 'READY') {
           {{ 'mix.competitive.readyDesc' | translate }}
-        } @else {
+        } @else if (status() === 'PROVISIONING') {
           {{ 'mix.competitive.provisioningDesc' | translate }}
+        } @else if (status() === 'JOINABLE') {
+          {{ 'mix.competitive.joinableDesc' | translate }}
+        } @else if (status() === 'FAILED') {
+          {{ 'mix.competitive.failedDesc' | translate }}
         }
       </h2>
     </div>
 
     <div class="competitive-panel__badge-group">
-      @if (status() === 'READY') {
+      @if (status() === 'READY' || status() === 'JOINABLE') {
         <app-status-badge [label]="('mix.statuses.' + status()) | translate" tone="active" />
-      } @else {
-        <app-status-badge [label]="('mix.statuses.' + status()) | translate" tone="warning" />
+      } @else if (status() === 'PROVISIONING') {
+        <app-status-badge [label]="('mix.statuses.' + status()) | translate" tone="info" />
+      } @else if (status() === 'FAILED') {
+        <app-status-badge [label]="('mix.statuses.' + status()) | translate" tone="closed" />
       }
     </div>
   </header>
 
   <!-- Banner / Status Message -->
-  <div class="competitive-banner" [class.competitive-banner--provisioning]="status() === 'PROVISIONING'">
+  <div class="competitive-banner" [class.competitive-banner--provisioning]="status() === 'PROVISIONING'" [class.competitive-banner--failed]="status() === 'FAILED'">
     @if (status() === 'READY') {
       <p class="competitive-banner__text">
         {{ 'mix.competitive.readySubDesc' | translate }}
       </p>
-    } @else {
+    } @else if (status() === 'PROVISIONING') {
       <p class="competitive-banner__text">
         {{ 'mix.competitive.autoUpdateNotice' | translate }}
+      </p>
+    } @else if (status() === 'JOINABLE') {
+      <p class="competitive-banner__text">
+        {{ 'mix.competitive.joinableDesc' | translate }}
+      </p>
+    } @else if (status() === 'FAILED') {
+      <p class="competitive-banner__text">
+        {{ 'mix.competitive.failedDesc' | translate }}
       </p>
     }
   </div>
 
   @if (competitiveMatch(); as match) {
     <!-- Map Showcase -->
-    <div class="competitive-map-card">
+    <div class="competitive-map-card" [style.background-image]="'url(map-images/' + match.map.key + '.png)'">
       <div class="competitive-map-card__info">
         <span class="competitive-map-card__label">{{ 'mix.competitive.mapSelected' | translate }}</span>
         <h3 class="competitive-map-card__name">{{ match.map.displayName }}</h3>
         <span class="competitive-map-card__key">{{ match.map.key }}</span>
       </div>
     </div>
+  }
 
-    <!-- Teams Roster Grid: Team A | Team B -->
-    <div class="competitive-teams-grid">
-      <!-- TEAM A -->
-      <div class="competitive-team-col competitive-team-col--a">
-        <div class="competitive-team-col__header">
-          <h3 class="competitive-team-col__title">{{ 'mix.competitive.teamA' | translate }}</h3>
-          <span class="competitive-team-col__count">
-            {{ teamARoster().length }}/5 {{ 'mix.competitive.players' | translate }}
-          </span>
-        </div>
-
-        <div class="competitive-team-col__list">
-          @for (entry of teamARoster(); track entry.playerAccountId) {
-            <div class="competitive-player-card competitive-player-card--team-a">
-              <app-player-avatar
-                [imageUrl]="getAvatarUrl(entry.playerAccountId)"
-                [displayName]="getDisplayName(entry.playerAccountId)"
-                accent="cyan"
-              />
-              <div class="competitive-player-card__details">
-                <app-player-link
-                  [label]="getDisplayName(entry.playerAccountId)"
-                  [profileSlug]="getProfileSlug(entry.playerAccountId)"
-                />
-              </div>
-            </div>
-          }
-        </div>
+  <!-- JOINABLE Server Connection CTA Box -->
+  @if (status() === 'JOINABLE' && canJoinServer() && join(); as joinData) {
+    <div class="comp-server-box">
+      <div class="comp-server-box__reference">
+        <code>{{ joinData.reference }}</code>
       </div>
-
-      <!-- TEAM B -->
-      <div class="competitive-team-col competitive-team-col--b">
-        <div class="competitive-team-col__header">
-          <h3 class="competitive-team-col__title">{{ 'mix.competitive.teamB' | translate }}</h3>
-          <span class="competitive-team-col__count">
-            {{ teamBRoster().length }}/5 {{ 'mix.competitive.players' | translate }}
-          </span>
-        </div>
-
-        <div class="competitive-team-col__list">
-          @for (entry of teamBRoster(); track entry.playerAccountId) {
-            <div class="competitive-player-card competitive-player-card--team-b">
-              <app-player-avatar
-                [imageUrl]="getAvatarUrl(entry.playerAccountId)"
-                [displayName]="getDisplayName(entry.playerAccountId)"
-                accent="orange"
-              />
-              <div class="competitive-player-card__details">
-                <app-player-link
-                  [label]="getDisplayName(entry.playerAccountId)"
-                  [profileSlug]="getProfileSlug(entry.playerAccountId)"
-                />
-              </div>
-            </div>
+      <div class="comp-server-box__actions">
+        <button
+          type="button"
+          class="comp-btn comp-btn--secondary"
+          (click)="onCopy()"
+        >
+          @if (copySuccess()) {
+            {{ 'mix.competitive.copied' | translate }}
+          } @else {
+            {{ 'mix.competitive.copyConnection' | translate }}
           }
-        </div>
+        </button>
+
+        <a
+          class="comp-btn comp-btn--primary"
+          [href]="joinData.launchUri"
+        >
+          {{ 'mix.competitive.joinServer' | translate }}
+        </a>
       </div>
     </div>
-  } @else {
+  }
+
+  <!-- FAILED State Action Box -->
+  @if (status() === 'FAILED') {
+    <div class="comp-failed-box">
+      <button type="button" class="comp-btn comp-btn--primary" (click)="onBack()">
+        {{ 'mix.competitive.backToLobbies' | translate }}
+      </button>
+    </div>
+  }
+
+  @if (competitiveMatch() === null) {
     <!-- Fallback when competitiveMatch is null -->
     <div class="competitive-fallback">
       <p class="competitive-fallback__text">
         @if (status() === 'READY') {
           {{ 'mix.competitive.readyFallback' | translate }}
-        } @else {
+        } @else if (status() === 'PROVISIONING') {
           {{ 'mix.competitive.provisioningFallback' | translate }}
+        } @else if (status() === 'FAILED') {
+          {{ 'mix.competitive.failedDesc' | translate }}
         }
       </p>
     </div>

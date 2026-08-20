@@ -130,24 +130,21 @@ describe('MatchRoomDraftPanel', () => {
     createParticipant('p4', 'Player Four'),
   ];
 
-  it('1. renderiza Team A e Team B a partir de assignments', () => {
+  it('1. renderiza título do draft e pool de disponíveis', () => {
     const draft = createDraftSnapshot();
     const fix = setup(draft, participants);
 
     const text = fix.nativeElement.textContent;
-    expect(text).toContain('TIME A');
-    expect(text).toContain('TIME B');
-    expect(text).toContain('Captain Alpha');
-    expect(text).toContain('Captain Beta');
+    expect(text).toContain('Formação dos times');
+    expect(text).toContain('JOGADORES DISPONÍVEIS');
   });
 
-  it('2. mostra capitães corretamente com badge CAPITÃO', () => {
+  it('2. renderiza countdown formatado no banner de turno', () => {
     const draft = createDraftSnapshot();
-    const fix = setup(draft, participants);
+    const fix = setup(draft, participants, false, '00:45');
 
-    const badges = fix.nativeElement.querySelectorAll('.draft-badge--captain');
-    expect(badges.length).toBe(2);
-    expect(badges[0].textContent).toContain('CAPITÃO');
+    const timer = fix.nativeElement.querySelector('.draft-turn-banner__timer');
+    expect(timer.textContent).toContain('00:45');
   });
 
   it('3. mostra current picker quando viewer não pode escolher', () => {
@@ -207,15 +204,13 @@ describe('MatchRoomDraftPanel', () => {
     expect(pickButtons[0].textContent).toContain('ESCOLHENDO...');
   });
 
-  it('9. phase COMPLETED: times continuam visíveis, nenhuma ação de pick aparece', () => {
+  it('9. phase COMPLETED: banner e badge de concluído aparecem, nenhuma ação de pick aparece', () => {
     const draft = createDraftSnapshot({ phase: 'COMPLETED' });
     const fix = setup(draft, participants, true);
 
     const text = fix.nativeElement.textContent;
     expect(text).toContain('DRAFT CONCLUÍDO');
     expect(text).toContain('Times definidos. Preparando próxima etapa.');
-    expect(text).toContain('Captain Alpha');
-    expect(text).toContain('Captain Beta');
 
     const pickButtons = fix.nativeElement.querySelectorAll('.draft-btn--pick');
     expect(pickButtons.length).toBe(0);
@@ -249,25 +244,5 @@ describe('MatchRoomDraftPanel', () => {
 
     const pendingCard = fix.nativeElement.querySelector('.draft-candidate-card--pending');
     expect(pendingCard.getAttribute('aria-busy')).toBe('true');
-  });
-
-  it('13. pick order utiliza i18n e não hardcode "pick"', () => {
-    const draft = createDraftSnapshot({
-      assignments: [
-        {
-          playerAccountId: 'p3',
-          team: 'A',
-          captain: false,
-          selectionOrder: 1,
-          source: 'MANUAL_PICK',
-          pickerPlayerAccountId: 'p1',
-          assignedAt: '2026-08-17T20:02:00Z',
-        },
-      ],
-    });
-    const fix = setup(draft, participants);
-
-    const orderEl = fix.nativeElement.querySelector('.draft-player-card__order');
-    expect(orderEl.textContent.trim()).toBe('Escolha #1');
   });
 });

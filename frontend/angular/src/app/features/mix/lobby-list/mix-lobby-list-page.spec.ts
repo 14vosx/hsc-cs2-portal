@@ -67,7 +67,9 @@ function createSnapshot(
         canConfirm: false,
         canDraftPick: false,
         canMapVetoBan: false,
+        canJoinServer: false,
       },
+      join: null,
     },
   };
 }
@@ -305,6 +307,24 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('INICIANDO');
+  });
+
+  it('7c. current room em JOINABLE aparece em SEU LOBBY ATUAL', () => {
+    const rooms = [createSnapshot('my-joinable', 'JOINABLE', true, false)];
+    matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
+  });
+
+  it('7d. current room em FAILED aparece em SEU LOBBY ATUAL', () => {
+    const rooms = [createSnapshot('my-failed', 'FAILED', true, false)];
+    matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
   });
 
   it('8 & 9. criar lobby com sucesso navega para a Match Room', () => {
