@@ -8,6 +8,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PlayerSessionService } from '../../../core/session/player-session.service';
 import type { PlayerSession } from '../../../core/session/player-session.model';
+import { PlayerSelfApiService } from '../../player/data-access/player-self-api.service';
+import type { PlayerMembership, PlayerMembershipStatus } from '../../player/domain/player-membership.model';
 import { MatchRoomApiService } from '../data-access/match-room-api.service';
 import type { MatchRoomSnapshot, MatchRoomStatus } from '../domain/match-room.model';
 import { MixLobbyListPage } from './mix-lobby-list-page';
@@ -74,6 +76,17 @@ function createSnapshot(
   };
 }
 
+function createMembership(status: PlayerMembershipStatus = 'active'): PlayerMembership {
+  return {
+    status,
+    planCode: 'PRO',
+    startedAt: '2026-01-01T00:00:00Z',
+    expiresAt: '2026-12-31T23:59:59Z',
+    suspendedAt: null,
+    cancelledAt: null,
+  };
+}
+
 describe('MixLobbyListPage', () => {
   let fixture: ComponentFixture<MixLobbyListPage>;
   let router: Router;
@@ -85,6 +98,10 @@ describe('MixLobbyListPage', () => {
     joinMatchRoom: vi.fn(),
   };
 
+  const playerSelfApiMock = {
+    getMembership: vi.fn(),
+  };
+
   const sessionServiceMock = {
     state: () => sessionSignal(),
     load: vi.fn(),
@@ -94,17 +111,63 @@ describe('MixLobbyListPage', () => {
     shared: {
       playerAvatar: { alt: 'Avatar de {{displayName}}' },
     },
+    playerArea: {
+      membership: {
+        status: {
+          active: 'Ativo',
+          inactive: 'Inativo',
+          suspended: 'Suspenso',
+          expired: 'Expirado',
+          cancelled: 'Cancelado',
+        },
+      },
+    },
     mix: {
       hero: {
-        eyebrow: 'Modo Competitivo',
-        title: 'MIX HSC 5v5',
-        subtitle: 'Monte o lobby. Feche os 10. O restante acontece dentro da Match Room.',
+        eyebrow: 'HSC COMPETITIVO',
+        title: 'LOBBY HSC 5v5',
+        subtitle: 'Partidas 5v5 organizadas do lobby ao servidor, com uma experiência competitiva construída para a comunidade HSC.',
         createLobby: 'CRIAR LOBBY',
         creating: 'CRIANDO LOBBY...',
       },
+      landing: {
+        eyebrow: 'HSC COMPETITIVO',
+        title: 'LOBBIES EXCLUSIVOS PARA MEMBROS HSC',
+        subtitle: 'Partidas 5v5 organizadas do lobby ao servidor, com uma experiência competitiva construída para a comunidade HSC.',
+        ctaPrimary: 'ENTRAR NA ÁREA DO JOGADOR',
+        ctaSecondary: 'CONHECER BENEFÍCIOS',
+        featuresTitle: 'EXPERIÊNCIA COMPETITIVA COMPLETA',
+        features: {
+          lobby: { title: 'Lobby 5v5 Exclusivo', description: 'Partidas estruturadas com capacidade para 10 jogadores.' },
+          draft: { title: 'Captain Draft', description: 'Formação equilibrada de times com escolha alternada de capitães.' },
+          veto: { title: 'Veto de Mapas', description: 'Sistema de banimento de mapas competitivo antes de cada confronto.' },
+          server: { title: 'Servidor Dedicado', description: 'Entrada direta e integração automática com servidor de jogo.' },
+          community: { title: 'Comunidade HSC', description: 'Ambiente exclusivo para membros com perfil e histórico integrado.' },
+        },
+      },
+      membershipWall: {
+        eyebrow: 'MEMBERSHIP HSC',
+        title: 'SEU PRÓXIMO LOBBY COMEÇA COM A MEMBERSHIP HSC',
+        description: 'Os Lobbies HSC são exclusivos para membros ativos. Ative ou regularize sua membership na Área do Jogador para participar de partidas e criar lobbies.',
+        cta: 'IR PARA A ÁREA DO JOGADOR',
+        statusNotice: {
+          inactive: 'Sua Membership está inativa.',
+          expired: 'Sua Membership expirou.',
+          suspended: 'Sua Membership está suspensa.',
+          cancelled: 'Sua Membership foi cancelada.',
+          none: 'Você ainda não possui uma Membership ativa.',
+        },
+      },
+      membershipStates: {
+        loadingTitle: 'Verificando Membership',
+        loadingMessage: 'Aguarde enquanto validamos seu status de membro...',
+        errorTitle: 'Membership temporariamente indisponível',
+        errorMessage: 'Não foi possível validar seu status de membership no momento.',
+        retry: 'Tentar novamente',
+      },
       authWall: {
         title: 'Entre na sua conta HSC',
-        description: 'Para criar ou participar de um lobby Mix HSC, você precisa estar autenticado.',
+        description: 'Para criar ou participar de um lobby HSC, você precisa estar autenticado.',
         action: 'Ir para a Área do Jogador',
       },
       lobbyList: {
@@ -126,12 +189,14 @@ describe('MixLobbyListPage', () => {
           SETUP: 'Todos os jogadores confirmados. Preparando a partida.',
           READY: 'Partida pronta! Servidor sendo configurado.',
           PROVISIONING: 'Servidor em inicialização. Aguarde as instruções.',
+          JOINABLE: 'Servidor pronto! Entre na partida agora.',
           CANCELLED: 'Este lobby foi encerrado.',
+          FAILED: 'Não foi possível preparar o servidor de jogo.',
         },
       },
       openLobbies: {
         heading: 'LOBBIES ABERTOS',
-        cardTitle: 'HSC MIX 5V5',
+        cardTitle: 'LOBBY HSC 5V5',
         slotsAvailable: '{{ count }} VAGAS DISPONÍVEIS',
         joinAction: 'ENTRAR',
         joining: 'ENTRANDO...',
@@ -144,6 +209,8 @@ describe('MixLobbyListPage', () => {
         READY: 'PRONTO',
         PROVISIONING: 'INICIANDO',
         CANCELLED: 'CANCELADO',
+        JOINABLE: 'SERVIDOR PRONTO',
+        FAILED: 'FALHA NO SERVIDOR',
       },
       errors: {
         already_in_active_room: 'Você já possui uma sala ativa no momento.',
@@ -159,7 +226,7 @@ describe('MixLobbyListPage', () => {
         confirmation_window_closed: 'O tempo para confirmação de presença expirou.',
         steam_identity_not_linked: 'É necessário ter uma conta Steam vinculada para participar. Acesse a Área do Jogador.',
         player_account_disabled: 'Sua conta de jogador está desativada.',
-        membership_required: 'É necessária uma associação ativa para jogar Mix. Acesse a Área do Jogador.',
+        membership_required: 'É necessária uma associação ativa para jogar no Lobby. Acesse a Área do Jogador.',
         membership_inactive: 'Sua associação está inativa.',
         membership_suspended: 'Sua associação está suspensa.',
         membership_expired: 'Sua associação expirou. Renove na Área do Jogador.',
@@ -180,6 +247,8 @@ describe('MixLobbyListPage', () => {
       avatarMedium: null,
     });
 
+    playerSelfApiMock.getMembership.mockReturnValue(of(createMembership('active')));
+
     await TestBed.configureTestingModule({
       imports: [MixLobbyListPage],
       providers: [
@@ -190,6 +259,7 @@ describe('MixLobbyListPage', () => {
         ]),
         provideTranslateService(),
         { provide: MatchRoomApiService, useValue: matchRoomApiMock },
+        { provide: PlayerSelfApiService, useValue: playerSelfApiMock },
         { provide: PlayerSessionService, useValue: sessionServiceMock },
       ],
     }).compileComponents();
@@ -214,7 +284,7 @@ describe('MixLobbyListPage', () => {
     return fix;
   }
 
-  it('1. exibe estado de loading quando sessão está carregando', () => {
+  it('1. exibe estado de loading quando sessão está carregando e não consulta Match Rooms', () => {
     sessionSignal.set({ status: 'loading' });
     matchRoomApiMock.listMatchRooms.mockReturnValue(of([]));
 
@@ -222,28 +292,108 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Aguarde enquanto verificamos sua conta...');
     expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
+    expect(playerSelfApiMock.getMembership).not.toHaveBeenCalled();
   });
 
-  it('2. não chama MatchRoom API quando a sessão é anonymous e mostra auth wall', () => {
+  it('2. exibe landing exclusiva quando a sessão é anonymous e não consulta Match Rooms', () => {
     sessionSignal.set({ status: 'anonymous' });
 
     fixture = setupFixture();
 
-    expect(fixture.nativeElement.textContent).toContain('Entre na sua conta HSC');
+    expect(fixture.nativeElement.textContent).toContain('LOBBIES EXCLUSIVOS PARA MEMBROS HSC');
+    expect(fixture.nativeElement.textContent).toContain('ENTRAR NA ÁREA DO JOGADOR');
+    expect(fixture.nativeElement.textContent).toContain('Captain Draft');
+    expect(fixture.nativeElement.textContent).toContain('Veto de Mapas');
+    expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
+    expect(playerSelfApiMock.getMembership).not.toHaveBeenCalled();
+  });
+
+  it('2a. exibe estado de loading de Membership quando autenticado e membership está carregando', () => {
+    const membership$ = new Subject<PlayerMembership | null>();
+    playerSelfApiMock.getMembership.mockReturnValue(membership$);
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('Aguarde enquanto validamos seu status de membro...');
     expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
   });
 
-  it('3. carrega lista quando sessão é authenticated', () => {
+  it('2b. exibe landing contextual quando usuário autenticado não possui Membership ativa (null)', () => {
+    playerSelfApiMock.getMembership.mockReturnValue(of(null));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU PRÓXIMO LOBBY COMEÇA COM A MEMBERSHIP HSC');
+    expect(fixture.nativeElement.textContent).toContain('Você ainda não possui uma Membership ativa.');
+    expect(fixture.nativeElement.textContent).toContain('IR PARA A ÁREA DO JOGADOR');
+    expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
+  });
+
+  it('2c. exibe landing contextual com status expirado quando membership está expirada', () => {
+    playerSelfApiMock.getMembership.mockReturnValue(of(createMembership('expired')));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU PRÓXIMO LOBBY COMEÇA COM A MEMBERSHIP HSC');
+    expect(fixture.nativeElement.textContent).toContain('Sua Membership expirou.');
+    expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
+  });
+
+  it('2d. exibe landing contextual com status suspenso quando membership está suspensa', () => {
+    playerSelfApiMock.getMembership.mockReturnValue(of(createMembership('suspended')));
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('SEU PRÓXIMO LOBBY COMEÇA COM A MEMBERSHIP HSC');
+    expect(fixture.nativeElement.textContent).toContain('Sua Membership está suspensa.');
+    expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
+  });
+
+  it('2e. exibe estado de indisponibilidade quando consulta de Membership falha com erro e não assume não-membro', () => {
+    playerSelfApiMock.getMembership.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500, error: 'service_unavailable' })),
+    );
+
+    fixture = setupFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('Membership temporariamente indisponível');
+    expect(fixture.nativeElement.textContent).not.toContain('SEU PRÓXIMO LOBBY COMEÇA COM A MEMBERSHIP HSC');
+    expect(matchRoomApiMock.listMatchRooms).not.toHaveBeenCalled();
+  });
+
+  it('2f. retry em erro de Membership recarrega membership e inicia polling se membro ativo', () => {
+    playerSelfApiMock.getMembership.mockReturnValueOnce(
+      throwError(() => new HttpErrorResponse({ status: 500, error: 'service_unavailable' })),
+    );
+    matchRoomApiMock.listMatchRooms.mockReturnValue(of([]));
+
+    fixture = setupFixture();
+    expect(fixture.nativeElement.textContent).toContain('Membership temporariamente indisponível');
+
+    playerSelfApiMock.getMembership.mockReturnValue(of(createMembership('active')));
+    const retryBtn = fixture.nativeElement.querySelector('button');
+    retryBtn.click();
+    vi.advanceTimersByTime(0);
+    fixture.detectChanges();
+
+    expect(playerSelfApiMock.getMembership).toHaveBeenCalledTimes(2);
+    expect(matchRoomApiMock.listMatchRooms).toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('LOBBIES ABERTOS');
+  });
+
+  it('3. carrega lista de lobbies quando sessão é authenticated e membership é active', () => {
     const rooms = [createSnapshot('room-1', 'FORMING', false, true)];
     matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
 
     fixture = setupFixture();
 
+    expect(playerSelfApiMock.getMembership).toHaveBeenCalled();
     expect(matchRoomApiMock.listMatchRooms).toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('LOBBY HSC 5v5');
     expect(fixture.nativeElement.textContent).toContain('LOBBIES ABERTOS');
   });
 
-  it('4. exibe current room separada em SEU LOBBY ATUAL', () => {
+  it('4. exibe current room separada em SEU LOBBY ATUAL com hint e CTA de retorno', () => {
     const rooms = [
       createSnapshot('my-room', 'FORMING', true, false),
       createSnapshot('other-room', 'FORMING', false, true),
@@ -254,6 +404,7 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('VOLTAR AO LOBBY');
+    expect(fixture.nativeElement.textContent).toContain('Aguardando jogadores para completar 10 vagas.');
   });
 
   it('5. lista apenas FORMING rooms em LOBBIES ABERTOS', () => {
@@ -277,6 +428,7 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('CONFIRMANDO');
+    expect(fixture.nativeElement.textContent).toContain('Lobby completo! Confirmação de presença em andamento.');
   });
 
   it('7. current room em SETUP aparece em SEU LOBBY ATUAL', () => {
@@ -287,6 +439,7 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('PREPARANDO');
+    expect(fixture.nativeElement.textContent).toContain('Todos os jogadores confirmados. Preparando a partida.');
   });
 
   it('7a. current room em READY aparece em SEU LOBBY ATUAL', () => {
@@ -297,6 +450,7 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('PRONTO');
+    expect(fixture.nativeElement.textContent).toContain('Partida pronta! Servidor sendo configurado.');
   });
 
   it('7b. current room em PROVISIONING aparece em SEU LOBBY ATUAL', () => {
@@ -307,24 +461,30 @@ describe('MixLobbyListPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
     expect(fixture.nativeElement.textContent).toContain('INICIANDO');
+    expect(fixture.nativeElement.textContent).toContain('Servidor em inicialização. Aguarde as instruções.');
   });
 
-  it('7c. current room em JOINABLE aparece em SEU LOBBY ATUAL', () => {
+  it('7c. current room em JOINABLE aparece em SEU LOBBY ATUAL com hint traduzido', () => {
     const rooms = [createSnapshot('my-joinable', 'JOINABLE', true, false)];
     matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
 
     fixture = setupFixture();
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
+    expect(fixture.nativeElement.textContent).toContain('Servidor pronto! Entre na partida agora.');
+    expect(fixture.nativeElement.textContent).not.toContain('mix.currentLobby.hints.JOINABLE');
+    expect(fixture.nativeElement.textContent).toContain('VOLTAR AO LOBBY');
   });
 
-  it('7d. current room em FAILED aparece em SEU LOBBY ATUAL', () => {
+  it('7d. current room em FAILED aparece em SEU LOBBY ATUAL com hint traduzido', () => {
     const rooms = [createSnapshot('my-failed', 'FAILED', true, false)];
     matchRoomApiMock.listMatchRooms.mockReturnValue(of(rooms));
 
     fixture = setupFixture();
 
     expect(fixture.nativeElement.textContent).toContain('SEU LOBBY ATUAL');
+    expect(fixture.nativeElement.textContent).toContain('Não foi possível preparar o servidor de jogo.');
+    expect(fixture.nativeElement.textContent).not.toContain('mix.currentLobby.hints.FAILED');
   });
 
   it('8 & 9. criar lobby com sucesso navega para a Match Room', () => {
@@ -383,7 +543,7 @@ describe('MixLobbyListPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Nenhum lobby aberto agora.');
   });
 
-  it('15. falha inicial de carregamento exibe estado de erro com retry', () => {
+  it('15. falha inicial de carregamento de lobbies exibe estado de erro com retry', () => {
     matchRoomApiMock.listMatchRooms.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 500, error: { ok: false, error: 'generic' } })),
     );
@@ -393,7 +553,7 @@ describe('MixLobbyListPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Não foi possível carregar os lobbies');
   });
 
-  it('16. polling periódico recarrega lista', () => {
+  it('16. polling periódico recarrega lista para membro ativo', () => {
     matchRoomApiMock.listMatchRooms.mockReturnValue(of([]));
 
     fixture = setupFixture();

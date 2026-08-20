@@ -50,10 +50,10 @@ describe('PrimaryNav', () => {
 
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('pt-BR', {
-      nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', mix: 'Mix', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
+      nav: { ariaLabel: 'Navegação principal', home: 'Home', seasons: 'Temporadas', ranking: 'Ranking', mix: 'Lobby', matches: 'Partidas', maps: 'Mapas', news: 'News', playerArea: 'Área do Jogador' },
     });
     translate.setTranslation('en-US', {
-      nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', mix: 'Mix', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
+      nav: { ariaLabel: 'Primary navigation', home: 'Home', seasons: 'Seasons', ranking: 'Ranking', mix: 'Lobby', matches: 'Matches', maps: 'Maps', news: 'News', playerArea: 'Player Area' },
     });
     translate.use('pt-BR');
 

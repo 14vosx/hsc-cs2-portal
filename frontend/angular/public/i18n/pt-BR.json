@@ -4,7 +4,7 @@
     "home": "Home",
     "seasons": "Temporadas",
     "ranking": "Ranking",
-    "mix": "Mix",
+    "mix": "Lobby",
     "matches": "Partidas",
     "maps": "Mapas",
     "news": "News",
@@ -179,15 +179,72 @@
   },
   "mix": {
     "hero": {
-      "eyebrow": "Modo Competitivo",
-      "title": "MIX HSC 5v5",
-      "subtitle": "Monte o lobby. Feche os 10. O restante acontece dentro da Match Room.",
+      "eyebrow": "HSC COMPETITIVO",
+      "title": "LOBBY HSC 5v5",
+      "subtitle": "Partidas 5v5 organizadas do lobby ao servidor, com uma experiência competitiva construída para a comunidade HSC.",
       "createLobby": "CRIAR LOBBY",
       "creating": "CRIANDO LOBBY..."
     },
+    "signals": {
+      "fiveVsFive": "5V5",
+      "players": "10 JOGADORES",
+      "captainDraft": "CAPTAIN DRAFT",
+      "mapVeto": "MAP VETO",
+      "hscServer": "SERVIDOR HSC"
+    },
+    "landing": {
+      "eyebrow": "HSC COMPETITIVO",
+      "title": "LOBBIES EXCLUSIVOS PARA MEMBROS HSC",
+      "subtitle": "Partidas 5v5 organizadas do lobby ao servidor, com uma experiência competitiva construída para a comunidade HSC.",
+      "ctaPrimary": "ENTRAR NA ÁREA DO JOGADOR",
+      "ctaSecondary": "CONHECER BENEFÍCIOS",
+      "featuresTitle": "EXPERIÊNCIA COMPETITIVA COMPLETA",
+      "features": {
+        "lobby": {
+          "title": "Lobby 5v5 Exclusivo",
+          "description": "Partidas estruturadas com capacidade para 10 jogadores."
+        },
+        "draft": {
+          "title": "Captain Draft",
+          "description": "Formação equilibrada de times com escolha alternada de capitães."
+        },
+        "veto": {
+          "title": "Veto de Mapas",
+          "description": "Sistema de banimento de mapas competitivo antes de cada confronto."
+        },
+        "server": {
+          "title": "Servidor Dedicado",
+          "description": "Entrada direta e integração automática com servidor de jogo."
+        },
+        "community": {
+          "title": "Comunidade HSC",
+          "description": "Ambiente exclusivo para membros com perfil e histórico integrado."
+        }
+      }
+    },
+    "membershipWall": {
+      "eyebrow": "MEMBERSHIP HSC",
+      "title": "SEU PRÓXIMO LOBBY COMEÇA COM A MEMBERSHIP HSC",
+      "description": "Os Lobbies HSC são exclusivos para membros ativos. Ative ou regularize sua membership na Área do Jogador para participar de partidas e criar lobbies.",
+      "cta": "IR PARA A ÁREA DO JOGADOR",
+      "statusNotice": {
+        "inactive": "Sua Membership está inativa.",
+        "expired": "Sua Membership expirou.",
+        "suspended": "Sua Membership está suspensa.",
+        "cancelled": "Sua Membership foi cancelada.",
+        "none": "Você ainda não possui uma Membership ativa."
+      }
+    },
+    "membershipStates": {
+      "loadingTitle": "Verificando Membership",
+      "loadingMessage": "Aguarde enquanto validamos seu status de membro...",
+      "errorTitle": "Membership temporariamente indisponível",
+      "errorMessage": "Não foi possível validar seu status de membership no momento.",
+      "retry": "Tentar novamente"
+    },
     "authWall": {
       "title": "Entre na sua conta HSC",
-      "description": "Para criar ou participar de um lobby Mix HSC, você precisa estar autenticado.",
+      "description": "Para criar ou participar de um lobby HSC, você precisa estar autenticado.",
       "action": "Ir para a Área do Jogador"
     },
     "lobbyList": {
@@ -209,12 +266,14 @@
         "SETUP": "Todos os jogadores confirmados. Preparando a partida.",
         "READY": "Partida pronta! Servidor sendo configurado.",
         "PROVISIONING": "Servidor em inicialização. Aguarde as instruções.",
-        "CANCELLED": "Este lobby foi encerrado."
+        "JOINABLE": "Servidor pronto! Entre na partida agora.",
+        "CANCELLED": "Este lobby foi encerrado.",
+        "FAILED": "Não foi possível preparar o servidor de jogo."
       }
     },
     "openLobbies": {
       "heading": "LOBBIES ABERTOS",
-      "cardTitle": "HSC MIX 5V5",
+      "cardTitle": "LOBBY HSC 5V5",
       "slotsAvailable": "{{ count }} VAGAS DISPONÍVEIS",
       "joinAction": "ENTRAR",
       "joining": "ENTRANDO...",
@@ -357,7 +416,7 @@
       "map_veto_window_closed": "O tempo para veto de mapa expirou.",
       "steam_identity_not_linked": "É necessário ter uma conta Steam vinculada para participar. Acesse a Área do Jogador.",
       "player_account_disabled": "Sua conta de jogador está desativada.",
-      "membership_required": "É necessária uma associação ativa para jogar Mix. Acesse a Área do Jogador.",
+      "membership_required": "É necessária uma associação ativa para jogar no Lobby. Acesse a Área do Jogador.",
       "membership_inactive": "Sua associação está inativa.",
       "membership_suspended": "Sua associação está suspensa.",
       "membership_expired": "Sua associação expirou. Renove na Área do Jogador.",

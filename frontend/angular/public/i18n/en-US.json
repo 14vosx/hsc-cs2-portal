@@ -4,7 +4,7 @@
     "home": "Home",
     "seasons": "Seasons",
     "ranking": "Ranking",
-    "mix": "Mix",
+    "mix": "Lobby",
     "matches": "Matches",
     "maps": "Maps",
     "news": "News",
@@ -178,15 +178,72 @@
   },
   "mix": {
     "hero": {
-      "eyebrow": "Competitive Mode",
-      "title": "HSC MIX 5v5",
-      "subtitle": "Form the lobby. Fill the 10 slots. The rest happens inside the Match Room.",
+      "eyebrow": "HSC COMPETITIVE",
+      "title": "HSC LOBBY 5v5",
+      "subtitle": "Organized 5v5 matches from lobby to server, built for the HSC competitive community.",
       "createLobby": "CREATE LOBBY",
       "creating": "CREATING LOBBY..."
     },
+    "signals": {
+      "fiveVsFive": "5V5",
+      "players": "10 PLAYERS",
+      "captainDraft": "CAPTAIN DRAFT",
+      "mapVeto": "MAP VETO",
+      "hscServer": "HSC SERVER"
+    },
+    "landing": {
+      "eyebrow": "HSC COMPETITIVE",
+      "title": "EXCLUSIVE LOBBIES FOR HSC MEMBERS",
+      "subtitle": "Organized 5v5 matches from lobby to server, built for the HSC competitive community.",
+      "ctaPrimary": "GO TO PLAYER AREA",
+      "ctaSecondary": "EXPLORE BENEFITS",
+      "featuresTitle": "COMPLETE COMPETITIVE EXPERIENCE",
+      "features": {
+        "lobby": {
+          "title": "Exclusive 5v5 Lobby",
+          "description": "Structured matches with 10-player capacity."
+        },
+        "draft": {
+          "title": "Captain Draft",
+          "description": "Balanced team formation with turn-based captain picks."
+        },
+        "veto": {
+          "title": "Map Veto",
+          "description": "Competitive map veto system before every confrontation."
+        },
+        "server": {
+          "title": "Dedicated Server",
+          "description": "Direct connection and seamless integration with match servers."
+        },
+        "community": {
+          "title": "HSC Community",
+          "description": "Exclusive member environment with integrated profile and history."
+        }
+      }
+    },
+    "membershipWall": {
+      "eyebrow": "HSC MEMBERSHIP",
+      "title": "YOUR NEXT LOBBY STARTS WITH HSC MEMBERSHIP",
+      "description": "HSC Lobbies are exclusive to active members. Activate or renew your membership in the Player Area to join matches and create lobbies.",
+      "cta": "GO TO PLAYER AREA",
+      "statusNotice": {
+        "inactive": "Your Membership is inactive.",
+        "expired": "Your Membership has expired.",
+        "suspended": "Your Membership is suspended.",
+        "cancelled": "Your Membership has been cancelled.",
+        "none": "You do not have an active Membership yet."
+      }
+    },
+    "membershipStates": {
+      "loadingTitle": "Checking Membership",
+      "loadingMessage": "Please wait while we verify your membership status...",
+      "errorTitle": "Membership temporarily unavailable",
+      "errorMessage": "Could not validate your membership status at this time.",
+      "retry": "Try again"
+    },
     "authWall": {
       "title": "Sign in to your HSC account",
-      "description": "To create or join an HSC Mix lobby, you must be signed in.",
+      "description": "To create or join an HSC lobby, you must be signed in.",
       "action": "Go to Player Area"
     },
     "lobbyList": {
@@ -208,12 +265,14 @@
         "SETUP": "All players confirmed. Preparing the match.",
         "READY": "Match ready! Server being configured.",
         "PROVISIONING": "Server provisioning. Please wait for instructions.",
-        "CANCELLED": "This lobby has been cancelled."
+        "JOINABLE": "Server ready! Join the match now.",
+        "CANCELLED": "This lobby has been cancelled.",
+        "FAILED": "Could not prepare the match server."
       }
     },
     "openLobbies": {
       "heading": "OPEN LOBBIES",
-      "cardTitle": "HSC MIX 5V5",
+      "cardTitle": "HSC LOBBY 5V5",
       "slotsAvailable": "{{ count }} SLOTS AVAILABLE",
       "joinAction": "JOIN",
       "joining": "JOINING...",
@@ -356,7 +415,7 @@
       "map_veto_window_closed": "The map veto window has expired.",
       "steam_identity_not_linked": "A linked Steam account is required to participate. Visit the Player Area.",
       "player_account_disabled": "Your player account is disabled.",
-      "membership_required": "An active membership is required to play Mix. Visit the Player Area.",
+      "membership_required": "An active membership is required to play in Lobbies. Visit the Player Area.",
       "membership_inactive": "Your membership is inactive.",
       "membership_suspended": "Your membership is suspended.",
       "membership_expired": "Your membership has expired. Renew in the Player Area.",
