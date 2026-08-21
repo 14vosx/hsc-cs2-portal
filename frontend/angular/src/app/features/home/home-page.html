@@ -1,176 +1,245 @@
 <div class="home-page">
   @if (seasonState$ | async; as seasonState) {
-    <section class="home-hero hsc-tactical-grid" aria-labelledby="home-title">
-      @switch (seasonState.status) {
-        @case ('ready') {
-          @let season = seasonState.data;
-          <div class="home-hero__content">
-            <span class="home-label home-label--cyan">
-              {{ (season.contextMode === 'active' ? 'home.hero.active' : 'home.hero.latestClosed') | translate }}
-            </span>
-            <h1 id="home-title" class="home-hero__title">
-              <span>HSC Competitive</span>
-              <strong>{{ season.seasonName }}</strong>
-            </h1>
-            <div class="home-hero__metrics" [attr.aria-label]="'home.hero.metricsAriaLabel' | translate">
-              <div><strong>{{ season.playersCount }}</strong><span>{{ 'home.hero.players' | translate }}</span></div>
-              <div><strong>{{ season.matchesCount }}</strong><span>{{ 'home.hero.matches' | translate }}</span></div>
-              <div><strong>{{ season.mapsCount }}</strong><span>{{ 'home.hero.maps' | translate }}</span></div>
-            </div>
-            <div class="home-hero__actions">
-              <a class="home-action home-action--primary" [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)">{{ 'home.hero.viewRanking' | translate }}</a>
-              <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)">{{ 'home.hero.viewSeason' | translate }}</a>
-            </div>
-          </div>
-
-          <aside class="home-leader" [attr.aria-label]="'home.hero.leaderAriaLabel' | translate">
-            <span class="home-label home-label--orange">{{ 'home.hero.leaderLabel' | translate }}</span>
-            @if (season.leader; as leader) {
-              <div class="home-leader__identity">
-                <app-player-avatar [imageUrl]="leader.avatarUrl" [displayName]="leader.name" accent="orange" />
-                <div><span class="home-leader__rank">#{{ leader.position }}</span><h2>{{ leader.name }}</h2></div>
+    <section #motionSection class="home-hero" data-motion="hero" aria-labelledby="home-title">
+      <img class="home-structural-background home-structural-background--hero" src="assets/img/backgrounds/pages/cs2-banner-home-main-hero.jpg" alt="" aria-hidden="true">
+      <div class="home-hero__inner">
+        @switch (seasonState.status) {
+          @case ('ready') {
+            @let season = seasonState.data;
+            <div class="home-hero__content">
+              <span class="home-label home-label--cyan">
+                {{ (season.contextMode === 'active' ? 'home.hero.active' : 'home.hero.latestClosed') | translate }}
+              </span>
+              <h1 id="home-title" class="home-hero__title">
+                <span>HSC Competitive</span>
+                <strong>{{ season.seasonName }}</strong>
+              </h1>
+              <div class="home-hero__metrics" [attr.aria-label]="'home.hero.metricsAriaLabel' | translate">
+                <div><strong>{{ season.playersCount }}</strong><span>{{ 'home.hero.players' | translate }}</span></div>
+                <div><strong>{{ season.matchesCount }}</strong><span>{{ 'home.hero.matches' | translate }}</span></div>
+                <div><strong>{{ season.mapsCount }}</strong><span>{{ 'home.hero.maps' | translate }}</span></div>
               </div>
-              <dl class="home-leader__stats">
-                <div><dt>K/D</dt><dd>{{ leader.kdRatio | number:'1.2-2' }}</dd></div>
-                <div><dt>{{ 'home.hero.wins' | translate }}</dt><dd>{{ leader.wins }}</dd></div>
-                <div><dt>Score</dt><dd>{{ leader.score | number:'1.0-2' }}</dd></div>
-              </dl>
-            } @else {
-              <p class="home-empty">{{ 'home.hero.noLeader' | translate }}</p>
-            }
-          </aside>
+              <div class="home-hero__actions">
+                <a class="home-action home-action--primary" [routerLink]="seasonRankingLink(season.seasonSlug, season.contextMode)">{{ 'home.hero.viewRanking' | translate }}</a>
+                <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(season.seasonSlug, season.contextMode)">{{ 'home.hero.viewSeason' | translate }}</a>
+              </div>
+            </div>
+
+            <aside #motionSection class="home-leader" data-motion="leader" [attr.aria-label]="'home.hero.leaderAriaLabel' | translate">
+              <svg class="home-leader__filter-defs" width="0" height="0" aria-hidden="true" focusable="false">
+                <defs>
+                  <filter id="home-season-leader-electric-displace" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.045 0.045" numOctaves="3" result="noise1" seed="1" />
+                    <feOffset in="noise1" result="offsetY1">
+                      <animate attributeName="dy" values="0; -60; 0" dur="4s" repeatCount="indefinite" />
+                    </feOffset>
+                    <feOffset in="noise1" result="offsetY2">
+                      <animate attributeName="dy" values="0; 60; 0" dur="4s" repeatCount="indefinite" />
+                    </feOffset>
+                    <feTurbulence type="fractalNoise" baseFrequency="0.045 0.045" numOctaves="3" result="noise2" seed="2" />
+                    <feOffset in="noise2" result="offsetX1">
+                      <animate attributeName="dx" values="0; 60; 0" dur="3.2s" repeatCount="indefinite" />
+                    </feOffset>
+                    <feOffset in="noise2" result="offsetX2">
+                      <animate attributeName="dx" values="0; -60; 0" dur="3.2s" repeatCount="indefinite" />
+                    </feOffset>
+                    <feComposite in="offsetY1" in2="offsetY2" operator="arithmetic" k1="0" k2="0.5" k3="0.5" k4="0" result="compY" />
+                    <feComposite in="offsetX1" in2="offsetX2" operator="arithmetic" k1="0" k2="0.5" k3="0.5" k4="0" result="compX" />
+                    <feBlend in="compY" in2="compX" mode="color-dodge" result="blendedNoise" />
+                    <feDisplacementMap in="SourceGraphic" in2="blendedNoise" scale="14" xChannelSelector="R" yChannelSelector="G" />
+                  </filter>
+                </defs>
+              </svg>
+              <span class="home-leader__ambient-glow" aria-hidden="true"></span>
+              <span class="home-leader__glow-diffuse" aria-hidden="true"></span>
+              <span class="home-leader__glow-close" aria-hidden="true"></span>
+              <span class="home-leader__electric-frame" aria-hidden="true"></span>
+              <img class="home-leader__background" src="assets/img/backgrounds/pages/cs2-background-home-card-season-leader.jpg" alt="" aria-hidden="true">
+              <span class="home-label home-label--orange">{{ 'home.hero.leaderLabel' | translate }}</span>
+              @if (season.leader; as leader) {
+                <div class="home-leader__identity">
+                  <app-player-avatar [imageUrl]="leader.avatarUrl" [displayName]="leader.name" />
+                  <div><span class="home-leader__rank">#{{ leader.position }}</span><h2>{{ leader.name }}</h2></div>
+                </div>
+                <dl class="home-leader__stats">
+                  <div><dt>K/D</dt><dd>{{ leader.kdRatio | number:'1.2-2' }}</dd></div>
+                  <div><dt>{{ 'home.hero.wins' | translate }}</dt><dd>{{ leader.wins }}</dd></div>
+                  <div><dt>Score</dt><dd>{{ leader.score | number:'1.0-2' }}</dd></div>
+                </dl>
+              } @else {
+                <p class="home-empty">{{ 'home.hero.noLeader' | translate }}</p>
+              }
+            </aside>
+          }
+          @case ('ranking-error') {
+            <div class="home-hero__content">
+              <span class="home-label home-label--cyan">{{ (seasonState.contextMode === 'active' ? 'home.hero.active' : 'home.hero.latestClosed') | translate }}</span>
+              <h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ seasonState.seasonName }}</strong></h1>
+              <p class="home-source-state home-source-state--error">{{ 'home.hero.rankingError' | translate }}</p>
+              <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(seasonState.seasonSlug, seasonState.contextMode)">{{ 'home.hero.viewSeason' | translate }}</a>
+            </div>
+          }
+          @case ('loading') {
+            <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>{{ 'home.hero.loadingTitle' | translate }}</span><strong>{{ 'home.hero.loadingEmphasis' | translate }}</strong></h1></div>
+          }
+          @case ('empty') {
+            <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ 'home.hero.seasons' | translate }}</strong></h1><p class="home-source-state">{{ 'home.hero.empty' | translate }}</p></div>
+          }
+          @case ('seasons-error') {
+            <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ 'home.hero.seasons' | translate }}</strong></h1><p class="home-source-state home-source-state--error">{{ 'home.hero.seasonsError' | translate }}</p></div>
+          }
         }
-        @case ('ranking-error') {
-          <div class="home-hero__content">
-            <span class="home-label home-label--cyan">{{ (seasonState.contextMode === 'active' ? 'home.hero.active' : 'home.hero.latestClosed') | translate }}</span>
-            <h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ seasonState.seasonName }}</strong></h1>
-            <p class="home-source-state home-source-state--error">{{ 'home.hero.rankingError' | translate }}</p>
-            <a class="home-action home-action--secondary" [routerLink]="seasonOverviewLink(seasonState.seasonSlug, seasonState.contextMode)">{{ 'home.hero.viewSeason' | translate }}</a>
-          </div>
-        }
-        @case ('loading') {
-          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>{{ 'home.hero.loadingTitle' | translate }}</span><strong>{{ 'home.hero.loadingEmphasis' | translate }}</strong></h1></div>
-        }
-        @case ('empty') {
-          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ 'home.hero.seasons' | translate }}</strong></h1><p class="home-source-state">{{ 'home.hero.empty' | translate }}</p></div>
-        }
-        @case ('seasons-error') {
-          <div class="home-hero__content"><span class="home-label home-label--cyan">HSC COMPETITIVE</span><h1 id="home-title" class="home-hero__title"><span>HSC Competitive</span><strong>{{ 'home.hero.seasons' | translate }}</strong></h1><p class="home-source-state home-source-state--error">{{ 'home.hero.seasonsError' | translate }}</p></div>
-        }
-      }
+      </div>
+      <div class="home-scroll-cue" aria-hidden="true"><svg lucideChevronDown></svg></div>
     </section>
   }
 
-  <section class="home-section" aria-labelledby="happening-title">
-    <div class="home-section__heading"><span class="home-label home-label--live">{{ 'home.now.eyebrow' | translate }}</span><h2 id="happening-title">{{ 'home.now.title' | translate }}</h2></div>
-    <div class="home-now-grid">
-      <article class="home-panel home-panel--match">
-        <span class="home-label home-label--cyan">{{ 'home.now.latestMatch' | translate }}</span>
-        @if (matchesState$ | async; as matchesState) {
-          @if (matchesState.status === 'ready') {
-            @let match = matchesState.data[0];
-            <div class="home-scoreline">
-              <span [class.home-scoreline__winner]="match.winnerName !== null && match.team1Name !== null && match.winnerName === match.team1Name">{{ match.team1Name ?? '—' }}</span>
-              <strong>{{ match.team1Score }} <small>×</small> {{ match.team2Score }}</strong>
-              <span [class.home-scoreline__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</span>
-            </div>
-            <div class="home-meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
-            <a class="home-inline-link" [routerLink]="['/matches', match.matchId]">{{ 'home.now.details' | translate }}</a>
-          } @else if (matchesState.status === 'loading') {
-            <p class="home-empty">{{ 'home.now.matchesLoading' | translate }}</p>
-          } @else if (matchesState.status === 'error') {
-            <p class="home-empty">{{ 'home.now.matchesError' | translate }}</p>
-          } @else {
-            <p class="home-empty">{{ 'home.now.matchesEmpty' | translate }}</p>
+  <section #motionSection class="home-section home-section--now" data-motion="now" aria-labelledby="happening-title">
+    <div class="home-section__inner">
+      <div class="home-section__heading"><span class="home-label home-label--live">{{ 'home.now.eyebrow' | translate }}</span><h2 id="happening-title">{{ 'home.now.title' | translate }}</h2></div>
+      <span class="home-now-accent" aria-hidden="true"></span>
+      <div class="home-now-grid">
+        <article class="home-panel home-panel--ranking home-leaderboard">
+          <span class="home-label home-label--orange">{{ 'home.now.topThree' | translate }}</span>
+          @if (seasonState$ | async; as rankingState) {
+            @if (rankingState.status === 'ready' && rankingState.data.topPlayers.length > 0) {
+              <div class="home-leaderboard__table" role="region" [attr.aria-label]="'home.now.topThree' | translate">
+                <div class="home-leaderboard__cols-header" aria-hidden="true">
+                  <span class="home-leaderboard__col-rank">#</span>
+                  <span class="home-leaderboard__col-player">{{ 'home.now.playerCol' | translate }}</span>
+                  <span class="home-leaderboard__col-kd">K/D</span>
+                  <span class="home-leaderboard__col-wins">{{ 'home.now.winsShort' | translate }}</span>
+                  <span class="home-leaderboard__col-losses">{{ 'home.now.lossesShort' | translate }}</span>
+                  <span class="home-leaderboard__col-score">Score</span>
+                </div>
+                <ol class="home-leaderboard__list">
+                  @for (player of rankingState.data.topPlayers; track player.steamId64) {
+                    <li class="home-leaderboard__row" [class.home-leaderboard__row--first]="player.position === 1">
+                      <div class="home-leaderboard__rank-cell">
+                        <span class="home-leaderboard__position">#{{ player.position }}</span>
+                      </div>
+                      <div class="home-leaderboard__player-cell">
+                        @if (player.position === 1) {
+                          <svg lucideCrown class="home-leaderboard__crown" aria-hidden="true"></svg>
+                        }
+                        <app-player-avatar [imageUrl]="player.avatarUrl" [displayName]="player.name" />
+                        <div class="home-leaderboard__player-meta">
+                          <span class="home-leaderboard__name">{{ player.name }}</span>
+                          <span class="home-leaderboard__steam" [title]="player.steamId64" [attr.aria-label]="'Steam ID: ' + player.steamId64">
+                            <small>Steam ID</small> <code>{{ player.steamId64 }}</code>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="home-leaderboard__stat-cell home-leaderboard__stat-cell--kd">
+                        <span class="home-leaderboard__metric-label" aria-hidden="true">K/D</span>
+                        <span class="home-leaderboard__metric-value">{{ player.kdRatio | number:'1.2-2' }}</span>
+                      </div>
+                      <div class="home-leaderboard__stat-cell home-leaderboard__stat-cell--wins">
+                        <span class="home-leaderboard__metric-label" aria-hidden="true">{{ 'home.now.winsShort' | translate }}</span>
+                        <span class="home-leaderboard__metric-value">{{ player.wins }}</span>
+                      </div>
+                      <div class="home-leaderboard__stat-cell home-leaderboard__stat-cell--losses">
+                        <span class="home-leaderboard__metric-label" aria-hidden="true">{{ 'home.now.lossesShort' | translate }}</span>
+                        <span class="home-leaderboard__metric-value">{{ player.losses }}</span>
+                      </div>
+                      <div class="home-leaderboard__stat-cell home-leaderboard__stat-cell--score">
+                        <span class="home-leaderboard__metric-label" aria-hidden="true">Score</span>
+                        <strong class="home-leaderboard__metric-value home-leaderboard__metric-value--score">{{ player.score | number:'1.0-2' }}</strong>
+                      </div>
+                    </li>
+                  }
+                </ol>
+              </div>
+            } @else if (rankingState.status === 'loading') {
+              <p class="home-empty">{{ 'home.now.rankingLoading' | translate }}</p>
+            } @else if (rankingState.status === 'ranking-error') {
+              <p class="home-empty">{{ 'home.now.rankingError' | translate }}</p>
+            } @else {
+              <p class="home-empty">{{ 'home.now.rankingEmpty' | translate }}</p>
+            }
           }
-        }
-      </article>
+        </article>
 
-      <article class="home-panel home-panel--ranking">
-        <span class="home-label home-label--orange">{{ 'home.now.topThree' | translate }}</span>
-        @if (seasonState$ | async; as rankingState) {
-          @if (rankingState.status === 'ready' && rankingState.data.topPlayers.length > 0) {
-            <ol class="home-top-list">
-              @for (player of rankingState.data.topPlayers; track player.steamId64) {
-                <li><strong>#{{ player.position }}</strong><app-player-avatar [imageUrl]="player.avatarUrl" [displayName]="player.name" /><span>{{ player.name }}</span><small>{{ player.score | number:'1.0-2' }} {{ 'home.points' | translate }}</small></li>
-              }
-            </ol>
-          } @else if (rankingState.status === 'loading') {
-            <p class="home-empty">{{ 'home.now.rankingLoading' | translate }}</p>
-          } @else if (rankingState.status === 'ranking-error') {
-            <p class="home-empty">{{ 'home.now.rankingError' | translate }}</p>
-          } @else {
-            <p class="home-empty">{{ 'home.now.rankingEmpty' | translate }}</p>
+        <article class="home-panel home-panel--match home-latest-match">
+          <img class="home-latest-match__background" src="assets/img/backgrounds/pages/cs2-banner-1.jpg" alt="" aria-hidden="true">
+          <span class="home-latest-match__badge">{{ 'home.now.latestMatch' | translate }}</span>
+          @if (matchesState$ | async; as matchesState) {
+            @if (matchesState.status === 'ready') {
+              @let match = matchesState.data[0];
+              <div class="home-latest-match__teams">
+                <span class="home-scoreboard__team" [class.home-scoreboard__winner]="match.winnerName !== null && match.team1Name !== null && match.winnerName === match.team1Name">{{ match.team1Name ?? '—' }}</span>
+                <span class="home-latest-match__versus" aria-hidden="true">VS</span>
+                <span class="home-scoreboard__team home-scoreboard__team--right" [class.home-scoreboard__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</span>
+              </div>
+              <strong class="home-scoreboard__score"><span>{{ match.team1Score }}</span><small>×</small><span>{{ match.team2Score }}</span></strong>
+              <div class="home-meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
+              <a class="home-inline-link" [routerLink]="['/matches', match.matchId]">{{ 'home.now.details' | translate }}</a>
+            } @else if (matchesState.status === 'loading') {
+              <p class="home-empty">{{ 'home.now.matchesLoading' | translate }}</p>
+            } @else if (matchesState.status === 'error') {
+              <p class="home-empty">{{ 'home.now.matchesError' | translate }}</p>
+            } @else {
+              <p class="home-empty">{{ 'home.now.matchesEmpty' | translate }}</p>
+            }
           }
-        }
-      </article>
-
-      <article class="home-panel home-panel--notice">
-        <span class="home-label home-label--cyan">{{ 'home.now.newsLabel' | translate }}</span>
-        @if (newsState$ | async; as newsState) {
-          @if (newsState.status === 'ready') {
-            @let notice = newsState.data[0];
-            @if (formatDate(notice.publishedAt); as date) { <time class="home-notice__date">{{ date }}</time> }
-            <h3>{{ notice.title }}</h3>
-            @if (notice.excerpt) { <p>{{ notice.excerpt }}</p> }
-            <a class="home-inline-link" [routerLink]="['/news', notice.slug]">{{ 'home.now.readNews' | translate }}</a>
-          } @else if (newsState.status === 'loading') {
-            <p class="home-empty">{{ 'home.now.newsLoading' | translate }}</p>
-          } @else if (newsState.status === 'error') {
-            <p class="home-empty">{{ 'home.now.newsError' | translate }}</p>
-          } @else {
-            <p class="home-empty">{{ 'home.now.newsEmpty' | translate }}</p>
-          }
-        }
-      </article>
+        </article>
+      </div>
     </div>
   </section>
 
-  <section class="home-section" aria-labelledby="recent-title">
-    <div class="home-section__heading"><span class="home-label home-label--cyan">{{ 'home.recent.eyebrow' | translate }}</span><h2 id="recent-title">{{ 'home.recent.title' | translate }}</h2></div>
-    @if (matchesState$ | async; as recentState) {
-      @if (recentState.status === 'ready') {
-        <div class="home-matches-list">
-          @for (match of recentState.data; track match.matchId) {
-            <a class="home-match-row" [routerLink]="['/matches', match.matchId]">
-              <div class="home-match-row__team home-match-row__team--left" [class.home-match-row__winner]="match.winnerName !== null && match.team1Name !== null && match.winnerName === match.team1Name">{{ match.team1Name ?? '—' }}</div>
-              <div class="home-match-row__score"><strong>{{ match.team1Score }}</strong><span>×</span><strong>{{ match.team2Score }}</strong></div>
-              <div class="home-match-row__team" [class.home-match-row__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</div>
-              <div class="home-match-row__meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
-            </a>
-          }
-        </div>
-      } @else if (recentState.status === 'loading') {
-        <div class="home-panel"><p class="home-empty">{{ 'home.recent.loading' | translate }}</p></div>
-      } @else if (recentState.status === 'error') {
-        <div class="home-panel"><p class="home-empty">{{ 'home.recent.error' | translate }}</p></div>
-      } @else {
-        <div class="home-panel"><p class="home-empty">{{ 'home.recent.empty' | translate }}</p></div>
+  <section #motionSection class="home-section home-section--recent" data-motion="recent" aria-labelledby="recent-title">
+    <img class="home-structural-background home-structural-background--recent" src="assets/img/backgrounds/pages/cs2-banner-2.jpg" alt="" aria-hidden="true">
+    <div class="home-section__inner">
+      <div class="home-section__heading"><span class="home-label home-label--cyan">{{ 'home.recent.eyebrow' | translate }}</span><h2 id="recent-title">{{ 'home.recent.title' | translate }}</h2></div>
+      @if (matchesState$ | async; as recentState) {
+        @if (recentState.status === 'ready') {
+          <div class="home-matches-list">
+            @for (match of recentState.data; track match.matchId) {
+              <a class="home-match-row" [routerLink]="['/matches', match.matchId]">
+                <div class="home-match-row__team home-match-row__team--left" [class.home-match-row__winner]="match.winnerName !== null && match.team1Name !== null && match.winnerName === match.team1Name">{{ match.team1Name ?? '—' }}</div>
+                <div class="home-match-row__score"><strong>{{ match.team1Score }}</strong><span>×</span><strong>{{ match.team2Score }}</strong></div>
+                <div class="home-match-row__team" [class.home-match-row__winner]="match.winnerName !== null && match.team2Name !== null && match.winnerName === match.team2Name">{{ match.team2Name ?? '—' }}</div>
+                <div class="home-match-row__meta">@if (mapLabel(match); as maps) { <span>{{ maps }}</span> } @if (matchDate(match); as date) { <time>{{ date }}</time> }</div>
+              </a>
+            }
+          </div>
+        } @else if (recentState.status === 'loading') {
+          <div class="home-panel"><p class="home-empty">{{ 'home.recent.loading' | translate }}</p></div>
+        } @else if (recentState.status === 'error') {
+          <div class="home-panel"><p class="home-empty">{{ 'home.recent.error' | translate }}</p></div>
+        } @else {
+          <div class="home-panel"><p class="home-empty">{{ 'home.recent.empty' | translate }}</p></div>
+        }
       }
-    }
+    </div>
   </section>
 
-  <section class="home-player-cta" aria-labelledby="player-area-title">
-    <div><span class="home-label home-label--orange">{{ 'home.playerArea.eyebrow' | translate }}</span><h2 id="player-area-title">{{ 'home.playerArea.title' | translate }}</h2><p>{{ 'home.playerArea.description' | translate }}</p></div>
-    <a class="home-action home-action--orange" routerLink="/area-do-jogador">{{ playerAreaLabelKey() | translate }}</a>
+  <section #motionSection class="home-player-cta" data-motion="player" aria-labelledby="player-area-title">
+    <img class="home-structural-background home-structural-background--player" src="assets/img/backgrounds/pages/cs2-banner-home-player-area-alternative.png" alt="" aria-hidden="true">
+    <div class="home-player-cta__inner">
+      <div class="home-player-cta__content"><span class="home-label home-label--orange">{{ 'home.playerArea.eyebrow' | translate }}</span><h2 id="player-area-title">{{ 'home.playerArea.title' | translate }}</h2><p>{{ 'home.playerArea.description' | translate }}</p></div>
+      <a class="home-action home-action--orange" routerLink="/area-do-jogador">{{ playerAreaLabelKey() | translate }}</a>
+    </div>
   </section>
 
   @if (newsState$ | async; as newsSectionState) {
     @if (newsSectionState.status === 'ready') {
-      <section class="home-section" aria-labelledby="news-title">
-        <div class="home-section__heading"><span class="home-label home-label--cyan">{{ 'home.news.eyebrow' | translate }}</span><h2 id="news-title">{{ 'home.news.title' | translate }}</h2></div>
-        <div class="home-news-grid">
-          @for (item of newsSectionState.data; track item.slug) {
-            <a class="home-news-card" [routerLink]="['/news', item.slug]">
-              @if (item.imageUrl) { <img [src]="item.imageUrl" [alt]="item.title"> }
-              <div class="home-news-card__body">
-                @if (formatDate(item.publishedAt); as date) { <time>{{ date }}</time> }
-                <h3>{{ item.title }}</h3>
-                @if (item.excerpt) { <p>{{ item.excerpt }}</p> }
-                <span>{{ 'home.news.readMore' | translate }}</span>
-              </div>
-            </a>
-          }
+      <section #motionSection class="home-section home-section--news" data-motion="news" aria-labelledby="news-title">
+        <div class="home-section__inner">
+          <div class="home-section__heading"><span class="home-label home-label--cyan">{{ 'home.news.eyebrow' | translate }}</span><h2 id="news-title">{{ 'home.news.title' | translate }}</h2></div>
+          <div class="home-news-grid">
+            @for (item of newsSectionState.data; track item.slug) {
+              <a class="home-news-card" [class.home-news-card--without-image]="!item.imageUrl" [routerLink]="['/news', item.slug]">
+                @if (item.imageUrl) { <img class="home-news-card__media" [src]="item.imageUrl" alt="" aria-hidden="true"> }
+                <div class="home-news-card__body">
+                  @if (formatDate(item.publishedAt); as date) { <time>{{ date }}</time> }
+                  <h3>{{ item.title }}</h3>
+                  @if (item.excerpt) { <p>{{ item.excerpt }}</p> }
+                  <span>{{ 'home.news.readMore' | translate }}</span>
+                </div>
+              </a>
+            }
+          </div>
         </div>
       </section>
     }
