@@ -65,7 +65,6 @@ export class MatchRoomDraftPanel {
     if (
       !this.canDraftPick() ||
       this.draft().phase !== 'PICKING' ||
-      this.isWindowClosed() ||
       this.pendingPlayerAccountId() !== null
     ) {
       return;

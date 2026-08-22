@@ -90,7 +90,7 @@
         @for (id of draft().availablePlayerAccountIds; track id) {
           @let participant = participantMap().get(id) ?? null;
           @let isPending = pendingPlayerAccountId() === id;
-          @let canPickThis = canDraftPick() && draft().phase === 'PICKING' && !isWindowClosed() && pendingPlayerAccountId() === null;
+          @let canPickThis = canDraftPick() && draft().phase === 'PICKING' && pendingPlayerAccountId() === null;
 
           <div
             class="draft-candidate-card"

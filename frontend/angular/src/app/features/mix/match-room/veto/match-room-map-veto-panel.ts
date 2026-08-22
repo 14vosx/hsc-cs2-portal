@@ -80,7 +80,6 @@ export class MatchRoomMapVetoPanel {
     if (
       !this.canMapVetoBan() ||
       this.mapVeto().phase !== 'BANNING' ||
-      this.isWindowClosed() ||
       this.pendingMapKey() !== null ||
       !this.mapVeto().availableMapKeys.includes(mapKey)
     ) {
