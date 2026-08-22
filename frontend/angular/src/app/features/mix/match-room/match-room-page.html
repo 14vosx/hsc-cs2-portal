@@ -201,7 +201,7 @@
               <button
                 type="button"
                 class="room-btn room-btn--accent room-btn--lg"
-                [disabled]="isPerformingAction() || isConfirmBlocked()"
+                [disabled]="isPerformingAction()"
                 (click)="onConfirmPresence()"
               >
                 @if (isPerformingAction()) {

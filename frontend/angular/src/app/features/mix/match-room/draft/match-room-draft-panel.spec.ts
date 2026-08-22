@@ -245,4 +245,27 @@ describe('MatchRoomDraftPanel', () => {
     const pendingCard = fix.nativeElement.querySelector('.draft-candidate-card--pending');
     expect(pendingCard.getAttribute('aria-busy')).toBe('true');
   });
+
+  it('13. com canDraftPick=true e isWindowClosed=true, botão de pick continua habilitado e emite pickPlayer (clock skew)', () => {
+    const draft = createDraftSnapshot();
+    const fix = setup(draft, participants, true, '00:00', true);
+
+    const pickSpy = vi.fn();
+    fix.componentInstance.pickPlayer.subscribe(pickSpy);
+
+    const pickButtons = fix.nativeElement.querySelectorAll('.draft-btn--pick');
+    expect(pickButtons.length).toBe(2);
+    expect(pickButtons[0].disabled).toBe(false);
+
+    pickButtons[0].click();
+    expect(pickSpy).toHaveBeenCalledWith('p3');
+  });
+
+  it('14. com canDraftPick=false mesmo com isWindowClosed=false, não renderiza botões de pick', () => {
+    const draft = createDraftSnapshot();
+    const fix = setup(draft, participants, false, '00:30', false);
+
+    const pickButtons = fix.nativeElement.querySelectorAll('.draft-btn--pick');
+    expect(pickButtons.length).toBe(0);
+  });
 });

@@ -97,7 +97,7 @@
         @let isBanned = action !== null;
         @let isAvailable = mapVeto().availableMapKeys.includes(map.key);
         @let isPending = pendingMapKey() === map.key;
-        @let canBanThis = canMapVetoBan() && mapVeto().phase === 'BANNING' && !isWindowClosed() && isAvailable && !isBanned && !isSelected && pendingMapKey() === null;
+        @let canBanThis = canMapVetoBan() && mapVeto().phase === 'BANNING' && isAvailable && !isBanned && !isSelected && pendingMapKey() === null;
         @let actorParticipant = action ? participantMap().get(action.actorPlayerAccountId) ?? null : null;
 
         <div

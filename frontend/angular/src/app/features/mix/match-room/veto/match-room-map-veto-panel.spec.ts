@@ -406,5 +406,28 @@ describe('MatchRoomMapVetoPanel', () => {
     expect(cards[1].style.backgroundImage).toContain('map-images/de_mirage.png');
     expect(cards[2].style.backgroundImage).toContain('map-images/de_nuke.png');
   });
+
+  it('19. com canMapVetoBan=true e isWindowClosed=true, botões de ban continuam habilitados e emitem banMap (clock skew)', () => {
+    const veto = createMapVetoSnapshot();
+    const fix = setup(veto, participants, true, '00:00', true);
+
+    const banSpy = vi.fn();
+    fix.componentInstance.banMap.subscribe(banSpy);
+
+    const banButtons = fix.nativeElement.querySelectorAll('.veto-btn--ban');
+    expect(banButtons.length).toBe(3);
+    expect(banButtons[0].disabled).toBe(false);
+
+    banButtons[0].click();
+    expect(banSpy).toHaveBeenCalledWith('de_inferno');
+  });
+
+  it('20. com canMapVetoBan=false mesmo com isWindowClosed=false, não renderiza botões de ban', () => {
+    const veto = createMapVetoSnapshot();
+    const fix = setup(veto, participants, false, '00:30', false);
+
+    const banButtons = fix.nativeElement.querySelectorAll('.veto-btn--ban');
+    expect(banButtons.length).toBe(0);
+  });
 });
 

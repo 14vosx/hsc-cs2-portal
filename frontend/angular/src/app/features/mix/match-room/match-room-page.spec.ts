@@ -495,7 +495,7 @@ describe('MatchRoomPage', () => {
       expect(fixture.nativeElement.textContent).toContain('2 DE 10 CONFIRMADOS');
     });
 
-    it('quando countdown chega a zero: não altera status localmente, bloqueia click e dispara refresh one-shot', () => {
+    it('quando countdown chega a zero: não altera status localmente e dispara refresh one-shot', () => {
       const pastDeadline = new Date(Date.now() - 5000).toISOString();
       const snap = createRoomSnapshot('CONFIRMING', 1, {
         deadlineAt: pastDeadline,
@@ -516,6 +516,44 @@ describe('MatchRoomPage', () => {
       // Advancing timer ticks does NOT spam GET because of one-shot key
       vi.advanceTimersByTime(1000);
       expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+    });
+
+    it('clock skew em CONFIRMING: se deadline local expirou mas canConfirm=true no snapshot, confirmação é permitida e dispara API', () => {
+      const pastDeadline = new Date(Date.now() - 5000).toISOString();
+      const snap = createRoomSnapshot('CONFIRMING', 1, {
+        deadlineAt: pastDeadline,
+        canConfirm: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+      matchRoomApiMock.confirmMatchRoom.mockReturnValue(
+        of(createRoomSnapshot('CONFIRMING', 2, { canConfirm: false, confirmedCount: 2 })),
+      );
+
+      fixture = setupFixture();
+
+      const confirmBtn = fixture.nativeElement.querySelector('.room-btn--accent');
+      expect(confirmBtn).not.toBeNull();
+      expect(confirmBtn.disabled).toBe(false);
+
+      confirmBtn.click();
+      expect(matchRoomApiMock.confirmMatchRoom).toHaveBeenCalledWith('room-test-123');
+    });
+
+    it('inverso em CONFIRMING: mesmo com countdown positivo, se canConfirm=false a confirmação não ocorre', () => {
+      const futureDeadline = new Date(Date.now() + 30000).toISOString();
+      const snap = createRoomSnapshot('CONFIRMING', 1, {
+        deadlineAt: futureDeadline,
+        canConfirm: false,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const confirmBtn = fixture.nativeElement.querySelector('.room-btn--accent');
+      expect(confirmBtn).toBeNull();
+
+      fixture.componentInstance['onConfirmPresence']();
+      expect(matchRoomApiMock.confirmMatchRoom).not.toHaveBeenCalled();
     });
 
     it('novo round/deadline permite novo countdown e novo zero refresh', () => {
@@ -732,6 +770,58 @@ describe('MatchRoomPage', () => {
       // Extra ticks do not spam GET because of window key
       vi.advanceTimersByTime(1000);
       expect(matchRoomApiMock.getMatchRoom).toHaveBeenCalledTimes(2);
+    });
+
+    it('6. clock skew no Draft: se deadline local expirou mas canDraftPick=true, pick é permitido e dispara API', () => {
+      const expiredDraft = {
+        ...validDraft,
+        pickDeadlineAt: new Date(Date.now() - 5000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: expiredDraft,
+        participants: draftParticipants,
+        canDraftPick: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+      matchRoomApiMock.draftPick.mockReturnValue(
+        of(
+          createRoomSnapshot('SETUP', 2, {
+            draft: { ...expiredDraft, availablePlayerAccountIds: [] },
+            participants: draftParticipants,
+            canDraftPick: false,
+          }),
+        ),
+      );
+
+      fixture = setupFixture();
+
+      const pickBtn = fixture.nativeElement.querySelector('.draft-btn--pick');
+      expect(pickBtn).not.toBeNull();
+      expect(pickBtn.disabled).toBe(false);
+
+      pickBtn.click();
+      expect(matchRoomApiMock.draftPick).toHaveBeenCalledWith('room-test-123', 'player-3');
+    });
+
+    it('7. inverso no Draft: mesmo com countdown positivo, se canDraftPick=false o pick não ocorre', () => {
+      const futureDraft = {
+        ...validDraft,
+        pickDeadlineAt: new Date(Date.now() + 30000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        draft: futureDraft,
+        participants: draftParticipants,
+        canDraftPick: false,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const pickBtn = fixture.nativeElement.querySelector('.draft-btn--pick');
+      expect(pickBtn).toBeNull();
+
+      fixture.componentInstance['onDraftPick']('player-3');
+      expect(matchRoomApiMock.draftPick).not.toHaveBeenCalled();
     });
   });
 
@@ -1000,6 +1090,58 @@ describe('MatchRoomPage', () => {
       expect(fixture.nativeElement.textContent).toContain('Mapa definido. Preparando a partida.');
       expect(fixture.nativeElement.textContent).toContain('Nuke');
       expect(fixture.nativeElement.querySelectorAll('.veto-btn--ban').length).toBe(0);
+    });
+
+    it('9. clock skew no Map Veto: se deadline local expirou mas canMapVetoBan=true, veto é permitido e dispara API', () => {
+      const expiredVeto = {
+        ...validMapVeto,
+        actionDeadlineAt: new Date(Date.now() - 5000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: expiredVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: true,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+      matchRoomApiMock.mapVetoBan.mockReturnValue(
+        of(
+          createRoomSnapshot('SETUP', 2, {
+            mapVeto: { ...expiredVeto, availableMapKeys: ['de_mirage', 'de_nuke'] },
+            participants: vetoParticipants,
+            canMapVetoBan: false,
+          }),
+        ),
+      );
+
+      fixture = setupFixture();
+
+      const banBtn = fixture.nativeElement.querySelector('.veto-btn--ban');
+      expect(banBtn).not.toBeNull();
+      expect(banBtn.disabled).toBe(false);
+
+      banBtn.click();
+      expect(matchRoomApiMock.mapVetoBan).toHaveBeenCalledWith('room-test-123', 'de_inferno');
+    });
+
+    it('10. inverso no Map Veto: mesmo com countdown positivo, se canMapVetoBan=false o veto não ocorre', () => {
+      const futureVeto = {
+        ...validMapVeto,
+        actionDeadlineAt: new Date(Date.now() + 30000).toISOString(),
+      };
+      const snap = createRoomSnapshot('SETUP', 1, {
+        mapVeto: futureVeto,
+        participants: vetoParticipants,
+        canMapVetoBan: false,
+      });
+      matchRoomApiMock.getMatchRoom.mockReturnValue(of(snap));
+
+      fixture = setupFixture();
+
+      const banBtn = fixture.nativeElement.querySelector('.veto-btn--ban');
+      expect(banBtn).toBeNull();
+
+      fixture.componentInstance['onMapVetoBan']('de_inferno');
+      expect(matchRoomApiMock.mapVetoBan).not.toHaveBeenCalled();
     });
   });
 

@@ -445,7 +445,6 @@ export class MatchRoomPage implements OnInit {
     if (
       !snap ||
       !snap.viewer.actions.canConfirm ||
-      this.isConfirmBlocked() ||
       this.isPerformingAction()
     ) {
       return;
@@ -476,7 +475,6 @@ export class MatchRoomPage implements OnInit {
       snap.room.draft.phase !== 'PICKING' ||
       !snap.viewer.actions.canDraftPick ||
       !snap.room.draft.availablePlayerAccountIds.includes(playerAccountId) ||
-      this.isDraftWindowClosed() ||
       this.isPerformingAction()
     ) {
       return;
@@ -510,7 +508,6 @@ export class MatchRoomPage implements OnInit {
       snap.room.mapVeto.phase !== 'BANNING' ||
       !snap.viewer.actions.canMapVetoBan ||
       !snap.room.mapVeto.availableMapKeys.includes(mapKey) ||
-      this.isMapVetoWindowClosed() ||
       this.isPerformingAction()
     ) {
       return;
